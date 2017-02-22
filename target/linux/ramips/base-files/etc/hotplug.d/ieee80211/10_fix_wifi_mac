@@ -1,0 +1,36 @@
+#!/bin/sh
+
+[ "$ACTION" = "add" ] || exit 0
+
+PHYNBR=${DEVPATH##*/phy}
+
+[ -n "$PHYNBR" ] || exit 0
+
+. /lib/functions.sh
+. /lib/functions/system.sh
+. /lib/ramips.sh
+
+macaddr_unsetbit() {
+	local mac=$1
+	local bit=$2
+
+	local first=${mac%%:*}
+	local rest=${mac#*:}
+
+	first=$((0x$first & ~(1 << $bit)))
+	first=$(printf "%02x" $first)
+
+	echo "$first:$rest"
+}
+
+board=$(ramips_board_name)
+
+case "$board" in
+	hc5962)
+		label_mac=$(mtd_get_mac_ascii bdinfo "Vfac_mac ")
+		[ "$PHYNBR" = "0" ] && [ -n "$label_mac" ] && \
+		echo -n "$label_mac" > /sys${DEVPATH}/macaddress
+		[ "$PHYNBR" = "1" ] && [ -n "$label_mac" ] && \
+		macaddr_unsetbit "$label_mac" 6 > /sys${DEVPATH}/macaddress
+		;;
+esac
