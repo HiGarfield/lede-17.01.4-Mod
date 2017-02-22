@@ -4,6 +4,20 @@
 . /lib/ramips.sh
 . /lib/functions/system.sh
 
+
+macaddr_unsetbit() {
+	local mac=$1
+	local bit=$2
+
+	local first=${mac%%:*}
+	local rest=${mac#*:}
+
+	first=$((0x$first & ~(1 << $bit)))
+	first=$(printf "%02x" $first)
+
+	echo "$first:$rest"
+}
+
 set_link7_wireless_mac_addr() {
     local factory_part=$(find_mtd_chardev factory)
     local hash_hex=$(dd if="$factory_part" 2>/dev/null | sha256sum |
@@ -28,10 +42,29 @@ EOF
     wifi reload
 }
 
+set_hc5962_wireless_mac_addr() {
+	local label_mac="$(mtd_get_mac_ascii bdinfo "Vfac_mac ")"
+	local wifi0_mac="$label_mac"
+	local wifi0_ssid="LEDE_$(echo "$wifi0_mac" | awk -F ':' '{print toupper($5$6)}')"
+	local wifi1_mac="$(macaddr_unsetbit "$label_mac" 6)"
+	local wifi1_ssid="LEDE_$(echo "$wifi1_mac" | awk -F ':' '{print toupper($5$6)}')_5G"
+
+	uci -q batch <<-EOF >/dev/null
+		set wireless.@wifi-iface[0].macaddr='$wifi0_mac'
+		set wireless.default_radio0.ssid='$wifi0_ssid'
+		set wireless.@wifi-iface[1].macaddr='$wifi1_mac'
+		set wireless.default_radio1.ssid='$wifi1_ssid'
+		commit wireless
+	EOF
+}
+
 board=$(ramips_board_name)
 
 case "$board" in
 link7)
     set_link7_wireless_mac_addr
     ;;
+hc5962)
+	set_hc5962_wireless_mac_addr
+	;;
 esac
