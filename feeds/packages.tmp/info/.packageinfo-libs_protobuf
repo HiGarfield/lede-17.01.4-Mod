@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/libs/protobuf/Makefile
+Package: protobuf
+Version: 2.6.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libpthread +libstdcpp
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: protobuf/host
+Build-Types: host
+Section: libs
+Category: Libraries
+Repository: base
+Title: A structured data encoding library
+Maintainer: Jacob Siverskog <jacob@teenageengineering.com>
+Source: protobuf-2.6.1.tar.bz2
+License: BSD-3-Clause
+LicenseFiles: LICENSE
+Type: ipkg
+Description:  Protocol Buffers are a way of encoding structured data in an efficient
+ yet extensible format. Google uses Protocol Buffers for almost all
+ of its internal RPC protocols and file formats.
+http://code.google.com/p/protobuf/
+Jacob Siverskog <jacob@teenageengineering.com>
+@@
+
+

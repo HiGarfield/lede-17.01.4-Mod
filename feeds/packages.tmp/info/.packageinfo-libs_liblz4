@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/libs/liblz4/Makefile
+Package: liblz4
+Version: r131-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Repository: base
+Title: Extremely fast compression
+Maintainer: Darik Horn <dajhorn@vanadac.com>
+Source: liblz4-r131.tar.xz
+License: BSD-2-Clause
+Type: ipkg
+Description:   LZ4 is a compression codec that features a very fast encoder and an
+  even faster decoder. This package provides the liblz4 shared library.
+http://www.lz4.org/
+Darik Horn <dajhorn@vanadac.com>
+@@
+
+

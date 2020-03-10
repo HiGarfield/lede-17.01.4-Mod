@@ -1,0 +1,21 @@
+Source-Makefile: feeds/packages/net/luci-app-clamav/Makefile
+Package: luci-app-clamav
+Submenu: 3. Applications
+Version: 20150520
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci-mod-admin-full +clamav
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: ClamAV Web UI
+Maintainer: Marko Ratkaj <marko.ratkaj@sartura.hr>
+Source: 
+License: Apache-2.0
+Type: ipkg
+Description:  This package will install ClamAV Web UI.
+Marko Ratkaj <marko.ratkaj@sartura.hr>
+@@
+
+

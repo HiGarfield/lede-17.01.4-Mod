@@ -1,0 +1,66 @@
+Source-Makefile: feeds/packages/sound/pulseaudio/Makefile
+Package: pulseaudio-daemon
+Version: 9.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libspeexdsp +libsndfile +libltdl +libpthread +librt +alsa-lib +libopenssl +libwrap +libcap +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full +libjson-c
+Conflicts: 
+Menu-Depends: 
+Provides: pulseaudio
+Build-Depends: intltool/host !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: sound
+Category: Sound
+Repository: base
+Title: Network sound server
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Require-User: pulse=51:pulse=51
+Source: pulseaudio-9.0.tar.xz
+License: LGPL-2.1+
+LicenseFiles: GPL LICENSE
+Type: ipkg
+Description:     PulseAudio (formerly Polypaudio) is a cross-platform, networked sound server.
+http://www.pulseaudio.org
+Peter Wagner <tripolar@gmx.at>
+@@
+
+Package: pulseaudio-tools
+Version: 9.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libsndfile +pulseaudio
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: intltool/host !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: sound
+Category: Sound
+Repository: base
+Title: Tools for Pulseaudio
+Maintainer: 
+Source: pulseaudio-9.0.tar.xz
+License: LGPL-2.1+
+LicenseFiles: GPL LICENSE
+Type: ipkg
+Description: Tools for Pulseaudio
+http://www.pulseaudio.org
+
+@@
+
+Package: pulseaudio-profiles
+Version: 9.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +pulseaudio
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: intltool/host !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: sound
+Category: Sound
+Repository: base
+Title: Profiles for Pulseaudio
+Maintainer: 
+Source: pulseaudio-9.0.tar.xz
+License: LGPL-2.1+
+LicenseFiles: GPL LICENSE
+Type: ipkg
+Description: Profiles for Pulseaudio
+http://www.pulseaudio.org
+
+@@
+
+

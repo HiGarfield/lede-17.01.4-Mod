@@ -1,0 +1,25 @@
+Source-Makefile: feeds/packages/lang/python-pyptlib/Makefile
+Package: python-pyptlib
+Submenu: Python
+Version: 0.0.6-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-pyptlib
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: pyptlib-0.0.6.tar.gz
+License: BSD-3-Clause
+LicenseFiles: LICENSE
+Type: ipkg
+Description: A python implementation of the Pluggable Transports for Circumvention
+specification for Tor
+https://pypi.python.org/pypi/pyptlib
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

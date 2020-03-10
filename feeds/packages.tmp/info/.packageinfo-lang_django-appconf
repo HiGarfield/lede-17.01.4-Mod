@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/django-appconf/Makefile
+Package: django-appconf
+Submenu: Python
+Version: 1.0.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +django
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: A helper class for handling configuration defaults of packaged apps gracefully.
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: django-appconf-1.0.2.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:   A helper class for handling configuration defaults of packaged apps gracefully.
+http://django-appconf.readthedocs.org/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

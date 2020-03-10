@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/node-hid/Makefile
+Package: node-hid
+Submenu: Node.js
+Version: 0.5.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libusb-1.0 +hidapi +libstdcpp
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: node/host
+Section: lang
+Category: Languages
+Repository: base
+Title: Node.js package to access HID devices
+Maintainer: John Crispin <blogic@openwrt.org>
+Source: node-hid-0.5.1-35d830b7810c87d32484d0a346621568c4849441.tar.gz
+License: Custom
+Type: ipkg
+Description:  Node.js package to access HID devices
+https://github.com/node-hid/node-hid
+John Crispin <blogic@openwrt.org>
+@@
+
+

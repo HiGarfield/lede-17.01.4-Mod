@@ -1,0 +1,21 @@
+Source-Makefile: feeds/routing/luci-app-bmx6/Makefile
+Package: luci-app-bmx6
+Submenu: 3. Applications
+Version: 3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci-lib-json +luci-mod-admin-full +luci-lib-httpclient +bmx6
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: bmx6 configuration, status and visualization module
+Maintainer: Pau Escrich <p4u@dabax.net>
+Source: 
+License: GPL-2.0+
+Type: ipkg
+Description: 	bmx6 web application (status and configuration) for LuCi web interface
+Pau Escrich <p4u@dabax.net>
+@@
+
+

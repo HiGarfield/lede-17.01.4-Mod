@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/lang/python3-setuptools/Makefile
+Package: python3-setuptools
+Submenu: Python
+Version: 27.2.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3 +python3-dev +python3-lib2to3
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Tool for installing Python  packages.
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: setuptools-27.2.0.tar.gz
+License: PSF
+Type: ipkg
+Description: 	Easily download, build, install, upgrade, and uninstall Python  packages
+https://bitbucket.org/pypa/setuptools
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+

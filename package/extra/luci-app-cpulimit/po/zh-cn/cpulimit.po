@@ -1,0 +1,20 @@
+msgid "cpulimit"
+msgstr "CPU 使用率限制"
+
+msgid "Use cpulimit to limit CPU usage of a process."
+msgstr "利用 cpulimit 限制进程的 CPU 使用率"
+
+msgid "Settings"
+msgstr "设置"
+
+msgid "enable"
+msgstr "启用"
+
+msgid "exename"
+msgstr "应用程序名"
+
+msgid "name of the executable program file. CAN NOT BE A PATH!"
+msgstr "可执行文件名。切勿包含路径！"
+
+msgid "limit (%)"
+msgstr "使用率限制 (%)"

@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/utils/swig/Makefile
+Package: swig
+Version: 3.0.7-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Types: host
+Section: libs
+Category: Libraries
+Repository: base
+Title: swig binding generator
+Maintainer: John Crispin <blogic@openwrt.org>
+Source: swig-3.0.7.tar.gz
+License: GPL-3.0
+LicenseFiles: LICENSE
+Type: ipkg
+Build-Only: 1
+Description:   tool that generates bindings for various languages
+John Crispin <blogic@openwrt.org>
+@@
+
+

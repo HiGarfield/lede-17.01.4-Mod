@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/libs/libowfat/Makefile
+Package: libowfat
+Version: 0.30-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Repository: base
+Title: reimplemented libdjb under GPL
+Maintainer: Daniel Golle <daniel@makrotopia.org>
+Source: libowfat-0.30.tar.xz
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: reimplemented libdjb under GPL
+http://www.fefe.de/libowfat/
+Daniel Golle <daniel@makrotopia.org>
+@@
+
+

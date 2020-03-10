@@ -1,0 +1,11 @@
+#!/bin/sh
+
+board_name=$(cat /tmp/sysinfo/board_name 2>/dev/null)
+
+[ -n "$board_name" ] && uci -q batch <<-EOF
+	set samba.@samba[0].name="$board_name"
+	set samba.@samba[0].description="$board_name"
+	commit samba
+EOF
+
+exit 0

@@ -1,0 +1,27 @@
+Source-Makefile: feeds/packages/lang/python-six/Makefile
+Package: python-six
+Submenu: Python
+Version: 1.10.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-six
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: six-1.10.0.tar.gz
+License: MIT
+LicenseFiles: LICENSE
+Type: ipkg
+Description: Six is a Python 2 and 3 compatibility library.  It provides utility functions
+for smoothing over the differences between the Python versions with the goal of
+writing Python code that is compatible on both Python versions.  See the
+documentation for more information on what is provided.
+https://pypi.python.org/pypi/six
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

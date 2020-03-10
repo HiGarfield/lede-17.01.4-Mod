@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/lang/python-cryptography/Makefile
+Package: python-cryptography
+Submenu: Python
+Version: 1.5.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +python +python-cffi +python-enum34 +python-idna +python-ipaddress +python-pyasn1 +python-six +python-setuptools
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python-cffi/host
+Section: lang
+Category: Languages
+Repository: base
+Title: python-cryptography
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: cryptography-1.5.1.tar.gz
+License: Apache-2.0 BSD-3-Clause
+LicenseFiles: LICENSE.APACHE LICENSE.BSD
+Type: ipkg
+Description: cryptography is a package which provides cryptographic recipes and
+primitives to Python developers.  Our goal is for it to be your "cryptographic
+standard library". It supports Python 2.6-2.7, Python 3.3+, and PyPy 2.6+.
+https://github.com/pyca/cryptography
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

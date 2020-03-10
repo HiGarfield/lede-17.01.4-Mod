@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/django-constance/Makefile
+Package: django-constance
+Submenu: Python
+Version: 1.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +django
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: Django live settings with pluggable backends, including Redis.
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: django-constance-1.2.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:   Django live settings with pluggable backends, including Redis.
+https://github.com/jazzband/django-constance
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

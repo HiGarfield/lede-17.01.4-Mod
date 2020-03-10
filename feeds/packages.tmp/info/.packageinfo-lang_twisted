@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/lang/twisted/Makefile
+Package: twisted
+Submenu: Python
+Version: 16.4.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +zope-interface
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools USE_MUSL:librpc
+Section: lang
+Category: Languages
+Repository: base
+Title: Python networking engine
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: Twisted-16.4.1.tar.bz2
+License: MIT
+LicenseFiles: LICENSE
+Type: ipkg
+Description:  Twisted is a networking engine written in Python, supporting numerous
+ protocols. It contains a web server, numerous chat clients, chat servers,
+ mail servers, and more.
+http://twistedmatrix.com/
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

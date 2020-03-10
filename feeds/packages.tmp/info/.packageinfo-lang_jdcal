@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/jdcal/Makefile
+Package: jdcal
+Submenu: Python
+Version: 1.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: Julian dates from proleptic Gregorian and Julian calendars.
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: jdcal-1.2.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:   Julian dates from proleptic Gregorian and Julian calendars.
+http://github.com/phn/jdcal
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

@@ -1,0 +1,11 @@
+if USE_GLIBC
+
+config GLIBC_VERSION
+	string
+	default "2.26" if GLIBC_VERSION_2_26
+
+config GLIBC_VERSION_2_26
+	default y if !TOOLCHAINOPTS
+	bool
+
+endif

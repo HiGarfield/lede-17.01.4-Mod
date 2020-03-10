@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/simplejson/Makefile
+Package: simplejson
+Submenu: Python
+Version: 3.10.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: Simple, fast, extensible JSON encoder/decoder for Python
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: simplejson-3.10.0.tar.gz
+License: MIT
+Type: ipkg
+Description:   Simple, fast, extensible JSON encoder/decoder for Python
+http://simplejson.readthedocs.org/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

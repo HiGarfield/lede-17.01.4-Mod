@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/admin/netdata/Makefile
+Package: netdata
+Version: 1.4.0-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libuuid
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: admin
+Category: Administration
+Repository: base
+Title: Real-time performance monitoring tool
+Maintainer: Daniel Engberg <daniel.engberg.lists@pyret.net>
+Source: netdata-1.4.0.tar.xz
+License: GPL-3.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:   netdata is a highly optimized Linux daemon providing real-time performance
+  monitoring for Linux systems, applications and SNMP devices over the web.
+http://netdata.firehol.org/
+Daniel Engberg <daniel.engberg.lists@pyret.net>
+@@
+
+

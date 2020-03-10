@@ -1,0 +1,22 @@
+Source-Makefile: feeds/luci/applications/luci-app-advanced-reboot/Makefile
+Package: luci-app-advanced-reboot
+Submenu: 3. Applications
+Version: x-23
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: Advanced Linksys Reboot Web UI
+Maintainer: Stan Grishin <stangri@melmac.net>
+Source: 
+License: GPL-3.0+
+Type: ipkg
+Description:    Provides Web UI (found under System/Advanced Reboot) to reboot supported Linksys routers to an altnerative partition. Also provides Web UI to shut down (power off) your device. Supported dual-partition routers are listed at https://github.com/stangri/openwrt-luci/blob/luci-app-advanced-reboot/applications/luci-app-advanced-reboot/README.md
+Stan Grishin <stangri@melmac.net>
+@@
+
+

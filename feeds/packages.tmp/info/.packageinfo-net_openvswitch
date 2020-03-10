@@ -1,0 +1,237 @@
+Source-Makefile: feeds/packages/net/openvswitch/Makefile
+Package: openvswitch-ovs-appctl
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch-base
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch app control utility
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:     Open vSwitch app control utility
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-ovs-ofctl
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch-base
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch OpenFlow control utility
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:     Open vSwitch OpenFlow control utility
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-ovs-dpctl
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch-base
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch datapath management utility
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:     Open vSwitch datapath management utility
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-ovs-vsctl
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch-base
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch ovs-vswitchd management utility
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:     Open vSwitch ovs-vswitchd management utility
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-ovsdb-client
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch-base
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch database JSON-RPC client
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:     Open vSwitch database JSON-RPC client
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-base
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpcap +libopenssl +librt +kmod-openvswitch @(LINUX_3_18||LINUX_4_1||LINUX_4_3||LINUX_4_4)
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch Userspace Package (base)
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:   Provides the main userspace components required for Open vSwitch to function.
+  The main OVS tools (ovs-vsctl, ovs-ofctl, etc) are packaged separately
+  to conserve some room and allow more configurability.
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-python
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch +PACKAGE_openvswitch-python:python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch Python Support
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:   Provides bindings and libraries for using Python to manipulate/work with Open vSwitch.
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-ipsec
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch-python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch GRE through IPsec tool
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:   The ovs-monitor-ipsec script provides support for encrypting GRE tunnels with 
+  IPsec.
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch-benchmark
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch flow setup benchmark utility
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:   Utility for running OpenVSwitch benchmarking
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: openvswitch
+Submenu: Open vSwitch
+Version: 2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +openvswitch-base +openvswitch-ovs-appctl +openvswitch-ovs-ofctl +openvswitch-ovs-dpctl +openvswitch-ovs-vsctl +openvswitch-ovsdb-client
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Open vSwitch Userspace Package
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:   Provides the main userspace components required for Open vSwitch to function.
+  Includes also the main OVS utilities (ovs-appctl, ovs-vsctl, etc).
+http://openvswitch.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: kmod-openvswitch
+Submenu: Network Support
+Version: <LINUX_VERSION>+2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a
+Depends: +kmod-stp @IPV6 +kmod-gre +kmod-lib-crc32c +kmod-vxlan +kmod-nf-conntrack +kmod-nf-conntrack6 @(LINUX_3_18||LINUX_4_1||LINUX_4_3||LINUX_4_4)
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: kernel
+Category: Kernel modules
+Title: Open vSwitch Kernel Package
+Maintainer: 
+Source: openvswitch-2.5.0-22d4614ddf83988a3771fb379ea029e663b4455a.tar.gz
+License: Apache-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Kernel-Config: CONFIG_BRIDGE
+Description:   This package contains the Open vSwitch kernel moodule and bridge compat
+  module. Furthermore, it supports OpenFlow.
+
+@@
+
+

@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/net/ethtool/Makefile
+Package: ethtool
+Version: 4.8-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Display or change ethernet card settings
+Maintainer: Matthias Schiffer <mschiffer@universe-factory.net>
+Source: ethtool-4.8.tar.xz
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:  ethtool is a small utility for examining and tuning your ethernet-based
+ network interface
+http://www.kernel.org/pub/software/network/ethtool/
+Matthias Schiffer <mschiffer@universe-factory.net>
+@@
+Config:
+	source "feeds/packages/net/ethtool/Config.in"
+@@
+
+

@@ -1,0 +1,25 @@
+Source-Makefile: feeds/packages/lang/perl-inline-c/Makefile
+Package: perl-inline-c
+Submenu: Perl
+Version: 0.76-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread perl +perl-inline +perl-parse-recdescent +perlbase-config +perlbase-cwd +perlbase-data +perlbase-essential +perlbase-extutils +perlbase-file +perlbase-if
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: perl-inline/host perl-parse-recdescent/host perl-file-sharedir-install/host
+Build-Depends/host: perl/host perl-inline/host perl-parse-recdescent/host perl-file-sharedir-install/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: C Language Support for Inline
+Maintainer: Marcel Denia <naoir@gmx.net>
+Source: Inline-C-0.76.tar.gz
+License: GPL-1.0+ Artistic-1.0-Perl
+Type: ipkg
+Description: C Language Support for Inline
+http://search.cpan.org/dist/Inline-C/
+Marcel Denia <naoir@gmx.net>
+@@
+
+

@@ -1,0 +1,70 @@
+Source-Makefile: feeds/packages/utils/gptfdisk/Makefile
+Package: gdisk
+Submenu: Disc
+Version: 1.0.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libstdcpp +libuuid +libpopt
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: GPT partition table manipulation utility
+Maintainer: Daniel Engberg <daniel.engberg.lists@pyret.net>
+Source: gptfdisk-1.0.1.tar.gz
+Type: ipkg
+Description:  GPT partition table manipulation utility with an interface
+ similar to fdisk. It can read and convert MBR partitions in GPT
+ but is otherwise unable to generate or modify MBR partitions.
+http://www.rodsbooks.com/gdisk
+Daniel Engberg <daniel.engberg.lists@pyret.net>
+@@
+
+Package: sgdisk
+Submenu: Disc
+Version: 1.0.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libstdcpp +libuuid +libpopt
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: script-friendly GPT partition table manipulation utility
+Maintainer: Daniel Engberg <daniel.engberg.lists@pyret.net>
+Source: gptfdisk-1.0.1.tar.gz
+Type: ipkg
+Description:  Script-friendly GPT partition table manipulation utility.
+ It can read and convert MBR partitions in GPT but is otherwise
+ unable to generate or modify MBR partitions.
+ To the contrary of gdisk, its interface is geared towards scripts,
+ so it takes command line arguments instead of being interactive.
+ It will NOT ask confirmation before carrying out the operations.
+ It has a slightly smaller footprint than gdisk tool.
+http://www.rodsbooks.com/gdisk
+Daniel Engberg <daniel.engberg.lists@pyret.net>
+@@
+
+Package: cgdisk
+Submenu: Disc
+Version: 1.0.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libstdcpp +libuuid +libncurses +libpopt
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: ncurses-based GPT partition table manipulation utility
+Maintainer: Daniel Engberg <daniel.engberg.lists@pyret.net>
+Source: gptfdisk-1.0.1.tar.gz
+Type: ipkg
+Description: ncurses-based partition table manipulation utility with GPT support.
+Similar to sfdisk, but works with GPT partitions. Shares the same limitations
+of the gdisk partition utility. While it can read and convert MBR partitions
+in GPT, it cannot modify MBR partitions on its own.
+http://www.rodsbooks.com/gdisk
+Daniel Engberg <daniel.engberg.lists@pyret.net>
+@@
+
+

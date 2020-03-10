@@ -1,0 +1,25 @@
+Source-Makefile: feeds/packages/lang/python-txsocksx/Makefile
+Package: python-txsocksx
+Submenu: Python
+Version: 1.15.0.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-parsley +twisted
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-txsocksx
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: txsocksx-1.15.0.2.tar.gz
+License: ISC
+LicenseFiles: COPYING
+Type: ipkg
+Description: txsocksx is SOCKS4/4a and SOCKS5 client endpoints for Twisted 10.1 or
+greater.
+https://github.com/habnabit/txsocksx
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

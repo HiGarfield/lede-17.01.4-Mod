@@ -1,0 +1,48 @@
+Source-Makefile: feeds/telephony/net/chan-sccp-b/Makefile
+Package: asterisk11-chan-sccp-b
+Submenu: Telephony
+Version: v4.2.3-r6647-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libltdl asterisk11
+Conflicts: asterisk11-chan-skinny
+Menu-Depends: 
+Provides: 
+Build-Variant: asterisk11
+Section: net
+Category: Network
+Repository: base
+Title: SCCP channel provider support
+Maintainer: Jiri Slachta <jiri@slachta.eu>
+Source: chan-sccp-b-v4.2.3-r6647.tar.gz
+License: GPL-1.0
+LicenseFiles: COPYING LICENSE
+Type: ipkg
+Description:  SCCP channel provider for asterisk. It delivers extended functionality for SCCP phones over chan_skinny delivered
+ by asterisk by default.
+http://chan-sccp-b.sourceforge.net/
+Jiri Slachta <jiri@slachta.eu>
+@@
+
+Package: asterisk13-chan-sccp-b
+Submenu: Telephony
+Version: v4.2.3-r6647-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libltdl asterisk13
+Conflicts: asterisk13-chan-skinny
+Menu-Depends: 
+Provides: 
+Build-Variant: asterisk13
+Section: net
+Category: Network
+Repository: base
+Title: SCCP channel provider support
+Maintainer: Jiri Slachta <jiri@slachta.eu>
+Source: chan-sccp-b-v4.2.3-r6647.tar.gz
+License: GPL-1.0
+LicenseFiles: COPYING LICENSE
+Type: ipkg
+Description:  SCCP channel provider for asterisk. It delivers extended functionality for SCCP phones over chan_skinny delivered
+ by asterisk by default.
+http://chan-sccp-b.sourceforge.net/
+Jiri Slachta <jiri@slachta.eu>
+@@
+
+

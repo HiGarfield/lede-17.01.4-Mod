@@ -1,0 +1,11 @@
+--- a/block.c
++++ b/block.c
+@@ -692,7 +692,7 @@
+ 	struct stat statbuf;
+ 	const char *e2fsck = "/usr/sbin/e2fsck";
+ 	const char *f2fsck = "/usr/sbin/fsck.f2fs";
+-	const char *dosfsck = "/usr/sbin/dosfsck";
++	const char *dosfsck = "/usr/sbin/fsck.fat";
+ 	const char *ckfs;
+ 
+ 	/* UBIFS does not need stuff like fsck */

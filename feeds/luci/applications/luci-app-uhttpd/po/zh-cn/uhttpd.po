@@ -1,0 +1,188 @@
+msgid ""
+msgstr "Content-Type: text/plain; charset=UTF-8"
+
+msgid ""
+"(/old/path=/new/path) or (just /old/path which becomes /cgi-prefix/old/path)"
+msgstr "(/old/path=/new/path) 或 (仅/old/path将成为/cgi-prefix/old/path)"
+
+msgid "404 Error"
+msgstr "404错误"
+
+msgid "A lightweight single-threaded HTTP(S) server"
+msgstr "一个轻量级单线程HTTP(S)服务器。"
+
+msgid "Advanced Settings"
+msgstr "高级设置"
+
+msgid "Aliases"
+msgstr "别名"
+
+msgid "Base directory for files to be served"
+msgstr "需要服务的文件的基目录"
+
+msgid "Bind to specific interface:port (by specifying interface address)"
+msgstr "绑定到特定接口: 端口 (通过指定接口地址）"
+
+msgid "CGI filetype handler"
+msgstr "CGI文件处理程序"
+
+msgid "CGI is disabled if not present."
+msgstr "CGI如不存在将被禁用"
+
+msgid "Config file (e.g. for credentials for Basic Auth)"
+msgstr "配置文件 (例如, 用于基本身份验证的凭据)"
+
+msgid "Connection reuse"
+msgstr "连接重用"
+
+msgid "Country"
+msgstr "国家"
+
+msgid "Disable JSON-RPC authorization via ubus session API"
+msgstr "通过ubus会话接口禁用JSON-RPC授权"
+
+msgid "Do not follow symlinks outside document root"
+msgstr "不读取指向网站根目录外的符号链接"
+
+msgid "Do not generate directory listings."
+msgstr "不生成目录列表。"
+
+msgid "Document root"
+msgstr "网站根目录"
+
+msgid "E.g specify with index.html and index.php when using PHP"
+msgstr "使用PHP时指定index.html和index.php"
+
+msgid "Embedded Lua interpreter is disabled if not present."
+msgstr "如果嵌入式Lua解释器不存在将被禁用"
+
+msgid "Enable JSON-RPC Cross-Origin Resource Support"
+msgstr "启用JSON-RPC跨源资源支持"
+
+msgid "For settings primarily geared to serving more than the web UI"
+msgstr "Web UI以外的设置"
+
+msgid "Full Web Server Settings"
+msgstr "完整的Web服务器设置"
+
+msgid "Full real path to handler for Lua scripts"
+msgstr "Lua脚本处理程序的完整实际路径"
+
+msgid "General Settings"
+msgstr "常规设置"
+
+msgid "HTTP listeners (address:port)"
+msgstr "HTTP侦听器（地址：端口）"
+
+msgid "HTTPS Certificate (DER Encoded)"
+msgstr "HTTPS证书（DER编码）"
+
+msgid "HTTPS Private Key (DER Encoded)"
+msgstr "HTTPS私钥（DER编码）"
+
+msgid "HTTPS listener (address:port)"
+msgstr "HTTPS侦听器（地址：端口）"
+
+msgid "Ignore private IPs on public interface"
+msgstr "忽略公共接口上的私有IP"
+
+msgid "Index page(s)"
+msgstr "首页文件名称"
+
+msgid ""
+"Interpreter to associate with file endings ('suffix=handler', e.g. '.php=/"
+"usr/bin/php-cgi')"
+msgstr "与文件结尾相关联的解释器（'suffix = handler'，例如'.php=/"
+"usr/bin/php-cgi')"
+
+msgid "Length of key in bits"
+msgstr "密钥长度（位数）"
+
+msgid "Location"
+msgstr "位置"
+
+msgid "Maximum number of connections"
+msgstr "最大连接数"
+
+msgid "Maximum number of script requests"
+msgstr "最大脚本请求数量"
+
+msgid "Maximum wait time for Lua, CGI, or ubus execution"
+msgstr "Lua，CGI或ubus执行的最长等待时间"
+
+msgid "Maximum wait time for network activity"
+msgstr "网络活动的最长等待时间"
+
+msgid "Override path for ubus socket"
+msgstr "覆盖ubus套接字的路径"
+
+msgid "Path prefix for CGI scripts"
+msgstr "CGI脚本的路径前缀"
+
+msgid ""
+"Prevent access from private (RFC1918) IPs on an interface if it has an "
+"public IP address"
+msgstr "如果接口具有公共IP地址，阻止接口上的私有IP地址访问（RFC1918）"
+
+msgid "Realm for Basic Auth"
+msgstr "用于基本身份验证的域"
+
+msgid "Redirect all HTTP to HTTPS"
+msgstr "将所有HTTP重定向到HTTPS"
+
+msgid "Remove configuration for certificate and key"
+msgstr "删除证书和密钥的配置"
+
+msgid "Remove old certificate and key"
+msgstr "删除旧证书和密钥"
+
+msgid "Server Hostname"
+msgstr "服务器主机名"
+
+msgid ""
+"Settings which are either rarely needed or which affect serving the WebUI"
+msgstr "很少需要的设置或影响服务WebUI的设置"
+
+msgid "State"
+msgstr "状态"
+
+msgid "TCP Keepalive"
+msgstr "TCP保持连接"
+
+msgid "This permanently deletes the cert, key, and configuration to use same."
+msgstr "这将永久删除证书、密钥和同时使用的配置。"
+
+msgid "Valid for # of Days"
+msgstr "有效期天数"
+
+msgid ""
+"Virtual URL or CGI script to display on status '404 Not Found'. Must begin "
+"with '/'"
+msgstr "在状态'404 Not Found'时，显示的虚拟URL或CGI脚本。必须以'/'开头"
+
+msgid "Virtual path prefix for Lua scripts"
+msgstr "Lua脚本的虚拟路径前缀"
+
+msgid "Virtual path prefix for ubus via JSON-RPC integration"
+msgstr "通过JSON-RPC集成的ubus虚拟路径前缀"
+
+msgid "Will not use HTTP authentication if not present"
+msgstr "如果不存在，将不使用HTTP身份验证"
+
+msgid "a.k.a CommonName"
+msgstr "也被称为CommonName"
+
+msgid "uHTTPd"
+msgstr "uHTTPd"
+
+msgid "uHTTPd Self-signed Certificate Parameters"
+msgstr "uHTTPd自签名证书参数"
+
+msgid ""
+"uHTTPd will generate a new self-signed certificate using the configuration "
+"shown below."
+msgstr "uHTTPd将使用下面显示的配置生成新的自签名证书。"
+
+msgid "ubus integration is disabled if not present"
+msgstr "如果不存在，ubus集成将被禁用"
+

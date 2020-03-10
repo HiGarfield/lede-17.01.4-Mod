@@ -1,0 +1,63 @@
+Source-Makefile: feeds/packages/utils/mysql/Makefile
+Package: mysql-server
+Submenu: database
+Version: 5.1.73-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libmysqlclient +libpthread +libncursesw +libreadline
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libncurses libreadline libtool libintl libiconv
+Section: utils
+Category: Utilities
+Repository: base
+Title: MySQL Server
+Maintainer: Jo-Philipp Wich <jo@mein.io>
+Source: mysql-5.1.73.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: MySQL Server
+http://dev.mysql.com/
+Jo-Philipp Wich <jo@mein.io>
+@@
+
+Package: libmysqlclient
+Version: 5.1.73-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +USE_UCLIBCXX:uclibcxx +USE_LIBSTDCXX:libstdcpp +zlib
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libncurses libreadline libtool libintl libiconv
+Section: libs
+Category: Libraries
+Repository: base
+Title: MySQL client library
+Maintainer: Jo-Philipp Wich <jo@mein.io>
+Source: mysql-5.1.73.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: MySQL client library
+http://dev.mysql.com/
+Jo-Philipp Wich <jo@mein.io>
+@@
+
+Package: libmysqlclient-r
+Version: 5.1.73-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +USE_UCLIBCXX:uclibcxx +USE_LIBSTDCXX:libstdcpp +zlib +libpthread
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libncurses libreadline libtool libintl libiconv
+Section: libs
+Category: Libraries
+Repository: base
+Title: MySQL client library threadsafe
+Maintainer: Jo-Philipp Wich <jo@mein.io>
+Source: mysql-5.1.73.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: MySQL client library threadsafe
+http://dev.mysql.com/
+Jo-Philipp Wich <jo@mein.io>
+@@
+
+

@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/utils/opus-tools/Makefile
+Package: opus-tools
+Version: 0.1.9-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libogg +libopus
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: OPUS Codec tools
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: opus-tools-0.1.9.tar.gz
+License: BSD-2-Clause
+LicenseFiles: COPYING
+Type: ipkg
+Description:  This package provides command-line utilities to encode, inspect, and decode 
+ .opus files.
+http://opus-codec.org/
+Nicolas Thill <nico@openwrt.org>
+@@
+
+

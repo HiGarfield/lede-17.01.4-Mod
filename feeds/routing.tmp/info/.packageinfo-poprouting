@@ -1,0 +1,28 @@
+Source-Makefile: feeds/routing/poprouting/Makefile
+Package: prince
+Menu: 0
+Submenu: Routing and Redirection
+Version: v0.3.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libjson-c +libpthread
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: PopRouting daemon
+Maintainer: 
+Source: prince-v0.3.1.tar.gz
+Type: ipkg
+Description: Prince is an open source implementation of the PopRouting Algorithm.
+It has been developed as a Google Summer of Code Project in collaboration with Freifunk and the University of Trento.
+
+It work by fetching topology data from a Link State routing demon(OONF, OLSR, OSPF, etc),
+calculating the betweenness centrality using the topology, then using these data
+the timer's value are optimized. Finally the timers are pushed back to the routing demon.
+Currently it only supports OLSRd2 (aka OONF).
+https://github.com/gabri94/poprouting
+
+@@
+
+

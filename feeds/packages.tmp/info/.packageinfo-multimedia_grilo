@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/multimedia/grilo/Makefile
+Package: grilo
+Version: 0.3.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +glib2 +libsoup +libxml2
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: glib2 libsoup libxml2 !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: multimedia
+Category: Multimedia
+Repository: base
+Title: grilo
+Maintainer: W. Michael Petullo <mike@flyn.org>
+Source: grilo-0.3.1.tar.xz
+License: LGPLv2.1
+LicenseFiles: COPYING
+Type: ipkg
+Description: grilo
+https://wiki.gnome.org/Projects/Grilo
+W. Michael Petullo <mike@flyn.org>
+@@
+
+

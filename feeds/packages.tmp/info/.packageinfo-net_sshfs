@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/net/sshfs/Makefile
+Package: sshfs
+Submenu: Filesystem
+Version: 2.8-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libfuse +fuse-utils +glib2 +libpthread
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: net
+Category: Network
+Repository: base
+Title: SSHFS
+Maintainer: Zoltan HERPAI <wigyori@uid0.hu>
+Source: sshfs-2.8.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: 	Mount remote system over sftp.
+http://fuse.sourceforge.net/
+Zoltan HERPAI <wigyori@uid0.hu>
+@@
+
+

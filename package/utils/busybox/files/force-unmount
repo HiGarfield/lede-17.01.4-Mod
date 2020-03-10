@@ -1,0 +1,31 @@
+#!/bin/sh
+
+stop_occupying_service()
+{
+	local dir_name process_line process_name service_name
+	dir_name="$1"
+	busybox lsof | awk '{print $3,$2}' | grep -w "^$dir_name" | awk '{print $2}' | uniq | while read -r process_line
+	do
+		process_name=$(basename "$process_line")
+		grep -w -l "$process_name" /etc/init.d/* | uniq | while read -r service_name
+		do
+			"$service_name" stop
+		done
+	done
+}
+
+kill_occupying_process()
+{
+	local dir_name pids
+	dir_name="$1"
+
+	pids=$(busybox lsof | awk '{print $3,$1}' | grep -w "^$dir_name" | awk '{print $2}' | uniq | awk BEGIN{RS=EOF}'{gsub(/\n/," ");print}')
+	[ -n "$pids" ] && kill -9 $pids >/dev/null 2>&1
+}
+
+[ $# -ne 1 ] && exit 1
+mountpoint="$1"
+stop_occupying_service "$mountpoint"
+kill_occupying_process "$mountpoint"
+umount -l "$mountpoint"
+exit 0

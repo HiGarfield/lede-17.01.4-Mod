@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/django/Makefile
+Package: django
+Submenu: Python
+Version: 1.8.12-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: The web framework for perfectionists with deadlines.
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: django-1.8.12-c168aeba175dbb92c615460a360cb1ea978de5d3.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:     The web framework for perfectionists with deadlines.
+https://www.djangoproject.com/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

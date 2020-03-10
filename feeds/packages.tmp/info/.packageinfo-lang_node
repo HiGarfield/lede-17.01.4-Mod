@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/lang/node/Makefile
+Package: node
+Submenu: Node.js
+Version: v4.4.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt +libstdcpp +libopenssl +zlib
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: python/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Node.js is a platform built on Chrome's JavaScript runtime
+Maintainer: John Crispin <blogic@openwrt.org>
+Source: node-v4.4.5.tar.xz
+Type: ipkg
+Description:   Node.js® is a JavaScript runtime built on Chrome's V8 JavaScript engine. Node.js uses
+  an event-driven, non-blocking I/O model that makes it lightweight and efficient. Node.js'
+   package ecosystem, npm, is the largest ecosystem of open source libraries in the world.
+http://nodejs.org/
+John Crispin <blogic@openwrt.org>
+@@
+
+

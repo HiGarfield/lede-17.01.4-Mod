@@ -1,0 +1,24 @@
+Source-Makefile: feeds/packages/lang/python3-bottle/Makefile
+Package: python3-bottle
+Submenu: Python
+Version: 0.12.8-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Bottle is a fast, simple and lightweight WSGI micro web-framework for Python
+Maintainer: Luka Perkov <luka@openwrt.org>
+Source: 0.12.8.tar.gz
+License: MIT
+Type: ipkg
+Description:  Bottle is a fast, simple and lightweight WSGI micro web-framework for Python.
+ It is distributed as a single file module and has no dependencies other than the
+ Python Standard Library.
+http://bottlepy.org
+Luka Perkov <luka@openwrt.org>
+@@
+
+

@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/python-setuptools/Makefile
+Package: python-setuptools
+Submenu: Python
+Version: 27.2.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +ca-certificates
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends/host: python python/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Tool for installing Python packages.
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: setuptools-27.2.0.tar.gz
+Type: ipkg
+Description:   Easily download, build, install, upgrade, and uninstall Python packages
+https://bitbucket.org/pypa/setuptools
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+

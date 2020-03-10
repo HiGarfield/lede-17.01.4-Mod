@@ -1,0 +1,34 @@
+Source-Makefile: feeds/packages/mail/dovecot/Makefile
+Package: dovecot
+Version: 2.2.26.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +DOVECOT_LDAP:libopenldap +libopenssl +librt +zlib +libbz2 +libcap
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libiconv
+Section: mail
+Category: Mail
+Repository: base
+Title: An IMAP and POP3 daemon
+Maintainer: Lucian Cristian <lucian.cristian@gmail.com>
+Require-User: dovecot=59:dovecot=59
+Source: dovecot-2.2.26.0.tar.gz
+License: LGPL-2.1 MIT BSD-3-Clause Unique
+LicenseFiles: COPYING COPYING.LGPL COPYING.MIT
+Type: ipkg
+Description:  Dovecot is a program which provides POP3 and IMAP services.
+http://www.dovecot.org/
+Lucian Cristian <lucian.cristian@gmail.com>
+@@
+Config:
+        menu "Select dovecot build options"
+                depends on PACKAGE_dovecot
+                config DOVECOT_LDAP
+                        bool "LDAP support"
+                        default n
+                        help
+                          Implements LDAP support in dovecot.
+        endmenu
+@@
+
+

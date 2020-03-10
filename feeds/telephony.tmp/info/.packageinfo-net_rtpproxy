@@ -1,0 +1,23 @@
+Source-Makefile: feeds/telephony/net/rtpproxy/Makefile
+Package: rtpproxy
+Submenu: Telephony
+Version: 2.0.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: RTP (Realtime Transport Protocol) proxy
+Maintainer: 
+Source: rtpproxy-2.0.0-d5926892630139bcbe55d1f3fa36764c881648bc.tar.gz
+License: BSD-2-Clause
+LicenseFiles: COPYING
+Type: ipkg
+Description: RTP (Realtime Transport Protocol) proxy
+http://www.rtpproxy.org/
+
+@@
+
+

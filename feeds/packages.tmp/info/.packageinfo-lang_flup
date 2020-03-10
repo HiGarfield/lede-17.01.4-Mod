@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/flup/Makefile
+Package: flup
+Submenu: Python
+Version: 1.0.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: Random assortment of WSGI servers
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: flup-1.0.2.tar.gz
+License: BSD-3-Clause
+Type: ipkg
+Description:   Random assortment of WSGI servers
+http://www.saddi.com/software/flup/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

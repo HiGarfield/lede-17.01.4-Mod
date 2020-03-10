@@ -1,0 +1,27 @@
+Source-Makefile: feeds/packages/lang/python-pyasn1/Makefile
+Package: python-pyasn1
+Submenu: Python
+Version: 0.1.9-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-pyasn1
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: pyasn1-0.1.9.tar.gz
+License: BSD-2-Clause
+LicenseFiles: LICENSE.txt
+Type: ipkg
+Description: This is an implementation of ASN.1 types and codecs in Python programming
+language. It has been first written to support particular protocol (SNMP)
+but then generalized to be suitable for a wide range of protocols
+based on ASN.1 specification.
+http://pyasn1.sourceforge.net/
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+
