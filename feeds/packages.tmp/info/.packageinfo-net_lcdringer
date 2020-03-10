@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/net/lcdringer/Makefile
+Package: lcdringer
+Version: 0.0.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgee +libgstreamer1 +loudmouth @TARGET_brcm2708
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: +vala !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: network
+Category: Network
+Repository: base
+Title: lcdringer
+Maintainer: W. Michael Petullo <mike@flyn.org>
+Source: lcdringer-0.0.2.tar.gz
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: lcdringer
+http://www.flyn.org/projects/lcdringer/
+W. Michael Petullo <mike@flyn.org>
+@@
+
+

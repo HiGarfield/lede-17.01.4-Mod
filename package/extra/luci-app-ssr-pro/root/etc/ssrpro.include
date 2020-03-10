@@ -1,0 +1,11 @@
+#!/bin/sh
+
+ssr_enable=$(uci -q get ssrpro.@ssrpro[0].enabled)
+
+if [ $ssr_enable -eq 1 ]; then
+	if pidof ssr-redir>/dev/null; then
+	   /etc/init.d/ssrpro reload_rule
+	 else
+	   /etc/init.d/ssrpro restart
+  fi
+fi

@@ -1,0 +1,24 @@
+Source-Makefile: feeds/routing/batctl/Makefile
+Package: batctl
+Version: 2016.5-0
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-batman-adv +libnl-tiny +librt
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: B.A.T.M.A.N. Advanced user space configuration tool batctl
+Maintainer: Marek Lindner <mareklindner@neomailbox.ch>
+Source: batctl-2016.5.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: batctl is a more intuitive managment utility for B.A.T.M.A.N.-Advanced.
+It is an easier method for configuring batman-adv and provides some
+additional tools for debugging as well. This package builds
+version 2016.5 of the user space utility.
+https://www.open-mesh.org/
+Marek Lindner <mareklindner@neomailbox.ch>
+@@
+
+

@@ -1,0 +1,18 @@
+#!/bin/sh
+
+mem="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
+
+if [ "$mem" -gt 131072 ]; then # mem > 128M 
+	cache_size_mb='8'
+elif [ "$mem" -gt 65536 ]; then # 64M < mem <= 128M
+	cache_size_mb='4'
+elif [ "$mem" -gt 32768 ]; then # 32M < mem <= 64M
+	cache_size_mb='2'
+else
+	cache_size_mb='1'
+fi
+
+uci -q set transmission.@transmission[0].cache_size_mb="$cache_size_mb"
+uci commit transmission
+
+exit 0

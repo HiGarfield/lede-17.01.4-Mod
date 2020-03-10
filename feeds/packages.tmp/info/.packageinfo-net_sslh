@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/net/sslh/Makefile
+Package: sslh
+Submenu: Routing and Redirection
+Version: v1.17-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: SSL/SSH multiplexer
+Maintainer: 
+Source: sslh-v1.17.tar.gz
+License: GPL-2.0+
+LicenseFiles: COPYING
+Type: ipkg
+Description: SSL/SSH multiplexer
+http://rutschle.net/tech/sslh.shtml
+
+@@
+
+

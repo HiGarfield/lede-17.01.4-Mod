@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/lang/luai2c/Makefile
+Package: luai2c
+Submenu: Lua
+Version: 1.0.0-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +liblua +kmod-i2c-core
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: lang
+Category: Languages
+Repository: base
+Title: Lua I2C binding
+Maintainer: Frank Edelhaeuser <mrpace2@gmail.com>
+Source: luai2c-1.0.0.tar.xz
+License: MIT
+Type: ipkg
+Description: 	This is the Lua binding for I2C. It provides access to I2C slaves supported by the kernel.
+https://github.com/mrpace2/i2c-lua/
+Frank Edelhaeuser <mrpace2@gmail.com>
+@@
+
+

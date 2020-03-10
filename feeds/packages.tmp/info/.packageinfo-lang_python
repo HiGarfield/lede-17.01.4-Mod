@@ -1,0 +1,510 @@
+Source-Makefile: feeds/packages/lang/python/Makefile
+Package: python-ctypes
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 ctypes module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 ctypes module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-pydoc
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 pydoc module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 pydoc module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-multiprocessing
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 multiprocessing
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 multiprocessing
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-codecs
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 codecs + unicode support
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 codecs + unicode support
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-dev
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +python-lib2to3
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 development files
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 development files
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-sqlite3
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libsqlite3
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 sqlite3 module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 sqlite3 module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-logging
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 logging module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 logging module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-gdbm
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libgdbm
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 gdbm module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 gdbm module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-email
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 email module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 email module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-distutils
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 distutils
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 distutils
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-openssl
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libopenssl
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 SSL module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 SSL module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-xml
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libexpat
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 xml libs
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 xml libs
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-compiler
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 compiler module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 compiler module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-db
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libdb47
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 db module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 db module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-decimal
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 decimal module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 decimal module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-unittest
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 unittest module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 unittest module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-lib2to3
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 lib2to3 module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 lib2to3 module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-ncurses
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libncurses
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 ncurses module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 ncurses module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-base
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 interpreter
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description:   This package contains only the interpreter and the bare minimum
+  for the interpreter to start.
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python-light
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-base +libffi +libbz2
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 light installation
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description:   This package is essentially the python-base package plus
+  a few of the rarely used (and big) libraries stripped out
+  into separate packages.
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python
+Submenu: Python
+Version: 2.7.13-4
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-ctypes +python-pydoc +python-multiprocessing +python-codecs +python-sqlite3 +python-logging +python-gdbm +python-email +python-distutils +python-openssl +python-xml +python-compiler +python-db +python-decimal +python-unittest +python-ncurses
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 programming language
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.13.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description:   This package contains the (almost) full Python install.
+  It's python-light + all other packages.
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+

@@ -1,0 +1,21 @@
+Source-Makefile: feeds/packages/net/luci-app-bcp38/Makefile
+Package: luci-app-bcp38
+Submenu: 3. Applications
+Version: 2-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lua luci-base +bcp38
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: BCP38 LuCI interface
+Maintainer: Toke Høiland-Jørgensen <toke@toke.dk>
+Source: 
+License: Apache-2.0
+Type: ipkg
+Description: 	Control BCP38 subnet blocking
+Toke Høiland-Jørgensen <toke@toke.dk>
+@@
+
+

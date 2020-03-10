@@ -1,0 +1,5 @@
+
+config sfe 'config'
+	option enabled '1'
+	option ipv6 '1'
+	option wifi '1'

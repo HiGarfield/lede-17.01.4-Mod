@@ -1,0 +1,28 @@
+Source-Makefile: feeds/packages/libs/libevent/Makefile
+Package: libevent
+Version: 1.4.15-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Repository: base
+Title: Event notification library (legacy)
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: release-1.4.15-stable.tar.gz
+Type: ipkg
+Description: 	The libevent API provides a mechanism to execute a callback function
+	when a specific event occurs on a file descriptor or after a timeout
+	has been reached. Furthermore, libevent also support callbacks due
+	to signals or regular timeouts.
+
+	libevent is meant to replace the event loop found in event driven
+	network servers. An application just needs to call event_dispatch()
+	and then add or remove events dynamically without having to change
+	the event loop.
+http://www.libevent.org
+Steven Barth <cyrus@openwrt.org>
+@@
+
+

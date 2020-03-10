@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/gunicorn/Makefile
+Package: gunicorn
+Submenu: Python
+Version: 19.6.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +python-setuptools
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: WSGI HTTP Server for UNIX
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: gunicorn-19.6.0.tar.gz
+License: MIT
+Type: ipkg
+Description:     WSGI HTTP Server for UNIX
+http://gunicorn.org/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

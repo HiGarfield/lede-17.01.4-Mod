@@ -1,0 +1,30 @@
+msgid "Virtual WAN"
+msgstr "虚拟WAN"
+
+msgid "Add virtual WAN interface"
+msgstr "创建虚拟WAN接口"
+
+msgid "Add multiple virtual WAN interfaces using macvlan."
+msgstr "使用macvlan驱动创建多个虚拟WAN口."
+
+msgid "Number of interfaces online:"
+msgstr "当前在线接口数量:"
+
+msgid "Enable"
+msgstr "启用"
+
+msgid "Number of virtual WAN interfaces"
+msgstr "虚拟WAN接口数量"
+
+msgid "Use old macvlan method"
+msgstr "使用旧的macvlan创建方式"
+
+msgid "Redial"
+msgstr "重新拨号"
+
+
+
+
+
+
+

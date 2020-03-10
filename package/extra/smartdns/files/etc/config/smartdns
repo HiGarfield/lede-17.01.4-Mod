@@ -1,0 +1,58 @@
+
+config smartdns
+	option enabled '0'
+	option redirect 'dnsmasq-upstream'
+
+config server
+	option type 'udp'
+	option enabled '1'
+	option name '114 DNS'
+	option ip '114.114.114.114'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'OpenDNS'
+	option ip '208.67.222.222'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'DNSPod DNS+'
+	option ip '119.29.29.29'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'AliDNS'
+	option ip '223.5.5.5'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'BaiduDNS'
+	option ip '180.76.76.76'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'Cloudflare DNS'
+	option ip '1.1.1.1'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'Verizon DNS'
+	option ip '4.2.2.1'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'CNNIC SDNS'
+	option ip '1.2.4.8'
+
+config server
+	option enabled '1'
+	option type 'udp'
+	option name 'OneDNS'
+	option ip '117.50.10.10'

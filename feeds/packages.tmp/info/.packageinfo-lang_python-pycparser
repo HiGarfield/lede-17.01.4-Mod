@@ -1,0 +1,28 @@
+Source-Makefile: feeds/packages/lang/python-pycparser/Makefile
+Package: python-pycparser
+Submenu: Python
+Version: 2.14-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-ply
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Build-Depends/host: python/host python-setuptools/host python-ply/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: python-pycparser
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: pycparser-2.14.tar.gz
+License: BSD-3-Clause
+LicenseFiles: LICENSE
+Type: ipkg
+Description: pycparser is a parser for the C language, written in pure Python. It is a
+module designed to be easily integrated into applications that need to parse
+C source code.
+https://github.com/eliben/pycparser
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

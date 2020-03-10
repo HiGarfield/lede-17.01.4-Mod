@@ -1,0 +1,27 @@
+Source-Makefile: feeds/packages/lang/python-idna/Makefile
+Package: python-idna
+Submenu: Python
+Version: 2.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-idna
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: idna-2.1.tar.gz
+License: BSD-3-Clause
+LicenseFiles: LICENSE.rst
+Type: ipkg
+Description: A library to support the Internationalised Domain Names in Applications
+(IDNA) protocol as specified in RFC 5891. This version of the protocol
+is often referred to as "IDNA2008" and can produce different results
+from the earlier standard from 2003.
+https://github.com/kjd/idna
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

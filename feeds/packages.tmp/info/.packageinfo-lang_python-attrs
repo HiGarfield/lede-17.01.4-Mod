@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/lang/python-attrs/Makefile
+Package: python-attrs
+Submenu: Python
+Version: 16.2.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-attrs
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: attrs-16.2.0.tar.gz
+License: MIT
+LicenseFiles: LICENSE
+Type: ipkg
+Description: attrs is an MIT-licensed Python package with class decorators that ease
+the chores of implementing the most common attribute-related object
+protocols.
+https://attrs.readthedocs.org/
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

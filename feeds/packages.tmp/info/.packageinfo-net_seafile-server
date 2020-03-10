@@ -1,0 +1,26 @@
+Source-Makefile: feeds/packages/net/seafile-server/Makefile
+Package: seafile-server
+Menu: 1
+Version: 5.1.4-b9dc96ee845bb0148d9075aec597e6e07652cbdc-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libarchive +libopenssl +glib2 +libsearpc +seafile-ccnet +seafile-seahub +sqlite3-cli +python-mysql +python-urllib3 +jansson +libevent2 +libevent2-openssl +zlib +libzdb +libsqlite3 +libmysqlclient +libpthread +libuuid +bash +procps-ng +procps-ng-pkill +SEAFILE_FUSE_SUPPORT:libfuse +BUILD_NLS:libiconv-full
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: vala/host libevhtp
+Section: net
+Category: Network
+Repository: base
+Title: Seafile server
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: seafile-server-5.1.4-b9dc96ee845bb0148d9075aec597e6e07652cbdc.tar.gz
+License: GPL-3.0
+Type: ipkg
+Description:    Open source cloud storage with advanced features on privacy protection and teamwork.
+http://seafile.com/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+Config:
+	source "feeds/packages/net/seafile-server/Config.in"
+@@
+
+

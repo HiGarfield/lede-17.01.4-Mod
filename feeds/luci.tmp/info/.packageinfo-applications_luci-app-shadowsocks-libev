@@ -1,0 +1,81 @@
+Source-Makefile: feeds/luci/applications/luci-app-shadowsocks-libev/Makefile
+Package: luci-app-shadowsocks-libev
+Submenu: 3. Applications
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: LuCI Support for Shadowsocks-libev
+Maintainer: 
+Source: 
+Type: ipkg
+Description: LuCI Support for Shadowsocks-libev
+
+@@
+
+Package: luci-i18n-shadowsocks-libev-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-shadowsocks-libev
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-shadowsocks-libev - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-shadowsocks-libev - Português do Brasil (Brazialian Portuguese)
+
+@@
+
+Package: luci-i18n-shadowsocks-libev-zh-cn
+Default: LUCI_LANG_zh-cn||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-shadowsocks-libev
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-shadowsocks-libev - zh-cn translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-shadowsocks-libev - 中文 (Chinese)
+
+@@
+
+Package: luci-i18n-shadowsocks-libev-sv
+Default: LUCI_LANG_sv||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-shadowsocks-libev
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-shadowsocks-libev - sv translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-shadowsocks-libev - Svenska (Swedish)
+
+@@
+
+

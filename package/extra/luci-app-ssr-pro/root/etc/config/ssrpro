@@ -1,0 +1,15 @@
+
+config ssrpro
+	option gfwlist 'china-banned'
+	option server '127.0.0.1'
+	option server_port '23143'
+	option password '12345678'
+	option protocol 'origin'
+	option obfs 'plain'
+	option proxy_mode 'M'
+	option safe_dns_tcp '1'
+	option safe_dns '8.8.4.4'
+	option safe_dns_port '53'
+	option cron_mode '0'
+	option method 'aes-256-cfb'	
+	option enabled '0'

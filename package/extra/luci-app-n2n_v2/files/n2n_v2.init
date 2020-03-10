@@ -1,0 +1,94 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2008-2012 OpenWrt.org
+
+START=90
+CRON_FILE=/etc/crontabs/root
+
+start_instance() {
+	local cfg="$1"
+
+	config_get type "$cfg" TYPE
+
+	case "$type" in
+	  edge)
+        config_get_bool enabled "$cfg" 'enabled' '0'
+        [ "$enabled" = "0" ] && return 1
+        config_get tunname "$cfg" 'tunname'
+        config_get mode "$cfg" 'mode'
+		config_get ipaddr "$cfg" 'ipaddr'
+        config_get netmask "$cfg" 'netmask'
+		config_get supernode "$cfg" 'supernode'
+		config_get port "$cfg" 'port'
+		config_get community "$cfg" 'community'
+		config_get key "$cfg" 'key'
+		config_get localip "$cfg" 'localip'
+		config_get interval "$cfg" 'interval'
+		config_get time_checkip "$cfg" 'time_checkip'
+		config_get_bool route "$cfg" 'route' '0'
+		[ "$route" = "1" ] && args='-r'
+        [ "$mode" = 'dhcp' ] && ipaddr='0.0.0.0'
+		echo "start edge"
+        /usr/sbin/edge -d $tunname -a ${mode}:${ipaddr} -c $community $([ -n "$key" ] && echo -k $key) $([ -n "$netmask" ] && echo -s $netmask) -l ${supernode}:${port} $args $([ -n "$localip" ] && echo -L $localip) $([ -n "$interval" ] && echo -i $interval)
+		[ -n "$time_checkip" ] && add_cron
+		;;
+	  supernode)
+        config_get_bool enabled "$cfg" 'enabled' '0'
+        [ "$enabled" = "0" ] && return 1
+		config_get port "$cfg" port
+		echo "start supernode"
+		/usr/sbin/supernode -l $port
+		;;
+	esac
+}
+
+stop_instance() {
+	local cfg="$1"
+
+	config_get type "$cfg" TYPE
+
+	case "$type" in
+	  edge)
+		killall -9 edge
+		;;
+	  supernode)
+		killall -9 supernode
+		;;
+	esac
+}
+
+start() {
+	wget-ssl --spider --quiet --tries=1 --timeout=3 www.baidu.com >/dev/null 2>&1
+	if [ "$?" != "0" ];then
+		/usr/share/n2n_v2/n2n_v2-watchdog boot >/dev/nul 2>&1 &
+		exit 0
+	fi
+	config_load 'n2n_v2'
+	config_foreach start_instance 'edge'
+	config_foreach start_instance 'supernode'
+}
+
+stop() {
+	config_load 'n2n_v2'
+	del_cron
+	echo "stop n2n_v2"
+    killall -9 edge >/dev/null 2>&1
+    killall -9 supernode >/dev/null 2>&1
+}
+
+add_cron()
+{
+	local time_checkip=`uci get n2n_v2.@edge[0].time_checkip 2>/dev/null`
+	sed -i '/n2n_v2/d' $CRON_FILE
+	if [ $time_checkip -ne 60 ];then
+		echo "*/${time_checkip} * * * * /usr/share/n2n_v2/n2n_v2-watchdog" >> $CRON_FILE
+	else
+		echo "0 */1 * * * /usr/share/n2n_v2/n2n_v2-watchdog" >> $CRON_FILE
+	fi
+	crontab $CRON_FILE
+}
+
+del_cron()
+{
+	sed -i '/n2n_v2/d' $CRON_FILE
+	/etc/init.d/cron restart
+}

@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/python-pip/Makefile
+Package: python-pip
+Submenu: Python
+Version: 8.1.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +python-setuptools +ca-certificates
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends/host: python python/host python-setuptools/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Tool for installing Python packages.
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: pip-8.1.2.tar.gz
+Type: ipkg
+Description:   A tool for installing and managing Python packages.
+https://pip.pypa.io
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+

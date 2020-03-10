@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/net/dansguardian/Makefile
+Package: dansguardian
+Submenu: Web Servers/Proxies
+Version: 2.12.0.3-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +USE_UCLIBCXX:uclibcxx +USE_LIBSTDCXX:libstdcpp +zlib
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: DansGuardian
+Maintainer: Luka Perkov <luka@openwrt.org>
+Source: dansguardian-2.12.0.3.tar.bz2
+License: GPL-2.0
+Type: ipkg
+Description: DansGuardian
+http://dansguardian.org
+Luka Perkov <luka@openwrt.org>
+@@
+
+

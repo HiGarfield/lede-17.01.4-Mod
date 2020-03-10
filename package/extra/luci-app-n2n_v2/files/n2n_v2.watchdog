@@ -1,0 +1,40 @@
+#!/bin/sh
+# Copyright (C) 2008-2012 OpenWrt.org
+check=$1
+init()
+{
+	local retry=0
+	while : ; do
+		local isrun=0; local pid
+		for pid in $(pidof "${0##*/}"); do
+			[ $pid -ne $$ ] && isrun=1 && break
+		done
+		[ $isrun -eq 0 ] && break
+		let retry++; [ $retry -gt 5 ] && return 1
+		sleep 2s
+	done
+}
+
+check()
+{
+	while [ "$check" == "boot" ]; do
+		wget-ssl --spider --quiet --tries=1 --timeout=3 www.baidu.com >/dev/null 2>&1
+		if [ "$?" != "0" ];then
+			sleep 2
+		else
+			/etc/init.d/n2n_v2 restart
+			exit 0
+		fi
+	done
+	checkip=`uci get n2n_v2.@edge[0].checkip 2>/dev/null`
+	ping -c 1 -w 3 $checkip >/dev/null 2>&1
+	if [ "$?" != "0" ]; then
+		/etc/init.d/n2n_v2 restart
+		echo "N2N Restart"
+	else
+		echo "N2N No Problem"
+	fi
+}
+
+init && check
+exit $?

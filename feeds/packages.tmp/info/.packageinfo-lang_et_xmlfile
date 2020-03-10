@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/et_xmlfile/Makefile
+Package: et_xmlfile
+Submenu: Python
+Version: 1.0.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: An implementation of lxml.xmlfile for the standard library
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: et_xmlfile-1.0.1.tar.gz
+License: MIT
+Type: ipkg
+Description:   An implementation of lxml.xmlfile for the standard library
+https://bitbucket.org/openpyxl/et_xmlfile
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

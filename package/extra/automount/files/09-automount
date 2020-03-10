@@ -1,0 +1,99 @@
+#!/bin/sh
+
+set_fstab(){
+	local n old_swap i skip_flag mnt_opts
+	mkdir -p /var/lock
+	lock /var/lock/fstab.lock
+	skip_flag=0
+
+	[ -n "$fstype" ] && {
+		logger -t Auto-Mount "New block detected, file system: ${fstype}."
+		if [ "$fstype" = 'swap' ] ; then
+			n=$(uci show fstab | grep -c "^fstab\..*=swap$")
+			let n-=1
+			for i in $(seq 0 $n); do
+				old_swap="$(uci -q get fstab.@swap[$i].device)"
+				[ "$old_swap" = "/dev/$device" ] && {
+					skip_flag=1
+					break
+				}
+			done
+			
+			[ $skip_flag -eq 0 ] && {
+				uci add fstab swap
+				uci set fstab.@swap[-1]="swap"
+				uci set fstab.@swap[-1].enabled=1
+				uci set fstab.@swap[-1].device="/dev/$device"
+				uci commit fstab
+			}
+		else
+			mnt_opts=
+			case "$fstype" in
+				'ext2'|'ext3'|'ext4')
+					mnt_opts="noatime" ;;
+				'ntfs')
+					if [ "$(lsmod | grep -c -w 'ufsd')" -ge 1 ] ; then
+						fstype="ufsd"
+						mnt_opts="noatime,nls=utf8,force"
+					else
+						fstype="ntfs-3g"
+						mnt_opts="noatime,iocharset=utf8,big_writes"
+					fi
+					;;
+				'exfat')
+					mnt_opts="noatime" ;;
+				'vfat')
+					mnt_opts="iocharset=utf8,umask=0000,dmask=0000,fmask=0000" ;;
+				*)
+					skip_flag=1
+					logger -t Auto-Mount "File system: ${fstype} not supported."
+					;;
+			esac
+
+			[ $skip_flag -eq 0 ] && {
+				uci add fstab mount
+				uci set fstab.@mount[-1]="mount"
+				uci set fstab.@mount[-1].enabled=1
+				uci set fstab.@mount[-1].uuid="$get_uuid"
+				uci set fstab.@mount[-1].target="/mnt/$device"
+				uci set fstab.@mount[-1].fstype="$fstype"
+				[ -n "$mnt_opts" ] && uci set fstab.@mount[-1].options="$mnt_opts"
+				uci commit fstab
+			}
+		fi
+	}
+	lock -u /var/lock/fstab.lock
+}
+
+
+blkdev="$(dirname $DEVPATH)"
+[ "$(basename $blkdev)" != "block" ] && {
+	device="$(basename $DEVPATH)"
+	fstype="$(block info | grep "^/dev/$device: " | awk -F 'TYPE="' '{print $2}' | sed 's/\"//')"
+	case "$ACTION" in
+		add)
+			get_uuid="$(block info | grep "^/dev/${device}: " | awk -F "UUID=" '{print $2}' | awk -F "\"" '{print $2}')"
+			if [ -n "$get_uuid" ] ; then
+				have_uuid=$(uci show fstab | grep -w -c "\.uuid=\'$get_uuid\'$")
+				[ $have_uuid -eq 0 ] && set_fstab
+				have_uuid=$(uci show fstab | grep -w -c "\.uuid=\'$get_uuid\'$")
+				[ $have_uuid -gt 0 ] && {
+					logger -t Auto-Mount "Block /dev/${device} added."
+					logger -t Auto-Mount "UUID=$get_uuid"
+					mkdir -p /mnt/$device
+				}
+			else
+				[ "$fstype" = 'swap' ] && {
+					set_fstab
+				}
+			fi
+		;;
+
+		remove)
+			awk '{print $1,$2}' /proc/mounts | grep "^/dev/$device " | awk '{print $2}' | uniq | while read -r mountpoint
+			do
+				/bin/force-unmount "$mountpoint" >/dev/null 2>&1
+			done
+		;;
+	esac
+}

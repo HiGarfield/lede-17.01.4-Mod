@@ -1,0 +1,27 @@
+Source-Makefile: feeds/packages/sound/shairport/Makefile
+Package: shairport
+Version: 2014-10-28-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +libopenssl +libavahi-client +alsa-lib
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: sound
+Category: Sound
+Repository: base
+Title: ShairPort AirPort Express emulator (un-maintained)
+Maintainer: Ted Hess <thess@kitschensync.net>
+Source: shairport-2014-10-28-d679d19a4bd66cc220dabfd23ad748c34e95995c.tar.gz
+License: MIT
+LicenseFiles: LICENSES
+Type: ipkg
+Description:   This program emulates an AirPort Express for the purpose of streaming
+  music from iTunes and compatible iPods. It implements a server for the
+  Apple RAOP protocol.
+  ShairPort does not support AirPlay v2 (video and photo streaming).
+
+  It supports multiple simultaneous streams, if your audio output chain
+  (as detected by libao) does so.
+Ted Hess <thess@kitschensync.net>
+@@
+
+

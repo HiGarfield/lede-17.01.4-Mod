@@ -1,0 +1,112 @@
+#!/bin/sh
+
+cat > /etc/sysctl.d/99-tuning.conf <<EOF
+net.ipv4.tcp_fastopen = 3
+EOF
+
+mem="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
+if [ "$mem" -gt 65536 ] && [ -n "$(opkg list-installed | grep '^transmission-daemon')" ] ; then
+cat >> /etc/sysctl.d/99-tuning.conf <<EOF
+net.core.rmem_max = 4194304
+net.core.wmem_max = 1048576
+net.ipv4.tcp_adv_win_scale = 4
+EOF
+fi
+
+/etc/init.d/sysctl restart
+
+rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
+rm -f /usr/lib/lua/luci/view/admin_status/index/minidlna.htm
+
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/aria2.lua
+sed -i 's/services/nas/g' /usr/lib/lua/luci/view/aria2/overview_status.htm
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/hd_idle.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/samba.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/minidlna.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/transmission.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
+sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
+
+uci -q batch <<-EOF >/dev/null
+	set luci.main.mediaurlbase=/luci-static/material
+	commit luci
+EOF
+
+
+sed -i '/log-facility/d' /etc/dnsmasq.conf
+echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
+
+sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
+echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
+echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
+
+addnhosts=$(uci -q get dhcp.@dnsmasq[0].addnhosts)
+[ -z "$(echo $addnhosts | grep '/tmp/dnsmasq-lede.router')" ] && {
+	uci add_list dhcp.@dnsmasq[0].addnhosts="/tmp/dnsmasq-lede.router"
+	uci commit dhcp
+}
+
+
+#####################防止LAN与WAN网段重合#########################
+
+. /lib/functions/network.sh
+
+lan_ip=$(uci -q get network.lan.ipaddr)
+
+[ -n "$lan_ip" ] && {
+	/etc/init.d/network restart
+
+	for i in $(seq 1 10); do
+		sleep 2
+		wan_up=$(ifstatus wan | jsonfilter -e '@["up"]')
+		wan_ip=$(ifstatus wan | jsonfilter -e '@["ipv4-address"][0].address')
+		lan_up=$(ifstatus lan | jsonfilter -e '@["up"]')
+		[ "$wan_up" = "true" ] && [ "$lan_up" = "true" ] && [ -n "$wan_ip" ] && break
+	done
+
+	[ "$wan_up" = "true" ] && [ "$lan_up" = "true" ] && [ -n "$wan_ip" ] && {
+		wan_ip1=$(echo $wan_ip | cut -d '.' -f1)
+		wan_ip2=$(echo $wan_ip | cut -d '.' -f2)
+		wan_ip3=$(echo $wan_ip | cut -d '.' -f3)
+
+		lan_ip1=$(echo $lan_ip | cut -d '.' -f1)
+		lan_ip2=$(echo $lan_ip | cut -d '.' -f2)
+		lan_ip3=$(echo $lan_ip | cut -d '.' -f3)
+		lan_ip4=$(echo $lan_ip | cut -d '.' -f4)
+
+		[ $wan_ip1 -eq $lan_ip1 ] && [ $wan_ip2 -eq $lan_ip2 ] && [ $wan_ip3 -eq $lan_ip3 ] && {
+			lan_ip3=$(expr $lan_ip3 + 1)
+			lan_ip3=$(expr $lan_ip3 % 255)
+			lan_ip=$lan_ip1.$lan_ip2.$lan_ip3.$lan_ip4
+			uci set network.lan.ipaddr=$lan_ip
+			uci commit network.lan.ipaddr
+			# /etc/init.d/network restart
+		}		
+	}
+}
+#####################防止LAN与WAN网段重合#########################
+
+ula_prefix=2d$(dd if=/dev/urandom bs=1 count=1 2>/dev/null |hexdump -e '1/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null |hexdump -e '2/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null |hexdump -e '2/1 "%02x"')::/48
+
+uci -q batch <<-EOF >/dev/null
+	set dhcp.lan.ra='server'
+	set dhcp.lan.dhcpv6='server'
+	set dhcp.lan.ra_management='1'
+	set dhcp.lan.ra_default='1'
+	set dhcp.odhcpd.loglevel='3'
+	commit dhcp
+	set network.globals.ula_prefix="$ula_prefix"
+	set network.wan.mtu='1492'
+	commit network
+EOF
+
+rm -rf /tmp/luci-modulecache/
+rm -f /tmp/luci-indexcache
+
+/etc/init.d/network restart
+
+exit 0

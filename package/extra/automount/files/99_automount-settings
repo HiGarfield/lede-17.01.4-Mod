@@ -1,0 +1,13 @@
+#!/bin/sh
+
+uci -q batch <<-EOF
+	set fstab.@global[0].auto_mount=1
+	set fstab.@global[0].auto_swap=1
+	set fstab.@global[0].anon_swap=0
+	set fstab.@global[0].anon_mount=0
+	set fstab.@global[0].check_fs=1
+	commit fstab
+EOF
+
+exit 0
+

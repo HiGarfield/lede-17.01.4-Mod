@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/pytz/Makefile
+Package: pytz
+Submenu: Python
+Version: 2016.6.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: World timezone definitions, modern and historical
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: pytz-2016.6.1.tar.gz
+License: MIT
+Type: ipkg
+Description:   World timezone definitions, modern and historical
+https://sourceforge.net/projects/pytz/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

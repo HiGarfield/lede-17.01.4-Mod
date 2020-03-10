@@ -1,0 +1,93 @@
+#!/bin/sh
+
+. /lib/functions.sh
+. /lib/functions/service.sh
+
+global=0
+
+smb_handle() {
+	local path
+	config_get path $1 path
+	[  "$path" = "$2" ] && global=1
+}
+
+chk_en() {
+	local autoshare
+	config_get_bool autoshare $1 autoshare 1
+	[ $autoshare -eq 0 ] && exit
+}
+
+config_load samba
+config_foreach chk_en samba
+
+device=$(basename $DEVPATH)
+
+mkdir -p /var/lock
+
+case "$ACTION" in
+	add)
+		case "$device" in
+			sd*) ;;
+			md*) ;;
+			hd*) ;;     
+			mmcblk*) ;;  
+			*) return ;;
+		esac   
+
+		share_path="/dev/$device"
+
+		cat /proc/mounts | while read j
+		do
+			str=${j%% *}
+			[ "$str" = "$share_path" ] && {
+				strr=${j#* }
+				target=${strr%% *}
+				global=0
+				config_foreach smb_handle sambashare $target
+				name=${target#*/mnt/}
+
+				[ $global -eq 0 ] && {
+					lock /var/lock/autosamba.lock
+					uci -q batch <<-EOF
+						add samba sambashare		
+						set samba.@sambashare[-1]='sambashare'
+						set samba.@sambashare[-1].auto='1'
+						set samba.@sambashare[-1].name="$name"
+						set samba.@sambashare[-1].path="$target"
+						set samba.@sambashare[-1].read_only='no'
+						set samba.@sambashare[-1].guest_ok='yes'
+						set samba.@sambashare[-1].create_mask='0666'
+						set samba.@sambashare[-1].dir_mask='0777'
+						set samba.@sambashare[-1].device="$device"
+						commit samba
+					EOF
+					lock -u /var/lock/autosamba.lock
+					/etc/init.d/samba reload
+					return
+				}
+			}
+		done
+	;;
+
+	remove)
+		n=$(uci show samba | grep -c "^samba\..*=sambashare$")
+		let n-=1
+		for i in $(seq 0 $n)
+		do
+			dev="$(uci -q get samba.@sambashare[$i].device)"
+			[ "$dev" = "$device" ] && {
+				auto=$(uci -q get samba.@sambashare[$i].auto)
+				[ $auto = "1" ] && {
+					lock /var/lock/autosamba.lock
+					uci -q batch <<-EOF
+						delete samba.@sambashare[$i]
+						commit samba
+					EOF
+					lock -u /var/lock/autosamba.lock
+					/etc/init.d/samba reload
+					return
+				}
+			}
+		done
+	;;
+esac

@@ -1,0 +1,27 @@
+Source-Makefile: feeds/packages/multimedia/mjpg-streamer/Makefile
+Package: mjpg-streamer
+Menu: 1
+Version: r182-8
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +libjpeg +MJPG_STREAMER_V4L2:libv4l
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: MJPG_STREAMER_V4L2:libv4l
+Section: multimedia
+Category: Multimedia
+Repository: base
+Title: MJPG-streamer
+Maintainer: Roger D <rogerdammit@gmail.com>
+Source: mjpg-streamer-r182.1.tar.bz2
+License: GPL-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description:  Streaming application for Linux-UVC compatible webcams
+http://mjpg-streamer.wiki.sourceforge.net/
+Roger D <rogerdammit@gmail.com>
+@@
+Config:
+  source "feeds/packages/multimedia/mjpg-streamer/Config.in"
+@@
+
+

@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/django-compressor/Makefile
+Package: django-compressor
+Submenu: Python
+Version: 2.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +django
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: Compresses linked and inline JavaScript or CSS into single cached files.
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: django_compressor-2.1.tar.gz
+License: MIT
+Type: ipkg
+Description:   Compresses linked and inline JavaScript or CSS into single cached files.
+http://django-compressor.readthedocs.org/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

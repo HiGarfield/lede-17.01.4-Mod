@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/net/yaaw/Makefile
+Package: yaaw
+Submenu: Download Manager
+Version: 2016-05-28-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Yet another aria2 web frontend
+Maintainer: Hsing-Wang Liao <kuoruan@gmail.com>
+Source: yaaw-2016-05-28-c28cde2252b707fe0661693f78c5e5e3beee09a1.tar.gz
+License: LGPL-3.0
+Type: ipkg
+Description: 	Yet Another Aria2 Web Frontend in pure HTML/CSS/Javascirpt.
+https://github.com/binux/yaaw
+Hsing-Wang Liao <kuoruan@gmail.com>
+@@
+
+

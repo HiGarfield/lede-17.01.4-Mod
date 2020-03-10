@@ -1,0 +1,21 @@
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -1176,6 +1176,7 @@ static int spi_nor_chunked_write(struct
+ 				 size_t *_retlen, const u_char *_buf)
+ {
+ 	struct spi_nor *nor = mtd_to_spi_nor(mtd);
++	u32 addr_width = nor->addr_width + !!(nor->flags & SNOR_F_4B_EXT_ADDR);
+ 	int chunk_size;
+ 	int retlen = 0;
+ 	int ret;
+@@ -1184,8 +1185,8 @@ static int spi_nor_chunked_write(struct
+ 	if (!chunk_size)
+ 		chunk_size = _len;
+ 
+-	if (nor->addr_width > 3)
+-		chunk_size -= nor->addr_width - 3;
++	if (addr_width > 3)
++		chunk_size -= addr_width - 3;
+ 
+ 	while (retlen < _len) {
+ 		size_t len = min_t(int, chunk_size, _len - retlen);

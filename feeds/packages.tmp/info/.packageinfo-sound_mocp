@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/sound/mocp/Makefile
+Package: moc
+Version: 2.5.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +BUILD_PATENTED:libmad +libvorbis +BUILD_NLS:libiconv-full +alsa-lib +libid3tag +libflac +libsamplerate +libncursesw +libffmpeg +libltdl +libmagic +faad2 +libdb47
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: sound
+Category: Sound
+Repository: base
+Title: Music On Console
+Maintainer: Ted Hess <thess@kitschensync.net>
+Source: moc-2.5.2.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: 	MOC (music on console) is a console audio player for LINUX/UNIX designed to be powerful and easy to use.
+http://moc.daper.net/
+Ted Hess <thess@kitschensync.net>
+@@
+
+

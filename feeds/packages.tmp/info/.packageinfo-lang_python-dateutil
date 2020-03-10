@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/python-dateutil/Makefile
+Package: python-dateutil
+Submenu: Python
+Version: 2.5.2-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +python-six
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: Extensions to the standard Python datetime module
+Maintainer: Gergely Kiss <mail.gery@gmail.com>
+Source: python-dateutil-2.5.2.tar.gz
+License: BSD-2-Clause
+Type: ipkg
+Description:   Extensions to the standard Python datetime module
+https://dateutil.readthedocs.org/
+Gergely Kiss <mail.gery@gmail.com>
+@@
+
+

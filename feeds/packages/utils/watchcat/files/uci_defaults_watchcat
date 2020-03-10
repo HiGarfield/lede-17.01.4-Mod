@@ -1,0 +1,10 @@
+#!/bin/sh
+
+uci -q show system.@watchcat[0] || {
+	uci add system watchcat
+	uci set system.@watchcat[0].period=6h
+	uci set system.@watchcat[0].mode=ping
+	uci set system.@watchcat[0].pinghosts=www.baidu.com
+	uci set system.@watchcat[0].forcedelay=120
+	uci commit
+}

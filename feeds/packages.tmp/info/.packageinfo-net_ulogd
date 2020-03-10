@@ -1,0 +1,276 @@
+Source-Makefile: feeds/packages/net/ulogd/Makefile
+Package: ulogd
+Menu: 1
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libmnl +libnfnetlink +libpthread
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Netfilter userspace logging daemon
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Netfilter userspace logging daemon
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-dbi
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libdbi
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Output plugin for logging to a database using libdbi
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Output plugin for logging to a database using libdbi
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-json
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +jansson
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: JSON output plugin
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: JSON output plugin
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-mysql
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libmysqlclient
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Output plugin for logging to a MySQL database
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Output plugin for logging to a MySQL database
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-nfacct
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-acct
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Input plugin for flow-based logging (accounting)
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Input plugin for flow-based logging (accounting)
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-nfct
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-conntrack
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Input plugin for flow-based logging (conntracking)
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Input plugin for flow-based logging (conntracking)
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-nflog
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-log
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Input plugin using NFLOG
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Input plugin using NFLOG
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-pcap
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libpcap
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Output plugin for logging in pcap format
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Output plugin for logging in pcap format
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-pgsql
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libpq
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Output plugin for logging to a PostgreSQL database
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Output plugin for logging to a PostgreSQL database
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-sqlite
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libsqlite3
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Output plugin for logging to an SQLite database
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Output plugin for logging to an SQLite database
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-syslog
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Syslog output plugin
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Syslog output plugin
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-xml
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-acct +libnetfilter-conntrack +libnetfilter-log
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: XML output plugin
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: XML output plugin
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+Package: ulogd-mod-extra
+Version: 2.0.5-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: libnetfilter-acct libnetfilter-conntrack libnetfilter-log
+Section: net
+Category: Network
+Repository: base
+Title: Extra plugins
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ulogd-2.0.5.tar.bz2
+License: GPL-2.0
+LicenseFiles: COPYING
+Type: ipkg
+Description: Extra plugins
+http://www.netfilter.org/projects/ulogd/index.html
+Nicolas Thill <nico@openwrt.org>
+@@
+
+

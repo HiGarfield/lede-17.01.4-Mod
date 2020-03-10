@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/libs/apr-util/Makefile
+Package: libaprutil
+Version: 1.5.4-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libapr +libexpat +libsqlite3 +libuuid +BUILD_NLS:libiconv-full
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: libs
+Category: Libraries
+Repository: base
+Title: Apache Portable Runtime Utility Library
+Maintainer: Thomas Heil <heil@terminal-consulting.de>
+Source: apr-util-1.5.4.tar.bz2
+License: Apache License
+Type: ipkg
+Description: Apache Portable Runtime Utility Library
+http://apr.apache.org/
+Thomas Heil <heil@terminal-consulting.de>
+@@
+
+

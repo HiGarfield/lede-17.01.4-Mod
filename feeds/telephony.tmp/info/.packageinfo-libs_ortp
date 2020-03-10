@@ -1,0 +1,23 @@
+Source-Makefile: feeds/telephony/libs/ortp/Makefile
+Package: libortp
+Submenu: Telephony
+Version: 0.23.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Repository: base
+Title: Real-time Transport Protocol (RTP) library
+Maintainer: Nicolas Thill <nico@openwrt.org>
+Source: ortp-0.23.0.tar.gz
+License: LGPL-2.1
+LicenseFiles: COPYING
+Type: ipkg
+Description: Real-time Transport Protocol (RTP) library
+http://www.linphone.org/technical-corner/ortp/overview
+Nicolas Thill <nico@openwrt.org>
+@@
+
+

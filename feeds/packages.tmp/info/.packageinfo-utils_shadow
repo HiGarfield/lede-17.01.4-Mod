@@ -1,0 +1,334 @@
+Source-Makefile: feeds/packages/utils/shadow/Makefile
+Package: shadow-chage
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility chage from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard chage utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-groupadd
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility groupadd from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard groupadd utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-groupdel
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility groupdel from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard groupdel utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-groupmod
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility groupmod from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard groupmod utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-groups
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility groups from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard groups utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-passwd
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility passwd from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard passwd utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-su
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility su from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard su utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-useradd
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility useradd from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard useradd utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-userdel
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility userdel from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard userdel utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-usermod
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-common
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Utility usermod from the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:     Full version of standard usermod utility. Normally, you would not use this
+    package, since the functionality in BusyBox is more than sufficient.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow-utils
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: The PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Description:   Full versions of standard shadow utilities. Normally, you would not
+  use this package, since the functionality in BusyBox is more than
+  sufficient and much smaller.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+Config:
+    menu "Select shadow utilities"
+      depends on PACKAGE_shadow-utils
+
+    config shadow-all
+      bool "Include all PLD shadow utilities"
+      select PACKAGE_shadow
+      default y
+
+    comment "Utilities"
+
+   config PACKAGE_shadow-chage
+      prompt "Full PLD version of chage utility"
+
+     config PACKAGE_shadow-groupadd
+      prompt "Full PLD version of groupadd utility"
+
+     config PACKAGE_shadow-groupdel
+      prompt "Full PLD version of groupdel utility"
+
+     config PACKAGE_shadow-groupmod
+      prompt "Full PLD version of groupmod utility"
+
+     config PACKAGE_shadow-groups
+      prompt "Full PLD version of groups utility"
+
+     config PACKAGE_shadow-passwd
+      prompt "Full PLD version of passwd utility"
+
+     config PACKAGE_shadow-su
+      prompt "Full PLD version of su utility"
+
+     config PACKAGE_shadow-useradd
+      prompt "Full PLD version of useradd utility"
+
+     config PACKAGE_shadow-userdel
+      prompt "Full PLD version of userdel utility"
+
+     config PACKAGE_shadow-usermod
+      prompt "Full PLD version of usermod utility"
+
+   
+
+  endmenu
+
+@@
+
+Package: shadow-common
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: Shared definitions for the PLD Linux shadow utilities
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description: Shared definitions for the PLD Linux shadow utilities
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+Package: shadow
+Version: 4.2.1-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +shadow-chage +shadow-groupadd +shadow-groupdel +shadow-groupmod +shadow-groups +shadow-passwd +shadow-su +shadow-useradd +shadow-userdel +shadow-usermod
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Section: utils
+Category: Utilities
+Repository: base
+Title: The PLD Linux shadow utilities (all)
+Maintainer: Steven Barth <cyrus@openwrt.org>
+Source: shadow-4.2.1.tar.xz
+License: BSD-3-Clause
+Type: ipkg
+Hidden: 1
+Description:   Full versions of standard shadow utilities. Normally, you would not
+  use this package, since the functionality in BusyBox is more than
+  sufficient and much smaller.
+http://pkg-shadow.alioth.debian.org/
+Steven Barth <cyrus@openwrt.org>
+@@
+
+

@@ -1,0 +1,44 @@
+Source-Makefile: feeds/packages/net/shadowsocks-libev/Makefile
+Package: shadowsocks-libev
+Version: 2.6.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libpthread +ipset +ip +iptables-mod-tproxy +libpcre +zlib
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: openssl
+Section: net
+Category: Network
+Repository: base
+Title: Lightweight Secured Socks5 Proxy (OpenSSL)
+Maintainer: Jian Chang <aa65535@live.com>
+Source: shadowsocks-libev-2.6.1-a3bf80cf11e0a88589abdd87266b5351f270197c.tar.xz
+License: GPLv2
+LicenseFiles: LICENSE
+Type: ipkg
+Description: Shadowsocks-libev is a lightweight secured socks5 proxy for embedded devices and low end boxes.
+https://github.com/shadowsocks/shadowsocks-libev
+Jian Chang <aa65535@live.com>
+@@
+
+Package: shadowsocks-libev-mbedtls
+Version: 2.6.1-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libmbedtls +libpthread +ipset +ip +iptables-mod-tproxy +libpcre +zlib
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: mbedtls
+Section: net
+Category: Network
+Repository: base
+Title: Lightweight Secured Socks5 Proxy (mbed TLS)
+Maintainer: Jian Chang <aa65535@live.com>
+Source: shadowsocks-libev-2.6.1-a3bf80cf11e0a88589abdd87266b5351f270197c.tar.xz
+License: GPLv2
+LicenseFiles: LICENSE
+Type: ipkg
+Description: Shadowsocks-libev is a lightweight secured socks5 proxy for embedded devices and low end boxes.
+https://github.com/shadowsocks/shadowsocks-libev
+Jian Chang <aa65535@live.com>
+@@
+
+

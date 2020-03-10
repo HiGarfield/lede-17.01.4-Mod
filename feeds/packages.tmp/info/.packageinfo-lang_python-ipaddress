@@ -1,0 +1,23 @@
+Source-Makefile: feeds/packages/lang/python-ipaddress/Makefile
+Package: python-ipaddress
+Submenu: Python
+Version: 1.0.17-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-ipaddress
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: ipaddress-1.0.17.tar.gz
+License: Python-2.0
+Type: ipkg
+Description: Python 3.3+'s ipaddress for Python 2.6, 2.7, 3.2.
+https://github.com/phihag/ipaddress
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

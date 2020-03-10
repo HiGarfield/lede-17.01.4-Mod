@@ -1,0 +1,25 @@
+Source-Makefile: feeds/packages/lang/python-enum34/Makefile
+Package: python-enum34
+Submenu: Python
+Version: 1.1.6-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-enum34
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: enum34-1.1.6.tar.gz
+License: BSD-3-Clause
+LicenseFiles: enum/LICENSE
+Type: ipkg
+Description: enum34 is the new Python stdlib enum module available in Python 3.4
+backported for previous versions of Python from 2.4 to 3.3.
+https://pypi.python.org/pypi/enum34/
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

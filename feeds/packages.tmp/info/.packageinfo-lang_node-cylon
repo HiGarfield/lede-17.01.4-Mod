@@ -1,0 +1,90 @@
+Source-Makefile: feeds/packages/lang/node-cylon/Makefile
+Package: node-cylon
+Submenu: Node.js
+Version: 0.22.0-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +node
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: node/host
+Section: lang
+Category: Languages
+Repository: base
+Title: CylonJS - Core
+Maintainer: John Crispin <blogic@openwrt.org>
+Source: node-cylon-0c37da77e48b3e2cc3a8d566822a17689de91b40.tar.gz
+License: Apache-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description: 	JavaScript Robotics, By Your Command Next generation robotics framework with support for 36 different platforms Get Started
+https://www.npmjs.org/package/cylon
+John Crispin <blogic@openwrt.org>
+@@
+
+Package: node-cylon-i2c
+Submenu: Node.js
+Version: 0.22.0-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +node +node-cylon
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: node/host
+Section: lang
+Category: Languages
+Repository: base
+Title: CylonJS - I2C
+Maintainer: John Crispin <blogic@openwrt.org>
+Source: node-cylon-0c37da77e48b3e2cc3a8d566822a17689de91b40.tar.gz
+License: Apache-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description: CylonJS - I2C
+https://www.npmjs.org/package/cylon
+John Crispin <blogic@openwrt.org>
+@@
+
+Package: node-cylon-gpio
+Submenu: Node.js
+Version: 0.22.0-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +node +node-cylon
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: node/host
+Section: lang
+Category: Languages
+Repository: base
+Title: CylonJS - GPIO
+Maintainer: John Crispin <blogic@openwrt.org>
+Source: node-cylon-0c37da77e48b3e2cc3a8d566822a17689de91b40.tar.gz
+License: Apache-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description: CylonJS - GPIO
+https://www.npmjs.org/package/cylon
+John Crispin <blogic@openwrt.org>
+@@
+
+Package: node-cylon-firmata
+Submenu: Node.js
+Version: 0.22.0-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +node +node-cylon-gpio +node-cylon-i2c +node-arduino-firmata
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: node/host
+Section: lang
+Category: Languages
+Repository: base
+Title: CylonJS - Firmata
+Maintainer: John Crispin <blogic@openwrt.org>
+Source: node-cylon-0c37da77e48b3e2cc3a8d566822a17689de91b40.tar.gz
+License: Apache-2.0
+LicenseFiles: LICENSE
+Type: ipkg
+Description: CylonJS - Firmata
+https://www.npmjs.org/package/cylon
+John Crispin <blogic@openwrt.org>
+@@
+
+

@@ -1,0 +1,27 @@
+Source-Makefile: feeds/packages/lang/zope-interface/Makefile
+Package: zope-interface
+Submenu: Python
+Version: 4.3.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: Zope interface
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: zope.interface-4.3.2.tar.gz
+License: ZPL-2.1
+LicenseFiles: LICENSE.txt
+Type: ipkg
+Description: This package provides an implementation of "object interfaces" for
+Python. Interfaces are a mechanism for labeling objects as conforming to
+a given API or contract. So, this package can be considered as
+implementation of the Design By Contract methodology support in Python.
+https://github.com/zopefoundation/zope.interface
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

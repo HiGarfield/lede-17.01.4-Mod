@@ -1,0 +1,46 @@
+Source-Makefile: feeds/telephony/net/asterisk-g72x/Makefile
+Package: asterisk11-codec-g729
+Submenu: Telephony
+Version: 1.3-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +bcg729 asterisk11
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: asterisk11
+Section: net
+Category: Network
+Repository: base
+Title: G.729 codec for Asterisk open source PBX
+Maintainer: Alex Samorukov <samm@os2.kiev.ua>
+Source: asterisk-g72x-1.3.tar.bz2
+License: GPL-3.0
+LicenseFiles: README.md
+Type: ipkg
+Description:  Asterisk G.729 codec based on bcg729 implementation.
+http://asterisk.hosting.lv
+Alex Samorukov <samm@os2.kiev.ua>
+@@
+
+Package: asterisk13-codec-g729
+Submenu: Telephony
+Version: 1.3-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +bcg729 asterisk13
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: asterisk13
+Section: net
+Category: Network
+Repository: base
+Title: G.729 codec for Asterisk open source PBX
+Maintainer: Alex Samorukov <samm@os2.kiev.ua>
+Source: asterisk-g72x-1.3.tar.bz2
+License: GPL-3.0
+LicenseFiles: README.md
+Type: ipkg
+Description:  Asterisk G.729 codec based on bcg729 implementation.
+http://asterisk.hosting.lv
+Alex Samorukov <samm@os2.kiev.ua>
+@@
+
+

@@ -1,0 +1,44 @@
+Source-Makefile: feeds/packages/ipv6/aiccu/Makefile
+Package: aiccu
+Version: 20070115-16
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +ip +kmod-sit +kmod-tun
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: default
+Section: net
+Category: Network
+Repository: base
+Title: SixXS IPv6 Connectivity Client (without GNUTLS support)
+Maintainer: Ondrej Caletka <ondrej@caletka.cz>
+Source: aiccu_20070115.tar.gz
+License: BSD-3-Clause
+LicenseFiles: doc/LICENSE
+Type: ipkg
+Description: SixXS IPv6 Connectivity Client (without GNUTLS support)
+http://www.sixxs.net/tools/aiccu/
+Ondrej Caletka <ondrej@caletka.cz>
+@@
+
+Package: aiccu-gnutls
+Version: 20070115-16
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +ip +kmod-sit +kmod-tun +libgnutls
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: gnutls
+Section: net
+Category: Network
+Repository: base
+Title: SixXS IPv6 Connectivity Client (with GNUTLS support)
+Maintainer: Ondrej Caletka <ondrej@caletka.cz>
+Source: aiccu_20070115.tar.gz
+License: BSD-3-Clause
+LicenseFiles: doc/LICENSE
+Type: ipkg
+Description: SixXS IPv6 Connectivity Client (with GNUTLS support)
+http://www.sixxs.net/tools/aiccu/
+Ondrej Caletka <ondrej@caletka.cz>
+@@
+
+

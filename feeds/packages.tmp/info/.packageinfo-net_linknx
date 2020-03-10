@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/net/linknx/Makefile
+Package: linknx
+Version: 0.0.1.33-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +pthsem +lua +luac +libstdcpp +libcurl +libesmtp
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: argp-standalone
+Section: net
+Category: Network
+Repository: base
+Title: KNX home automation platform
+Maintainer: Othmar Truniger <github@truniger.ch>
+Source: linknx-0.0.1.33.tar.gz
+License: GPL-2.0+
+Type: ipkg
+Description: KNX home automation platform
+http://sourceforge.net/projects/linknx/
+Othmar Truniger <github@truniger.ch>
+@@
+
+

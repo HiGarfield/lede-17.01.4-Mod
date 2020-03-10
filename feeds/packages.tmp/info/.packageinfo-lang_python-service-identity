@@ -1,0 +1,25 @@
+Source-Makefile: feeds/packages/lang/python-service-identity/Makefile
+Package: python-service-identity
+Submenu: Python
+Version: 16.0.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-attrs +python-pyasn1 +python-pyasn1-modules +python-pyopenssl
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python python-setuptools
+Section: lang
+Category: Languages
+Repository: base
+Title: python-service-identity
+Maintainer: Jeffery To <jeffery.to@gmail.com>
+Source: service_identity-16.0.0.tar.gz
+License: MIT
+LicenseFiles: LICENSE
+Type: ipkg
+Description: service_identity aspires to give you all the tools you need for
+verifying whether a certificate is valid for the intended purposes.
+https://github.com/pyca/service_identity
+Jeffery To <jeffery.to@gmail.com>
+@@
+
+

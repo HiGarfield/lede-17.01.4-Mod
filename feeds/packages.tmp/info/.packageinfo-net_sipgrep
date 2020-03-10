@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/net/sipgrep/Makefile
+Package: sipgrep
+Version: 20160914-devel-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpcap +libpcre +libncursesw
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Display and Troubleshoot SIP signaling in CLI
+Maintainer: Daniel Engberg <daniel.engberg.lists@pyret.net>
+Source: sipgrep-20160914-devel.tar.gz
+License: GPL-3.0
+LicenseFiles: COPYING
+Type: ipkg
+Description:   SipGrep is a utility for displaying and troubleshooting SIP signaling.
+https://github.com/sipcapture/sipgrep
+Daniel Engberg <daniel.engberg.lists@pyret.net>
+@@
+
+

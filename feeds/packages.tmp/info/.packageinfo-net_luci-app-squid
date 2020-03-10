@@ -1,0 +1,21 @@
+Source-Makefile: feeds/packages/net/luci-app-squid/Makefile
+Package: luci-app-squid
+Submenu: 3. Applications
+Version: 20150608
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci-mod-admin-full +squid
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: luci
+Category: LuCI
+Repository: base
+Title: Squid Web UI
+Maintainer: Marko Ratkaj <marko.ratkaj@sartura.hr>
+Source: 
+License: Apache-2.0
+Type: ipkg
+Description:  This package will install Squid Web UI.
+Marko Ratkaj <marko.ratkaj@sartura.hr>
+@@
+
+

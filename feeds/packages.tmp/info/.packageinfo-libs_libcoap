@@ -1,0 +1,22 @@
+Source-Makefile: feeds/packages/libs/libcoap/Makefile
+Package: libcoap
+Version: 2da31de732c0e51a9bc9e1d4aea21e25da89cf87-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Repository: base
+Title: CoAP (RFC 7252) library
+Maintainer: Anton Glukhov <anton.a.glukhov@gmail.com>
+Source: libcoap-2da31de732c0e51a9bc9e1d4aea21e25da89cf87.tar.bz2
+License: GPL-2.0+ BSD-2-Clause
+LicenseFiles: COPYING LICENSE.GPL LICENSE.BSD
+Type: ipkg
+Description:   Constrained Application Protocol (RFC 7252) library
+http://libcoap.net/
+Anton Glukhov <anton.a.glukhov@gmail.com>
+@@
+
+
