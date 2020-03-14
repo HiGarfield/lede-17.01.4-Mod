@@ -7,10 +7,12 @@ apply_defaults() {
 	local mem="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
 	local min_free frag_low_thresh frag_high_thresh
 
-	if [ "$mem" -gt 65536 ]; then # 128M
+	if [ "$mem" -gt 131072 ]; then # 256M
+		min_free=24576
+	elif [ "$mem" -gt 65536 ]; then # 128M
 		min_free=16384
 	elif [ "$mem" -gt 32768 ]; then # 64M
-		min_free=8192
+		min_free=12288
 	else
 		min_free=1024
 		frag_low_thresh=393216
