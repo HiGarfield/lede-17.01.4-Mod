@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -22,6 +22,8 @@
 #include "hsl.h"
 #include "hsl_dev.h"
 #include "hsl_port_prop.h"
+#include "hsl_phy.h"
+
 
 typedef struct
 {
@@ -148,7 +150,7 @@ hsl_port_prop_get_phyid(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-    *phy_id = p_port_info[dev_id]->phy_id[port_id];
+    *phy_id = qca_ssdk_port_to_phy_addr(dev_id, port_id);
 
     return SW_OK;
 }
@@ -213,12 +215,12 @@ hsl_port_prop_cleanup_by_dev(a_uint32_t dev_id)
 
 
 sw_error_t
-hsl_port_prop_init(void)
+hsl_port_prop_init(a_uint32_t dev_id)
 {
-    a_uint32_t i;
+    if (dev_id >= SW_MAX_NR_DEV)
+    	return SW_BAD_VALUE;
 
-    for (i = 0; i < SW_MAX_NR_DEV; i++)
-        p_port_info[i] = NULL;
+    p_port_info[dev_id] = NULL;
 
     return SW_OK;
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2016-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -38,7 +38,7 @@ fal_trunk_group_get(a_uint32_t dev_id, a_uint32_t trunk_id,
     sw_error_t rv;
 
     rv = sw_uk_exec(SW_API_TRUNK_GROUP_GET, dev_id, trunk_id, enable,
-                    (a_uint32_t) member);
+                    member);
     return rv;
 }
 
@@ -77,4 +77,25 @@ fal_trunk_manipulate_sa_get(a_uint32_t dev_id, fal_mac_addr_t * addr)
     rv = sw_uk_exec(SW_API_TRUNK_MAN_SA_GET, dev_id, addr);
     return rv;
 }
+
+sw_error_t
+fal_trunk_failover_enable(a_uint32_t dev_id, a_bool_t failover)
+
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_TRUNK_FAILOVER_EN_SET, dev_id, failover);
+    return rv;
+}
+
+sw_error_t
+fal_trunk_failover_status_get(a_uint32_t dev_id, a_bool_t *failover)
+
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_TRUNK_FAILOVER_EN_GET, dev_id, failover);
+    return rv;
+}
+
 

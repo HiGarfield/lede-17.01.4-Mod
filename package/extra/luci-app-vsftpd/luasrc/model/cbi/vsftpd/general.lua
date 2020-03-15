@@ -45,7 +45,7 @@ o.default = "50000"
 
 o = sl:option(Value, "pasv_max_port", translate("Pasv Max Port"))
 o.datatype = "uinteger"
-o.default = "51000"
+o.default = "50100"
 
 
 sg = m:section(NamedSection, "global", "global", translate("Global Settings"))

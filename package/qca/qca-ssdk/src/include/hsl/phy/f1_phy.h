@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -44,7 +44,9 @@ extern "C" {
 #define F1_PHY_CDT_STATUS                   28
 #define F1_DEBUG_PORT_ADDRESS               29
 #define F1_DEBUG_PORT_DATA                  30
-
+#define F1_PHY_8023AZ_EEE_CTRL	0x3c
+#define F1_PHY_MMD7_NUM	7
+#define F1_PHY_AZ_ENABLE	0x6
 
     /*debug port*/
 #define F1_DEBUG_PORT_RGMII_MODE            18
@@ -84,7 +86,11 @@ extern "C" {
 #define F1_CTRL_SPEED_LSB                   0x2000
 
     /* 0 = normal, 1 = loopback */
-#define F1_CTRL_LOOPBACK                    0x4000
+#define F1_LOCAL_LOOPBACK_ENABLE            0x4000
+
+#define F1_PHY_MMD3_NUM  3
+#define F1_PHY_MMD3_ADDR_REMOTE_LOOPBACK_CTRL       0x805a
+#define F1_PHY_REMOTE_LOOPBACK_ENABLE       0x0001
 #define F1_CTRL_SOFTWARE_RESET              0x8000
 
 #define F1_CTRL_SPEED_MASK                  0x2040
@@ -454,7 +460,14 @@ extern "C" {
     f1_phy_intr_status_get(a_uint32_t dev_id, a_uint32_t phy_id,
                            a_uint32_t * intr_status_flag);
 
-    int f1_phy_init(void);
+    sw_error_t
+    f1_phy_set_8023az(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t enable);
+
+    sw_error_t
+    f1_phy_get_8023az(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t *enable);
+
+    int
+    f1_phy_init(a_uint32_t dev_id, a_uint32_t port_bmp);
 
 #ifdef __cplusplus
 }

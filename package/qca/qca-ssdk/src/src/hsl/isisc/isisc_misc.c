@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -1085,7 +1085,7 @@ _isisc_port_link_intr_mask_set(a_uint32_t dev_id, a_uint32_t port_id, a_uint32_t
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_intr_mask_set)
 	  return SW_NOT_SUPPORTED;
 
@@ -1110,7 +1110,7 @@ _isisc_port_link_intr_mask_get(a_uint32_t dev_id, a_uint32_t port_id, a_uint32_t
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_intr_mask_get)
 	  return SW_NOT_SUPPORTED;
 
@@ -1135,7 +1135,7 @@ _isisc_port_link_intr_status_get(a_uint32_t dev_id, a_uint32_t port_id, a_uint32
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_intr_status_get)
 	  return SW_NOT_SUPPORTED;
 

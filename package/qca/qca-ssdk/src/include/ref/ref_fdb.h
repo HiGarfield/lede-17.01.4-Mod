@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012,2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -20,15 +20,15 @@ extern "C" {
 #endif                          /* __cplusplus */
 
 #include <linux/version.h>
-#if defined(CONFIG_OF) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0))
+#if defined(IN_SWCONFIG)
 #include <linux/switch.h>
-#else
-#include <net/switch.h>
 #endif
+
 #include <linux/notifier.h>
-#include "common/sw.h"
+#include "sw.h"
 #include "fal/fal_type.h"
 
+#if defined(IN_SWCONFIG)
 int
 	qca_ar8327_sw_atu_flush(struct switch_dev *dev,
 					const struct switch_attr *attr,
@@ -38,6 +38,7 @@ int
 qca_ar8327_sw_atu_dump(struct switch_dev *dev,
 		       		const struct switch_attr *attr,
 		       		struct switch_val *val);
+#endif
 
 fal_port_t
 ref_fdb_get_port_by_mac(unsigned int vid, const char * addr);

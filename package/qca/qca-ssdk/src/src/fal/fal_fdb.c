@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -20,6 +20,7 @@
 #include "sw.h"
 #include "fal_fdb.h"
 #include "hsl_api.h"
+#include "adpt.h"
 
 #include <linux/kernel.h>
 #include <linux/module.h>
@@ -27,10 +28,19 @@
 
 #ifndef IN_FDB_MINI
 static sw_error_t
-_fal_fdb_add(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
+_fal_fdb_entry_add(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_add)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_add(dev_id, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -43,10 +53,19 @@ _fal_fdb_add(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
 #endif
 
 static sw_error_t
-_fal_fdb_del_all(a_uint32_t dev_id, a_uint32_t flag)
+_fal_fdb_entry_flush(a_uint32_t dev_id, a_uint32_t flag)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_del_all)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_del_all(dev_id, flag);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -59,10 +78,19 @@ _fal_fdb_del_all(a_uint32_t dev_id, a_uint32_t flag)
 
 #ifndef IN_FDB_MINI
 static sw_error_t
-_fal_fdb_del_by_port(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t flag)
+_fal_fdb_entry_del_byport(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t flag)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_del_by_port)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_del_by_port(dev_id, port_id, flag);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -75,10 +103,19 @@ _fal_fdb_del_by_port(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t flag)
 
 
 static sw_error_t
-_fal_fdb_del_by_mac(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
+_fal_fdb_entry_del_bymac(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_del_by_mac)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_del_by_mac(dev_id, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -91,10 +128,19 @@ _fal_fdb_del_by_mac(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
 #endif
 
 static sw_error_t
-_fal_fdb_first(a_uint32_t dev_id, fal_fdb_entry_t * entry)
+_fal_fdb_entry_getfirst(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_first)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_first(dev_id, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -107,10 +153,19 @@ _fal_fdb_first(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 
 #ifndef IN_FDB_MINI
 static sw_error_t
-_fal_fdb_next(a_uint32_t dev_id, fal_fdb_entry_t * entry)
+_fal_fdb_entry_getnext(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_next)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_next(dev_id, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -123,10 +178,19 @@ _fal_fdb_next(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 
 
 static sw_error_t
-_fal_fdb_find(a_uint32_t dev_id, fal_fdb_entry_t * entry)
+_fal_fdb_entry_search(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_find)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_find(dev_id, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -143,6 +207,15 @@ _fal_fdb_port_learn_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_port_learn_set)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_port_learn_set(dev_id, port_id, enable);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -159,6 +232,15 @@ _fal_fdb_port_learn_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_port_learn_get)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_port_learn_get(dev_id, port_id, enable);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -170,10 +252,79 @@ _fal_fdb_port_learn_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable
 }
 
 static sw_error_t
-_fal_fdb_age_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
+_fal_fdb_port_learning_ctrl_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable, fal_fwd_cmd_t cmd)
+{
+    adpt_api_t *p_api;
+    sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_port_newaddr_lrn_set)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_port_newaddr_lrn_set(dev_id, port_id, enable, cmd);
+    return rv;
+}
+
+static sw_error_t
+_fal_fdb_port_learning_ctrl_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t *enable, fal_fwd_cmd_t *cmd)
+{
+    adpt_api_t *p_api;
+    sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_port_newaddr_lrn_get)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_port_newaddr_lrn_get(dev_id, port_id, enable, cmd);
+    return rv;
+}
+
+static sw_error_t
+_fal_fdb_port_stamove_ctrl_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable, fal_fwd_cmd_t cmd)
+{
+    adpt_api_t *p_api;
+    sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_port_stamove_set)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_port_stamove_set(dev_id, port_id, enable, cmd);
+    return rv;
+}
+
+static sw_error_t
+_fal_fdb_port_stamove_ctrl_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t *enable, fal_fwd_cmd_t *cmd)
+{
+    adpt_api_t *p_api;
+    sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_port_stamove_get)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_port_stamove_get(dev_id, port_id, enable, cmd);
+    return rv;
+}
+
+static sw_error_t
+_fal_fdb_aging_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_age_ctrl_set)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_age_ctrl_set(dev_id, enable);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -186,10 +337,19 @@ _fal_fdb_age_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
 
 
 static sw_error_t
-_fal_fdb_age_ctrl_get(a_uint32_t dev_id, a_bool_t * enable)
+_fal_fdb_aging_ctrl_get(a_uint32_t dev_id, a_bool_t * enable)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_age_ctrl_get)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_age_ctrl_get(dev_id, enable);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -231,10 +391,19 @@ _fal_fdb_vlan_ivl_svl_get(a_uint32_t dev_id, fal_fdb_smode* smode)
 }
 
 static sw_error_t
-_fal_fdb_age_time_set(a_uint32_t dev_id, a_uint32_t * time)
+_fal_fdb_aging_time_set(a_uint32_t dev_id, a_uint32_t * time)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_age_time_set)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_age_time_set(dev_id, time);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -247,10 +416,19 @@ _fal_fdb_age_time_set(a_uint32_t dev_id, a_uint32_t * time)
 
 
 static sw_error_t
-_fal_fdb_age_time_get(a_uint32_t dev_id, a_uint32_t * time)
+_fal_fdb_aging_time_get(a_uint32_t dev_id, a_uint32_t * time)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_age_time_get)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_age_time_get(dev_id, time);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -263,10 +441,19 @@ _fal_fdb_age_time_get(a_uint32_t dev_id, a_uint32_t * time)
 #endif
 
 static sw_error_t
-_fal_fdb_iterate(a_uint32_t dev_id, a_uint32_t * iterator, fal_fdb_entry_t * entry)
+_fal_fdb_entry_getnext_byindex(a_uint32_t dev_id, a_uint32_t * iterator, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_iterate)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_iterate(dev_id, iterator, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -278,11 +465,20 @@ _fal_fdb_iterate(a_uint32_t dev_id, a_uint32_t * iterator, fal_fdb_entry_t * ent
 }
 
 static sw_error_t
-_fal_fdb_extend_next(a_uint32_t dev_id, fal_fdb_op_t * option,
+_fal_fdb_entry_extend_getnext(a_uint32_t dev_id, fal_fdb_op_t * option,
                      fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_extend_next)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_extend_next(dev_id, option, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -294,11 +490,20 @@ _fal_fdb_extend_next(a_uint32_t dev_id, fal_fdb_op_t * option,
 }
 
 static sw_error_t
-_fal_fdb_extend_first(a_uint32_t dev_id, fal_fdb_op_t * option,
+_fal_fdb_entry_extend_getfirst(a_uint32_t dev_id, fal_fdb_op_t * option,
                       fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_extend_first)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_extend_first(dev_id, option, entry);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -311,11 +516,20 @@ _fal_fdb_extend_first(a_uint32_t dev_id, fal_fdb_op_t * option,
 
 #ifndef IN_FDB_MINI
 static sw_error_t
-_fal_fdb_transfer(a_uint32_t dev_id, fal_port_t old_port, fal_port_t new_port,
+_fal_fdb_entry_update_byport(a_uint32_t dev_id, fal_port_t old_port, fal_port_t new_port,
                   a_uint32_t fid, fal_fdb_op_t * option)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_transfer)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_transfer(dev_id, old_port, new_port, fid, option);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -332,6 +546,15 @@ _fal_port_fdb_learn_limit_set(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_port_fdb_learn_limit_set)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_port_fdb_learn_limit_set(dev_id, port_id, enable, cnt);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -348,6 +571,15 @@ _fal_port_fdb_learn_limit_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_port_fdb_learn_limit_get)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_port_fdb_learn_limit_get(dev_id, port_id, enable, cnt);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -364,6 +596,15 @@ _fal_port_fdb_learn_exceed_cmd_set(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_port_fdb_learn_exceed_cmd_set)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_port_fdb_learn_exceed_cmd_set(dev_id, port_id, cmd);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -380,6 +621,15 @@ _fal_port_fdb_learn_exceed_cmd_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_port_fdb_learn_exceed_cmd_get)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_port_fdb_learn_exceed_cmd_get(dev_id, port_id, cmd);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -548,6 +798,15 @@ _fal_fdb_port_add(a_uint32_t dev_id, a_uint32_t fid, fal_mac_addr_t * addr, fal_
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_port_add)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_port_add(dev_id, fid, addr, port_id);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -563,6 +822,15 @@ _fal_fdb_port_del(a_uint32_t dev_id, a_uint32_t fid, fal_mac_addr_t * addr, fal_
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_fdb_port_del)
+            return SW_NOT_SUPPORTED;
+
+        rv = p_adpt_api->adpt_fdb_port_del(dev_id, fid, addr, port_id);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -603,6 +871,93 @@ _fal_fdb_rfs_del(a_uint32_t dev_id, const fal_fdb_rfs_t * entry)
 	return rv;
 }
 
+sw_error_t
+_fal_fdb_learning_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
+{
+    adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_learn_ctrl_set)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_learn_ctrl_set(dev_id, enable);
+    return rv;
+}
+sw_error_t
+_fal_fdb_learning_ctrl_get(a_uint32_t dev_id, a_bool_t * enable)
+{
+    adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_learn_ctrl_get)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_learn_ctrl_get(dev_id, enable);
+    return rv;
+}
+sw_error_t
+_fal_fdb_port_learned_mac_counter_get(a_uint32_t dev_id, fal_port_t port_id,
+                                  a_uint32_t * cnt)
+{
+    adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_port_fdb_learn_counter_get)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_port_fdb_learn_counter_get(dev_id, port_id, cnt);
+    return rv;
+}
+sw_error_t
+_fal_fdb_port_maclimit_ctrl_set(a_uint32_t dev_id, fal_port_t port_id, fal_maclimit_ctrl_t * maclimit_ctrl)
+{
+    adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_port_maclimit_ctrl_set)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_port_maclimit_ctrl_set(dev_id, port_id, maclimit_ctrl);
+    return rv;
+}
+sw_error_t
+_fal_fdb_port_maclimit_ctrl_get(a_uint32_t dev_id, fal_port_t port_id, fal_maclimit_ctrl_t * maclimit_ctrl)
+{
+    adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_port_maclimit_ctrl_get)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_port_maclimit_ctrl_get(dev_id, port_id, maclimit_ctrl);
+    return rv;
+}
+sw_error_t
+_fal_fdb_entry_del_byfid(a_uint32_t dev_id, a_uint16_t fid, a_uint32_t flag)
+{
+    adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_fdb_del_by_fid)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_fdb_del_by_fid(dev_id, fid, flag);
+    return rv;
+}
+
+/*insert flag for inner fal, don't remove it*/
 
 /**
  * @brief Add a Fdb entry
@@ -611,12 +966,12 @@ _fal_fdb_rfs_del(a_uint32_t dev_id, const fal_fdb_rfs_t * entry)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_add(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
+fal_fdb_entry_add(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_add(dev_id, entry);
+    rv = _fal_fdb_entry_add(dev_id, entry);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -632,12 +987,12 @@ fal_fdb_add(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_del_all(a_uint32_t dev_id, a_uint32_t flag)
+fal_fdb_entry_flush(a_uint32_t dev_id, a_uint32_t flag)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_del_all(dev_id, flag);
+    rv = _fal_fdb_entry_flush(dev_id, flag);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -654,12 +1009,12 @@ fal_fdb_del_all(a_uint32_t dev_id, a_uint32_t flag)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_del_by_port(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t flag)
+fal_fdb_entry_del_byport(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t flag)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_del_by_port(dev_id, port_id, flag);
+    rv = _fal_fdb_entry_del_byport(dev_id, port_id, flag);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -674,12 +1029,12 @@ fal_fdb_del_by_port(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t flag)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_del_by_mac(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
+fal_fdb_entry_del_bymac(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_del_by_mac(dev_id, entry);
+    rv = _fal_fdb_entry_del_bymac(dev_id, entry);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -692,12 +1047,12 @@ fal_fdb_del_by_mac(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_first(a_uint32_t dev_id, fal_fdb_entry_t * entry)
+fal_fdb_entry_getfirst(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_first(dev_id, entry);
+    rv = _fal_fdb_entry_getfirst(dev_id, entry);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -712,12 +1067,12 @@ fal_fdb_first(a_uint32_t dev_id, fal_fdb_entry_t * entry)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_next(a_uint32_t dev_id, fal_fdb_entry_t * entry)
+fal_fdb_entry_getnext(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_next(dev_id, entry);
+    rv = _fal_fdb_entry_getnext(dev_id, entry);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -732,22 +1087,22 @@ fal_fdb_next(a_uint32_t dev_id, fal_fdb_entry_t * entry)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_find(a_uint32_t dev_id, fal_fdb_entry_t * entry)
+fal_fdb_entry_search(a_uint32_t dev_id, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_find(dev_id, entry);
+    rv = _fal_fdb_entry_search(dev_id, entry);
     FAL_API_UNLOCK;
     return rv;
 }
 #endif
 
 /**
- * @brief Set dynamic address learning status on a particular port.
+ * @brief Set dynamic address and station move learning status on a particular port.
  *    @details  Comments:
- *       This operation will enable or disable dynamic address learning
- *       feature on a particular port.
+ *       This operation will enable or disable dynamic address and
+ *       station move learning feature on a particular port.
  * @param[in] dev_id device id
  * @param[in] port_id port id
  * @param[in] enable enable or disable
@@ -766,7 +1121,7 @@ fal_fdb_port_learn_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
 
 #ifndef IN_FDB_MINI
 /**
- * @brief Get dynamic address learning status on a particular port.
+ * @brief Get dynamic address and station move learning status on a particular port.
  * @param[in] dev_id device id
  * @param[in] port_id port id
  * @param[out] enable A_TRUE or A_FALSE
@@ -784,6 +1139,82 @@ fal_fdb_port_learn_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable)
 }
 
 /**
+ * @brief Set dynamic address learning and forward command on a particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[in] learning status
+ * @param[in] forward command
+ * @return SW_OK or error code
+ */
+sw_error_t
+fal_fdb_port_learning_ctrl_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable, fal_fwd_cmd_t cmd)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_port_learning_ctrl_set(dev_id, port_id, enable, cmd);
+    FAL_API_UNLOCK;
+    return rv;
+}
+
+/**
+ * @brief Get dynamic address learning and forward command on a particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[out] learning status
+ * @param[out] forward command
+ * @return SW_OK or error code
+ */
+sw_error_t
+fal_fdb_port_learning_ctrl_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t *enable, fal_fwd_cmd_t *cmd)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_port_learning_ctrl_get(dev_id, port_id, enable, cmd);
+    FAL_API_UNLOCK;
+    return rv;
+}
+
+/**
+ * @brief Set station move learning and forward command on a particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[in] learning status
+ * @param[in] forward command
+ * @return SW_OK or error code
+ */
+sw_error_t
+fal_fdb_port_stamove_ctrl_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable, fal_fwd_cmd_t cmd)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_port_stamove_ctrl_set(dev_id, port_id, enable, cmd);
+    FAL_API_UNLOCK;
+    return rv;
+}
+
+/**
+ * @brief Get station move learning and forward command on a particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[out] learning status
+ * @param[out] forward command
+ * @return SW_OK or error code
+ */
+sw_error_t
+fal_fdb_port_stamove_ctrl_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t *enable, fal_fwd_cmd_t *cmd)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_port_stamove_ctrl_get(dev_id, port_id, enable, cmd);
+    FAL_API_UNLOCK;
+    return rv;
+}
+
+/**
  * @brief Set dynamic address aging status on particular device.
  *   @details  Comments:
  *       This operation will enable or disable dynamic address aging
@@ -793,12 +1224,12 @@ fal_fdb_port_learn_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_age_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
+fal_fdb_aging_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_age_ctrl_set(dev_id, enable);
+    rv = _fal_fdb_aging_ctrl_set(dev_id, enable);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -810,12 +1241,12 @@ fal_fdb_age_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_age_ctrl_get(a_uint32_t dev_id, a_bool_t * enable)
+fal_fdb_aging_ctrl_get(a_uint32_t dev_id, a_bool_t * enable)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_age_ctrl_get(dev_id, enable);
+    rv = _fal_fdb_aging_ctrl_get(dev_id, enable);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -868,12 +1299,12 @@ fal_fdb_vlan_ivl_svl_get(a_uint32_t dev_id, fal_fdb_smode* smode)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_age_time_set(a_uint32_t dev_id, a_uint32_t * time)
+fal_fdb_aging_time_set(a_uint32_t dev_id, a_uint32_t * time)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_age_time_set(dev_id, time);
+    rv = _fal_fdb_aging_time_set(dev_id, time);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -885,12 +1316,12 @@ fal_fdb_age_time_set(a_uint32_t dev_id, a_uint32_t * time)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_age_time_get(a_uint32_t dev_id, a_uint32_t * time)
+fal_fdb_aging_time_get(a_uint32_t dev_id, a_uint32_t * time)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_age_time_get(dev_id, time);
+    rv = _fal_fdb_aging_time_get(dev_id, time);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -905,12 +1336,12 @@ fal_fdb_age_time_get(a_uint32_t dev_id, a_uint32_t * time)
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_iterate(a_uint32_t dev_id, a_uint32_t * iterator, fal_fdb_entry_t * entry)
+fal_fdb_entry_getnext_byindex(a_uint32_t dev_id, a_uint32_t * iterator, fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_iterate(dev_id, iterator, entry);
+    rv = _fal_fdb_entry_getnext_byindex(dev_id, iterator, entry);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -923,13 +1354,13 @@ fal_fdb_iterate(a_uint32_t dev_id, a_uint32_t * iterator, fal_fdb_entry_t * entr
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_extend_next(a_uint32_t dev_id, fal_fdb_op_t * option,
+fal_fdb_entry_extend_getnext(a_uint32_t dev_id, fal_fdb_op_t * option,
                     fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_extend_next(dev_id, option, entry);
+    rv = _fal_fdb_entry_extend_getnext(dev_id, option, entry);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -942,13 +1373,13 @@ fal_fdb_extend_next(a_uint32_t dev_id, fal_fdb_op_t * option,
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_extend_first(a_uint32_t dev_id, fal_fdb_op_t * option,
+fal_fdb_entry_extend_getfirst(a_uint32_t dev_id, fal_fdb_op_t * option,
                      fal_fdb_entry_t * entry)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_extend_first(dev_id, option, entry);
+    rv = _fal_fdb_entry_extend_getfirst(dev_id, option, entry);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -964,13 +1395,13 @@ fal_fdb_extend_first(a_uint32_t dev_id, fal_fdb_op_t * option,
  * @return SW_OK or error code
  */
 sw_error_t
-fal_fdb_transfer(a_uint32_t dev_id, fal_port_t old_port, fal_port_t new_port,
+fal_fdb_entry_update_byport(a_uint32_t dev_id, fal_port_t old_port, fal_port_t new_port,
                  a_uint32_t fid, fal_fdb_op_t * option)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
-    rv = _fal_fdb_transfer(dev_id, old_port, new_port, fid, option);
+    rv = _fal_fdb_entry_update_byport(dev_id, old_port, new_port, fid, option);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -1327,6 +1758,144 @@ int ssdk_rfs_mac_rule_del(ssdk_fdb_rfs_t *rfs)
 EXPORT_SYMBOL(ssdk_rfs_mac_rule_set);
 EXPORT_SYMBOL(ssdk_rfs_mac_rule_del);
 #endif
+
+sw_error_t
+fal_fdb_learning_ctrl_set(a_uint32_t dev_id, a_bool_t enable)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_learning_ctrl_set(dev_id, enable);
+    FAL_API_UNLOCK;
+    return rv;
+}
+sw_error_t
+fal_fdb_learning_ctrl_get(a_uint32_t dev_id, a_bool_t * enable)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_learning_ctrl_get(dev_id, enable);
+    FAL_API_UNLOCK;
+    return rv;
+}
+sw_error_t
+fal_fdb_port_learned_mac_counter_get(a_uint32_t dev_id, fal_port_t port_id,
+                                  a_uint32_t * cnt)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_port_learned_mac_counter_get(dev_id, port_id, cnt);
+    FAL_API_UNLOCK;
+    return rv;
+}
+sw_error_t
+fal_fdb_port_maclimit_ctrl_set(a_uint32_t dev_id, fal_port_t port_id, fal_maclimit_ctrl_t * maclimit_ctrl)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_port_maclimit_ctrl_set(dev_id, port_id, maclimit_ctrl);
+    FAL_API_UNLOCK;
+    return rv;
+}
+sw_error_t
+fal_fdb_port_maclimit_ctrl_get(a_uint32_t dev_id, fal_port_t port_id, fal_maclimit_ctrl_t * maclimit_ctrl)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_port_maclimit_ctrl_get(dev_id, port_id, maclimit_ctrl);
+    FAL_API_UNLOCK;
+    return rv;
+}
+sw_error_t
+fal_fdb_entry_del_byfid(a_uint32_t dev_id, a_uint16_t fid, a_uint32_t flag)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_fdb_entry_del_byfid(dev_id, fid, flag);
+    FAL_API_UNLOCK;
+    return rv;
+}
+
+
+#ifndef IN_FDB_MINI
+
+    EXPORT_SYMBOL(fal_fdb_entry_add);
+
+    EXPORT_SYMBOL(fal_fdb_entry_del_byport);
+
+    EXPORT_SYMBOL(fal_fdb_entry_del_bymac);
+
+    EXPORT_SYMBOL(fal_fdb_entry_search);
+
+    EXPORT_SYMBOL(fal_fdb_port_learn_get);
+
+    EXPORT_SYMBOL(fal_fdb_port_learning_ctrl_set);
+
+#endif
+
+    EXPORT_SYMBOL(fal_fdb_entry_flush);
+
+    EXPORT_SYMBOL(fal_fdb_entry_getfirst);
+
+    EXPORT_SYMBOL(fal_fdb_entry_getnext);
+
+    EXPORT_SYMBOL(fal_fdb_port_learn_set);
+
+    EXPORT_SYMBOL(fal_fdb_learning_ctrl_set);
+
+    EXPORT_SYMBOL(fal_fdb_learning_ctrl_get);
+
+    EXPORT_SYMBOL(fal_fdb_entry_getnext_byindex);
+
+    EXPORT_SYMBOL(fal_fdb_entry_extend_getnext);
+
+    EXPORT_SYMBOL(fal_fdb_entry_extend_getfirst);
+
+#ifndef IN_FDB_MINI
+
+    EXPORT_SYMBOL(fal_fdb_port_learning_ctrl_get);
+
+    EXPORT_SYMBOL(fal_fdb_port_stamove_ctrl_set);
+
+    EXPORT_SYMBOL(fal_fdb_port_stamove_ctrl_get);
+
+    EXPORT_SYMBOL(fal_fdb_aging_ctrl_set);
+
+    EXPORT_SYMBOL(fal_fdb_aging_ctrl_get);
+
+    EXPORT_SYMBOL(fal_fdb_aging_time_set);
+
+    EXPORT_SYMBOL(fal_fdb_aging_time_get);
+
+    EXPORT_SYMBOL(fal_fdb_entry_update_byport);
+
+    EXPORT_SYMBOL(fal_port_fdb_learn_limit_set);
+
+    EXPORT_SYMBOL(fal_port_fdb_learn_limit_get);
+
+    EXPORT_SYMBOL(fal_port_fdb_learn_exceed_cmd_set);
+
+    EXPORT_SYMBOL(fal_port_fdb_learn_exceed_cmd_get);
+
+    EXPORT_SYMBOL(fal_fdb_port_add);
+
+    EXPORT_SYMBOL(fal_fdb_port_del);
+
+    EXPORT_SYMBOL(fal_fdb_port_maclimit_ctrl_set);
+
+    EXPORT_SYMBOL(fal_fdb_port_maclimit_ctrl_get);
+
+    EXPORT_SYMBOL(fal_fdb_entry_del_byfid);
+#endif
+
+    EXPORT_SYMBOL(fal_fdb_port_learned_mac_counter_get);
+
+/*insert flag for outter fal, don't remove it*/
 
 /**
  * @}

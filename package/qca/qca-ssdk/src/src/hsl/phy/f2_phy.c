@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -12,20 +12,13 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-
 #include "sw.h"
 #include "fal_port_ctrl.h"
 #include "hsl_api.h"
 #include "hsl.h"
 #include "f2_phy.h"
-#include "aos_timer.h"
 #include "hsl_phy.h"
-#include <linux/kconfig.h>
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/phy.h>
-
+#include "ssdk_plat.h"
 
 static a_uint16_t
 _phy_reg_read(a_uint32_t dev_id, a_uint32_t phy_addr, a_uint8_t reg)
@@ -862,69 +855,61 @@ f2_phy_get_phy_id(a_uint32_t dev_id, a_uint32_t phy_id,
 
     return SW_OK;
 }
-
-#if 0
-/******************************************************************************
-*
-* f2_phy_init -
-*
-*/
-a_bool_t
-f2_phy_init(a_uint32_t dev_id, int phy_id,
-            a_uint16_t org_id, a_uint16_t rev_id)
-{
-    a_uint16_t org_tmp, rev_tmp;
-
-    (void)f2_phy_get_phy_id(dev_id, phy_id, &org_tmp, &rev_tmp);
-    if ((org_id == org_tmp) && (rev_id == rev_tmp))
-        return A_TRUE;
-    else
-        return A_FALSE;
-}
-
-#endif
-
-static int f2_phy_probe(struct phy_device *pdev)
+static int f2_phy_api_ops_init(void)
 {
 	int ret;
-	hsl_phy_ops_t f2_phy_api_ops = { 0 };
+	hsl_phy_ops_t *f2_phy_api_ops = NULL;
 
-	f2_phy_api_ops.phy_hibernation_set = f2_phy_set_hibernate;
-	f2_phy_api_ops.phy_hibernation_get = f2_phy_get_hibernate;
-	f2_phy_api_ops.phy_speed_get = f2_phy_get_speed;
-	f2_phy_api_ops.phy_speed_set = f2_phy_set_speed;
-	f2_phy_api_ops.phy_duplex_get = f2_phy_get_duplex;
-	f2_phy_api_ops.phy_duplex_set = f2_phy_set_duplex;
-	f2_phy_api_ops.phy_autoneg_enable_set = f2_phy_enable_autoneg;
-	f2_phy_api_ops.phy_restart_autoneg = f2_phy_restart_autoneg;
-	f2_phy_api_ops.phy_autoneg_status_get = f2_phy_autoneg_status;
-	f2_phy_api_ops.phy_autoneg_adv_set = f2_phy_set_autoneg_adv;
-	f2_phy_api_ops.phy_autoneg_adv_get = f2_phy_get_autoneg_adv;
-	f2_phy_api_ops.phy_powersave_set = f2_phy_set_powersave;
-	f2_phy_api_ops.phy_powersave_get = f2_phy_get_powersave;
-	f2_phy_api_ops.phy_cdt = f2_phy_cdt;
-	f2_phy_api_ops.phy_link_status_get = f2_phy_get_link_status;
-	f2_phy_api_ops.phy_reset = f2_phy_reset;
-	f2_phy_api_ops.phy_power_off = f2_phy_poweroff;
-	f2_phy_api_ops.phy_power_on = f2_phy_poweron;
-	f2_phy_api_ops.phy_id_get = f2_phy_get_phy_id;
-	f2_phy_api_ops.phy_reg_write = f2_phy_reg_write;
-	f2_phy_api_ops.phy_reg_read = f2_phy_reg_read;
-	f2_phy_api_ops.phy_debug_write = f2_phy_debug_write;
-	f2_phy_api_ops.phy_debug_read = f2_phy_debug_read;
-	ret = hsl_phy_api_ops_register(&f2_phy_api_ops);
+	f2_phy_api_ops = kzalloc(sizeof(hsl_phy_ops_t), GFP_KERNEL);
+	if (f2_phy_api_ops == NULL) {
+		SSDK_ERROR("f2 phy ops kzalloc failed!\n");
+		return -ENOMEM;
+	}
+
+	phy_api_ops_init(F2_PHY_CHIP);
+
+	f2_phy_api_ops->phy_hibernation_set = f2_phy_set_hibernate;
+	f2_phy_api_ops->phy_hibernation_get = f2_phy_get_hibernate;
+	f2_phy_api_ops->phy_speed_get = f2_phy_get_speed;
+	f2_phy_api_ops->phy_speed_set = f2_phy_set_speed;
+	f2_phy_api_ops->phy_duplex_get = f2_phy_get_duplex;
+	f2_phy_api_ops->phy_duplex_set = f2_phy_set_duplex;
+	f2_phy_api_ops->phy_autoneg_enable_set = f2_phy_enable_autoneg;
+	f2_phy_api_ops->phy_restart_autoneg = f2_phy_restart_autoneg;
+	f2_phy_api_ops->phy_autoneg_status_get = f2_phy_autoneg_status;
+	f2_phy_api_ops->phy_autoneg_adv_set = f2_phy_set_autoneg_adv;
+	f2_phy_api_ops->phy_autoneg_adv_get = f2_phy_get_autoneg_adv;
+	f2_phy_api_ops->phy_powersave_set = f2_phy_set_powersave;
+	f2_phy_api_ops->phy_powersave_get = f2_phy_get_powersave;
+	f2_phy_api_ops->phy_cdt = f2_phy_cdt;
+	f2_phy_api_ops->phy_link_status_get = f2_phy_get_link_status;
+	f2_phy_api_ops->phy_reset = f2_phy_reset;
+	f2_phy_api_ops->phy_power_off = f2_phy_poweroff;
+	f2_phy_api_ops->phy_power_on = f2_phy_poweron;
+	f2_phy_api_ops->phy_id_get = f2_phy_get_phy_id;
+	f2_phy_api_ops->phy_reg_write = f2_phy_reg_write;
+	f2_phy_api_ops->phy_reg_read = f2_phy_reg_read;
+	f2_phy_api_ops->phy_debug_write = f2_phy_debug_write;
+	f2_phy_api_ops->phy_debug_read = f2_phy_debug_read;
+
+	ret = hsl_phy_api_ops_register(F2_PHY_CHIP, f2_phy_api_ops);
 
 	if (ret == 0)
-		printk("qca probe f2 phy driver succeeded!\n");
+		SSDK_INFO("qca probe f2 phy driver succeeded!\n");
 	else
-		printk("qca probe f2 phy driver failed! (code: %d)\n", ret);
+		SSDK_ERROR("qca probe f2 phy driver failed! (code: %d)\n", ret);
 
 	return ret;
 }
-
-int f2_phy_init(void)
+int f2_phy_init(a_uint32_t dev_id, a_uint32_t port_bmp)
 {
-	phy_api_ops_init(0);
-	return f2_phy_probe((struct phy_device *)NULL);
+	static a_uint32_t phy_ops_flag = 0;
+
+	if(phy_ops_flag == 0) {
+		f2_phy_api_ops_init();
+		phy_ops_flag = 1;
+	}
+
+	return 0;
 }
 

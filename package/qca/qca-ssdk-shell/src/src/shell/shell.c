@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -11,7 +11,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
+/*qca808x_start*/
 #include <stdio.h>
 #include <stdarg.h>
 #include <pthread.h>
@@ -21,14 +21,19 @@
 #include "shell_lib.h"
 #include "shell_config.h"
 #include "api_access.h"
+#include "fal_uk_if.h"
 
-a_uint32_t *ioctl_buf;
+a_ulong_t *ioctl_buf = NULL;
 ssdk_init_cfg init_cfg = def_init_cfg;
 ssdk_cfg_t ssdk_cfg;
 static a_uint32_t flag = 0;
 
-static a_uint32_t *ioctl_argp;
+static a_ulong_t *ioctl_argp;
 static FILE * out_fd;
+char dev_id_path[] = "/sys/ssdk/dev_id";
+#ifndef SSDK_STR
+#define SSDK_STR  "SSDK"
+#endif
 static char *err_info[] =
 {
     "Operation succeeded",                 /*SW_OK*/
@@ -83,10 +88,10 @@ cmd_print(char *fmt, ...)
 }
 
 static sw_error_t
-cmd_input_parser(a_uint32_t *arg_val, a_uint32_t arg_index, sw_api_param_t *pp)
+cmd_input_parser(a_ulong_t *arg_val, a_uint32_t arg_index, sw_api_param_t *pp)
 {
     a_int16_t i;
-    a_uint32_t *pbuf;
+    a_ulong_t *pbuf;
     a_uint16_t rtn_size = 1;
     sw_api_param_t *pptmp = pp;
 
@@ -105,15 +110,15 @@ cmd_input_parser(a_uint32_t *arg_val, a_uint32_t arg_index, sw_api_param_t *pp)
         return SW_NO_RESOURCE;
     }
 
-    *arg_val = (a_uint32_t) pbuf;
+    *arg_val = (a_ulong_t) pbuf;
 
     return SW_OK;
 }
 
 static sw_error_t
-cmd_api_func(sw_api_func_t *fp, a_uint32_t nr_param, a_uint32_t * args)
+cmd_api_func(sw_api_func_t *fp, a_uint32_t nr_param, a_ulong_t * args)
 {
-    a_uint32_t *p = &args[2];
+    a_ulong_t *p = &args[2];
     sw_error_t rv;
     sw_error_t(*func) ();
 
@@ -159,16 +164,16 @@ cmd_api_func(sw_api_func_t *fp, a_uint32_t nr_param, a_uint32_t * args)
             rv = SW_OUT_OF_RANGE;
     }
 
-    *(a_uint32_t *) args[1] = rv;
+    *(a_ulong_t *) args[1] = rv;
 
     return rv;
 }
 
 static sw_error_t
-cmd_api_output(sw_api_param_t *pp, a_uint32_t nr_param, a_uint32_t * args)
+cmd_api_output(sw_api_param_t *pp, a_uint32_t nr_param, a_ulong_t * args)
 {
     a_uint16_t i;
-    a_uint32_t *pbuf;
+    a_ulong_t *pbuf;
     a_uint16_t rtn_size = 1;
     sw_error_t rtn = (sw_error_t) (*ioctl_buf);
     sw_api_param_t *pptmp = NULL;
@@ -196,6 +201,12 @@ cmd_api_output(sw_api_param_t *pp, a_uint32_t nr_param, a_uint32_t * args)
                 if (data_type->show_func)
                 {
                     data_type->show_func(pptmp->param_name, pbuf, pptmp->data_size);
+/*qca808x_end*/
+                    if(strcmp(pptmp->param_name, "Function bitmap") == 0)
+                    {
+			cmd_data_print_module_func_ctrl(args[3], (fal_func_ctrl_t *)pbuf);
+                    }
+/*qca808x_start*/
                 }
                 else
                 {
@@ -224,16 +235,16 @@ cmd_strtol(char *str, a_uint32_t * arg_val)
 }
 
 static sw_error_t
-cmd_parse_api(char **cmd_str, a_uint32_t * arg_val)
+cmd_parse_api(char **cmd_str, a_ulong_t * arg_val)
 {
     char *tmp_str;
     a_uint32_t arg_index, arg_start = 2, reserve_index = 1; /*reserve for dev_id */
     a_uint32_t last_param_in = 0;
-    a_uint32_t *temp;
+    a_ulong_t *temp;
     void *pentry;
     sw_api_param_t *pptmp = NULL;
     sw_api_t sw_api;
-    a_uint32_t ignorecnt = 0;
+    a_uint32_t ignorecnt = 0, jump = 0;
     sw_api.api_id = arg_val[0];
     SW_RTN_ON_ERROR(sw_api_get(&sw_api));
 
@@ -252,7 +263,7 @@ cmd_parse_api(char **cmd_str, a_uint32_t * arg_val)
 
         if (pptmp->param_type & SW_PARAM_IN)
         {
-            tmp_str = cmd_str[arg_index - reserve_index - ignorecnt];
+            tmp_str = cmd_str[arg_index - reserve_index - ignorecnt + jump];
             last_param_in = arg_index;
             if((pptmp->api_id == 314) && last_param_in == 2) last_param_in = 4;//SW_API_FDB_EXTEND_NEXT wr
             if((pptmp->api_id == 327) && last_param_in == 2) last_param_in = 4;//SW_API_FDB_EXTEND_FIRST wr
@@ -278,7 +289,7 @@ cmd_parse_api(char **cmd_str, a_uint32_t * arg_val)
             if(pptmp->param_type & SW_PARAM_PTR)   //quiet mode
             {
                 if(!get_talk_mode())
-                    set_full_cmdstrp((char **)(cmd_str + (last_param_in - reserve_index)));
+                    set_full_cmdstrp((char **)(cmd_str + (last_param_in - reserve_index) + jump));
             }
 #endif
             /*check and convert input param */
@@ -286,6 +297,11 @@ cmd_parse_api(char **cmd_str, a_uint32_t * arg_val)
             {
                 if (data_type->param_check(tmp_str, pentry, pptmp->data_size) != SW_OK)
                     return SW_BAD_PARAM;
+	    if(!get_talk_mode() && (pptmp->param_type & SW_PARAM_PTR)) {
+	    	if (get_jump())
+	    		jump += get_jump() -1;
+	    }
+
             }
         }
     }
@@ -300,7 +316,7 @@ cmd_parse_api(char **cmd_str, a_uint32_t * arg_val)
 }
 
 static sw_error_t
-cmd_parse_sw(char **cmd_str, a_uint32_t * arg_val)
+cmd_parse_sw(char **cmd_str, a_ulong_t * arg_val)
 {
     char *tmp_str;
     a_uint32_t arg_index = 0;
@@ -319,9 +335,18 @@ cmd_parse_sw(char **cmd_str, a_uint32_t * arg_val)
                               api_id == SW_CMD_FDB_SHOW ||
                               api_id == SW_CMD_RESV_FDB_SHOW ||
                               api_id == SW_CMD_HOST_SHOW ||
+                              api_id == SW_CMD_HOST_IPV4_SHOW ||
+                              api_id == SW_CMD_HOST_IPV6_SHOW ||
+                              api_id == SW_CMD_HOST_IPV4M_SHOW ||
+                              api_id == SW_CMD_HOST_IPV6M_SHOW ||
+                              api_id == SW_CMD_FLOW_IPV43T_SHOW ||
+                              api_id == SW_CMD_FLOW_IPV63T_SHOW ||
+                              api_id == SW_CMD_FLOW_IPV45T_SHOW ||
+                              api_id == SW_CMD_FLOW_IPV65T_SHOW ||
                               api_id == SW_CMD_NAT_SHOW ||
                               api_id == SW_CMD_NAPT_SHOW ||
                               api_id == SW_CMD_FLOW_SHOW ||
+                              api_id == SW_CMD_CTRLPKT_SHOW ||
                               api_id == SW_CMD_INTFMAC_SHOW ||
                               api_id == SW_CMD_PUBADDR_SHOW )) ||
             ( arg_index == 1 && api_id == SW_CMD_SET_DEVID) )
@@ -332,7 +357,7 @@ cmd_parse_sw(char **cmd_str, a_uint32_t * arg_val)
 
 /*user command api*/
 sw_error_t
-cmd_exec_api(a_uint32_t *arg_val)
+cmd_exec_api(a_ulong_t *arg_val)
 {
     sw_error_t rv;
     sw_api_t sw_api;
@@ -341,7 +366,7 @@ cmd_exec_api(a_uint32_t *arg_val)
     SW_RTN_ON_ERROR(sw_api_get(&sw_api));
 
     /*save cmd return value */
-    arg_val[1] = (a_uint32_t) ioctl_buf;
+    arg_val[1] = (a_ulong_t) ioctl_buf;
     /*save set device id */
     arg_val[2] = get_devid();
 
@@ -437,20 +462,20 @@ cmd_lookup(char **cmd_str, int *cmd_index, int *cmd_index_sub)
     return cmd_deepth;
 }
 
-static a_uint32_t *
+static a_ulong_t *
 cmd_parse(char *cmd_str, int *cmd_index, int *cmd_index_sub)
 {
     int cmd_nr = 0;
-    a_uint32_t *arg_val = ioctl_argp;
-    char *tmp_str[CMDSTR_ARGS_MAX];
+    a_ulong_t *arg_val = ioctl_argp;
+    char *tmp_str[CMDSTR_ARGS_MAX], *str_save;
 
     if (cmd_str == NULL)
         return NULL;
 
-    memset(arg_val, 0, CMDSTR_ARGS_MAX * sizeof (a_uint32_t));
+    memset(arg_val, 0, CMDSTR_ARGS_MAX * sizeof (a_ulong_t));
 
     /* split string into array */
-    if ((tmp_str[cmd_nr] = (void *) strtok(cmd_str, " ")) == NULL)
+    if ((tmp_str[cmd_nr] = (void *) strtok_r(cmd_str, " ", &str_save)) == NULL)
         return NULL;
 
     /*handle help */
@@ -464,7 +489,7 @@ cmd_parse(char *cmd_str, int *cmd_index, int *cmd_index_sub)
     {
         if (++cmd_nr == 3)
             break;
-        tmp_str[cmd_nr] = (void *) strtok(NULL, " ");
+        tmp_str[cmd_nr] = (void *) strtok_r(NULL, " ", &str_save);
     }
 
     /*commond string lookup */
@@ -484,16 +509,16 @@ cmd_parse(char *cmd_str, int *cmd_index, int *cmd_index_sub)
         cmd_nr++;
     }
 
-    tmp_str[cmd_nr] = (void *) strtok(NULL, " ");
+    tmp_str[cmd_nr] = (void *) strtok_r(NULL, " ", &str_save);
     while (tmp_str[cmd_nr])
     {
         if (++cmd_nr == CMDSTR_ARGS_MAX)
             break;
-        tmp_str[cmd_nr] = (void *) strtok(NULL, " ");
+        tmp_str[cmd_nr] = (void *) strtok_r(NULL, " ", &str_save);
     }
 
     arg_val[0] = GCMD_SUB_API(*cmd_index, *cmd_index_sub);
-    arg_val[1] = (a_uint32_t) ioctl_buf;
+    arg_val[1] = (a_ulong_t) ioctl_buf;
 
     int rtn_code;
     if (arg_val[0] < SW_API_MAX)
@@ -527,7 +552,7 @@ cmd_parse(char *cmd_str, int *cmd_index, int *cmd_index_sub)
 }
 
 static int
-cmd_exec(a_uint32_t *arg_val, int cmd_index, int cmd_index_sub)
+cmd_exec(a_ulong_t *arg_val, int cmd_index, int cmd_index_sub)
 {
     a_uint32_t api_id = arg_val[0];
     sw_error_t rtn = SW_OK;
@@ -550,13 +575,13 @@ cmd_exec(a_uint32_t *arg_val, int cmd_index, int cmd_index_sub)
     if(rtn != SW_OK)
         cmd_print_error(rtn);
     else
-        dprintf("\noperate done.\n\n");
+        dprintf("\noperation done.\n\n");
 
     return 0;
 }
 
 static sw_error_t
-cmd_socket_init()
+cmd_socket_init(int dev_id)
 {
     sw_error_t rv;
 
@@ -568,23 +593,24 @@ cmd_socket_init()
     init_cfg.nl_prot  = 30;
 #endif
     init_cfg.chip_type=CHIP_UNSPECIFIED;
+/*qca808x_end*/
     init_cfg.reg_func.mdio_set = NULL;
     init_cfg.reg_func.mdio_get = NULL;
-
-    rv = ssdk_init(0, &init_cfg);
+/*qca808x_start*/
+    rv = ssdk_init(dev_id, &init_cfg);
     if (SW_OK == rv)
     {
-        dprintf("\n SSDK Init OK!");
+        dprintf("\n %s Init OK!", SSDK_STR);
     }
     else
     {
-        dprintf("\n SSDK Init Fail! RV[%d]", rv);
+        dprintf("\n %s Init Fail! RV[%d]", SSDK_STR, rv);
     }
 
     if (flag == 0)
     {
         aos_mem_set(&ssdk_cfg, 0 ,sizeof(ssdk_cfg_t));
-        rv = sw_uk_exec(SW_API_SSDK_CFG, 0, &ssdk_cfg);
+        rv = sw_uk_exec(SW_API_SSDK_CFG, dev_id, &ssdk_cfg);
         flag = 1;
     }
     return rv;
@@ -593,9 +619,17 @@ cmd_socket_init()
 static sw_error_t
 cmd_init(void)
 {
-    ioctl_buf = (a_uint32_t *) malloc(IOCTL_BUF_SIZE);
-    ioctl_argp = (a_uint32_t *) malloc(CMDSTR_ARGS_MAX * sizeof (a_uint32_t));
-    cmd_socket_init();
+    ioctl_buf = (a_ulong_t *) malloc(IOCTL_BUF_SIZE);
+    ioctl_argp = (a_ulong_t *) malloc(CMDSTR_ARGS_MAX * sizeof (a_ulong_t));
+    FILE *dev_id_fd = NULL;
+    int dev_id_value = 0;
+    if((dev_id_fd = fopen(dev_id_path, "r")) != NULL)
+    {
+        fscanf(dev_id_fd, "%d", &dev_id_value);
+    }
+
+    set_devid(dev_id_value);
+    cmd_socket_init(dev_id_value);
 
     return SW_OK;
 }
@@ -613,7 +647,7 @@ cmd_exit(void)
 static sw_error_t
 cmd_run_one(char *cmd_str)
 {
-    a_uint32_t *arg_list;
+    a_ulong_t *arg_list;
     int cmd_index = 0, cmd_index_sub = 0;
 
     if ((arg_list = cmd_parse(cmd_str, &cmd_index, &cmd_index_sub)) != NULL)
@@ -644,23 +678,23 @@ static sw_error_t
 cmd_run_batch (char *cmd_str)
 {
     FILE *in_fd = NULL;
-    char * line = NULL;
+    char * line = NULL, *str_save;
     char *tmp_str[3];
 
     if (cmd_str == NULL)
         return SW_BAD_PARAM;
 
     /*usage: run cmd result*/
-    if((tmp_str[0] = (void *) strtok(cmd_str, " ")) == NULL)
+    if((tmp_str[0] = (void *) strtok_r(cmd_str, " ", &str_save)) == NULL)
         return SW_BAD_PARAM;
 
     /*check again*/
     if(!cmd_is_batch(tmp_str[0]))
         return SW_BAD_PARAM;
 
-    if((tmp_str[1] = (void *) strtok(NULL, " "))== NULL)
+    if((tmp_str[1] = (void *) strtok_r(NULL, " ", &str_save))== NULL)
         return SW_BAD_PARAM;
-    if((tmp_str[2] = (void *) strtok(NULL, " "))== NULL)
+    if((tmp_str[2] = (void *) strtok_r(NULL, " ", &str_save))== NULL)
         return SW_BAD_PARAM;
 
     if((in_fd = fopen(tmp_str[1], "r")) == NULL)
@@ -724,7 +758,7 @@ cmd_args(char *cmd_str, int argc, const char *argv[])
             return SW_FAIL;
         }
 
-        sprintf(cmd_str, "%s %s %s", argv[1], argv[2], argv[3]);
+        snprintf(cmd_str, CMDSTR_BUF_SIZE, "%s %s %s", argv[1], argv[2], argv[3]);
         cmd_run_batch(cmd_str);
 
     }
@@ -733,8 +767,8 @@ cmd_args(char *cmd_str, int argc, const char *argv[])
         int argi;
         for(argi = 1; argi < argc; argi++)
         {
-            strcat(cmd_str, argv[argi]);
-            strcat(cmd_str, " ");
+            strlcat(cmd_str, argv[argi], CMDSTR_BUF_SIZE);
+            strlcat(cmd_str, " ", CMDSTR_BUF_SIZE);
         }
         cmd_run_one(cmd_str);
     }
@@ -762,8 +796,7 @@ void cmd_welcome()
 #ifdef BUILD_DATE
     date = BUILD_DATE;
 #endif
-
-    dprintf("\n Welcome to SSDK Shell version: %s, at %s.\n", ver, date);
+    dprintf("\n Welcome to %s Shell version: %s, at %s.\n", SSDK_STR, ver, date);
 }
 
 /* Dummy function to avoid linker complaints */
@@ -778,7 +811,6 @@ int
 main(int argc, const char *argv[])
 {
     char cmd_str[CMDSTR_BUF_SIZE];
-
     cmd_init();
 
     if(argc > 1)
@@ -816,4 +848,4 @@ main(int argc, const char *argv[])
     cmd_exit();
     return 0;
 }
-
+/*qca808x_end*/

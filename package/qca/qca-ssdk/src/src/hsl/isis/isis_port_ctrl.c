@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -53,10 +53,6 @@ _isis_port_duplex_set(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
-    if (NULL == phy_drv->phy_duplex_set)
-        return SW_NOT_SUPPORTED;
-
     if (FAL_DUPLEX_BUTT <= duplex)
     {
         return SW_BAD_PARAM;
@@ -86,7 +82,10 @@ _isis_port_duplex_set(a_uint32_t dev_id, fal_port_t port_id,
     }
     else
     {
-        /* hardware requirement: set mac be config by sw and turn off RX/TX MAC */
+		SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
+		if (NULL == phy_drv->phy_duplex_set)
+			return SW_NOT_SUPPORTED;
+		/* hardware requirement: set mac be config by sw and turn off RX/TX MAC */
 		rv = hsl_port_prop_get_phyid(dev_id, port_id, &phy_id);
 		SW_RTN_ON_ERROR(rv);
 		rv = phy_drv->phy_duplex_get (dev_id, phy_id, &tmp);
@@ -168,10 +167,6 @@ _isis_port_speed_set(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
-    if (NULL == phy_drv->phy_speed_set)
-        return SW_NOT_SUPPORTED;
-
     if (FAL_SPEED_1000 < speed)
     {
         return SW_BAD_PARAM;
@@ -208,7 +203,10 @@ _isis_port_speed_set(a_uint32_t dev_id, fal_port_t port_id,
     }
     else
     {
-        /* hardware requirement: set mac be config by sw and turn off RX/TX MAC */
+		SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
+		if (NULL == phy_drv->phy_speed_set)
+			return SW_NOT_SUPPORTED;
+		/* hardware requirement: set mac be config by sw and turn off RX/TX MAC */
 		rv = hsl_port_prop_get_phyid(dev_id, port_id, &phy_id);
 		SW_RTN_ON_ERROR(rv);
 		rv = phy_drv->phy_speed_get (dev_id, phy_id, &tmp);
@@ -306,7 +304,7 @@ _isis_port_autoneg_status_get(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_autoneg_status_get)
         return SW_NOT_SUPPORTED;
 
@@ -332,7 +330,7 @@ _isis_port_autoneg_enable(a_uint32_t dev_id, fal_port_t port_id)
         return SW_BAD_PARAM;
     }
 
-   SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+   SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
    if (NULL == phy_drv->phy_autoneg_enable_set)
        return SW_NOT_SUPPORTED;
 
@@ -357,7 +355,7 @@ _isis_port_autoneg_restart(a_uint32_t dev_id, fal_port_t port_id)
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_restart_autoneg)
         return SW_NOT_SUPPORTED;
 
@@ -383,7 +381,7 @@ _isis_port_autoneg_adv_set(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_autoneg_adv_set)
         return SW_NOT_SUPPORTED;
 
@@ -411,7 +409,7 @@ _isis_port_autoneg_adv_get(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_autoneg_adv_get)
         return SW_NOT_SUPPORTED;
 
@@ -589,7 +587,7 @@ _isis_port_powersave_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
         return SW_BAD_PARAM;
     }
 
-   SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+   SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
    if (NULL == phy_drv->phy_powersave_set)
        return SW_NOT_SUPPORTED;
 
@@ -616,7 +614,7 @@ _isis_port_powersave_get(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-   SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+   SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
    if (NULL == phy_drv->phy_powersave_get)
        return SW_NOT_SUPPORTED;
 
@@ -642,7 +640,7 @@ _isis_port_hibernate_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_hibernation_set)
         return SW_NOT_SUPPORTED;
 
@@ -669,7 +667,7 @@ _isis_port_hibernate_get(a_uint32_t dev_id, fal_port_t port_id,
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_hibernation_get)
         return SW_NOT_SUPPORTED;
 
@@ -696,7 +694,7 @@ _isis_port_cdt(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t mdi_pair,
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
     if (NULL == phy_drv->phy_cdt)
         return SW_NOT_SUPPORTED;
 
@@ -704,6 +702,57 @@ _isis_port_cdt(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t mdi_pair,
     SW_RTN_ON_ERROR(rv);
 
     rv = phy_drv->phy_cdt(dev_id, phy_id, mdi_pair, cable_status, cable_len);
+
+    return rv;
+}
+static sw_error_t
+_isis_port_8023az_set (a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
+{
+    sw_error_t rv;
+    a_uint32_t phy_id = 0;
+    hsl_phy_ops_t *phy_drv;
+
+    HSL_DEV_ID_CHECK (dev_id);
+    if (A_TRUE != hsl_port_prop_check (dev_id, port_id, HSL_PP_PHY))
+    {
+        return SW_BAD_PARAM;
+    }
+
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
+    if (NULL == phy_drv->phy_8023az_set)
+        return SW_NOT_SUPPORTED;
+
+    rv = hsl_port_prop_get_phyid (dev_id, port_id, &phy_id);
+    SW_RTN_ON_ERROR (rv);
+
+    rv = phy_drv->phy_8023az_set (dev_id, phy_id, enable);
+
+    return rv;
+}
+
+static sw_error_t
+_isis_port_8023az_get (a_uint32_t dev_id, fal_port_t port_id,
+		       a_bool_t * enable)
+{
+    sw_error_t rv;
+    a_uint32_t phy_id = 0;
+    hsl_phy_ops_t *phy_drv;
+
+    HSL_DEV_ID_CHECK (dev_id);
+
+    if (A_TRUE != hsl_port_prop_check (dev_id, port_id, HSL_PP_PHY))
+    {
+        return SW_BAD_PARAM;
+    }
+
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
+    if (NULL == phy_drv->phy_8023az_get)
+        return SW_NOT_SUPPORTED;
+
+    rv = hsl_port_prop_get_phyid (dev_id, port_id, &phy_id);
+    SW_RTN_ON_ERROR (rv);
+
+    rv = phy_drv->phy_8023az_get (dev_id, phy_id, enable);
 
     return rv;
 }
@@ -1406,11 +1455,6 @@ _isis_port_link_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * sta
     {
         return SW_BAD_PARAM;
     }
-
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
-    if (NULL == phy_drv->phy_link_status_get)
-         return SW_NOT_SUPPORTED;
-
     /* for those ports without PHY device supposed always link up */
     if (A_FALSE == _isis_port_phy_connected(dev_id, port_id))
     {
@@ -1418,6 +1462,11 @@ _isis_port_link_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * sta
     }
     else
     {
+	SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id, port_id));
+	if (NULL == phy_drv->phy_link_status_get)
+		return SW_NOT_SUPPORTED;
+
+
         rv = hsl_port_prop_get_phyid(dev_id, port_id, &phy_id);
         SW_RTN_ON_ERROR(rv);
 
@@ -1829,6 +1878,42 @@ isis_port_cdt(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t mdi_pair,
 
     HSL_API_LOCK;
     rv = _isis_port_cdt(dev_id, port_id, mdi_pair, cable_status, cable_len);
+    HSL_API_UNLOCK;
+    return rv;
+}
+/**
+ * @brief Set 802.3az status on a particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[out] enable A_TRUE or A_FALSE
+ * @return SW_OK or error code
+ */
+HSL_LOCAL sw_error_t
+isis_port_8023az_set (a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
+{
+    sw_error_t rv;
+
+    HSL_API_LOCK;
+    rv = _isis_port_8023az_set (dev_id, port_id, enable);
+    HSL_API_UNLOCK;
+    return rv;
+}
+
+/**
+ * @brief Get 8023az status on a particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[out] enable A_TRUE or A_FALSE
+ * @return SW_OK or error code
+ */
+HSL_LOCAL sw_error_t
+isis_port_8023az_get (a_uint32_t dev_id, fal_port_t port_id,
+		      a_bool_t * enable)
+{
+    sw_error_t rv;
+
+    HSL_API_LOCK;
+    rv = _isis_port_8023az_get (dev_id, port_id, enable);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -2257,6 +2342,8 @@ isis_port_ctrl_init(a_uint32_t dev_id)
         p_api->port_link_status_get = isis_port_link_status_get;
         p_api->port_mac_loopback_set = isis_port_mac_loopback_set;
         p_api->port_mac_loopback_get = isis_port_mac_loopback_get;
+        p_api->port_8023az_set = isis_port_8023az_set;
+        p_api->port_8023az_get = isis_port_8023az_get;
     }
 #endif
 

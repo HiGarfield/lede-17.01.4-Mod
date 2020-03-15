@@ -16,6 +16,7 @@
 #ifndef _NAT_HELPER_DT_H
 #define _NAT_HELPER_DT_H
 
+extern int nat_sockopts_init;
 extern void host_check_aging(void);
 void napt_ct_counter_decrease(void);
 

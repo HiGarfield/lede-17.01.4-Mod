@@ -1,5 +1,6 @@
 
 include $(PRJ_PATH)/config
+-include $(SYS_PATH)/include/config/auto.conf
 
 ifndef SYS_PATH
   $(error SYS_PATH isn't defined!)
@@ -55,11 +56,22 @@ else
      SUPPORT_CHIP = DESS
   endif
 
+  ifeq (HPPE, $(CHIP_TYPE))
+     SUPPORT_CHIP = HPPE
+  endif
+
   ifeq (ALL_CHIP, $(CHIP_TYPE))
      ifneq (TRUE, $(FAL))
          $(error FAL must be TRUE when CHIP_TYPE is defined as ALL_CHIP!)
      endif
-     SUPPORT_CHIP = ISIS ISISC
+     SUPPORT_CHIP = ISIS ISISC SHIVA DESS HPPE SCOMPHY
+  endif
+
+  ifeq (NONHK_CHIP, $(CHIP_TYPE))
+     ifneq (TRUE, $(FAL))
+         $(error FAL must be TRUE when CHIP_TYPE is defined as ALL_CHIP!)
+     endif
+     SUPPORT_CHIP = ISIS ISISC SHIVA DESS
   endif
 
   ifndef SUPPORT_CHIP
@@ -89,7 +101,7 @@ endif
 BLD_DIR=$(PRJ_PATH)/build/$(OS)
 BIN_DIR=$(PRJ_PATH)/build/bin
 
-VER=1.3.0
+VER=2.0.0
 BUILD_NUMBER=$(shell cat $(PRJ_PATH)/make/.build_number)
 VERSION=$(VER).$(BUILD_NUMBER)
 BUILD_DATE=$(shell date -u  +%F-%T)

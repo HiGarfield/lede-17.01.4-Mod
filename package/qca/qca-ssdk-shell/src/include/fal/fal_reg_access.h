@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -12,7 +12,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
+/*qca808x_start*/
 /**
  * @defgroup fal_reg_access FAL_REG_ACCESS
  * @{
@@ -24,8 +24,8 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-#include "common/sw.h"
-#include "fal/fal_type.h"
+#include "sw.h"
+#include "fal_type.h"
 
     sw_error_t
     fal_phy_get(a_uint32_t dev_id, a_uint32_t phy_addr,
@@ -34,6 +34,7 @@ extern "C" {
     sw_error_t
     fal_phy_set(a_uint32_t dev_id, a_uint32_t phy_addr,
                 a_uint32_t reg, a_uint16_t value);
+/*qca808x_end*/
 
     sw_error_t
     fal_reg_get(a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t value[],
@@ -75,6 +76,14 @@ extern "C" {
 	fal_phy_dump(a_uint32_t dev_id, a_uint32_t phy_addr,
 		a_uint32_t idx, fal_phy_dump_t * phy_dump);
 
+	sw_error_t
+	fal_uniphy_reg_get(a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr,
+		a_uint8_t value[], a_uint32_t value_len);
+
+	sw_error_t
+	fal_uniphy_reg_set(a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr,
+		a_uint8_t value[], a_uint32_t value_len);
+/*qca808x_start*/
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
@@ -83,4 +92,4 @@ extern "C" {
 /**
  * @}
  */
-
+/*qca808x_end*/

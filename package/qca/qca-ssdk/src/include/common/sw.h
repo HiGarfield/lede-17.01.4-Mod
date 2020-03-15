@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012,2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -21,10 +21,10 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-#include "common/sw_config.h"
-#include "common/aos_head.h"
-#include "common/sw_error.h"
-#include "common/shared_func.h"
+#include "sw_config.h"
+#include "aos_head.h"
+#include "sw_error.h"
+#include "shared_func.h"
 
 #ifdef __cplusplus
 }

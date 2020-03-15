@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -72,10 +72,21 @@ a_uint32_t dess_pbmp_5[PORT_WRAPPER_MAX] = {
 	((1<<1) | (1<<4)),                            /*PORT_WRAPPER_SGMII0_RGMII4*/
 	((1<<2) | (1<<4)),                            /*PORT_WRAPPER_SGMII1_RGMII4*/
 	((1<<5) | (1<<4)),                            /*PORT_WRAPPER_SGMII4_RGMII4*/
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	0,
+	((1<<1) | (1<<2) | (1<<3) | (1<<4) | (1<<5)), /*PORT_WRAPPER_PSGMII_FIBER*/
 	};
 
 a_uint32_t dess_pbmp_2[PORT_WRAPPER_MAX] = {
-	((1<<4) | (1<<5)), 						/*PORT_WRAPPER_PSGMII*/
+	((1<<4) | (1<<5)), 				/*PORT_WRAPPER_PSGMII*/
+	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+	((1<<4) | (1<<5)), 				/*PORT_WRAPPER_PSGMII_FIBER*/
 	};
 
 a_uint32_t dess_get_port_phy_id(void)
@@ -114,24 +125,20 @@ dess_portproperty_init(a_uint32_t dev_id)
     fal_port_t port_id;
 	enum ssdk_port_wrapper_cfg cfg;
 	a_uint32_t bitmap = 0;
-	a_uint32_t phy_id;
 
     pdev = hsl_dev_ptr_get(dev_id);
     if (pdev == NULL)
         return SW_NOT_INITIALIZED;
 
 	cfg = dess_get_port_config();
-	phy_id = dess_get_port_phy_id();
-
-	if (phy_id == MALIBU_1_1_2PORT)
-		bitmap = dess_pbmp_2[cfg];
-	else {
-		bitmap = dess_pbmp_5[cfg];
-	}
+	bitmap = dess_pbmp_5[cfg];
 
     /* for port property set, SSDK should not generate some limitations */
-    for (port_id = 0; port_id < pdev->nr_ports; port_id++)
+    for (port_id = 0; port_id < SW_MAX_NR_PORT; port_id++)
     {
+        if((!SW_IS_PBMP_MEMBER(bitmap, port_id)) && (port_id != pdev->cpu_port_nr))
+            continue;
+
         hsl_port_prop_portmap_set(dev_id, port_id);
 
         for (p_type = HSL_PP_PHY; p_type < HSL_PP_BUTT; p_type++)
@@ -182,14 +189,6 @@ dess_portproperty_init(a_uint32_t dev_id)
 
     return SW_OK;
 }
-/*linchen remove it??*/
-#if 0
-static sw_error_t
-dess_hw_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
-{
-    return SW_OK;
-}
-#endif
 #endif
 
 static sw_error_t
@@ -206,31 +205,9 @@ dess_dev_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
     HSL_REG_FIELD_GET(rv, dev_id, MASK_CTL, 0, DEVICE_ID,
                       (a_uint8_t *) (&entry), sizeof (a_uint32_t));
     SW_RTN_ON_ERROR(rv);
-/*linchen: force as dess*/
-#if 0
-    if (S17C_DEVICE_ID == entry)
-    {
-        pdev->nr_ports = 7;
-        pdev->nr_phy = 5;
-        pdev->cpu_port_nr = 0;
-        pdev->nr_vlans = 4096;
-        pdev->hw_vlan_query = A_TRUE;
-        pdev->nr_queue = 6;
-        pdev->cpu_mode = cpu_mode;
-    }
-    else
-#endif
+
     if (DESS_DEVICE_ID == entry)
     {
-	#if 0
-        pdev->nr_ports = 6;
-        pdev->nr_phy = 5;
-        pdev->cpu_port_nr = 0;
-        pdev->nr_vlans = 4096;
-        pdev->hw_vlan_query = A_TRUE;
-        pdev->nr_queue = 6;
-        pdev->cpu_mode = cpu_mode;
-	#endif
 	a_uint32_t i = 0, port_nr = 0, tmp = 0;
 	tmp = cfg->port_cfg.lan_bmp | cfg->port_cfg.wan_bmp;
 	for(i = 0; i < SW_MAX_NR_PORT; i++) {
@@ -315,7 +292,7 @@ dess_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
     {
         sw_error_t rv;
 
-        SW_RTN_ON_ERROR(hsl_port_prop_init());/*linchen port property????*/
+        SW_RTN_ON_ERROR(hsl_port_prop_init(dev_id));
         SW_RTN_ON_ERROR(hsl_port_prop_init_by_dev(dev_id));
         SW_RTN_ON_ERROR(dess_portproperty_init(dev_id));
 

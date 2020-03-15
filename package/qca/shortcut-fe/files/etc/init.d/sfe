@@ -6,7 +6,11 @@
 START=72
 
 have_cm() {
-	[ -d "/sys/kernel/debug/ecm" ] && echo 1 || echo 0
+	if [ -d "/sys/kernel/debug/ecm" ]; then
+		echo 1
+	else
+		echo 0
+	fi
 }
 
 #load shortcut-fe connection manager
@@ -14,35 +18,54 @@ load_sfe_cm() {
 	local kernel_version=$(uname -r)
 
 	#shortcut-fe-drv.ko is not needed because other connection manager is not enabled
-	[ -d "/sys/module/shortcut_fe_drv" ] && rmmod shortcut_fe_drv
+	if [ -d /sys/module/shortcut_fe_drv ]; then
+		rmmod shortcut_fe_drv
+	fi
 
-	[ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] && {
-		[ -d /sys/module/shortcut_fe_cm ] || insmod /lib/modules/$kernel_version/shortcut-fe-cm.ko
-	}
-	[ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] && {
-		[ -d /sys/module/fast_classifier ] || insmod /lib/modules/$kernel_version/fast-classifier.ko
-	}
+	if [ -e /lib/modules/$kernel_version/shortcut-fe-cm.ko ] && [ ! -d /sys/module/shortcut_fe_cm ]; then
+		insmod /lib/modules/$kernel_version/shortcut-fe-cm.ko
+	fi 
+
+	if [ -e /lib/modules/$kernel_version/fast-classifier.ko ] && [ ! -d /sys/module/fast_classifier ]; then
+		insmod /lib/modules/$kernel_version/fast-classifier.ko
+	fi
 }
 
 start() {
-	local enabled=$(uci get sfe.config.enabled 2>/dev/null)
-	[ $enabled -eq 1 ] && {		
-		[ "$(have_cm)" = "1" ] || load_sfe_cm
-		local wifi=$(uci get sfe.config.wifi 2>/dev/null)
-		echo "$wifi" > /sys/fast_classifier/skip_to_bridge_ingress
-		local ipv6=$(uci get sfe.config.ipv6 2>/dev/null)
-		[ $ipv6 -eq 1 ] && {
+	local enabled
+	local wifi
+	local ipv6
+	local sfe_ipv6
+
+	enabled=$(uci -q get sfe.config.enabled)
+	if [ "$enabled" -eq 1 ]; then
+		if [ "$(have_cm)" -ne 1 ]; then
+			load_sfe_cm
+		fi
+		wifi=$(uci -q get sfe.config.wifi)
+		if [ -n "$wifi" ]; then
+			echo "$wifi" > /sys/fast_classifier/skip_to_bridge_ingress
+		fi
+		ipv6=$(uci -q get sfe.config.ipv6)
+		if [ $ipv6 -eq 1 ]; then
 			sfe_ipv6=$(cat /sys/sfe_ipv6/debug_dev)
-			[ ! -f /dev/sfe_ipv6 ] && mknod /dev/sfe_ipv6 c $sfe_ipv6 0
-		} || {
+			if [ ! -f /dev/sfe_ipv6 ]; then
+				mknod /dev/sfe_ipv6 c $sfe_ipv6 0
+			fi
+		else
 			rm -f /dev/sfe_ipv6
-		}
-	}
+		fi
+	fi
 }
 
 stop() {
-	[ -d /sys/module/shortcut_fe_cm ] && rmmod shortcut_fe_cm
-	[ -d /sys/module/fast_classifier ] && rmmod fast_classifier
+	if [ -d /sys/module/shortcut_fe_cm ]; then
+		rmmod shortcut_fe_cm
+	fi
+
+	if [ -d /sys/module/fast_classifier ]; then
+		rmmod fast_classifier
+	fi
 }
 
 restart() {

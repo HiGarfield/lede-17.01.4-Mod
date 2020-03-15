@@ -19,6 +19,7 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+#if defined(IN_SWCONFIG)
 int
 qca_ar8327_sw_set_max_frame_size(struct switch_dev *dev,
 										const struct switch_attr *attr,
@@ -31,6 +32,7 @@ qca_ar8327_sw_get_max_frame_size(struct switch_dev *dev,
 
 int
 qca_ar8327_sw_reset_switch(struct switch_dev *dev);
+#endif
 
 #ifdef __cplusplus
 }

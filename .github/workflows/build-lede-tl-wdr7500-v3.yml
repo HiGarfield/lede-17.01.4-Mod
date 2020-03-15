@@ -1,8 +1,6 @@
 name: Build LEDE tl-wdr7500-v3
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

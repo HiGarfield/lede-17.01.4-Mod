@@ -1,8 +1,6 @@
 name: Build LEDE newifi-d2
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

@@ -16,6 +16,7 @@
  */
 
 #include <linux/module.h>
+#include <linux/version.h>
 #include <linux/sysfs.h>
 #include <linux/skbuff.h>
 #include <linux/icmp.h>
@@ -38,7 +39,7 @@
  */
 #define SFE_IPV4_UNALIGNED_IP_HEADER 1
 #if SFE_IPV4_UNALIGNED_IP_HEADER
-#define SFE_IPV4_UNALIGNED_STRUCT __attribute__((aligned(4)))
+#define SFE_IPV4_UNALIGNED_STRUCT __attribute__((packed, aligned(2)))
 #else
 #define SFE_IPV4_UNALIGNED_STRUCT
 #endif
@@ -1216,7 +1217,7 @@ static int sfe_ipv4_recv_udp(struct sfe_ipv4 *si, struct sk_buff *skb, struct ne
 	/*
 	 * From this point on we're good to modify the packet.
 	 */
-
+	
 	/*
 	 * Check if skb was cloned. If it was, unshare it. Because
 	 * the data area is going to be written in this path and we don't want to
@@ -2759,9 +2760,17 @@ another_round:
 /*
  * sfe_ipv4_periodic_sync()
  */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 static void sfe_ipv4_periodic_sync(unsigned long arg)
+#else
+static void sfe_ipv4_periodic_sync(struct timer_list *t)
+#endif
 {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 	struct sfe_ipv4 *si = (struct sfe_ipv4 *)arg;
+#else
+	struct sfe_ipv4 *si = from_timer(si, t, timer);
+#endif
 	u64 now_jiffies;
 	int quota;
 	sfe_sync_rule_callback_t sync_rule_callback;
@@ -3352,7 +3361,11 @@ static int __init sfe_ipv4_init(void)
 	/*
 	 * Create a timer to handle periodic statistics.
 	 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 	setup_timer(&si->timer, sfe_ipv4_periodic_sync, (unsigned long)si);
+#else
+	timer_setup(&si->timer, sfe_ipv4_periodic_sync, 0);
+#endif
 	mod_timer(&si->timer, jiffies + ((HZ + 99) / 100));
 
 	spin_lock_init(&si->lock);

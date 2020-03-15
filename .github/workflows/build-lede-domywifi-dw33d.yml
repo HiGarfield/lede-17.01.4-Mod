@@ -1,8 +1,6 @@
 name: Build LEDE domywifi-dw33d
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

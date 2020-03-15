@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -59,7 +59,7 @@ static long
 switch_ioctl(struct inode *inode, struct file * file, unsigned int cmd, unsigned long arg);
 #endif
 
-static a_uint32_t *cmd_buf = NULL;
+static unsigned long *cmd_buf = NULL;
 
 static struct mutex api_ioctl_lock;
 
@@ -74,31 +74,36 @@ static struct file_operations switch_device_fops =
     .release = switch_close
 };
 
+#ifndef SHELL_DEV
+#define SHELL_DEV "switch_ssdk"
+#endif
 static struct miscdevice switch_device =
 {
     MISC_DYNAMIC_MINOR,
-    "switch_ssdk",
+    SHELL_DEV,
     &switch_device_fops
 };
 
 static sw_error_t
-input_parser(sw_api_param_t *p, a_uint32_t nr_param, a_uint32_t *args)
+input_parser(sw_api_param_t *p, a_uint32_t nr_param, unsigned long *args)
 {
     a_uint32_t i = 0, buf_head = nr_param;
+    a_uint32_t offset = sizeof(unsigned long);
+    a_uint32_t credit = sizeof(unsigned long) - 1;
 
     for (i = 0; i < nr_param; i++)
     {
         if (p->param_type & SW_PARAM_PTR)
         {
-            cmd_buf[i] = (a_uint32_t) & cmd_buf[buf_head];
-            buf_head += (p->data_size + 3) / 4;
+            cmd_buf[i] = (unsigned long) & cmd_buf[buf_head];
+            buf_head += (p->data_size + credit) / offset;
 
-            if (buf_head > (SW_MAX_API_BUF / 4))
+            if (buf_head > (SW_MAX_API_BUF / offset))
                 return SW_NO_RESOURCE;
 
             if (p->param_type & SW_PARAM_IN)
             {
-                if (copy_from_user((a_uint8_t*)(cmd_buf[i]), (void __USER *)args[i + 2], ((p->data_size + 3) >> 2) << 2))
+                if (copy_from_user((a_uint8_t*)(cmd_buf[i]), (void __USER *)args[i + 2], ((p->data_size + credit) / offset) * offset))
                     return SW_NO_RESOURCE;
             }
         }
@@ -112,16 +117,18 @@ input_parser(sw_api_param_t *p, a_uint32_t nr_param, a_uint32_t *args)
 }
 
 static sw_error_t
-output_parser(sw_api_param_t *p, a_uint32_t nr_param, a_uint32_t *args)
+output_parser(sw_api_param_t *p, a_uint32_t nr_param, unsigned long *args)
 {
     a_uint32_t i =0;
+    a_uint32_t offset = sizeof(unsigned long);
+    a_uint32_t credit = sizeof(unsigned long) - 1;
 
     for (i = 0; i < nr_param; i++)
     {
         if (p->param_type & SW_PARAM_OUT)
         {
             if (copy_to_user
-                    ((void __USER *) args[i + 2], (a_uint32_t *) cmd_buf[i], ((p->data_size + 3) >> 2) << 2))
+                    ((void __USER *) args[i + 2], (unsigned long *) cmd_buf[i], ((p->data_size + credit) / offset) * offset))
                 return SW_NO_RESOURCE;
         }
         p++;
@@ -131,10 +138,10 @@ output_parser(sw_api_param_t *p, a_uint32_t nr_param, a_uint32_t *args)
 }
 
 static sw_error_t
-sw_api_cmd(a_uint32_t * args)
+sw_api_cmd(unsigned long * args)
 {
-    a_uint32_t *p = cmd_buf, api_id = args[0], nr_param = 0;
-    sw_error_t(*func) (a_uint32_t, ...);
+    unsigned long *p = cmd_buf, api_id = args[0], nr_param = 0;
+    sw_error_t(*func) (unsigned long, ...);
     sw_api_param_t *pp;
     sw_api_func_t *fp;
     sw_error_t rv;
@@ -218,10 +225,11 @@ static long
 switch_ioctl(struct inode *inode, struct file * file, unsigned int cmd, unsigned long arg)
 #endif
 {
-    a_uint32_t args[SW_MAX_API_PARAM], rtn;
+    unsigned long args[SW_MAX_API_PARAM], rtn;
     sw_error_t rv = SW_NO_RESOURCE;
+    void __user *argp = (void __user *)arg;
 
-    if (copy_from_user(args, (int __user *)arg, sizeof (args)))
+    if (copy_from_user(args, argp, sizeof (args)))
     {
         return SW_NO_RESOURCE;
     }
@@ -231,9 +239,9 @@ switch_ioctl(struct inode *inode, struct file * file, unsigned int cmd, unsigned
     mutex_unlock(&api_ioctl_lock);
 
     /* return API result to user */
-    rtn = (a_uint32_t) rv;
+    rtn = (unsigned long) rv;
     if (copy_to_user
-            ((void __USER *) args[1], (a_uint32_t *) &rtn, sizeof (a_uint32_t)))
+            ((void __USER *) args[1],  &rtn, sizeof (unsigned long)))
     {
         rv = SW_NO_RESOURCE;
     }
@@ -246,7 +254,7 @@ sw_uk_init(a_uint32_t nl_prot)
 {
     if (!cmd_buf)
     {
-        if((cmd_buf = (a_uint32_t *) aos_mem_alloc(SW_MAX_API_BUF)) == NULL)
+        if((cmd_buf = (unsigned long *) aos_mem_alloc(SW_MAX_API_BUF)) == NULL)
         {
             return SW_OUT_OF_MEM;
         }

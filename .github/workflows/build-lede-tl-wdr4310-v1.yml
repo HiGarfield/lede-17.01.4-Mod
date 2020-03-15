@@ -1,8 +1,6 @@
 name: Build LEDE tl-wdr4310-v1
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

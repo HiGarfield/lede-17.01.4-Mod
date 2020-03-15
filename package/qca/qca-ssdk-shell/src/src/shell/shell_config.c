@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2015, 2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -11,7 +11,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
+/*qca808x_start*/
 #include "shell_config.h"
 #include "shell_sw.h"
 
@@ -20,19 +20,22 @@
 struct cmd_des_t gcmd_des[] =
 {
     /*port ctrl*/
+/*qca808x_end*/
 #ifdef IN_PORTCONTROL
+/*qca808x_start*/
     {
         "port", "config port control",
         {
             {"duplex", "get", "get duplex mode of a port", "<port_id>" , SW_API_PT_DUPLEX_GET, NULL},
             {"duplex", "set", "set duplex mode of a port", "<port_id> <half|full>", SW_API_PT_DUPLEX_SET, NULL},
             {"speed", "get", "get speed mode of a port", "<port_id>",  SW_API_PT_SPEED_GET, NULL},
-            {"speed", "set", "set speed mode of a port", "<port_id> <10|100|1000>", SW_API_PT_SPEED_SET, NULL},
+            {"speed", "set", "set speed mode of a port", "<port_id> <10|100|1000|2500|5000|10000>", SW_API_PT_SPEED_SET, NULL},
             {"autoAdv", "get", "get auto-negotiation advertisement of a port", "<port_id>", SW_API_PT_AN_ADV_GET, NULL},
             {"autoAdv", "set", "set auto-negotiation advertisement of a port", "<port_id> <cap_bitmap>", SW_API_PT_AN_ADV_SET, NULL},
             {"autoNeg", "get", "get auto-negotiation status of a port", "<port_id>", SW_API_PT_AN_GET, NULL},
             {"autoNeg", "enable", "enable auto-negotiation of a port", "<port_id>", SW_API_PT_AN_ENABLE, NULL},
             {"autoNeg", "restart", "restart auto-negotiation process of a port", "<port_id>", SW_API_PT_AN_RESTART, NULL},
+/*qca808x_end*/
             {"header", "set", "set atheros header/tag status of a port", "<port_id> <enable|disable>", SW_API_PT_HDR_SET, NULL},
             {"header", "get", "get atheros header/tag status of a port", "<port_id>", SW_API_PT_HDR_GET, NULL},
             {"txhdr", "set", "set tx frame atheros header/tag status of a port", "<port_id> <noheader|onlymanagement|allframe>", SW_API_PT_TXHDR_SET, NULL},
@@ -47,9 +50,11 @@ struct cmd_des_t gcmd_des[] =
             {"flowCtrlforcemode", "get", "get flow control force mode of a port", "<port_id>", SW_API_PT_FLOWCTRL_MODE_GET, NULL},
             {"powersave", "set", "set powersave status of a port", "<port_id> <enable|disable>", SW_API_PT_POWERSAVE_SET, NULL},
             {"powersave", "get", "get powersave status of a port", "<port_id>", SW_API_PT_POWERSAVE_GET, NULL},
+/*qca808x_start*/
             {"hibernate", "set", "set hibernate status of a port", "<port_id> <enable|disable>", SW_API_PT_HIBERNATE_SET, NULL},
             {"hibernate", "get", "get hibernate status of a port", "<port_id>", SW_API_PT_HIBERNATE_GET, NULL},
             {"cdt", "run", "run cable diagnostic test of a port", "<port_id> <mdi_pair>", SW_API_PT_CDT, NULL},
+/*qca808x_end*/
             {"txmacstatus", "set", "set txmac status of a port", "<port_id> <enable|disable>", SW_API_TXMAC_STATUS_SET, NULL},
             {"txmacstatus", "get", "get txmac status of a port", "<port_id>", SW_API_TXMAC_STATUS_GET, NULL},
             {"rxmacstatus", "set", "set rxmac status of a port", "<port_id> <enable|disable>", SW_API_RXMAC_STATUS_SET, NULL},
@@ -62,7 +67,9 @@ struct cmd_des_t gcmd_des[] =
             {"bpstatus", "get", "get back pressure status of a port", "<port_id>", SW_API_BP_STATUS_GET, NULL},
             {"linkforcemode", "set", "set link force mode of a port", "<port_id> <enable|disable>", SW_API_PT_LINK_MODE_SET, NULL},
             {"linkforcemode", "get", "get link force mode of a port", "<port_id>", SW_API_PT_LINK_MODE_GET, NULL},
+/*qca808x_start*/
             {"linkstatus", "get", "get link status of a port", "<port_id>", SW_API_PT_LINK_STATUS_GET, NULL},
+/*qca808x_end*/
             {"macLoopback", "set", "set mac level loop back mode of port", "<port_id> <enable|disable>", SW_API_PT_MAC_LOOPBACK_SET, NULL},
             {"macLoopback", "get", "get mac level loop back mode of port", "<port_id>", SW_API_PT_MAC_LOOPBACK_GET, NULL},
             {"ptslinkstatus", "get", "get link status of all ports", "", SW_API_PTS_LINK_STATUS_GET, NULL},
@@ -70,16 +77,19 @@ struct cmd_des_t gcmd_des[] =
 			{"congedrop", "get", "get congestion drop of port queue", "<port_id> <queue_id>", SW_API_PT_CONGESTION_DROP_GET, NULL},
 			{"ringfcthres", "set", "set ring flow ctrl of ring", "<ring_id> <on_thres> <off_thres>", SW_API_PT_RING_FLOW_CTRL_THRES_SET, NULL},
 			{"ringfcthres", "get", "get ring flow ctrl of ring", "<ring_id>", SW_API_PT_RING_FLOW_CTRL_THRES_GET, NULL},
+/*qca808x_start*/
             {"Ieee8023az", "set", "set 8023az status of a port", "<port_id> <enable|disable>", SW_API_PT_8023AZ_SET, NULL},
             {"Ieee8023az", "get", "get 8023az status of a port", "<port_id>", SW_API_PT_8023AZ_GET, NULL},
             {"crossover", "set", "set crossover mode of a port", "<port_id> <auto|mdi|mdix>", SW_API_PT_MDIX_SET, NULL},
             {"crossover", "get", "get crossover mode of a port", "<port_id>", SW_API_PT_MDIX_GET, NULL},
             {"crossover", "status", "get current crossover status of a port", "<port_id>", SW_API_PT_MDIX_STATUS_GET, NULL},
+/*qca808x_end*/
             {"preferMedium", "set", "set prefer medium of a combo port", "<port_id> <copper|fiber>", SW_API_PT_COMBO_PREFER_MEDIUM_SET, NULL},
             {"preferMedium", "get", "get prefer medium of a combo port", "<port_id>", SW_API_PT_COMBO_PREFER_MEDIUM_GET, NULL},
             {"mediumType", "get", "get current medium status of a combo port", "<port_id>", SW_API_PT_COMBO_MEDIUM_STATUS_GET, NULL},
-            {"fiberMode", "set", "set fiber mode of a combo fiber port", "<port_id> <100fx|1000bx>", SW_API_PT_COMBO_FIBER_MODE_SET, NULL},
+            {"fiberMode", "set", "set fiber mode of a combo fiber port", "<port_id> <100fx|1000bx |10g_r>", SW_API_PT_COMBO_FIBER_MODE_SET, NULL},
             {"fiberMode", "get", "get fiber mode of a combo fiber port", "<port_id>", SW_API_PT_COMBO_FIBER_MODE_GET, NULL},
+/*qca808x_start*/
             {"localLoopback", "set", "set local loopback of a port", "<port_id> <enable|disable>", SW_API_PT_LOCAL_LOOPBACK_SET, NULL},
             {"localLoopback", "get", "get local loopback of a port", "<port_id>", SW_API_PT_LOCAL_LOOPBACK_GET, NULL},
             {"remoteLoopback", "set", "set remote loopback of a port", "<port_id> <enable|disable>", SW_API_PT_REMOTE_LOOPBACK_SET, NULL},
@@ -92,12 +102,32 @@ struct cmd_des_t gcmd_des[] =
             {"phyId", "get", "get phy id of a port", "<port_id>", SW_API_PT_PHY_ID_GET, NULL},
             {"wolstatus", "set", "set wol status of a port", "<port_id> <enable|disable>", SW_API_PT_WOL_STATUS_SET, NULL},
             {"wolstatus", "get", "get wol status of a port", "<port_id>", SW_API_PT_WOL_STATUS_GET, NULL},
-            {"interfaceMode", "set", "set interface mode of phy", "<port_id> <psgmii_baset|psgmii_bx1000|psgmii_fx100|psgmii_amdet|sgmii_baset>", SW_API_PT_INTERFACE_MODE_SET, NULL},
+/*qca808x_end*/
+            {"interfaceMode", "set", "set interface mode of phy", "<port_id> <psgmii_baset|psgmii_bx1000|psgmii_fx100|psgmii_amdet|sgmii_baset|qsgmii|usxgmii|sgmii_plus|10gbase_r |sgmii_fiber|psgmii_fiber|interfacemode_max>", SW_API_PT_INTERFACE_MODE_SET, NULL},
             {"interfaceMode", "get", "get interface mode of phy", "<port_id>", SW_API_PT_INTERFACE_MODE_GET, NULL},
+            {"interfaceMode", "apply", "apply interface mode","", SW_API_PT_INTERFACE_MODE_APPLY, NULL},
+/*qca808x_start*/
             {"interfaceMode", "status", "get current interface mode of phy", "<port_id>", SW_API_PT_INTERFACE_MODE_STATUS_GET, NULL},
+/*qca808x_end*/
+            {"interface3az", "set", "set interface and phy 3az info", "<port_id> <enable/disable>", SW_API_PT_INTERFACE_3AZ_STATUS_SET, NULL},
+            {"interface3az", "get", "get interface and phy 3az info", "<port_id>", SW_API_PT_INTERFACE_3AZ_STATUS_GET, NULL},
+            {"promiscmode", "set", "set port promisc mode", "<port_id> <enable|disable>", SW_API_PT_PROMISC_MODE_SET, NULL},
+            {"promiscmode", "get", "get port promisc mode", "<port_id>", SW_API_PT_PROMISC_MODE_GET, NULL},
+            {"mtu", "set", "set port mtu value", "", SW_API_PT_MTU_SET, NULL},
+            {"mtu", "get", "get port mtu value", "", SW_API_PT_MTU_GET, NULL},
+            {"mru", "set", "set port mru value", "", SW_API_PT_MRU_SET, NULL},
+            {"mru", "get", "get port mru value", "", SW_API_PT_MRU_GET, NULL},
+            {"srcfilter", "set", "set port source filter bypass", "<port_id> <enable|disable>", SW_API_PT_SOURCE_FILTER_SET, NULL},
+            {"srcfilter", "get", "get port source filter bypass", "<port_id>", SW_API_PT_SOURCE_FILTER_GET, NULL},
+            {"frameMaxSize", "get", "get port frame max size", "<port_id>", SW_API_PT_FRAME_MAX_SIZE_GET},
+            {"frameMaxSize", "set", "set port frame max size", "<port_id> <frame_max_size>", SW_API_PT_FRAME_MAX_SIZE_SET},
+            {"eeecfg", "set", "set interface eee info", "<port_id>", SW_API_PT_INTERFACE_EEE_CFG_SET, NULL},
+            {"eeecfg", "get", "get interface eee info", "<port_id>", SW_API_PT_INTERFACE_EEE_CFG_GET, NULL},
+/*qca808x_start*/
             {NULL, NULL, NULL, NULL, (int)NULL, NULL},/*end of desc*/
         },
     },
+/*qca808x_end*/
 #endif
 
     /*vlan*/
@@ -176,6 +206,34 @@ struct cmd_des_t gcmd_des[] =
             {"egbypass", "get", "get the status of egress translation filter bypass", "", SW_API_EG_FLTR_BYPASS_EN_GET, NULL},
             {"ptvrfid", "set", "set port VRF ID", "<port_id> <vrf_id>", SW_API_PT_VRF_ID_SET, NULL},
             {"ptvrfid", "get", "get port VRF ID", "<port_id>", SW_API_PT_VRF_ID_GET, NULL},
+            {"globalqinqmode", "set", "set global qinq mode", "", SW_API_GLOBAL_QINQ_MODE_SET, NULL},
+            {"globalqinqmode", "get", "get global qinq mode", "", SW_API_GLOBAL_QINQ_MODE_GET, NULL},
+            {"ptqinqmode", "set", "set port qinq mode", "<port_id>", SW_API_PORT_QINQ_MODE_SET, NULL},
+            {"ptqinqmode", "get", "get port qinq mode", "<port_id>", SW_API_PORT_QINQ_MODE_GET, NULL},
+            {"intpid", "set", "set ingress tpid", "", SW_API_TPID_SET, NULL},
+            {"intpid", "get", "get ingress tpid", "", SW_API_TPID_GET, NULL},
+            {"egtpid", "set", "set egress tpid", "", SW_API_EGRESS_TPID_SET, NULL},
+            {"egtpid", "get", "get egress tpid", "", SW_API_EGRESS_TPID_GET, NULL},
+            {"ingressfilter", "set", "set port ingress filter", "<port_id>", SW_API_PT_INGRESS_VLAN_FILTER_SET, NULL},
+            {"ingressfilter", "get", "get port ingress filter", "<port_id>", SW_API_PT_INGRESS_VLAN_FILTER_GET, NULL},
+            {"defaultvlantag", "set", "set port default vlan tag", "<port_id> <all|ingress|egress>", SW_API_PT_DEFAULT_VLANTAG_SET, NULL},
+            {"defaultvlantag", "get", "get port default vlan tag", "<port_id> <all|ingress|egress>", SW_API_PT_DEFAULT_VLANTAG_GET, NULL},
+            {"tagpropagation", "set", "set port tag propagation", "<port_id> <all|ingress|egress>", SW_API_PT_TAG_PROPAGATION_SET, NULL},
+            {"tagpropagation", "get", "get port tag propagation", "<port_id> <all|ingress|egress>", SW_API_PT_TAG_PROPAGATION_GET, NULL},
+            {"egmode", "set", "set port egress vlan mode", "<port_id>", SW_API_PT_VLANTAG_EGMODE_SET, NULL},
+            {"egmode", "get", "get port egress vlan mode", "<port_id>", SW_API_PT_VLANTAG_EGMODE_GET, NULL},
+            {"translationmissaction", "set", "set port xlt miss command", "<port_id> <forward|drop|cpycpu|rdtcpu>", SW_API_PT_VLAN_XLT_MISS_CMD_SET, NULL},
+            {"translationmissaction", "get", "get port xlt miss command", "<port_id>", SW_API_PT_VLAN_XLT_MISS_CMD_GET, NULL},
+            {"vsiegmode", "set", "set a vsi port egress tag", "<vsi> <port_id> <untagged/tagged/unmodified/untouched>", SW_API_PT_VSI_EGMODE_SET, NULL},
+            {"vsiegmode", "get", "get a vsi port egress tag", "<vsi> <port_id>", SW_API_PT_VSI_EGMODE_GET, NULL},
+            {"vsiegmodeen", "set", "set port vlan tag vsi egress mode enable or not", "<port_id> <enable|disable>", SW_API_PT_VLANTAG_VSI_EGMODE_EN_SET, NULL},
+            {"vsiegmodeen", "get", "get port vlan tag vsi egress mode enable or not", "<port_id>", SW_API_PT_VLANTAG_VSI_EGMODE_EN_GET, NULL},
+            {"translationAdv", "add", "add a vlan advanced translation entry based on port and direction", "<port_id> <ingress|egress>", SW_API_PT_VLAN_TRANS_ADV_ADD, NULL},
+            {"translationAdv", "del", "del a vlan advanced translation entry based on port and direction", "<port_id> <ingress|egress>", SW_API_PT_VLAN_TRANS_ADV_DEL, NULL},
+            {"translationAdv", "getfirst", "get vlan advanced translation first entry based on port and direction", "<port_id> <ingress|egress>", SW_API_PT_VLAN_TRANS_ADV_GETFIRST, NULL},
+            {"translationAdv", "getnext", "get vlan advanced translation next entry based on port and direction", "<port_id> <ingress|egress>", SW_API_PT_VLAN_TRANS_ADV_GETNEXT, NULL},
+            {"counter", "set", "clean up port vlan counter", "<cnt_index>", SW_API_PT_VLAN_COUNTER_CLEANUP, NULL},
+            {"counter", "get", "get port vlan counter", "<cnt_index>", SW_API_PT_VLAN_COUNTER_GET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -200,12 +258,19 @@ struct cmd_des_t gcmd_des[] =
             {"nextEntry", "find", "find next FDB entry", "", SW_API_FDB_NEXT, NULL},
             {"portLearn", "set", "set FDB entry learning status of a port", "<port_id> <enable|disable>", SW_API_FDB_PT_LEARN_SET, NULL},
             {"portLearn", "get", "get FDB entry learning status of a port", "<port_id>", SW_API_FDB_PT_LEARN_GET, NULL},
+            {"ptLearnCtrl", "set", "set new address learning and forward", "<port_id> <enable|disable> <forward|drop|cpycpu|rdtcpu>", SW_API_FDB_PT_NEWADDR_LEARN_SET, NULL},
+            {"ptLearnCtrl", "get", "get new address learning and forward", "<port_id>", SW_API_FDB_PT_NEWADDR_LEARN_GET, NULL},
+            {"ptStationMove", "set", "set station move learning and forward", "<port_id> <enable|disable> <forward|drop|cpycpu|rdtcpu>", SW_API_FDB_PT_STAMOVE_SET, NULL},
+            {"ptStationMove", "get", "get station move learning and forward", "<port_id>", SW_API_FDB_PT_STAMOVE_GET, NULL},
             {"ageCtrl", "set", "set FDB entry aging status", "<enable|disable>", SW_API_FDB_AGE_CTRL_SET, NULL},
             {"ageCtrl", "get", "get FDB entry aging status", "", SW_API_FDB_AGE_CTRL_GET, NULL},
+            {"learnCtrl", "set", "set FDB entry learn status", "<enable|disable>", SW_API_FDB_LEARN_CTRL_SET, NULL},
+            {"learnCtrl", "get", "get FDB entry learn status", "", SW_API_FDB_LEARN_CTRL_GET, NULL},
             {"vlansmode", "set", "set FDB vlan search mode", "<ivl|svl>", SW_API_FDB_VLAN_IVL_SVL_SET, NULL},
             {"vlansmode", "get", "get FDB vlan search mode", "", SW_API_FDB_VLAN_IVL_SVL_GET, NULL},
             {"ageTime", "set", "set FDB entry aging time", "<time:s>", SW_API_FDB_AGE_TIME_SET, NULL},
             {"ageTime", "get", "get FDB entry aging time", "", SW_API_FDB_AGE_TIME_GET, NULL},
+            {"ptlearncounter", "get", "get port FDB entry learn counter", "<port_id>", SW_API_PT_FDB_LEARN_COUNTER_GET, NULL},
             {"ptlearnlimit", "set", "set port FDB entry learn limit", "<port_id> <enable|disable> <limitcounter>", SW_API_PT_FDB_LEARN_LIMIT_SET, NULL},
             {"ptlearnlimit", "get", "get port FDB entry learn limit", "<port_id>", SW_API_PT_FDB_LEARN_LIMIT_GET, NULL},
             {"ptlearnexceedcmd", "set", "set port forwarding cmd when exceed learn limit", "<port_id> <forward|drop|cpycpu|rdtcpu>", SW_API_PT_FDB_LEARN_EXCEED_CMD_SET, NULL},
@@ -223,8 +288,11 @@ struct cmd_des_t gcmd_des[] =
             {"ptLearnStatic", "get", "get FDB entry learning static status of a port", "<port_id>", SW_API_FDB_PT_LEARN_STATIC_GET, NULL},
             {"port", "add", "add one port to a FDB entry", "<fid> <macaddr> <port_id>", SW_API_FDB_PORT_ADD, NULL},
             {"port", "del", "del one port from a FDB entry", "<fid> <macaddr> <port_id>", SW_API_FDB_PORT_DEL, NULL},
-			{"fdbrfs", "set", "add a FDB rfs", "", SW_API_FDB_RFS_SET, NULL},
+            {"fdbrfs", "set", "add a FDB rfs", "", SW_API_FDB_RFS_SET, NULL},
             {"fdbrfs", "del", "delete a FDB rfs", "", SW_API_FDB_RFS_DEL, NULL},
+            {"ptmaclimitctrl", "set", "set port maclimit ctrl", "<port_id>", SW_API_FDB_PT_MACLIMIT_CTRL_SET, NULL},
+            {"ptmaclimitctrl", "get", "get port maclimit ctrl", "<port_id>", SW_API_FDB_PT_MACLIMIT_CTRL_GET, NULL},
+            {"fidEntry", "flush", "flush all FDB entries by a fid", "<fid> <0:dynamic only|1:dynamic and static>", SW_API_FDB_DEL_BY_FID, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -250,6 +318,8 @@ struct cmd_des_t gcmd_des[] =
             {"status", "get", "get status of ACL engine", "", SW_API_ACL_STATUS_GET, NULL},
             {"udfprofile", "set", "set port udf profile", "<port_id> <l2/l2snap/l3/l3plus/l4> <offset> <length>", SW_API_ACL_PT_UDF_PROFILE_SET, NULL},
             {"udfprofile", "get", "get port udf profile", "<port_id> <l2/l2snap/l3/l3plus/l4>", SW_API_ACL_PT_UDF_PROFILE_GET, NULL},
+            {"udf", "set", "set udf", "<non-ip/ipv4/ipv6> <0-3> <l2/l3/l4> <offset>", SW_API_ACL_UDF_SET, NULL},
+            {"udf", "get", "get udf", "<non-ip/ipv4/ipv6> <0-3>", SW_API_ACL_UDF_GET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -296,6 +366,27 @@ struct cmd_des_t gcmd_des[] =
             {"ptFCpriSts", "get", "get port force Ctag priority status for received frames of a port", "<port_id>", SW_API_QOS_PT_FORCE_CPRI_ST_GET, NULL},
             {"ptQuRemark", "set", "set egress queue based remark", "<port_id> <queue_id> <table_id> <enable|disable>", SW_API_QOS_QUEUE_REMARK_SET, NULL},
             {"ptQuRemark", "get", "get egress queue based remark", "<port_id> <queue_id>", SW_API_QOS_QUEUE_REMARK_GET, NULL},
+	{"ptgroup", "set", "set port group", "<port_id> <group>", SW_API_QOS_PORT_GROUP_SET, NULL},
+	{"ptgroup", "get", "get port group", "<port_id>", SW_API_QOS_PORT_GROUP_GET, NULL},
+	{"ptpriprece", "set", "set port priority precedence", "<port_id>", SW_API_QOS_PORT_PRI_SET, NULL},
+	{"ptPriprece", "get", "get port priority precedence", "<port_id>", SW_API_QOS_PORT_PRI_GET, NULL},
+	{"ptremark", "set", "set port remark", "<port_id> <remark>", SW_API_QOS_PORT_REMARK_SET, NULL},
+	{"ptremark", "get", "get port remark", "<port_id>", SW_API_QOS_PORT_REMARK_GET, NULL},
+	{"pcpmap", "set", "set pcp map", "<group_id> <pcp> <cosmap>", SW_API_QOS_PCP_MAP_SET, NULL},
+	{"pcpmap", "get", "get pcp map", "<group_id> <pcp>", SW_API_QOS_PCP_MAP_GET, NULL},
+	{"flowmap", "set", "set flow map", "<group_id> <flow> <cosmap>", SW_API_QOS_FLOW_MAP_SET, NULL},
+	{"flowmap", "get", "get flow map", "<group_id> <flow>", SW_API_QOS_FLOW_MAP_GET, NULL},
+	{"dscpmap", "set", "set dscp map", "<group_id> <dscp> <cosmap>", SW_API_QOS_DSCP_MAP_SET, NULL},
+	{"dscpmap", "get", "get dscp map", "<group_id> <dscp>", SW_API_QOS_DSCP_MAP_GET, NULL},
+	{"qscheduler", "set", "set queue scheduler", "<node_id> <level> <port_id> <scheduler>", SW_API_QOS_QUEUE_SCHEDULER_SET, NULL},
+	{"qscheduler", "get", "get queue scheduler", "<node_id> <level>", SW_API_QOS_QUEUE_SCHEDULER_GET, NULL},
+	{"ringqueue", "set", "set ring queue map", "<ring_id> <queue_bmp>", SW_API_QOS_RING_QUEUE_MAP_SET, NULL},
+	{"ringqueue", "get", "get ring queue map", "<ring_id>", SW_API_QOS_RING_QUEUE_MAP_GET, NULL},
+	{"portqueues", "get", "get queues belong to port", "<port_id>", SW_API_QOS_PORT_QUEUES_GET, NULL},
+	{"dequeue", "get", "dequeue control get", "<queue_id>", SW_API_QOS_SCHEDULER_DEQUEU_CTRL_GET, NULL},
+	{"dequeue", "set", "dequeue control set", "<queue_id> <ctrl>", SW_API_QOS_SCHEDULER_DEQUEU_CTRL_SET, NULL},
+	{"portscheduler", "reset", "reset queue scheduler config", "<port_id>", SW_API_QOS_PORT_SCHEDULER_CFG_RESET, NULL},
+	{"schedulerresource", "get", "get port scheduler resource", "<port_id>", SW_API_QOS_PORT_SCHEDULER_RESOURCE_GET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -369,6 +460,8 @@ struct cmd_des_t gcmd_des[] =
             {"ptIngress", "get", "get ingress mirror status of a port", "<port_id>", SW_API_MIRROR_IN_PT_GET, NULL},
             {"ptEgress", "set", "set egress mirror status of a port", "<port_id> <enable|disable>", SW_API_MIRROR_EG_PT_SET, NULL},
             {"ptEgress", "get", "get egress mirror status of a port", "<port_id>", SW_API_MIRROR_EG_PT_GET, NULL},
+            {"analyCfg", "set", "set analysis configure", "<both|ingress|egress>", SW_API_MIRROR_ANALYSIS_CONFIG_SET, NULL},
+            {"analyCfg", "get", "get analysis configure", "<both|ingress|egress>", SW_API_MIRROR_ANALYSIS_CONFIG_GET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -426,6 +519,12 @@ struct cmd_des_t gcmd_des[] =
             {"icmp4", "get", "get ICMP4 related security", "<ping_pl_exceed/ping_frag/ping_max_pl>", SW_API_SEC_ICMP4_GET, NULL},
             {"icmp6", "set", "set ICMP6 related security", "<ping_pl_exceed/ping_frag/ping_max_pl> <value>", SW_API_SEC_ICMP6_SET, NULL},
             {"icmp6", "get", "get ICMP6 related security", "<ping_pl_exceed/ping_frag/ping_max_pl>", SW_API_SEC_ICMP6_GET, NULL},
+            {"l3parser", "get", "get l3 parser ctrl", "<ttl> <hop>", SW_API_SEC_L3_PARSER_CTRL_GET, NULL},
+	{"l3parser", "set", "set l3 parser ctrl", "<ttl> <hop>", SW_API_SEC_L3_PARSER_CTRL_SET, NULL},
+	{"l4parser", "get", "get l4 parser ctrl", "<tcp_flag> <tcp_flag_mask>", SW_API_SEC_L4_PARSER_CTRL_GET, NULL},
+	{"l4parser", "set", "set l4 parser ctrl", "<tcp_flag> <tcp_flag_mask>", SW_API_SEC_L4_PARSER_CTRL_SET, NULL},
+	{"expctrl", "get", "get l3 exp ctrl", "<excep_type>", SW_API_SEC_EXP_CTRL_GET, NULL},
+	{"expctrl", "set", "set l3 exp ctrl", "<excep_type>", SW_API_SEC_EXP_CTRL_SET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -454,6 +553,8 @@ struct cmd_des_t gcmd_des[] =
             {"counters",  "flush", "flush counters of a port", "<port_id>", SW_API_PT_MIB_FLUSH_COUNTERS, NULL},
             {"cpuKeep", "set", "set cpu keep bit", "<enable|disable>",  SW_API_MIB_CPU_KEEP_SET, NULL},
             {"cpuKeep", "get", "get cpu keep bit", "",  SW_API_MIB_CPU_KEEP_GET, NULL},
+            {"xgstatistics","get", "get statistics information of a xg_port", "<port_id>",SW_API_PT_XGMIB_GET},
+            {"counter", "get", "get counter information of a port", "<port_id>",  SW_API_PT_MIB_COUNTER_GET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -565,8 +666,10 @@ struct cmd_des_t gcmd_des[] =
             {"cpuVid", "get", "get to_cpu vid status", "", SW_API_CPU_VID_EN_GET, NULL},
             {"rtdPppoe", "set", "set RM_RTD_PPPOE_EN status", "<enable|disable>", SW_API_RTD_PPPOE_EN_SET, NULL},
             {"rtdPppoe", "get", "get RM_RTD_PPPOE_EN status", "", SW_API_RTD_PPPOE_EN_GET, NULL},
+            {"pppoeen", "set", "set a l3 interface pppoe status", "<l3if_index> <enable|disable>", SW_API_PPPOE_EN_SET, NULL},
+            {"pppoeen", "get", "get a l3 interface pppoe status", "<l3if_index>", SW_API_PPPOE_EN_GET, NULL},
 			{"glomacaddr", "set", "set global macaddr", "<macaddr>", SW_API_GLOBAL_MACADDR_SET, NULL},
-			{"glomacaddr", "get", "get global macaddr", "", SW_API_GLOBAL_MACADDR_GET, NULL},	
+			{"glomacaddr", "get", "get global macaddr", "", SW_API_GLOBAL_MACADDR_GET, NULL},
 			{"lldp", "set", "set lldp frames hardware identification status", "<enable|disable>", SW_API_LLDP_STATUS_SET, NULL},
 			{"lldp", "get", "get lldp frames hardware identification status", "", SW_API_LLDP_STATUS_GET, NULL},
 			{"framecrc", "set", "set frame crc reserve enable", "<enable|disable>", SW_API_FRAME_CRC_RESERVE_SET, NULL},
@@ -586,6 +689,10 @@ struct cmd_des_t gcmd_des[] =
             {"hostentry", "get", "get host entry", "<get_mode>", SW_API_IP_HOST_GET, NULL},
             {"hostentry", "next", "next host entry", "<next_mode>", SW_API_IP_HOST_NEXT, NULL},
             {"hostentry", "show", "show whole host entries", "", SW_CMD_HOST_SHOW, cmd_show_host},
+	      {"hostipv4entry", "show", "show whole ipv4U host entries", "", SW_CMD_HOST_IPV4_SHOW, cmd_show_host_ipv4},
+	      {"hostipv6entry", "show", "show whole ipv6u host entries", "", SW_CMD_HOST_IPV6_SHOW, cmd_show_host_ipv6},
+		{"hostipv4Mentry", "show", "show whole ipv4M host entries", "", SW_CMD_HOST_IPV4M_SHOW, cmd_show_host_ipv4M},
+	      {"hostipv6Mentry", "show", "show whole ipv6M host entries", "", SW_CMD_HOST_IPV6M_SHOW, cmd_show_host_ipv6M},
             {"hostentry", "bindcnt", "bind counter to host entry", "<host entry id> <cnt id> <enable|disable>", SW_API_IP_HOST_COUNTER_BIND, NULL},
             {"hostentry", "bindpppoe", "bind pppoe to host entry", "<host entry id> <pppoe id> <enable|disable>", SW_API_IP_HOST_PPPOE_BIND, NULL},
             {"ptarplearn", "set", "set port arp learn flag, bit0 req bit1 ack", "<port_id> <flag>", SW_API_IP_PT_ARP_LEARN_SET, NULL},
@@ -627,6 +734,63 @@ struct cmd_des_t gcmd_des[] =
             {"defaultflowcmd", "get", "get default flow command", "<vrf id> <lan2lan|wan2lan|lan2wan|wan2wan>", SW_API_IP_DEFAULT_FLOW_CMD_GET, NULL},
             {"defaultrtflowcmd", "set", "set default route flow command", "<vrf id> <lan2lan|wan2lan|lan2wan|wan2wan> <forward|drop|rdtcpu|admit_all>", SW_API_IP_DEFAULT_RT_FLOW_CMD_SET, NULL},
             {"defaultrtflowcmd", "get", "get default route flow command", "<vrf id> <lan2lan|wan2lan|lan2wan|wan2wan>", SW_API_IP_DEFAULT_RT_FLOW_CMD_GET, NULL},
+	{"vsiarpsg", "set", "set vsi arp sg", "<vsi>", SW_API_IP_VIS_ARP_SG_CFG_SET, NULL},
+            {"vsiarpsg", "get", "get vsi arp sg", "<vsi>", SW_API_IP_VIS_ARP_SG_CFG_GET, NULL},
+            {"networkroute", "add", "add network route", "<index>", SW_API_IP_NETWORK_ROUTE_ADD, NULL},
+            {"networkroute", "get", "get network route", "<index> <type>", SW_API_IP_NETWORK_ROUTE_GET, NULL},
+            {"intf", "set", "set l3 intf", "<index>", SW_API_IP_INTF_SET, NULL},
+            {"intf", "get", "get l3 intf", "<index>", SW_API_IP_INTF_GET, NULL},
+            {"vsiintf", "set", "set vsi l3 intf", "<vsi>", SW_API_IP_VSI_INTF_SET, NULL},
+            {"vsiintf", "get", "get vsi l3 intf", "<vsi>", SW_API_IP_VSI_INTF_GET, NULL},
+            {"portintf", "set", "set port l3 intf", "<port_id>", SW_API_IP_PORT_INTF_SET, NULL},
+            {"portintf", "get", "get port l3 intf", "<port_id>", SW_API_IP_PORT_INTF_GET, NULL},
+            {"nexthop", "set", "set nexthop", "<index>", SW_API_IP_NEXTHOP_SET, NULL},
+            {"nexthop", "get", "get nexthop", "<index>", SW_API_IP_NEXTHOP_GET, NULL},
+            {"pubip", "set", "set pub ip", "<index> <ip>", SW_API_IP_PUB_IP_SET, NULL},
+            {"networkroute", "del", "del network route", "<index> <type>", SW_API_IP_NETWORK_ROUTE_DEL, NULL},
+            {"pubip", "get", "get pub ip", "<index>", SW_API_IP_PUB_IP_GET, NULL},
+            {"vsisg", "set", "set vsi sg", "<vsi>", SW_API_IP_VSI_SG_SET, NULL},
+            {"vsisg", "get", "get vsi sg", "<vsi>", SW_API_IP_VSI_SG_GET, NULL},
+            {"portsg", "set", "set port sg", "<port_id>", SW_API_IP_PORT_SG_SET, NULL},
+            {"portsg", "get", "get port sg", "<port_id>", SW_API_IP_PORT_SG_GET, NULL},
+            {"portmac", "set", "set portmac", "<port_id>", SW_API_IP_PORT_MAC_SET, NULL},
+            {"portmac", "get", "get portmac", "<port_id>", SW_API_IP_PORT_MAC_GET, NULL},
+            {"routemiss", "get", "get route miss cmd", "", SW_API_IP_ROUTE_MISS_GET, NULL},
+            {"routemiss", "set", "set route miss cmd", "<forward|drop|cpycpu|rdtcpu>", SW_API_IP_ROUTE_MISS_SET, NULL},
+            {"portarpsg", "set", "set port arp sg", "<port_id>", SW_API_IP_PORT_ARP_SG_SET, NULL},
+            {"portarpsg", "get", "get port arp sg", "<port_id>", SW_API_IP_PORT_ARP_SG_GET, NULL},
+            {"mcmode", "get", "get mc mode", "<vsi>", SW_API_IP_VSI_MC_MODE_GET, NULL},
+            {"mcmode", "set", "set mc mode", "<vsi>", SW_API_IP_VSI_MC_MODE_SET, NULL},
+            {"globalctrl", "set", "set global", "", SW_API_GLOBAL_CTRL_SET, NULL},
+            {"globalctrl", "get", "get global", "", SW_API_GLOBAL_CTRL_GET, NULL},
+            {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+        },
+    },
+#endif
+
+ /* FLOW */
+#ifdef IN_FLOW
+    {
+        "flow", "config flow",
+        {
+            {"status", "set", "set flow status", "<status>", SW_API_FLOW_STATUS_SET, NULL},
+            {"status", "get", "get flow status", "", SW_API_FLOW_STATUS_GET, NULL},
+            {"agetime", "set", "set flow aging time", "", SW_API_FLOW_AGE_TIMER_SET, NULL},
+            {"agetime", "get", "get flow aging time", "", SW_API_FLOW_AGE_TIMER_GET, NULL},
+            {"mgmt", "set", "set flow mgmt", "<type> <dir>", SW_API_FLOW_CTRL_SET, NULL},
+            {"mgmt", "get", "get flow mgmt", "<type> <dir>", SW_API_FLOW_CTRL_GET, NULL},
+            {"entry", "add", "add flow entry", "<add_mode>", SW_API_FLOW_ENTRY_ADD, NULL},
+            {"entry", "del", "del flow entry", "<del_mode>", SW_API_FLOW_ENTRY_DEL, NULL},
+            {"entry", "get", "get flow entry", "<get_mode>", SW_API_FLOW_ENTRY_GET, NULL},
+            {"flowipv43tuple", "show", "show flow ipv4 3 tuple entries", "", SW_CMD_FLOW_IPV43T_SHOW, cmd_show_flow_ipv4_3tuple},
+            {"flowipv45tuple", "show", "show flow ipv4 5 tuple entries", "", SW_CMD_FLOW_IPV45T_SHOW, cmd_show_flow_ipv4_5tuple},
+            {"flowipv63tuple", "show", "show flow ipv6 3 tuple entries", "", SW_CMD_FLOW_IPV63T_SHOW, cmd_show_flow_ipv6_3tuple},
+            {"flowipv65tuple", "show", "show flow ipv6 5 tuple entries", "", SW_CMD_FLOW_IPV65T_SHOW, cmd_show_flow_ipv6_5tuple},
+            {"host", "add", "add flow host entry", "<add_mode>", SW_API_FLOW_HOST_ADD, NULL},
+            {"host", "del", "del flow host entry", "<del_mode>", SW_API_FLOW_HOST_DEL, NULL},
+            {"host", "get", "get flow host entry", "<get_mode>", SW_API_FLOW_HOST_GET, NULL},
+            {"global", "get", "get flow global cfg", "", SW_API_FLOW_GLOBAL_CFG_GET, NULL},
+            {"global", "set", "set flow global cfg", "", SW_API_FLOW_GLOBAL_CFG_SET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -674,7 +838,7 @@ struct cmd_des_t gcmd_des[] =
             {"natunksess", "get", "get nat unkown session command", "", SW_API_NAT_UNK_SESSION_CMD_GET, NULL},
             {"prvbasemask", "set", "set nat prv base mask", "<ip4 mask>", SW_API_PRV_BASE_MASK_SET, NULL},
             {"prvbasemask", "get", "get nat prv base mask", "", SW_API_PRV_BASE_MASK_GET, NULL},
-            {"global", "set", "set global nat function", "<enable|disable> <enable:sync counter|disable:unsync counter>", SW_API_NAT_GLOBAL_SET, NULL},
+            {"global", "set", "set global nat function", "<enable|disable> <enable:sync counter|disable:unsync counter> <portbmp>", SW_API_NAT_GLOBAL_SET, NULL},
 			{"flowcookie", "set", "set flow cookie", "", SW_API_FLOW_COOKIE_SET, NULL},
 			{"flowrfs", "set", "set flow rfs", "<action>", SW_API_FLOW_RFS_SET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
@@ -693,6 +857,8 @@ struct cmd_des_t gcmd_des[] =
             {"hashmode", "get", "get trunk hash mode", "", SW_API_TRUNK_HASH_GET, NULL},
             {"mansa", "set", "set trunk manipulable sa", "<macaddr>", SW_API_TRUNK_MAN_SA_SET, NULL},
             {"mansa", "get", "get trunk manipulable sa", "", SW_API_TRUNK_MAN_SA_GET, NULL},
+            {"failover", "set", "set failover status of trunk", "<failover> <enable|disable>", SW_API_TRUNK_FAILOVER_EN_SET, NULL},
+            {"failover", "get", "get failover status of trunk", "", SW_API_TRUNK_FAILOVER_EN_GET, NULL},
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
@@ -719,12 +885,197 @@ struct cmd_des_t gcmd_des[] =
     },
 #endif
 
+#ifdef IN_VSI
+    {
+        "vsi", "config vsi",
+        {
+            {"vsiid", "alloc", "Alloc new vsi", "", SW_API_VSI_ALLOC, NULL},
+            {"vsiid", "free", "Free vsi", "", SW_API_VSI_FREE, NULL},
+            {"portbasedvsi", "set", "Set port based vsi", "<port_id> <vsi>", SW_API_PORT_VSI_SET, NULL},
+            {"portbasedvsi", "get", "Get port based vsi", "<port_id>", SW_API_PORT_VSI_GET, NULL},
+            {"vlanbasedvsi", "set", "Set vlan vsi", "<port_id> <stag_vid> <ctag_vid> <vsi>", SW_API_PORT_VLAN_VSI_SET, NULL},
+            {"vlanbasedvsi", "get", "Get vlan vsi", "<port_id> <stag_vid> <ctag_vid>", SW_API_PORT_VLAN_VSI_GET, NULL},
+            {"table", "dump", "Dump VSI SW and HW table", "", SW_API_VSI_TBL_DUMP, NULL},
+            {"learnctrl", "set", "Set vsi based new address learn", "<vsi> <lrn_en> <action>", SW_API_VSI_NEWADDR_LRN_SET, NULL},
+            {"learnctrl", "get", "Get vsi based new address learn", "<vsi>", SW_API_VSI_NEWADDR_LRN_GET, NULL},
+            {"stationmove", "set", "Set vsi based station move", "<vsi> <stamove_en> <action>", SW_API_VSI_STAMOVE_SET, NULL},
+            {"stationmove", "get", "Get vsi based station move", "<vsi>", SW_API_VSI_STAMOVE_GET, NULL},
+            {"member", "set", "Set vsi based member ports", "<vsi> <member_ports>", SW_API_VSI_MEMBER_SET, NULL},
+            {"member", "get", "Get vsi based member ports", "<vsi>", SW_API_VSI_MEMBER_GET, NULL},
+            {"counter", "get", "Get vsi based counter", "<vsi>", SW_API_VSI_COUNTER_GET, NULL},
+            {"counter", "cleanup", "Cleanup vsi based counter", "<vsi>", SW_API_VSI_COUNTER_CLEANUP, NULL},
+            {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+        },
+    },
+#endif
+
+    /*QM*/
+#ifdef IN_QM
+    {
+        "qm", "config qm",
+        {
+	    {"ucastqbase", "set", "set unicast queue base and profile", "<queue_dst> <queue_base> <profile>", SW_API_UCAST_QUEUE_BASE_PROFILE_SET, NULL},
+	    {"ucastqbase", "get", "get unicast queue base and profile", "<queue_dst>", SW_API_UCAST_QUEUE_BASE_PROFILE_GET, NULL},
+	    {"ucastpriclass", "set", "set unicast pri class", "<profile> <priority> <class>", SW_API_UCAST_PRIORITY_CLASS_SET, NULL},
+	    {"ucastpriclass", "get", "get unicast pri class", "<profile> <priority>", SW_API_UCAST_PRIORITY_CLASS_GET, NULL},
+	    {"mcastpriclass", "set", "set mcast pri class", "<port> <priority> <class>", SW_API_MCAST_PRIORITY_CLASS_SET, NULL},
+	    {"mcastpriclass", "get", "get mcast pri class", "<port> <priority>", SW_API_MCAST_PRIORITY_CLASS_GET, NULL},
+	    {"queue", "flush", "flush queue", "<port_id> <queue_id>", SW_API_QUEUE_FLUSH, NULL},
+	    {"ucasthash", "set", "set unicast queue hash", "<profile> <rss_hash> <queue_hash>", SW_API_UCAST_HASH_MAP_SET, NULL},
+	    {"ucasthash", "get", "get unicast queue hash", "<profile> <rss_hash>", SW_API_UCAST_HASH_MAP_GET, NULL},
+	    {"ucastdflthash", "set", "set unicast queue dflt hash", "<queue_hash>", SW_API_UCAST_DFLT_HASH_MAP_SET, NULL},
+	    {"ucastdflthash", "get", "get unicast queue dflt hash", "", SW_API_UCAST_DFLT_HASH_MAP_GET, NULL},
+	    {"mcastcpucode", "set", "set mcast cpucode map", "<cpu_code> <class>", SW_API_MCAST_CPUCODE_CLASS_SET, NULL},
+	    {"mcastcpucode", "get", "get mcast cpucode map", "<cpu_code>", SW_API_MCAST_CPUCODE_CLASS_GET, NULL},
+	    {"acctrl", "set", "set ac ctrl", "<obj> <cfg>", SW_API_AC_CTRL_SET, NULL},
+	    {"acctrl", "get", "get ac ctrl", "<obj>", SW_API_AC_CTRL_GET, NULL},
+	    {"acprebuffer", "set", "set ac prealloc", "<obj> <num>", SW_API_AC_PRE_BUFFER_SET, NULL},
+	    {"acprebuffer", "get", "get ac prealloc", "<obj>", SW_API_AC_PRE_BUFFER_GET, NULL},
+	    {"acqgroup", "set", "set ac queue group", "<queue_id> <group_id>", SW_API_QUEUE_GROUP_SET, NULL},
+	    {"acqgroup", "get", "get ac queue group", "<queue_id>", SW_API_QUEUE_GROUP_GET, NULL},
+	    {"acstaticthresh", "set", "set ac static thresh", "<obj> <cfg>", SW_API_STATIC_THRESH_SET, NULL},
+	    {"acstaticthresh", "get", "get ac static thresh", "<obj>", SW_API_STATIC_THRESH_GET, NULL},
+	    {"acdynamicthresh", "set", "set ac dynamic thresh", "<queue_id> <cfg>", SW_API_DYNAMIC_THRESH_SET, NULL},
+	    {"acdynamicthresh", "get", "get ac dynamic thresh", "<queue_id>", SW_API_DYNAMIC_THRESH_GET, NULL},
+	    {"acgroupbuff", "set", "set ac group buffer", "<group_id> <cfg>", SW_API_GOURP_BUFFER_SET, NULL},
+	    {"acgroupbuff", "get", "get ac group buffer", "<group_id>", SW_API_GOURP_BUFFER_GET, NULL},
+	    {"cntctrl", "get", "get queue counter enable flag", "<status>", SW_API_QUEUE_CNT_CTRL_GET, NULL},
+	    {"cntctrl", "set", "set queue counter enable flag", "", SW_API_QUEUE_CNT_CTRL_SET, NULL},
+	    {"cnt", "get", "get queue counter", "<queue_id>", SW_API_QUEUE_CNT_GET, NULL},
+	    {"cnt", "cleanup", "cleanup queue counter", "<queue_id>", SW_API_QUEUE_CNT_CLEANUP, NULL},
+	    {"enqueue", "set", "set enqueue control", "<queue_id> <enable>", SW_API_QM_ENQUEUE_CTRL_SET, NULL},
+	    {"enqueue", "get", "get enqueue control", "<queue_id>", SW_API_QM_ENQUEUE_CTRL_GET, NULL},
+	    {"srcprofile", "set", "set source profile", "<port_id> <src_profile>", SW_API_QM_SOURCE_PROFILE_SET, NULL},
+	    {"srcprofile", "get", "get source profile", "<port_id>", SW_API_QM_SOURCE_PROFILE_GET, NULL},
+	    {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+        },
+    },
+#endif
+
+    /*Ctrlpkt Control*/
+#ifdef IN_CTRLPKT
+    {
+        "ctrlpkt", "config control packet",
+        {
+            {"ethernettype", "set", "set ethernet type profile", "<profile_id> <ethernettype>", SW_API_MGMTCTRL_ETHTYPE_PROFILE_SET, NULL},
+            {"ethernettype", "get", "get ethernet type profile", "<profile_id>", SW_API_MGMTCTRL_ETHTYPE_PROFILE_GET, NULL},
+            {"rfdb", "set", "set rfdb profile", "<profile_id> <rfdb_macaddr>", SW_API_MGMTCTRL_RFDB_PROFILE_SET, NULL},
+            {"rfdb", "get", "get rfdb profile", "<profile_id>", SW_API_MGMTCTRL_RFDB_PROFILE_GET, NULL},
+            {"appprofile", "add", "add app profile entry", "<app_entry>", SW_API_MGMTCTRL_CTRLPKT_PROFILE_ADD, NULL},
+            {"appprofile", "del", "del app profile entry", "<app_entry>", SW_API_MGMTCTRL_CTRLPKT_PROFILE_DEL, NULL},
+            {"appprofile", "getfirst", "get first app profile entry", "", SW_API_MGMTCTRL_CTRLPKT_PROFILE_GETFIRST, NULL},
+            {"appprofile", "getnext", "get next app profile entry", "<app_entry>", SW_API_MGMTCTRL_CTRLPKT_PROFILE_GETNEXT, NULL},
+            {"appprofile", "show", "show whole app profile entries", "", SW_CMD_CTRLPKT_SHOW, cmd_show_ctrlpkt},
+            {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+        },
+    },
+#endif
+
+    /*Servcode Control*/
+#ifdef IN_SERVCODE
+    {
+        "servcode", "config service profile",
+        {
+            {"Config", "set", "set a servcode config by index", "<servcode_index>", SW_API_SERVCODE_CONFIG_SET, NULL},
+            {"Config", "get", "get a servcode config by index", "<servcode_index>", SW_API_SERVCODE_CONFIG_GET, NULL},
+            {"Loopcheck", "set", "set servcode loopcheck status", "<enable|disable>", SW_API_SERVCODE_LOOPCHECK_EN, NULL},
+            {"Loopcheck", "get", "get servcode loopcheck status", "", SW_API_SERVCODE_LOOPCHECK_STATUS_GET, NULL},
+            {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+        },
+    },
+#endif
+
+	/*RSS HASH*/
+#ifdef IN_RSS_HASH
+	{
+		"rsshash", "config rss hash code",
+		{
+			{"Config", "set", "set ipv4/ipv6 rss hash code", "<ipv4v6|ipv4|ipv6>", SW_API_RSS_HASH_CONFIG_SET, NULL},
+			{"Config", "get", "get ipv4/ipv6 rss hash code", "<ipv4v6|ipv4|ipv6>", SW_API_RSS_HASH_CONFIG_GET, NULL},
+			{NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+		},
+	},
+#endif
+
+#ifdef IN_POLICER
+	{
+		"policer", "config policer",
+		{
+			{"timeslot", "set", "Set timeslot value", " <value>", SW_API_POLICER_TIMESLOT_SET, NULL},
+			{"timeslot", "get", "Get timeslot value", "", SW_API_POLICER_TIMESLOT_GET, NULL},
+			{"portcounter", "get", "Get port policer statistics", "<port_id>", SW_API_POLICER_PORT_COUNTER_GET, NULL},
+			{"aclcounter", "get", "Get acl policer statistics", "<index>", SW_API_POLICER_ACL_COUNTER_GET, NULL},
+			{"fcscompensation", "set", "Set port policer compensation byte", "<port_id> <value>", SW_API_POLICER_COMPENSATION_SET, NULL},
+			{"fcscompensation", "get", "Get port policer compensation byte", "<port_id>", SW_API_POLICER_COMPENSATION_GET, NULL},
+			{"portentry", "set", "Set port policer entry", "<port_id>", SW_API_POLICER_PORT_ENTRY_SET, NULL},
+			{"portentry", "get", "Get port policer entry", "<port_id>", SW_API_POLICER_PORT_ENTRY_GET, NULL},
+			{"aclentry", "set", "Set acl policer entry", "<index>", SW_API_POLICER_ACL_ENTRY_SET, NULL},
+			{"aclentry", "get", "Get acl policer entry", "<index>", SW_API_POLICER_ACL_ENTRY_GET, NULL},
+			{"globalcounter", "get", "Get policer global counter", "", SW_API_POLICER_GLOBAL_COUNTER_GET, NULL},
+			{NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+		},
+	},
+#endif
+
+#ifdef IN_SHAPER
+    {
+	"shaper", "config shaper",
+	{
+	    {"porttimeslot", "set", "Set port shaper timeslot value", " <value>", SW_API_PORT_SHAPER_TIMESLOT_SET, NULL},
+	    {"porttimeslot", "get", "Get port shaper timeslot value", "", SW_API_PORT_SHAPER_TIMESLOT_GET, NULL},
+	    {"flowtimeslot", "set", "Set flow shaper timeslot value", " <value>", SW_API_FLOW_SHAPER_TIMESLOT_SET, NULL},
+	    {"flowtimeslot", "get", "Get flow shaper timeslot value", "", SW_API_FLOW_SHAPER_TIMESLOT_GET, NULL},
+	    {"queuetimeslot", "set", "Set queue shaper timeslot value", " <value>", SW_API_QUEUE_SHAPER_TIMESLOT_SET, NULL},
+	    {"queuetimeslot", "get", "Get queue shaper timeslot value", "", SW_API_QUEUE_SHAPER_TIMESLOT_GET, NULL},
+	    {"porttoken", "set", "Set port shaper token value", " <port_id> <token value>", SW_API_PORT_SHAPER_TOKEN_NUMBER_SET, NULL},
+	    {"porttoken", "get", "Get port shaper token value", "<port_id>", SW_API_PORT_SHAPER_TOKEN_NUMBER_GET, NULL},
+	    {"flowtoken", "set", "Set flow shaper token value", " <flow_id> <token value>", SW_API_FLOW_SHAPER_TOKEN_NUMBER_SET, NULL},
+	    {"flowtoken", "get", "Get flow shaper token value", "<flow_id>", SW_API_FLOW_SHAPER_TOKEN_NUMBER_GET, NULL},
+	    {"queuetoken", "set", "Set queue shaper token value", " <queue_id> <token value>", SW_API_QUEUE_SHAPER_TOKEN_NUMBER_SET, NULL},
+	    {"queuetoken", "get", "Get queue shaper token value", "<queue_id>", SW_API_QUEUE_SHAPER_TOKEN_NUMBER_GET, NULL},
+	    {"portshaper", "set", "Set port shaper entry", " <port_id>", SW_API_PORT_SHAPER_SET, NULL},
+	    {"portshaper", "get", "Get port shaper entry", " <port_id>", SW_API_PORT_SHAPER_GET, NULL},
+	    {"flowshaper", "set", "Set flow shaper entry", " <flow_id>", SW_API_FLOW_SHAPER_SET, NULL},
+	    {"flowshaper", "get", "Get flow shaper entry", " <flow_id>", SW_API_FLOW_SHAPER_GET, NULL},
+	    {"queueshaper", "set", "Set queue shaper entry", " <queue_id>", SW_API_QUEUE_SHAPER_SET, NULL},
+	    {"queueshaper", "get", "Get queue shaper entry", " <queue_id>", SW_API_QUEUE_SHAPER_GET, NULL},
+	    {"ipgcompensation", "set", "Set shaper IPG and Preamble value", " <value>", SW_API_SHAPER_IPG_PRE_SET, NULL},
+	    {"ipgcompensation", "get", "Get port shaper IPG and Preamble value", "", SW_API_SHAPER_IPG_PRE_GET, NULL},
+	    {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+	},
+    },
+#endif
+
+/*BM*/
+#ifdef IN_BM
+    {
+        "bm", "config bm",
+        {
+	{"ctrl", "set", "set flowctrl mode", "<port_id> <status>", SW_API_BM_CTRL_SET, NULL},
+	{"ctrl", "get", "get flowctrl mode", "<port_id>", SW_API_BM_CTRL_GET, NULL},
+	{"portgroupmap", "set", "set port group mapping", "<port_id> <group_id>", SW_API_BM_PORTGROUP_MAP_SET, NULL},
+	{"portgroupmap", "get", "get port group mapping", "<port_id>", SW_API_BM_PORTGROUP_MAP_GET, NULL},
+	{"groupbuff", "set", "set group buffer", "<group_id> <buff_num>", SW_API_BM_GROUP_BUFFER_SET, NULL},
+	{"groupbuff", "get", "get group buffer", "<group_id>", SW_API_BM_GROUP_BUFFER_GET, NULL},
+	{"portrsvbuff", "set", "set port reserved buffer", "<port_id> <prealloc_num> <react_num>", SW_API_BM_PORT_RSVBUFFER_SET, NULL},
+	{"portrsvbuff", "get", "get port reserved buffer", "<port_id>", SW_API_BM_PORT_RSVBUFFER_GET, NULL},
+	{"portsthresh", "set", "set port static threshold", "<port_id>", SW_API_BM_STATIC_THRESH_SET, NULL},
+	{"portsthresh", "get", "get port static threshold", "<port_id>", SW_API_BM_STATIC_THRESH_GET, NULL},
+	{"portdthresh", "set", "set port dynamic threshold", "<port_id>", SW_API_BM_DYNAMIC_THRESH_SET, NULL},
+	{"portdthresh", "get", "get port dynamic threshold", "<port_id>", SW_API_BM_DYNAMIC_THRESH_GET, NULL},
+	{"portcounter", "get", "get port counter", "<port_id>", SW_API_BM_PORT_COUNTER_GET, NULL},
+	{NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+        },
+    },
+#endif
+/*qca808x_start*/
     /* debug */
     {
         "debug", "read/write register",
         {
             {"phy", "get", "read phy register", "<ph_id> <reg_addr>", SW_API_PHY_GET, NULL},
             {"phy", "set", "write phy register", "<ph_id> <reg_addr> <value>", SW_API_PHY_SET, NULL},
+/*qca808x_end*/
             {"reg", "get", "read switch register", "<reg_addr> <4>", SW_API_REG_GET, NULL},
             {"reg", "set", "write switch register", "<reg_addr> <value> <4>", SW_API_REG_SET, NULL},
 			{"reg", "dump", "dump switch register group", "<group id> <0-6>", SW_API_REG_DUMP, NULL},
@@ -738,14 +1089,23 @@ struct cmd_des_t gcmd_des[] =
             {"aclList", "dump", "dump all acl list", "", SW_API_ACL_LIST_DUMP, NULL},
             {"aclRule", "dump", "dump all acl rule", "", SW_API_ACL_RULE_DUMP, NULL},
             {"device",  "reset", "reset device",     "", SW_API_SWITCH_RESET, NULL},
+            {"module_func",  "set", "set the module function bitmap", "<module>", SW_API_MODULE_FUNC_CTRL_SET, NULL},
+            {"module_func",  "get", "set the module function bitmap", "<module>", SW_API_MODULE_FUNC_CTRL_GET, NULL},
             {"ssdk",  "config", "show ssdk configuration",     "", SW_API_SSDK_CFG, NULL},
+            {"portCounterEn", "get", "get counter status based on port", "<port_id>", SW_API_DEBUG_PORT_COUNTER_STATUS_GET, NULL},
+            {"portCounterEn", "set", "set counter status based on port", "<port_id>", SW_API_DEBUG_PORT_COUNTER_ENABLE, NULL},
+/*qca808x_start*/
             {"phycounter",  "set", "set counter status of a port",   "<port_id> <enable|disable>", SW_API_DEBUG_PHYCOUNTER_SET, NULL},
             {"phycounter",  "get", "get counter status of a port",   "<port_id>", SW_API_DEBUG_PHYCOUNTER_GET, NULL},
             {"phycounter",  "show", "show counter of a port",   "<port_id>", SW_API_DEBUG_PHYCOUNTER_SHOW, NULL},
+/*qca808x_end*/
+            {"uniphy", "get", "read uniphy register", "<uniphy_index> <reg_addr> <4>", SW_API_UNIPHY_REG_GET, NULL},
+            {"uniphy", "set", "write uniphy register", "<uniphy_index> <reg_addr> <value> <4>", SW_API_UNIPHY_REG_SET, NULL},
+/*qca808x_start*/
             {NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
         },
     },
-
+/*qca808x_end*/
     /*debug*/
     {
         "device", "set device id",
@@ -755,10 +1115,115 @@ struct cmd_des_t gcmd_des[] =
         },
     },
 
+	/* PTP */
+#ifdef IN_PTP
+	{
+		"ptp", "config ptp",
+		{
+			{"Config", "set", "set PTP config", "<port_id>",
+				SW_API_PTP_CONFIG_SET, NULL},
+			{"Config", "get", "get PTP config", "<port_id>",
+				SW_API_PTP_CONFIG_GET, NULL},
+			{"ReferenceClock", "set", "set PTP reference clock",
+				"<port_id> <local|synce|external>",
+				SW_API_PTP_REFERENCE_CLOCK_SET, NULL},
+			{"ReferenceClock", "get", "get PTP reference clock", "<port_id>",
+				SW_API_PTP_REFERENCE_CLOCK_GET, NULL},
+			{"RxTimestampMode", "set", "set PTP RX side timestamp mode",
+				"<port_id> <mdio|embed>",
+				SW_API_PTP_RX_TIMESTAMP_MODE_SET, NULL},
+			{"RxTimestampMode", "get", "get PTP RX side timestamp mode",
+				"<port_id>", SW_API_PTP_RX_TIMESTAMP_MODE_GET, NULL},
+			{"Timestamp", "get", "get PTP RX/TX side timestamp",
+				"<port_id> <RX|TX>", SW_API_PTP_TIMESTAMP_GET, NULL},
+			{"PktTimestamp", "set", "set PTP packet received timestamp",
+				"<port_id>", SW_API_PTP_PKT_TIMESTAMP_SET, NULL},
+			{"PktTimestamp", "get", "get PTP packet received timestamp",
+				"<port_id>", SW_API_PTP_PKT_TIMESTAMP_GET, NULL},
+			{"GrandmasterMode", "set", "set PTP grandmaster mode",
+				"<port_id>", SW_API_PTP_GRANDMASTER_MODE_SET, NULL},
+			{"GrandmasterMode", "get", "get PTP grandmaster mode",
+				"<port_id>", SW_API_PTP_GRANDMASTER_MODE_GET, NULL},
+			{"Time", "set", "set PTP local RTC time",
+				"<port_id>", SW_API_PTP_RTC_TIME_SET, NULL},
+			{"Time", "get", "get PTP local RTC time",
+				"<port_id>", SW_API_PTP_RTC_TIME_GET, NULL},
+			{"Time", "clear", "clear PTP local RTC time",
+				"<port_id>", SW_API_PTP_RTC_TIME_CLEAR, NULL},
+			{"AdjustTime", "set", "set adjust time to PTP local RTC time",
+				"<port_id>", SW_API_PTP_RTC_ADJTIME_SET, NULL},
+			{"AdjustFreq", "set", "set adjust frequency of PTP local RTC time",
+				"<port_id>", SW_API_PTP_RTC_ADJFREQ_SET, NULL},
+			{"AdjustFreq", "get", "get adjust frequency of PTP local RTC time",
+				"<port_id>", SW_API_PTP_RTC_ADJFREQ_GET, NULL},
+			{"LinkDelay", "set", "set PTP link delay value",
+				"<port_id>", SW_API_PTP_LINK_DELAY_SET, NULL},
+			{"LinkDelay", "get", "get PTP link delay value",
+				"<port_id>", SW_API_PTP_LINK_DELAY_GET, NULL},
+			{"Security", "set", "set PTP security value",
+				"<port_id>", SW_API_PTP_SECURITY_SET, NULL},
+			{"Security", "get", "get PTP security value",
+				"<port_id>", SW_API_PTP_SECURITY_GET, NULL},
+			{"PPSSigCtrl", "set", "set PTP PPS Signal Control",
+				"<port_id>", SW_API_PTP_PPS_SIGNAL_CONTROL_SET, NULL},
+			{"PPSSigCtrl", "get", "get PTP PPS Signal Control",
+				"<port_id>", SW_API_PTP_PPS_SIGNAL_CONTROL_GET, NULL},
+			{"CRCRecalc", "set", "set PTP RX CRC recalculate status",
+				"<port_id> <enable|disable>",
+				SW_API_PTP_RX_CRC_RECALC_SET, NULL},
+			{"CRCRecalc", "get", "get PTP RX CRC recalculate status",
+				"<port_id>", SW_API_PTP_RX_CRC_RECALC_GET, NULL},
+			{"AsymCorrection", "set", "set PTP Asymmetry correction",
+				"<port_id>", SW_API_PTP_ASYM_CORRECTION_SET, NULL},
+			{"AsymCorrection", "get", "get PTP Asymmetry correction",
+				"<port_id>", SW_API_PTP_ASYM_CORRECTION_GET, NULL},
+			{"Waveform", "set", "set PTP output waveform",
+				"<port_id>", SW_API_PTP_OUTPUT_WAVEFORM_SET, NULL},
+			{"Waveform", "get", "get PTP output waveform",
+				"<port_id>", SW_API_PTP_OUTPUT_WAVEFORM_GET, NULL},
+			{"TimeSnapshot", "set", "set PTP RTC Time Snapshot",
+				"<port_id> <enable|disable>",
+				SW_API_PTP_RTC_TIME_SNAPSHOT_SET, NULL},
+			{"TimeSnapshot", "get", "get PTP RTC Time Snapshot",
+				"<port_id>", SW_API_PTP_RTC_TIME_SNAPSHOT_GET, NULL},
+			{"IncrementSyncFromClock", "set",
+				"set PTP RTC increment Sync from clock",
+				"<port_id> <enable|disable>",
+				SW_API_PTP_INCREMENT_SYNC_FROM_CLOCK_SET, NULL},
+			{"IncrementSyncFromClock", "get",
+				"get PTP RTC increment Sync from clock",
+				"<port_id>", SW_API_PTP_INCREMENT_SYNC_FROM_CLOCK_GET, NULL},
+			{"ToDUart", "set", "set PTP TOD UART configuration",
+				"<port_id>", SW_API_PTP_TOD_UART_SET, NULL},
+			{"ToDUart", "get", "get PTP TOD UART configuration",
+				"<port_id>", SW_API_PTP_TOD_UART_GET, NULL},
+			{"EnhancedTimestampEngine", "set", "set PTP Enhanced Timestamp Engine",
+				"<port_id> <RX|TX>",
+				SW_API_PTP_ENHANCED_TIMESTAMP_ENGINE_SET, NULL},
+			{"EnhancedTimestampEngine", "get", "get PTP Enhanced Timestamp Engine",
+				"<port_id> <RX|TX>",
+				SW_API_PTP_ENHANCED_TIMESTAMP_ENGINE_GET, NULL},
+			{"Trigger", "set", "set PTP Trigger configuration",
+				"<port_id> <trigger_id>", SW_API_PTP_TRIGGER_SET, NULL},
+			{"Trigger", "get", "get PTP Trigger configuration",
+				"<port_id> <trigger_id>", SW_API_PTP_TRIGGER_GET, NULL},
+			{"Capture", "set", "set PTP Capture configuration",
+				"<port_id> <capture_id>", SW_API_PTP_CAPTURE_SET, NULL},
+			{"Capture", "get", "get PTP Capture configuration",
+				"<port_id> <capture_id>", SW_API_PTP_CAPTURE_GET, NULL},
+			{"Interrupt", "set", "set PTP Interrupt mask",
+				"<port_id>", SW_API_PTP_INTERRUPT_SET, NULL},
+			{"Interrupt", "get", "get PTP Interrupt mask",
+				"<port_id>", SW_API_PTP_INTERRUPT_GET, NULL},
+			{NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/
+		},
+	},
+#endif
+/*qca808x_start*/
     {"help", "type ? get help", {{NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/}},
 
     {"quit", "type quit/q quit shell", {{NULL, NULL, NULL, NULL, (int)NULL, NULL}/*end of desc*/}},
 
     {NULL, NULL, {{NULL, NULL, NULL, NULL, (int)NULL, NULL}}} /*end of desc*/
 };
-
+/*qca808x_end*/

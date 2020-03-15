@@ -42,16 +42,16 @@ void hnat_log_msg(int level, char *string, ...)
 
 
 sw_error_t
-nat_helper_init(uint32_t dev_id)
+nat_helper_init(uint32_t dev_id, uint32_t portbmp)
 {
-    host_helper_init();
-    napt_helper_init();
-    nat_ipt_helper_init();
 	nat_helper_bg_task_init();
+	host_helper_init(portbmp);
+	napt_helper_init();
+	nat_ipt_helper_init();
 
-    aos_printk("Hello, nat helper module for 1.1!\n");
+	aos_printk("Hello, nat helper module for 1.1!\n");
 
-    return SW_OK;
+	return SW_OK;
 }
 
 sw_error_t

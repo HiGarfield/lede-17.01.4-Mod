@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2016, 2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -1072,23 +1072,25 @@ _isis_acl_list_bind(a_uint32_t dev_id, a_uint32_t list_id,
         return SW_NOT_SUPPORTED;
     }
 
-    if (FAL_ACL_BIND_PORT != obj_t)
-    {
-        return SW_NOT_SUPPORTED;
-    }
-
     sw_list = _isis_acl_list_loc(dev_id, list_id);
     if (NULL == sw_list)
     {
         return SW_NOT_FOUND;
     }
 
-    if (sw_list->bind_pts & (0x1 << obj_idx))
+    if (FAL_ACL_BIND_PORT == obj_t)
     {
-        return SW_ALREADY_EXIST;
+        ports = (sw_list->bind_pts) | (0x1 << obj_idx);
+    }
+    else if (FAL_ACL_BIND_PORTBITMAP == obj_t)
+    {
+        ports = (sw_list->bind_pts) | obj_idx;
+    }
+    else
+    {
+        return SW_NOT_SUPPORTED;
     }
 
-    ports = (sw_list->bind_pts) | (0x1 << obj_idx);
     rv = _isis_acl_rule_bind(dev_id, list_id, ports);
     SW_RTN_ON_ERROR(rv);
 
@@ -1117,23 +1119,25 @@ _isis_acl_list_unbind(a_uint32_t dev_id, a_uint32_t list_id,
         return SW_NOT_SUPPORTED;
     }
 
-    if (FAL_ACL_BIND_PORT != obj_t)
-    {
-        return SW_NOT_SUPPORTED;
-    }
-
     sw_list = _isis_acl_list_loc(dev_id, list_id);
     if (NULL == sw_list)
     {
         return SW_NOT_FOUND;
     }
 
-    if (!(sw_list->bind_pts & (0x1 << obj_idx)))
+    if (FAL_ACL_BIND_PORT == obj_t)
     {
-        return SW_NOT_FOUND;
+        ports = (sw_list->bind_pts) & (~(0x1UL << obj_idx));
+    }
+    else if (FAL_ACL_BIND_PORTBITMAP == obj_t)
+    {
+        ports = (sw_list->bind_pts) & (~obj_idx);
+    }
+    else
+    {
+        return SW_NOT_SUPPORTED;
     }
 
-    ports = (sw_list->bind_pts) & (~(0x1UL << obj_idx));
     rv = _isis_acl_rule_bind(dev_id, list_id, ports);
     SW_RTN_ON_ERROR(rv);
 
@@ -1478,7 +1482,7 @@ isis_acl_reset(a_uint32_t dev_id)
  * @param[in] list_pri acl list priority
  * @return SW_OK or error code
  */
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_list_creat(a_uint32_t dev_id, a_uint32_t list_id, a_uint32_t list_pri)
 {
     sw_error_t rv;
@@ -1515,7 +1519,7 @@ isis_acl_list_destroy(a_uint32_t dev_id, a_uint32_t list_id)
  * @param[in] rule rules content of this adding operation
  * @return SW_OK or error code
  */
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_rule_add(a_uint32_t dev_id, a_uint32_t list_id,
                   a_uint32_t rule_id, a_uint32_t rule_nr, fal_acl_rule_t * rule)
 {
@@ -1535,7 +1539,7 @@ isis_acl_rule_add(a_uint32_t dev_id, a_uint32_t list_id,
  * @param[in] rule_nr rule number of this deleteing operation
  * @return SW_OK or error code
  */
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_rule_delete(a_uint32_t dev_id, a_uint32_t list_id,
                      a_uint32_t rule_id, a_uint32_t rule_nr)
 {
@@ -1555,7 +1559,7 @@ isis_acl_rule_delete(a_uint32_t dev_id, a_uint32_t list_id,
  * @param[out] rule rule content of this operation
  * @return SW_OK or error code
  */
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_rule_query(a_uint32_t dev_id, a_uint32_t list_id,
                     a_uint32_t rule_id, fal_acl_rule_t * rule)
 {
@@ -1567,7 +1571,7 @@ isis_acl_rule_query(a_uint32_t dev_id, a_uint32_t list_id,
     return rv;
 }
 
-HSL_LOCAL a_uint32_t
+a_uint32_t
 isis_acl_rule_get_offset(a_uint32_t dev_id, a_uint32_t list_id, a_uint32_t rule_id)
 {
     a_uint32_t i, pos=0;
@@ -1591,7 +1595,7 @@ isis_acl_rule_get_offset(a_uint32_t dev_id, a_uint32_t list_id, a_uint32_t rule_
 }
 
 
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_rule_sync_multi_portmap(a_uint32_t dev_id, a_uint32_t pos, a_uint32_t *act)
 {
 
@@ -1626,7 +1630,7 @@ isis_acl_rule_sync_multi_portmap(a_uint32_t dev_id, a_uint32_t pos, a_uint32_t *
  * @param[in] obj_idx object index of this binding operation
  * @return SW_OK or error code
  */
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_list_bind(a_uint32_t dev_id, a_uint32_t list_id,
                    fal_acl_direc_t direc, fal_acl_bind_obj_t obj_t,
                    a_uint32_t obj_idx)
@@ -1650,7 +1654,7 @@ isis_acl_list_bind(a_uint32_t dev_id, a_uint32_t list_id,
  * @param[in] obj_idx object index of this unbinding operation
  * @return SW_OK or error code
  */
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_list_unbind(a_uint32_t dev_id, a_uint32_t list_id,
                      fal_acl_direc_t direc, fal_acl_bind_obj_t obj_t,
                      a_uint32_t obj_idx)
@@ -1669,7 +1673,7 @@ isis_acl_list_unbind(a_uint32_t dev_id, a_uint32_t list_id,
  * @param[in] enable A_TRUE or A_FALSE
  * @return SW_OK or error code
  */
-HSL_LOCAL sw_error_t
+sw_error_t
 isis_acl_status_set(a_uint32_t dev_id, a_bool_t enable)
 {
     sw_error_t rv;

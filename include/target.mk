@@ -13,33 +13,39 @@ __target_inc=1
 DEVICE_TYPE?=router
 
 # Default packages - the really basic set
-DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear mtd uci opkg netifd fstools uclient-fetch logd ca-bundle lede-info \
-iptables-mod-nat-extra kmod-nf-nathelper kmod-nf-nathelper-extra \
-default-settings ipset-lists luci luci-app-ddns ddns-scripts_aliyun luci-app-sqm luci-app-upnp luci-app-wizard \
-luci-app-ssr-pro luci-app-kcptun luci-app-sfe luci-app-nlbwmon \
-luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
-luci-app-n2n_v2 -wpad-mini wpad -dnsmasq dnsmasq-full \
-iptables-mod-fullconenat luci-app-smartdns \
-\
+DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear \
+mtd uci opkg netifd fstools uclient-fetch \
+logd ca-bundle lede-info \
+iptables-mod-nat-extra kmod-nf-nathelper \
+kmod-nf-nathelper-extra \
+default-settings ipset-lists luci \
+luci-app-ddns ddns-scripts_aliyun luci-app-sqm \
+luci-app-upnp luci-app-wizard \
+luci-app-ssr-pro luci-app-kcptun luci-app-udp2raw \
+luci-app-sfe luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
+wpad dnsmasq-full \
+iptables-mod-fullconenat \
 luci-app-autoreboot luci-app-adbyby-plus kmod-macvlan \
 luci-app-syncdial luci-app-mwan3 luci-app-arpbind \
 luci-app-openvpn-server \
-luci-app-pptp-server luci-app-ipsec-vpnd luci-app-accesscontrol \
-luci-app-wifischedule luci-app-uhttpd xl2tpd \
-\
-\
-automount autosamba fdisk lsblk \
+luci-app-pptp-server luci-app-accesscontrol \
+luci-app-wifischedule luci-app-uhttpd xl2tpd
+
+ifneq ($(_CONF_ROUTER_WITHOUT_USB_PORT_),1)
+DEFAULT_PACKAGES += block-mount automount autosamba fdisk lsblk \
 luci-app-usb-printer luci-app-vsftpd \
 autosamba luci-app-hd-idle luci-app-aria2 ariang \
 luci-app-transmission transmission-daemon-openssl \
-transmission-web \
-luci-app-cpulimit
+transmission-web
+endif
 
 # For nas targets
-DEFAULT_PACKAGES.nas:=block-mount automount autosamba fdisk lsblk mdadm \
-luci-app-usb-printer luci-app-vsftpd \
+DEFAULT_PACKAGES.nas:=block-mount automount autosamba fdisk lsblk \
+mdadm luci-app-usb-printer luci-app-vsftpd \
 autosamba luci-app-hd-idle luci-app-aria2 ariang \
-luci-app-transmission transmission-daemon-openssl transmission-web
+luci-app-transmission transmission-daemon-openssl \
+transmission-web
+
 # For router targets
 DEFAULT_PACKAGES.router:=wpad dnsmasq-full odhcpd-ipv6only iptables \
 ip6tables kmod-ipt-nat6 ppp ppp-mod-pppoe xl2tpd firewall \

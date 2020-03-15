@@ -747,6 +747,41 @@ _isis_qos_queue_remark_table_get(a_uint32_t dev_id, fal_port_t port_id,
     return SW_OK;
 }
 
+HSL_LOCAL sw_error_t
+_isis_port_static_thresh_get(a_uint32_t dev_id, fal_port_t port_id,
+                                fal_bm_static_cfg_t *cfg)
+{
+    sw_error_t rv;
+    a_uint32_t reg_value, xon_value, xoff_value;
+
+    HSL_REG_ENTRY_GET(rv, dev_id, PORT_FLOW_CTRL_THRESHOLD, port_id,
+                      (a_uint8_t *) (&reg_value), sizeof (a_uint32_t));
+    SW_RTN_ON_ERROR(rv);
+
+    SW_GET_FIELD_BY_REG(PORT_FLOW_CTRL_THRESHOLD, XON_THRES, xon_value, reg_value);
+    SW_GET_FIELD_BY_REG(PORT_FLOW_CTRL_THRESHOLD, XOFF_THRES, xoff_value, reg_value);
+    cfg->max_thresh = xoff_value;
+    cfg->resume_off = xoff_value - xon_value;
+
+    return SW_OK;
+}
+
+HSL_LOCAL sw_error_t
+_isis_port_static_thresh_set(a_uint32_t dev_id, fal_port_t port_id,
+                                fal_bm_static_cfg_t *cfg)
+{
+    sw_error_t rv;
+    a_uint32_t reg_value = 0;
+
+    SW_SET_REG_BY_FIELD(PORT_FLOW_CTRL_THRESHOLD, XON_THRES, cfg->max_thresh - cfg->resume_off, reg_value);
+    SW_SET_REG_BY_FIELD(PORT_FLOW_CTRL_THRESHOLD, XOFF_THRES, cfg->max_thresh, reg_value);
+
+    HSL_REG_ENTRY_SET(rv, dev_id, PORT_FLOW_CTRL_THRESHOLD, port_id,
+                      (a_uint8_t *) (&reg_value), sizeof (a_uint32_t));
+
+    return SW_OK;
+}
+
 /**
  * @brief Set buffer aggsinment status of transmitting queue on one particular port.
  *   @details  Comments:
@@ -1205,6 +1240,44 @@ isis_qos_queue_remark_table_get(a_uint32_t dev_id, fal_port_t port_id,
     return rv;
 }
 
+/**
+ * @brief Get static flow control threshold on one particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[out] static maximum threshold and resume offset
+ * @return SW_OK or error code
+ */
+HSL_LOCAL sw_error_t
+isis_port_static_thresh_get(a_uint32_t dev_id, fal_port_t port_id,
+                                fal_bm_static_cfg_t *cfg)
+{
+    sw_error_t rv;
+
+    HSL_API_LOCK;
+    rv = _isis_port_static_thresh_get(dev_id, port_id, cfg);
+    HSL_API_UNLOCK;
+    return rv;
+}
+
+/**
+ * @brief Set static flow control threshold on one particular port.
+ * @param[in] dev_id device id
+ * @param[in] port_id port id
+ * @param[out] static maximum threshold and resume offset
+ * @return SW_OK or error code
+ */
+HSL_LOCAL sw_error_t
+isis_port_static_thresh_set(a_uint32_t dev_id, fal_port_t port_id,
+                                fal_bm_static_cfg_t *cfg)
+{
+    sw_error_t rv;
+
+    HSL_API_LOCK;
+    rv = _isis_port_static_thresh_set(dev_id, port_id, cfg);
+    HSL_API_UNLOCK;
+    return rv;
+}
+
 sw_error_t
 isis_qos_init(a_uint32_t dev_id)
 {
@@ -1238,6 +1311,9 @@ isis_qos_init(a_uint32_t dev_id)
         p_api->qos_port_default_cpri_get = isis_qos_port_default_cpri_get;
         p_api->qos_queue_remark_table_set = isis_qos_queue_remark_table_set;
         p_api->qos_queue_remark_table_get = isis_qos_queue_remark_table_get;
+
+        p_api->port_static_thresh_get = isis_port_static_thresh_get;
+        p_api->port_static_thresh_set = isis_port_static_thresh_set;
     }
 #endif
 

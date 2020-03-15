@@ -23,8 +23,7 @@
 #include "isis_igmp.h"
 #include "isis_reg.h"
 #include "fal_multi.h"
-#include "fal_acl.h"
-#include "hsl_shared_api.h"
+#include "isis_acl.h"
 #include "sal/os/aos_lock.h"
 
 #if 0
@@ -154,7 +153,7 @@ HSL_LOCAL int iterate_multicast_acl_rule(int list_id, int start_n)
 
     for(rule_id=0; rule_id<FAL_IGMP_SG_ENTRY_MAX; rule_id++)
     {
-        ret = ACL_RULE_QUERY(dev_id, list_id, rule_id, &rule);
+        ret = isis_acl_rule_query(dev_id, list_id, rule_id, &rule);
 
         if (ret==SW_NOT_FOUND )
             break;//NOT found in ACL rule
@@ -224,7 +223,7 @@ HSL_LOCAL a_uint32_t isis_multicast_acl_total_n(a_uint32_t list_id)
 
     for(rule_id=0; rule_id<FAL_IGMP_SG_ENTRY_MAX; rule_id++)
     {
-        ret = ACL_RULE_QUERY(dev_id, list_id,
+        ret = isis_acl_rule_query(dev_id, list_id,
                                   rule_id, &rule);
         if(ret==SW_NOT_FOUND)
             return rule_id;
@@ -322,7 +321,7 @@ HSL_LOCAL sw_error_t multi_portmap_aclreg_set(a_uint32_t pos, fal_igmp_sg_entry_
     HSL_REG_ENTRY_GEN_SET(rv, dev_id, addr, sizeof (a_uint32_t),
                           (a_uint8_t *) (&act[2]), sizeof (a_uint32_t));
     MULTI_DEBUG("pos=%d, before sync portmap, the new act=%x %x\n", pos, act[1],act[2]);
-    if((rv = ACL_RULE_SYNC_MULTI_PORTMAP(dev_id, pos, act)) < 0)
+    if((rv = isis_acl_rule_sync_multi_portmap(dev_id, pos, act)) < 0)
         aos_printk("Sync multicast portmap error\n");
     return rv;
 }
@@ -358,16 +357,16 @@ HSL_LOCAL int multi_acl_bind(void)
 
     for(i=0; i<6; i++)
     {
-        ACL_LIST_UNBIND(0, FAL_ACL_LIST_MULTICAST, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
-        ACL_LIST_UNBIND(0, FAL_ACL_LIST_MULTICAST+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+        isis_acl_list_unbind(0, FAL_ACL_LIST_MULTICAST, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+        isis_acl_list_unbind(0, FAL_ACL_LIST_MULTICAST+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
     }
 
     if(bind_p==0)
     {
         for(i=0; i<6; i++)
         {
-            ACL_LIST_BIND(0, FAL_ACL_LIST_MULTICAST, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
-            ACL_LIST_BIND(0, FAL_ACL_LIST_MULTICAST+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+            isis_acl_list_bind(0, FAL_ACL_LIST_MULTICAST, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+            isis_acl_list_bind(0, FAL_ACL_LIST_MULTICAST+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
         }
     }
     else
@@ -375,8 +374,8 @@ HSL_LOCAL int multi_acl_bind(void)
         for(i=0; i<6; i++)
             if((bind_p>>i) &0x1)
             {
-                ACL_LIST_BIND(0, FAL_ACL_LIST_MULTICAST, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
-                ACL_LIST_BIND(0, FAL_ACL_LIST_MULTICAST+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+                isis_acl_list_bind(0, FAL_ACL_LIST_MULTICAST, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+                isis_acl_list_bind(0, FAL_ACL_LIST_MULTICAST+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
             }
             else
                 continue;
@@ -398,7 +397,7 @@ HSL_LOCAL sw_error_t isis_multicast_acl_update( int list_id, int acl_index, fal_
         return SW_FAIL;
     }
 
-    rule_pos = ACL_RULE_GET_OFFSET(dev_id, list_id, multi_acl_group[acl_index].index);
+    rule_pos = isis_acl_rule_get_offset(dev_id, list_id, multi_acl_group[acl_index].index);
     if(MULT_ACTION_SET == action)
     {
         multi_acl_group[acl_index].entry.port_map |= entry->port_map;
@@ -423,7 +422,7 @@ HSL_LOCAL sw_error_t isis_multicast_acl_del(int list_id, int index)
 
     rule_id = multi_acl_group[index].index;
 
-    rv = ACL_RULE_DEL(0, list_id, rule_id, 1);
+    rv = isis_acl_rule_delete(0, list_id, rule_id, 1);
     multi_acl_bind(); //Here need extra bind since IGMP join/leave would happen
     return rv;
 }
@@ -513,7 +512,7 @@ HSL_LOCAL sw_error_t isis_multicast_acl_add(int list_id, fal_igmp_sg_entry_t * e
     pos = isis_multicast_acl_total_n(list_id);
 
     MULTI_DEBUG("In isis_multicast_acl_add, list_id=%d, rule_id=%d\n", list_id, pos);
-    val = ACL_RULE_ADD(0, list_id, pos, rule_nr, &acl);
+    val = isis_acl_rule_add(0, list_id, pos, rule_nr, &acl);
 
     multi_acl_bind();
 
@@ -972,13 +971,13 @@ isis_multicast_init(a_uint32_t dev_id)
 {
     sw_error_t val;
 
-    ACL_STATUS_SET(0, 1);
+    isis_acl_status_set(0, 1);
 
-    val = ACL_LIST_CREATE(0, FAL_ACL_LIST_MULTICAST, FAL_MULTICAST_PRI);
+    val = isis_acl_list_creat(0, FAL_ACL_LIST_MULTICAST, FAL_MULTICAST_PRI);
     if(val !=SW_OK && val != SW_ALREADY_EXIST)
         aos_printk("Multicast 1 acl list create error, val=%d\n", val);
 
-    val = ACL_LIST_CREATE(0, FAL_ACL_LIST_MULTICAST+1, FAL_MULTICAST_PRI+1);
+    val = isis_acl_list_creat(0, FAL_ACL_LIST_MULTICAST+1, FAL_MULTICAST_PRI+1);
     if(val !=SW_OK && val != SW_ALREADY_EXIST)
         aos_printk("Multicast 2 acl list create error, val=%d\n", val);
 

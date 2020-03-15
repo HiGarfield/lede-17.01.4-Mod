@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -12,19 +12,13 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
-
 #include "sw.h"
 #include "fal_port_ctrl.h"
 #include "hsl_api.h"
 #include "hsl.h"
 #include "f1_phy.h"
-#include "aos_timer.h"
 #include "hsl_phy.h"
-#include <linux/kconfig.h>
-#include <linux/kernel.h>
-#include <linux/module.h>
-#include <linux/phy.h>
+#include "ssdk_plat.h"
 
 static a_uint16_t
 _phy_reg_read(a_uint32_t dev_id, a_uint32_t phy_addr, a_uint32_t reg)
@@ -952,21 +946,22 @@ f1_phy_set_speed(a_uint32_t dev_id, a_uint32_t phy_id,
     if (FAL_SPEED_1000 == speed)
     {
         phy_data |= F1_CTRL_SPEED_1000;
+	phy_data |= F1_CTRL_AUTONEGOTIATION_ENABLE;
     }
     else if (FAL_SPEED_100 == speed)
     {
         phy_data |= F1_CTRL_SPEED_100;
+	phy_data &= ~F1_CTRL_AUTONEGOTIATION_ENABLE;
     }
     else if (FAL_SPEED_10 == speed)
     {
         phy_data |= F1_CTRL_SPEED_10;
+	phy_data &= ~F1_CTRL_AUTONEGOTIATION_ENABLE;
     }
     else
     {
         return SW_BAD_PARAM;
     }
-
-    phy_data &= ~F1_CTRL_AUTONEGOTIATION_ENABLE;
 
     (void)f1_phy_get_autoneg_adv(dev_id, phy_id, &autoneg);
     oldneg = autoneg;
@@ -1087,6 +1082,7 @@ f1_phy_set_duplex(a_uint32_t dev_id, a_uint32_t phy_id,
     if (FAL_SPEED_1000 == old_speed)
     {
         phy_data |= F1_CTRL_SPEED_1000;
+        phy_data |= F1_CTRL_AUTONEGOTIATION_ENABLE;
     }
     else if (FAL_SPEED_100 == old_speed)
     {
@@ -1294,74 +1290,241 @@ f1_phy_intr_status_get(a_uint32_t dev_id, a_uint32_t phy_id,
 
     return SW_OK;
 }
-
-
-#if 0
 /******************************************************************************
 *
-* f1_phy_init -
+*f1_phy_set_8023az status
 *
+* get 8023az status
 */
-a_bool_t
-f1_phy_init(a_uint32_t dev_id, a_uint32_t phy_id,
-            a_uint16_t org_id, a_uint16_t rev_id)
-{
-    a_uint16_t org_tmp, rev_tmp;
 
-    (void)f1_phy_get_phy_id(dev_id, phy_id, &org_tmp, &rev_tmp);
-    if ((org_id == org_tmp) && (rev_id == rev_tmp))
-        return A_TRUE;
-    else
-        return A_FALSE;
+sw_error_t
+f1_phy_set_8023az(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t enable)
+{
+	a_uint16_t phy_data;
+
+	phy_data = f1_phy_mmd_read(dev_id, phy_id, F1_PHY_MMD7_NUM,
+				       F1_PHY_8023AZ_EEE_CTRL);
+	if (enable == A_TRUE) {
+		phy_data |= F1_PHY_AZ_ENABLE;
+
+		f1_phy_mmd_write(dev_id, phy_id, F1_PHY_MMD7_NUM,
+			     F1_PHY_8023AZ_EEE_CTRL, phy_data);
+	} else {
+		phy_data &= ~F1_PHY_AZ_ENABLE;
+
+		f1_phy_mmd_write(dev_id, phy_id, F1_PHY_MMD7_NUM,
+			     F1_PHY_8023AZ_EEE_CTRL, phy_data);
+	}
+
+	f1_phy_restart_autoneg(dev_id, phy_id);
+
+	return SW_OK;
 }
 
-#endif
+/******************************************************************************
+*
+*f1_phy_get_8023az status
+*
+* get 8023az status
+*/
+sw_error_t
+f1_phy_get_8023az(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t * enable)
+{
+	a_uint16_t phy_data;
 
-static int f1_phy_probe(struct phy_device *pdev)
+	*enable = A_FALSE;
+
+	phy_data = f1_phy_mmd_read(dev_id, phy_id, F1_PHY_MMD7_NUM,
+				       F1_PHY_8023AZ_EEE_CTRL);
+
+	if ((phy_data & 0x6) == F1_PHY_AZ_ENABLE)
+		*enable = A_TRUE;
+
+	return SW_OK;
+}
+
+/******************************************************************************
+*
+* f1_phy_set_local_loopback
+*
+* set phy local loopback
+*/
+sw_error_t
+f1_phy_set_local_loopback(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t enable)
+{
+	a_uint16_t phy_data;
+	sw_error_t rv = SW_OK;
+
+	phy_data = f1_phy_reg_read(dev_id, phy_id, F1_PHY_CONTROL);
+	if (enable == A_TRUE)
+	{
+		phy_data |= F1_LOCAL_LOOPBACK_ENABLE;
+		if(phy_data & F1_CTRL_SPEED_1000)
+		{
+			phy_data &= ~F1_CTRL_AUTONEGOTIATION_ENABLE;
+		}
+	}
+	else
+	{
+		phy_data &= ~F1_LOCAL_LOOPBACK_ENABLE;
+		if(phy_data & F1_CTRL_SPEED_1000)
+		{
+			phy_data |= F1_CTRL_AUTONEGOTIATION_ENABLE;
+		}
+	}
+
+	rv = f1_phy_reg_write(dev_id, phy_id, F1_PHY_CONTROL, phy_data);
+
+	return rv;
+}
+
+/******************************************************************************
+*
+* f1_phy_get_local_loopback
+*
+* get phy local loopback
+*/
+sw_error_t
+f1_phy_get_local_loopback(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t * enable)
+{
+	a_uint16_t phy_data;
+
+	phy_data = f1_phy_reg_read(dev_id, phy_id, F1_PHY_CONTROL);
+
+	if (phy_data & F1_LOCAL_LOOPBACK_ENABLE)
+	{
+		*enable = A_TRUE;
+	}
+	else
+	{
+		*enable = A_FALSE;
+	}
+
+	return SW_OK;
+}
+
+/******************************************************************************
+*
+* f1_phy_set_remote_loopback
+*
+* set phy remote loopback
+*/
+sw_error_t
+f1_phy_set_remote_loopback(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t enable)
+{
+	a_uint16_t phy_data;
+	sw_error_t rv = SW_OK;
+
+	phy_data = f1_phy_mmd_read(dev_id, phy_id, F1_PHY_MMD3_NUM,
+		F1_PHY_MMD3_ADDR_REMOTE_LOOPBACK_CTRL);
+
+	if (enable == A_TRUE)
+	{
+		phy_data |= F1_PHY_REMOTE_LOOPBACK_ENABLE;
+	}
+	else
+	{
+		phy_data &= ~F1_PHY_REMOTE_LOOPBACK_ENABLE;
+	}
+
+	rv = f1_phy_mmd_write(dev_id, phy_id, F1_PHY_MMD3_NUM,
+		F1_PHY_MMD3_ADDR_REMOTE_LOOPBACK_CTRL, phy_data);
+
+	return rv;
+}
+
+/******************************************************************************
+*
+* f1_phy_get_remote_loopback
+*
+* get phy remote loopback
+*/
+sw_error_t
+f1_phy_get_remote_loopback(a_uint32_t dev_id, a_uint32_t phy_id, a_bool_t * enable)
+{
+	a_uint16_t phy_data;
+
+	phy_data = f1_phy_mmd_read(dev_id, phy_id, F1_PHY_MMD3_NUM,
+		F1_PHY_MMD3_ADDR_REMOTE_LOOPBACK_CTRL);
+
+	if (phy_data & F1_PHY_REMOTE_LOOPBACK_ENABLE)
+	{
+		*enable = A_TRUE;
+	}
+	else
+	{
+		*enable = A_FALSE;
+	}
+
+	return SW_OK;
+}
+
+static int f1_phy_api_ops_init(void)
 {
 	int ret;
-	hsl_phy_ops_t f1_phy_api_ops = { 0 };
+	hsl_phy_ops_t *f1_phy_api_ops = NULL;
 
-	f1_phy_api_ops.phy_hibernation_set = f1_phy_set_hibernate;
-	f1_phy_api_ops.phy_hibernation_get = f1_phy_get_hibernate;
-	f1_phy_api_ops.phy_speed_get = f1_phy_get_speed;
-	f1_phy_api_ops.phy_speed_set = f1_phy_set_speed;
-	f1_phy_api_ops.phy_duplex_get = f1_phy_get_duplex;
-	f1_phy_api_ops.phy_duplex_set = f1_phy_set_duplex;
-	f1_phy_api_ops.phy_autoneg_enable_set = f1_phy_enable_autoneg;
-	f1_phy_api_ops.phy_restart_autoneg = f1_phy_restart_autoneg;
-	f1_phy_api_ops.phy_autoneg_status_get = f1_phy_autoneg_status;
-	f1_phy_api_ops.phy_autoneg_adv_set = f1_phy_set_autoneg_adv;
-	f1_phy_api_ops.phy_autoneg_adv_get = f1_phy_get_autoneg_adv;
-	f1_phy_api_ops.phy_powersave_set = f1_phy_set_powersave;
-	f1_phy_api_ops.phy_powersave_get = f1_phy_get_powersave;
-	f1_phy_api_ops.phy_cdt = f1_phy_cdt;
-	f1_phy_api_ops.phy_link_status_get = f1_phy_get_link_status;
-	f1_phy_api_ops.phy_reset = f1_phy_reset;
-	f1_phy_api_ops.phy_power_off = f1_phy_poweroff;
-	f1_phy_api_ops.phy_power_on = 	f1_phy_poweron;
-	f1_phy_api_ops.phy_id_get = f1_phy_get_phy_id;
-	f1_phy_api_ops.phy_reg_write = f1_phy_reg_write;
-	f1_phy_api_ops.phy_reg_read = f1_phy_reg_read;
-	f1_phy_api_ops.phy_debug_write = f1_phy_debug_write;
-	f1_phy_api_ops.phy_debug_read = f1_phy_debug_read;
-	f1_phy_api_ops.phy_mmd_write = f1_phy_mmd_write;
-	f1_phy_api_ops.phy_mmd_read = f1_phy_mmd_read;
-	f1_phy_api_ops.phy_intr_mask_set = f1_phy_intr_mask_set;
-	f1_phy_api_ops.phy_intr_mask_get = f1_phy_intr_mask_get;
-	f1_phy_api_ops.phy_intr_status_get = f1_phy_intr_status_get;
-	ret = hsl_phy_api_ops_register(&f1_phy_api_ops);
+	f1_phy_api_ops = kzalloc(sizeof(hsl_phy_ops_t), GFP_KERNEL);
+	if (f1_phy_api_ops == NULL) {
+		SSDK_ERROR("f1 phy ops kzalloc failed!\n");
+		return -ENOMEM;
+	}
+
+	phy_api_ops_init(F1_PHY_CHIP);
+
+	f1_phy_api_ops->phy_hibernation_set = f1_phy_set_hibernate;
+	f1_phy_api_ops->phy_hibernation_get = f1_phy_get_hibernate;
+	f1_phy_api_ops->phy_speed_get = f1_phy_get_speed;
+	f1_phy_api_ops->phy_speed_set = f1_phy_set_speed;
+	f1_phy_api_ops->phy_duplex_get = f1_phy_get_duplex;
+	f1_phy_api_ops->phy_duplex_set = f1_phy_set_duplex;
+	f1_phy_api_ops->phy_autoneg_enable_set = f1_phy_enable_autoneg;
+	f1_phy_api_ops->phy_restart_autoneg = f1_phy_restart_autoneg;
+	f1_phy_api_ops->phy_autoneg_status_get = f1_phy_autoneg_status;
+	f1_phy_api_ops->phy_autoneg_adv_set = f1_phy_set_autoneg_adv;
+	f1_phy_api_ops->phy_autoneg_adv_get = f1_phy_get_autoneg_adv;
+	f1_phy_api_ops->phy_powersave_set = f1_phy_set_powersave;
+	f1_phy_api_ops->phy_powersave_get = f1_phy_get_powersave;
+	f1_phy_api_ops->phy_cdt = f1_phy_cdt;
+	f1_phy_api_ops->phy_link_status_get = f1_phy_get_link_status;
+	f1_phy_api_ops->phy_reset = f1_phy_reset;
+	f1_phy_api_ops->phy_power_off = f1_phy_poweroff;
+	f1_phy_api_ops->phy_power_on = 	f1_phy_poweron;
+	f1_phy_api_ops->phy_id_get = f1_phy_get_phy_id;
+	f1_phy_api_ops->phy_reg_write = f1_phy_reg_write;
+	f1_phy_api_ops->phy_reg_read = f1_phy_reg_read;
+	f1_phy_api_ops->phy_debug_write = f1_phy_debug_write;
+	f1_phy_api_ops->phy_debug_read = f1_phy_debug_read;
+	f1_phy_api_ops->phy_mmd_write = f1_phy_mmd_write;
+	f1_phy_api_ops->phy_mmd_read = f1_phy_mmd_read;
+	f1_phy_api_ops->phy_local_loopback_set = f1_phy_set_local_loopback;
+	f1_phy_api_ops->phy_local_loopback_get = f1_phy_get_local_loopback;
+	f1_phy_api_ops->phy_remote_loopback_set = f1_phy_set_remote_loopback;
+	f1_phy_api_ops->phy_remote_loopback_get = f1_phy_get_remote_loopback;
+	f1_phy_api_ops->phy_intr_mask_set = f1_phy_intr_mask_set;
+	f1_phy_api_ops->phy_intr_mask_get = f1_phy_intr_mask_get;
+	f1_phy_api_ops->phy_intr_status_get = f1_phy_intr_status_get;
+	f1_phy_api_ops->phy_8023az_set = f1_phy_set_8023az;
+	f1_phy_api_ops->phy_8023az_get = f1_phy_get_8023az;
+
+	ret = hsl_phy_api_ops_register(F1_PHY_CHIP, f1_phy_api_ops);
 
 	if (ret == 0)
-		printk("qca probe f1 phy driver succeeded!\n");
+		SSDK_INFO("qca probe f1 phy driver succeeded!\n");
 	else
-		printk("qca probe f1 phy driver failed! (code: %d)\n", ret);
+		SSDK_ERROR("qca probe f1 phy driver failed! (code: %d)\n", ret);
 	return ret;
 }
 
-int f1_phy_init(void)
+int f1_phy_init(a_uint32_t dev_id, a_uint32_t port_bmp)
 {
-	phy_api_ops_init(0);
-	return f1_phy_probe((struct phy_device *)NULL);
+	static a_uint32_t phy_ops_flag = 0;
+
+	if(phy_ops_flag == 0) {
+		f1_phy_api_ops_init();
+		phy_ops_flag = 1;
+	}
+
+	return 0;
 }
 

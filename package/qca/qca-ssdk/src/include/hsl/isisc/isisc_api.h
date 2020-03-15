@@ -61,7 +61,9 @@ extern "C" {
     SW_API_DEF(SW_API_PT_LINK_MODE_GET, isisc_port_link_forcemode_get), \
     SW_API_DEF(SW_API_PT_LINK_STATUS_GET, isisc_port_link_status_get), \
     SW_API_DEF(SW_API_PT_MAC_LOOPBACK_SET, isisc_port_mac_loopback_set), \
-    SW_API_DEF(SW_API_PT_MAC_LOOPBACK_GET, isisc_port_mac_loopback_get),
+    SW_API_DEF(SW_API_PT_MAC_LOOPBACK_GET, isisc_port_mac_loopback_get), \
+    SW_API_DEF(SW_API_PT_8023AZ_SET, isisc_port_8023az_set), \
+    SW_API_DEF(SW_API_PT_8023AZ_GET, isisc_port_8023az_get),
 
 #define PORTCONTROL_API_PARAM \
     SW_API_DESC(SW_API_PT_DUPLEX_GET) \
@@ -102,7 +104,9 @@ extern "C" {
     SW_API_DESC(SW_API_PT_LINK_MODE_GET) \
     SW_API_DESC(SW_API_PT_LINK_STATUS_GET) \
     SW_API_DESC(SW_API_PT_MAC_LOOPBACK_SET) \
-    SW_API_DESC(SW_API_PT_MAC_LOOPBACK_GET)
+    SW_API_DESC(SW_API_PT_MAC_LOOPBACK_GET) \
+    SW_API_DESC(SW_API_PT_8023AZ_SET) \
+    SW_API_DESC(SW_API_PT_8023AZ_GET)
 #else
 #define PORTCONTROL_API
 #define PORTCONTROL_API_PARAM

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2016-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -282,7 +282,7 @@ isisc_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
     {
         sw_error_t rv;
 
-        SW_RTN_ON_ERROR(hsl_port_prop_init());
+        SW_RTN_ON_ERROR(hsl_port_prop_init(dev_id));
         SW_RTN_ON_ERROR(hsl_port_prop_init_by_dev(dev_id));
         SW_RTN_ON_ERROR(isisc_portproperty_init(dev_id, cfg->cpu_mode));
 

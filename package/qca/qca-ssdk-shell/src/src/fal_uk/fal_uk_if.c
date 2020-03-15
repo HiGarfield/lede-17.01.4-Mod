@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -23,8 +23,8 @@
 sw_error_t
 sw_uk_exec(a_uint32_t api_id, ...)
 {
-    a_uint32_t value[SW_MAX_API_PARAM] = { 0 };
-    a_uint32_t rtn = SW_OK, i;
+    unsigned long value[SW_MAX_API_PARAM] = { 0 };
+    unsigned long rtn = SW_OK, i;
     sw_error_t rv;
     va_list arg_ptr;
     a_uint32_t nr_param = 0;
@@ -34,21 +34,17 @@ sw_uk_exec(a_uint32_t api_id, ...)
         return SW_NOT_SUPPORTED;
     }
 
-    value[0] = api_id;
-    value[1] = (a_uint32_t)&rtn;
+    value[0] = (unsigned long)api_id;
+    value[1] = (unsigned long)&rtn;
 
     va_start(arg_ptr, api_id);
     for (i = 0; i < nr_param; i++)
     {
-        value[i + 2] = va_arg(arg_ptr, a_uint32_t);
+        value[i + 2] = va_arg(arg_ptr, unsigned long);
     }
     va_end(arg_ptr);
+    sw_uk_if(value);
 
-    rv = sw_uk_if(value);
-    if (SW_OK != rv)
-    {
-        return rv;
-    }
     return rtn;
 }
 

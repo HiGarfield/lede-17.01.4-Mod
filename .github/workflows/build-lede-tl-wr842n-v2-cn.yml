@@ -1,8 +1,6 @@
 name: Build LEDE tl-wr842n-v2-cn
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

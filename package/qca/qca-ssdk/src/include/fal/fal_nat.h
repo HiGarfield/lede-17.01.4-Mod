@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015,2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -24,7 +24,7 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-#include "common/sw.h"
+#include "sw.h"
 #include "fal/fal_type.h"
 
 
@@ -279,7 +279,8 @@ extern "C" {
     fal_nat_unk_session_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd);
 
     sw_error_t
-    fal_nat_global_set(a_uint32_t dev_id, a_bool_t enable, a_bool_t sync_cnt_enable);
+    fal_nat_global_set(a_uint32_t dev_id, a_bool_t enable,
+    		a_bool_t sync_cnt_enable, a_uint32_t portbmp);
 
 
 #ifdef __cplusplus

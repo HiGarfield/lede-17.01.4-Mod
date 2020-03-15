@@ -2383,10 +2383,11 @@ isisc_nat_unk_session_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
  * @brief Set working status of NAT engine on a particular device
  * @param[in] dev_id device id
  * @param[in] enable A_TRUE or A_FALSE
+ * @param[in] portbmp port bitmap
  * @return SW_OK or error code
  */
 HSL_LOCAL sw_error_t
-isisc_nat_global_set(a_uint32_t dev_id, a_bool_t enable)
+isisc_nat_global_set(a_uint32_t dev_id, a_bool_t enable, a_uint32_t portbmp)
 {
     sw_error_t rv = SW_OK;
 
@@ -2396,7 +2397,7 @@ isisc_nat_global_set(a_uint32_t dev_id, a_bool_t enable)
         if(isisc_nat_global_status == 0) {
             isisc_nat_global_status = 1;
 #if defined(IN_NAT_HELPER)
-            ISISC_NAT_HELPER_INIT(rv, dev_id);
+            ISISC_NAT_HELPER_INIT(rv, dev_id, portbmp);
 #endif
         }
     } else {

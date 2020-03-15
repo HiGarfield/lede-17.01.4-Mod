@@ -73,6 +73,10 @@ ifeq (TRUE, $(IN_NAT))
   SRC_LIST += fal_nat.c
 endif
 
+ifeq (TRUE, $(IN_FLOW))
+  SRC_LIST += fal_flow.c
+endif
+
 ifeq (TRUE, $(IN_SEC))
   SRC_LIST += fal_sec.c
 endif
@@ -81,8 +85,44 @@ ifeq (TRUE, $(IN_TRUNK))
   SRC_LIST += fal_trunk.c
 endif
 
+ifeq (TRUE, $(IN_VSI))
+  SRC_LIST += fal_vsi.c
+endif
+
 ifeq (TRUE, $(IN_INTERFACECONTROL))
   SRC_LIST += fal_interface_ctrl.c
+endif
+
+ifeq (TRUE, $(IN_QM))
+  SRC_LIST += fal_qm.c
+endif
+
+ifeq (TRUE, $(IN_BM))
+  SRC_LIST += fal_bm.c
+endif
+
+ifeq (TRUE, $(IN_CTRLPKT))
+  SRC_LIST += fal_ctrlpkt.c
+endif
+
+ifeq (TRUE, $(IN_SERVCODE))
+  SRC_LIST += fal_servcode.c
+endif
+
+ifeq (TRUE, $(IN_RSS_HASH))
+  SRC_LIST += fal_rss_hash.c
+endif
+
+ifeq (TRUE, $(IN_PPPOE))
+  SRC_LIST += fal_pppoe.c
+endif
+
+ifeq (TRUE, $(IN_SHAPER))
+  SRC_LIST += fal_shaper.c
+endif
+
+ifeq (TRUE, $(IN_POLICER))
+  SRC_LIST += fal_policer.c
 endif
 
 include $(PRJ_PATH)/make/components.mk

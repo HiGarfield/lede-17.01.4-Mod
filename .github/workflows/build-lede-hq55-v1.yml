@@ -1,8 +1,6 @@
 name: Build LEDE hq55-v1
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

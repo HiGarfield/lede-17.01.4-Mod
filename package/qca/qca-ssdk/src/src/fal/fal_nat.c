@@ -586,7 +586,7 @@ _fal_nat_unk_session_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
 }
 
 static sw_error_t
-_fal_nat_global_set(a_uint32_t dev_id, a_bool_t enable)
+_fal_nat_global_set(a_uint32_t dev_id, a_bool_t enable, a_uint32_t portbmp)
 {
     sw_error_t rv;
     hsl_api_t *p_api;
@@ -596,7 +596,7 @@ _fal_nat_global_set(a_uint32_t dev_id, a_bool_t enable)
     if (NULL == p_api->nat_global_set)
         return SW_NOT_SUPPORTED;
 
-    rv = p_api->nat_global_set(dev_id, enable);
+    rv = p_api->nat_global_set(dev_id, enable, portbmp);
     return rv;
 }
 
@@ -1229,16 +1229,19 @@ fal_nat_unk_session_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
  * @brief Set working status of NAPT engine on a particular device
  * @param[in] dev_id device id
  * @param[in] enable A_TRUE or A_FALSE
+ * @param[in] sync_cnt_enable A_TRUE or A_FALSE
+ * @param[in] portbmp port bitmap
  * @return SW_OK or error code
  */
 sw_error_t
-fal_nat_global_set(a_uint32_t dev_id, a_bool_t enable, a_bool_t sync_cnt_enable)
+fal_nat_global_set(a_uint32_t dev_id, a_bool_t enable,
+		a_bool_t sync_cnt_enable, a_uint32_t portbmp)
 {
     sw_error_t rv;
 
     FAL_API_LOCK;
 	nf_athrs17_hnat_sync_counter_en = (int)sync_cnt_enable;
-    rv = _fal_nat_global_set(dev_id, enable);
+    rv = _fal_nat_global_set(dev_id, enable, portbmp);
     FAL_API_UNLOCK;
     return rv;
 }

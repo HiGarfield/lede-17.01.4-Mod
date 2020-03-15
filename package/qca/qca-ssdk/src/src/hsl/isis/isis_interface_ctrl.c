@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015-2016, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -1197,7 +1197,7 @@ _isis_interface_phy_mode_set(a_uint32_t dev_id, a_uint32_t phy_id, fal_phy_confi
     a_uint16_t data;
     a_bool_t tx_delay_cmd, rx_delay_cmd;
     hsl_phy_ops_t *phy_drv;
-    a_uint32_t reg, rgmii_mode, tx_delay = 2;;
+    a_uint32_t reg, rgmii_mode, tx_delay = 2, port_id;
 
     HSL_DEV_ID_CHECK(dev_id);
 
@@ -1207,7 +1207,8 @@ _isis_interface_phy_mode_set(a_uint32_t dev_id, a_uint32_t phy_id, fal_phy_confi
         return SW_BAD_PARAM;
     }
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+	port_id = qca_ssdk_phy_addr_to_port(dev_id, phy_id);
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get(dev_id, port_id));
     if ((NULL == phy_drv->phy_debug_write) || (NULL == phy_drv->phy_debug_read))
 	  return SW_NOT_SUPPORTED;
 
@@ -1337,12 +1338,13 @@ _isis_interface_phy_mode_get(a_uint32_t dev_id, a_uint32_t phy_id, fal_phy_confi
 {
     sw_error_t rv;
     a_uint16_t data;
-    a_uint32_t reg = 0, rgmii, gmii, mii;
+    a_uint32_t reg = 0, rgmii, gmii, mii, port_id;
     hsl_phy_ops_t *phy_drv;
 
     HSL_DEV_ID_CHECK(dev_id);
 
-    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get (dev_id));
+	port_id = qca_ssdk_phy_addr_to_port(dev_id, phy_id);
+    SW_RTN_ON_NULL (phy_drv = hsl_phy_api_ops_get(dev_id, port_id));
     if (NULL == phy_drv->phy_debug_read)
 	  return SW_NOT_SUPPORTED;
 

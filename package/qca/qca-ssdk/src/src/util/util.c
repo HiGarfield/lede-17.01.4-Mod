@@ -238,6 +238,7 @@ sll_nd_insert(sll_head_t * sll, void *data)
 
         if (LL_CMP_EQUAL == rslt)
         {
+            sll_nd_free(sll, node);
             return SW_ALREADY_EXIST;
         }
 

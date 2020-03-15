@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013, 2017, The Linux Foundation. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -28,6 +28,19 @@ cmd_set_devid(a_uint32_t *arg_val)
         return SW_FAIL;
     }
     sw_devid = arg_val[1];
+
+    return SW_OK;
+}
+
+sw_error_t
+uci_set_devid(a_uint32_t dev_id)
+{
+    if (dev_id >= SW_MAX_NR_DEV)
+    {
+        printk("dev_id should be less than <%d>\n", SW_MAX_NR_DEV);
+        return SW_FAIL;
+    }
+    sw_devid = dev_id;
 
     return SW_OK;
 }

@@ -25,6 +25,7 @@
 #include "dess_reg.h"
 #include "dess_fdb_prv.h"
 
+static aos_lock_t dess_fdb_lock;
 static sw_error_t
 _dess_wl_feature_check(a_uint32_t dev_id)
 {
@@ -1720,7 +1721,9 @@ dess_fdb_add(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_add(dev_id, entry);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -1740,7 +1743,9 @@ dess_fdb_del_all(a_uint32_t dev_id, a_uint32_t flag)
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_del_all(dev_id, flag);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -1761,7 +1766,9 @@ dess_fdb_del_by_port(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t flag)
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_del_by_port(dev_id, port_id, flag);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -1781,7 +1788,9 @@ dess_fdb_del_by_mac(a_uint32_t dev_id, const fal_fdb_entry_t * entry)
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_del_by_mac(dev_id, entry);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -1801,7 +1810,9 @@ dess_fdb_find(a_uint32_t dev_id, fal_fdb_entry_t * entry)
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_find(dev_id, entry);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -1820,7 +1831,9 @@ dess_fdb_extend_next(a_uint32_t dev_id, fal_fdb_op_t * option,
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_extend_next(dev_id, option, entry);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -1839,7 +1852,9 @@ dess_fdb_extend_first(a_uint32_t dev_id, fal_fdb_op_t * option,
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_extend_first(dev_id, option, entry);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -1860,7 +1875,9 @@ dess_fdb_transfer(a_uint32_t dev_id, fal_port_t old_port, fal_port_t new_port,
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_transfer(dev_id, old_port, new_port, fid, option);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -2288,7 +2305,9 @@ dess_fdb_port_add(a_uint32_t dev_id, a_uint32_t fid, fal_mac_addr_t * addr, fal_
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_port_update(dev_id, fid, addr, port_id, 1);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -2307,7 +2326,9 @@ dess_fdb_port_del(a_uint32_t dev_id, a_uint32_t fid, fal_mac_addr_t * addr, fal_
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_port_update(dev_id, fid, addr, port_id, 0);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -2324,7 +2345,9 @@ dess_fdb_rfs_set(a_uint32_t dev_id, const fal_fdb_rfs_t *rfs)
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_rfs_set(dev_id, rfs);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -2341,7 +2364,9 @@ dess_fdb_rfs_del(a_uint32_t dev_id, const fal_fdb_rfs_t *rfs)
     sw_error_t rv;
 
     HSL_API_LOCK;
+    aos_lock_bh(&dess_fdb_lock);
     rv = _dess_fdb_rfs_del(dev_id, rfs);
+    aos_unlock_bh(&dess_fdb_lock);
     HSL_API_UNLOCK;
     return rv;
 }
@@ -2394,6 +2419,8 @@ dess_fdb_init(a_uint32_t dev_id)
 		p_api->fdb_rfs_del = dess_fdb_rfs_del;
     }
 #endif
+
+    aos_lock_init(&dess_fdb_lock);
 
     return SW_OK;
 }

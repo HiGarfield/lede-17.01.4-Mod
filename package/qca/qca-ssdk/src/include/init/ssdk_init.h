@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -13,7 +13,7 @@
  */
 
 
-
+/*qca808x_start*/
 #ifndef _SSDK_INIT_H_
 #define _SSDK_INIT_H_
 
@@ -21,11 +21,25 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-#include "common/sw.h"
-#include "fal_led.h"
+#include "sw.h"
+#include "fal_type.h"
+/*qca808x_end*/
+#include "fal/fal_led.h"
+/*qca808x_start*/
+#define SSDK_MAX_PORT_NUM		8
+/*qca808x_end*/
+#define SSDK_MAX_VIRTUAL_PORT_NUM	256
+#define SSDK_MAX_SERVICE_CODE_NUM	256
+#define SSDK_MAX_CPU_CODE_NUM		256
+#define SSDK_L0SCHEDULER_CFG_MAX	300
+#define SSDK_L0SCHEDULER_UCASTQ_CFG_MAX	256
+#define SSDK_L1SCHEDULER_CFG_MAX	64
+#define SSDK_SP_MAX_PRIORITY		8
+#define SSDK_MAX_FRAME_SIZE	0x3000
 
-#define SSDK_MAX_PORT_NUM 7
-
+#define PORT_GMAC_TYPE	1
+#define PORT_XGMAC_TYPE	2
+/*qca808x_start*/
     typedef enum {
         HSL_MDIO = 1,
         HSL_HEADER,
@@ -55,6 +69,15 @@ extern "C" {
                      a_uint16_t * data);
 
     typedef sw_error_t
+    (*i2c_reg_set) (a_uint32_t dev_id, a_uint32_t phy_addr, a_uint32_t reg,
+                     a_uint16_t data);
+
+    typedef sw_error_t
+    (*i2c_reg_get) (a_uint32_t dev_id, a_uint32_t phy_addr, a_uint32_t reg,
+                     a_uint16_t * data);
+/*qca808x_end*/
+
+    typedef sw_error_t
     (*hdr_reg_set) (a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
 
     typedef sw_error_t
@@ -66,6 +89,16 @@ extern "C" {
     typedef sw_error_t
     (*psgmii_reg_get) (a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
 
+	typedef sw_error_t
+	(*uniphy_reg_set) (a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
+
+	typedef sw_error_t
+	(*uniphy_reg_get) (a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
+
+	typedef void (*mii_reg_set)(a_uint32_t dev_id, a_uint32_t reg, a_uint32_t val);
+
+	typedef a_uint32_t (*mii_reg_get)(a_uint32_t dev_id, a_uint32_t reg);
+/*qca808x_start*/
 enum ssdk_port_wrapper_cfg {
 	PORT_WRAPPER_PSGMII = 0,
 	PORT_WRAPPER_PSGMII_RGMII5,
@@ -78,19 +111,36 @@ enum ssdk_port_wrapper_cfg {
 	PORT_WRAPPER_SGMII0_RGMII4,
 	PORT_WRAPPER_SGMII1_RGMII4,
 	PORT_WRAPPER_SGMII4_RGMII4,
-	PORT_WRAPPER_MAX
+	PORT_WRAPPER_QSGMII,
+	PORT_WRAPPER_SGMII_PLUS,
+	PORT_WRAPPER_USXGMII,
+	PORT_WRAPPER_10GBASE_R,
+	PORT_WRAPPER_SGMII_CHANNEL0,
+	PORT_WRAPPER_SGMII_CHANNEL1,
+	PORT_WRAPPER_SGMII_CHANNEL4,
+	PORT_WRAPPER_RGMII,
+	PORT_WRAPPER_PSGMII_FIBER,
+	PORT_WRAPPER_MAX = 0xFF
 };
 
     typedef struct
     {
         mdio_reg_set    mdio_set;
         mdio_reg_get    mdio_get;
+/*qca808x_end*/
         hdr_reg_set     header_reg_set;
         hdr_reg_get     header_reg_get;
         psgmii_reg_set     psgmii_reg_set;
         psgmii_reg_get     psgmii_reg_get;
+        uniphy_reg_set     uniphy_reg_set;
+        uniphy_reg_get     uniphy_reg_get;
+	mii_reg_set	mii_reg_set;
+	mii_reg_get	mii_reg_get;
+/*qca808x_start*/
+        i2c_reg_set    i2c_set;
+        i2c_reg_get    i2c_get;
     } hsl_reg_func;
-
+/*qca808x_end*/
     typedef struct
     {
         a_bool_t  mac0_rgmii;
@@ -104,7 +154,7 @@ enum ssdk_port_wrapper_cfg {
         a_bool_t  phy4_rx_delay;
         a_bool_t  phy4_tx_delay;
     } garuda_init_spec_cfg;
-
+/*qca808x_start*/
     typedef enum
     {
         CHIP_UNSPECIFIED = 0,
@@ -115,8 +165,10 @@ enum ssdk_port_wrapper_cfg {
         CHIP_ISIS,
         CHIP_ISISC,
         CHIP_DESS,
+        CHIP_HPPE,
+	CHIP_SCOMPHY,
     } ssdk_chip_type;
-
+/*qca808x_end*/
 	typedef struct
 	{
 		a_uint32_t cpu_bmp;
@@ -132,6 +184,24 @@ enum ssdk_port_wrapper_cfg {
 
 	} led_source_cfg_t;
 
+enum {
+	QCA_PHY_F_CLAUSE45_BIT,
+	QCA_PHY_F_COMBO_BIT,
+	QCA_PHY_F_QGMAC_BIT,
+	QCA_PHY_F_XGMAC_BIT,
+	QCA_PHY_F_I2C_BIT,
+	QCA_PHY_FEATURE_MAX
+};
+/*qca808x_start*/
+#define phy_features_t     a_uint16_t
+#define __PHY_F_BIT(bit)    ((phy_features_t)1 << (bit))
+#define _PHY_F(name)       __PHY_F_BIT(QCA_PHY_F_##name##_BIT)
+
+#define PHY_F_CLAUSE45     _PHY_F(CLAUSE45)
+#define PHY_F_COMBO        _PHY_F(COMBO)
+#define PHY_F_QGMAC        _PHY_F(QGMAC)
+#define PHY_F_XGMAC        _PHY_F(XGMAC)
+#define PHY_F_I2C          _PHY_F(I2C)
 
 typedef struct
 {
@@ -140,6 +210,7 @@ typedef struct
 	hsl_reg_func    reg_func;
 
 	ssdk_chip_type  chip_type;
+	a_uint32_t      chip_revision;
 
 	/* os specific parameter */
 	/* when uk_if based on netlink, it's netlink protocol type*/
@@ -149,33 +220,18 @@ typedef struct
 
 	/* chip specific parameter */
 	void *          chip_spec_cfg;
+/*qca808x_end*/
 	/* port cfg */
 	ssdk_port_cfg   port_cfg;
 	a_uint32_t      mac_mode;
 	a_uint32_t led_source_num;
 	led_source_cfg_t led_source_cfg[15];
+/*qca808x_start*/
 	a_uint32_t      phy_id;
+	a_uint32_t      mac_mode1;
+	a_uint32_t      mac_mode2;
 } ssdk_init_cfg;
-
-	typedef struct
-	{
-		a_uint32_t switchreg_base_addr;
-		a_uint32_t switchreg_size;
-		a_uint32_t psgmiireg_base_addr;
-		a_uint32_t psgmiireg_size;
-		a_uint8_t *reg_access_mode;
-		a_uint8_t *psgmii_reg_access_str;
-		hsl_reg_mode switch_reg_access_mode;
-		hsl_reg_mode psgmii_reg_access_mode;
-		struct clk *ess_clk;
-		a_uint32_t      mac_mode;
-	} ssdk_dt_cfg;
-
-typedef struct phy_identification {
-	a_uint16_t phy_addr;
-	a_uint32_t phy_id;
-	int (*init)(void);
-} phy_identification_t;
+/*qca808x_end*/
 
 #if defined ATHENA
 #define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
@@ -259,7 +315,7 @@ typedef struct phy_identification {
         a_bool_t in_nathelper;
         a_bool_t in_interfacectrl;
     } ssdk_features;
-
+/*qca808x_start*/
 #define CFG_STR_SIZE 20
     typedef struct
     {
@@ -273,29 +329,47 @@ typedef struct phy_identification {
         a_bool_t  fal_mod;
         a_bool_t  kernel_mode;
         a_bool_t  uk_if;
-
+/*qca808x_end*/
         ssdk_features features;
+/*qca808x_start*/
         ssdk_init_cfg init_cfg;
     } ssdk_cfg_t;
 
-    sw_error_t
-    ssdk_init(a_uint32_t dev_id, ssdk_init_cfg *cfg);
+#define SSDK_RFS_INTF_MAX	8
+typedef struct
+{
+	a_uint32_t if_idx; /*netdevic idx*/
+	fal_mac_addr_t macaddr;
+	a_uint16_t vid;
+	a_uint8_t hw_idx; /* HW table entry idx*/
+} ssdk_rfs_intf_t;
 
-sw_error_t qca_ar8327_phy_read(a_uint32_t dev_id, a_uint32_t phy_addr,
-                           a_uint32_t reg, a_uint16_t* data);
-sw_error_t qca_ar8327_phy_write(a_uint32_t dev_id, a_uint32_t phy_addr,
-                            a_uint32_t reg, a_uint16_t data);
+sw_error_t
+ssdk_init(a_uint32_t dev_id, ssdk_init_cfg *cfg);
+/*qca808x_end*/
+sw_error_t
+ssdk_hsl_access_mode_set(a_uint32_t dev_id, hsl_access_mode reg_mode);
 
-sw_error_t qca_switch_reg_read(a_uint32_t dev_id, a_uint32_t reg_addr,
-			a_uint8_t * reg_data, a_uint32_t len);
-sw_error_t qca_switch_reg_write(a_uint32_t dev_id, a_uint32_t reg_addr,
-			a_uint8_t * reg_data, a_uint32_t len);
+a_uint32_t ssdk_dt_global_get_mac_mode(a_uint32_t dev_id, a_uint32_t index);
+a_uint32_t ssdk_dt_global_set_mac_mode(a_uint32_t dev_id, a_uint32_t index, a_uint32_t mode);
 
-    sw_error_t
-    ssdk_hsl_access_mode_set(a_uint32_t dev_id, hsl_access_mode reg_mode);
-	a_uint32_t ssdk_dt_global_get_mac_mode(void);
+a_uint32_t
+qca_hppe_port_mac_type_get(a_uint32_t dev_id, a_uint32_t port_id);
+a_uint32_t
+qca_hppe_port_mac_type_set(a_uint32_t dev_id, a_uint32_t port_id, a_uint32_t port_type);
 
+void
+qca_mac_port_status_init(a_uint32_t dev_id, a_uint32_t port_id);
+void
+qca_mac_sw_sync_port_status_init(a_uint32_t dev_id);
+/*qca808x_start*/
+struct qca_phy_priv* ssdk_phy_priv_data_get(a_uint32_t dev_id);
+/*qca808x_end*/
+sw_error_t qca_switch_init(a_uint32_t dev_id);
+/*qca808x_start*/
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
+
 #endif                          /* _SSDK_INIT_H */
+/*qca808x_end*/

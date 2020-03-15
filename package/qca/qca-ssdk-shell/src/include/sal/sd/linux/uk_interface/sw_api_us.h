@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -21,13 +21,13 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#include "common/sw.h"
+#include "sw.h"
 
     sw_error_t sw_uk_init(a_uint32_t nl_prot);
 
     sw_error_t sw_uk_cleanup(void);
 
-    sw_error_t sw_uk_if(a_uint32_t arg_val[SW_MAX_API_PARAM]);
+    sw_error_t sw_uk_if(unsigned long arg_val[SW_MAX_API_PARAM]);
 
 #ifdef __cplusplus
 }

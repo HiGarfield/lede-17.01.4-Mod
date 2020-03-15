@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012,2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -16,8 +16,8 @@
 #ifndef _AOS_TIMER_H
 #define _AOS_TIMER_H
 
-#include "sal/os/aos_types.h"
-#include "sal/os/linux/aos_timer_pvt.h"
+#include "aos_types.h"
+#include "aos_timer_pvt.h"
 
 
 typedef __aos_timer_t           aos_timer_t;

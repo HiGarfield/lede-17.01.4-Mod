@@ -19,6 +19,7 @@
 #else
 #include <linux/autoconf.h>
 #endif
+#include <linux/version.h>
 #include <linux/kthread.h>
 #include <linux/udp.h>
 #include <linux/rculist_nulls.h>
@@ -49,11 +50,13 @@ extern void __rcu_read_unlock(void);
 extern unsigned int nf_conntrack_htable_size;
 #endif
 
+a_bool_t napt_aging_ctrl_en = 0;
+
 void
 napt_ct_aging_disable(uint32_t ct_addr)
 {
 	struct nf_conn *ct = NULL;
-	if(nf_athrs17_hnat_sync_counter_en)
+	if(nf_athrs17_hnat_sync_counter_en || !napt_aging_ctrl_en)
 		return;
 
     if(!ct_addr)
@@ -78,7 +81,7 @@ napt_ct_aging_is_enable(uint32_t ct_addr)
         return 0;
     }
 
-	if(nf_athrs17_hnat_sync_counter_en)
+	if(nf_athrs17_hnat_sync_counter_en || !napt_aging_ctrl_en)
 		return 0;
 
 	ct = (struct nf_conn *)ct_addr;
@@ -92,7 +95,7 @@ napt_ct_aging_enable(uint32_t ct_addr)
 	struct nf_conn *ct = NULL;
 	uint16_t l3num = 0;
 	uint8_t protonum = 0;
-	if(nf_athrs17_hnat_sync_counter_en)
+	if(nf_athrs17_hnat_sync_counter_en || !napt_aging_ctrl_en)
 		return;
 
     if(!ct_addr)
@@ -109,13 +112,21 @@ napt_ct_aging_enable(uint32_t ct_addr)
 	l3num = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.src.l3num;
 	protonum = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple.dst.protonum;
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
     ct->timeout.expires = jiffies+10*HZ;
+#else
+    ct->timeout = nfct_time_stamp+10*HZ;
+#endif
 
     if ((l3num == AF_INET) && (protonum == IPPROTO_TCP))
     {
         if (ct->proto.tcp.state == TCP_CONNTRACK_ESTABLISHED)
         {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
             ct->timeout.expires = jiffies+(5*24*60*60*HZ);
+#else
+            ct->timeout = nfct_time_stamp+(5*24*60*60*HZ);
+#endif
         }
     }
 
@@ -249,11 +260,15 @@ napt_ct_intf_is_expected(uint32_t ct_addr)
 	dev = ip_dev_find(&init_net, dst_ip);
 	if(dev) {
 		if(dev->type == ARPHRD_ETHER) {
-			if(strstr(dev->name, "eth0"))
+			if(strstr(dev->name, "eth0") || strstr(dev->name, "erouter0")) {
+				dev_put(dev);
 				return 1;
+			}
 		} else if (dev->type == ARPHRD_PPP) {
+			dev_put(dev);
 			return 1;
 		}
+		dev_put(dev);
 	}
 
 	return 0;
@@ -332,31 +347,36 @@ napt_ct_list_unlock(void)
 uint32_t
 napt_ct_list_iterate(uint32_t *hash, uint32_t *iterate)
 {
-    struct net *net = &init_net;
-    struct nf_conntrack_tuple_hash *h = NULL;
-    struct nf_conn *ct = NULL;
-    struct hlist_nulls_node *pos = (struct hlist_nulls_node *) (*iterate);
+	struct net *net = &init_net;
+	struct nf_conntrack_tuple_hash *h = NULL;
+	struct nf_conn *ct = NULL;
+	struct hlist_nulls_node *pos = (struct hlist_nulls_node *) (*iterate);
 
-    while(*hash < nf_conntrack_htable_size)
-    {
-        if(pos == 0)
-        {
-            /*get head for list*/
-            pos = rcu_dereference((&net->ct.hash[*hash])->first);
-        }
+	while(*hash < nf_conntrack_htable_size)
+	{
+		if(pos == 0)
+		{
+			/*get head for list*/
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
+			pos = rcu_dereference((&net->ct.hash[*hash])->first);
+#else
+			pos = rcu_dereference((&nf_conntrack_hash[*hash])->first);
+#endif
+		}
 
-        hlist_nulls_for_each_entry_from(h, pos, hnnode)
-        {
-            (*iterate) = (uint32_t)(pos->next);
-            ct = nf_ct_tuplehash_to_ctrack(h);
-            return (uint32_t) ct;
-        }
+		hlist_nulls_for_each_entry_from(h, pos, hnnode)
+		{
+			(*iterate) = (uint32_t)(pos->next);
+			ct = nf_ct_tuplehash_to_ctrack(h);
+			return (uint32_t) ct;
+		}
 
-        ++(*hash);
-        pos = 0;
-    }
+		++(*hash);
+		pos = 0;
+	}
 
-    return 0;
+	*hash = 0;
+	return 0;
 }
 
 int

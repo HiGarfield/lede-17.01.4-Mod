@@ -28,6 +28,7 @@
 #define DESS_PHY_MODE_PHY_ID  4
 #define DESS_LPI_PORT1_OFFSET 4
 #define DESS_LPI_BIT_STEP     2
+#define DESS_LPI_ENABLE     3
 
 #define DESS_MAC4  4
 #define DESS_MAC5  5
@@ -36,7 +37,7 @@ static sw_error_t
 _dess_port_3az_status_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
 {
     sw_error_t rv = SW_OK;
-    a_uint32_t reg = 0, field, offset, device_id, rev_id, reverse = 0;
+    a_uint32_t reg = 0, field, offset, device_id;
 
     HSL_REG_ENTRY_GET(rv, dev_id, MASK_CTL, 0,
                       (a_uint8_t *) (&reg), sizeof (a_uint32_t));
@@ -46,25 +47,6 @@ _dess_port_3az_status_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable
     if (DESS_DEVICE_ID != device_id)
     {
         return SW_NOT_SUPPORTED;
-    }
-
-    SW_GET_FIELD_BY_REG(MASK_CTL, REV_ID, rev_id, reg);
-    if (DESS_DEVICE_ID == rev_id)
-    {
-        reverse = 0;
-    }
-    else
-    {
-        reverse = 1;
-    }
-
-    if (rev_id == 0)
-    {
-        reverse = 1;
-    }
-    else
-    {
-        reverse = 0;
     }
 
     if (A_TRUE != hsl_port_prop_check(dev_id, port_id, HSL_PP_PHY))
@@ -78,7 +60,7 @@ _dess_port_3az_status_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable
 
     if (A_TRUE == enable)
     {
-        field  = 1;
+        field  = DESS_LPI_ENABLE;
     }
     else if (A_FALSE == enable)
     {
@@ -89,13 +71,8 @@ _dess_port_3az_status_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable
         return SW_BAD_PARAM;
     }
 
-    if (reverse)
-    {
-        field = (~field) & 0x1UL;
-    }
-
     offset = (port_id - 1) * DESS_LPI_BIT_STEP + DESS_LPI_PORT1_OFFSET;
-    reg &= (~(0x1UL << offset));
+    reg &= (~(DESS_LPI_ENABLE << offset));
     reg |= (field << offset);
 
     HSL_REG_ENTRY_SET(rv, dev_id, EEE_CTL, 0,
@@ -107,7 +84,7 @@ static sw_error_t
 _dess_port_3az_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable)
 {
     sw_error_t rv = SW_OK;
-    a_uint32_t reg = 0, field, offset, device_id, rev_id, reverse = 0;
+    a_uint32_t reg = 0, field, offset, device_id;
 
     HSL_REG_ENTRY_GET(rv, dev_id, MASK_CTL, 0,
                       (a_uint8_t *) (&reg), sizeof (a_uint32_t));
@@ -117,25 +94,6 @@ _dess_port_3az_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enab
     if (DESS_DEVICE_ID != device_id)
     {
         return SW_NOT_SUPPORTED;
-    }
-
-    SW_GET_FIELD_BY_REG(MASK_CTL, REV_ID, rev_id, reg);
-    if (DESS_DEVICE_ID == rev_id)
-    {
-        reverse = 0;
-    }
-    else
-    {
-        reverse = 1;
-    }
-
-    if (rev_id == 0)
-    {
-        reverse = 1;
-    }
-    else
-    {
-        reverse = 0;
     }
 
     if (A_TRUE != hsl_port_prop_check(dev_id, port_id, HSL_PP_PHY))
@@ -148,14 +106,9 @@ _dess_port_3az_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enab
     SW_RTN_ON_ERROR(rv);
 
     offset = (port_id - 1) * DESS_LPI_BIT_STEP + DESS_LPI_PORT1_OFFSET;
-    field = (reg >> offset) & 0x1;
+    field = (reg >> offset) & 0x3;
 
-    if (reverse)
-    {
-        field = (~field) & 0x1UL;
-    }
-
-    if (field)
+    if (field == DESS_LPI_ENABLE)
     {
         *enable = A_TRUE;
     }

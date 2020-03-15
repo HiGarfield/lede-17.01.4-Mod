@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -103,7 +103,7 @@
 
 #define AR8327_NUM_PHYS		5
 #define AR8327_PORT_CPU     0
-#define AR8327_NUM_PORTS	7
+#define AR8327_NUM_PORTS	8
 #define AR8327_MAX_VLANS  128
 
 enum {

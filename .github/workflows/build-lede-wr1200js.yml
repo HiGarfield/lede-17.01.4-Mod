@@ -1,8 +1,6 @@
 name: Build LEDE wr1200js
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

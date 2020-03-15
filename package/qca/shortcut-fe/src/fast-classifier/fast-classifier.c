@@ -16,6 +16,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 #include <linux/module.h>
+#include <linux/version.h>
 #include <linux/sysfs.h>
 #include <linux/skbuff.h>
 #include <net/route.h>
@@ -36,9 +37,9 @@
 #include <linux/hashtable.h>
 #include <net/pkt_sched.h>
 
-#include "sfe_backport.h"
-#include "sfe.h"
-#include "sfe_cm.h"
+#include <sfe_backport.h>
+#include <sfe.h>
+#include <sfe_cm.h>
 #include "fast-classifier.h"
 
 typedef enum fast_classifier_exception {
@@ -125,18 +126,14 @@ static struct genl_multicast_group fast_classifier_genl_mcgrp[] = {
 	},
 };
 
-static struct genl_family fast_classifier_gnl_family = {
-	.id = GENL_ID_GENERATE,
-	.hdrsize = FAST_CLASSIFIER_GENL_HDRSIZE,
-	.name = FAST_CLASSIFIER_GENL_NAME,
-	.version = FAST_CLASSIFIER_GENL_VERSION,
-	.maxattr = FAST_CLASSIFIER_A_MAX,
-};
-
 static int fast_classifier_offload_genl_msg(struct sk_buff *skb, struct genl_info *info);
 static int fast_classifier_nl_genl_msg_DUMP(struct sk_buff *skb, struct netlink_callback *cb);
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 static struct genl_ops fast_classifier_gnl_ops[] = {
+#else
+static const struct genl_ops fast_classifier_gnl_ops[] = {
+#endif
 	{
 		.cmd = FAST_CLASSIFIER_C_OFFLOAD,
 		.flags = 0,
@@ -159,6 +156,28 @@ static struct genl_ops fast_classifier_gnl_ops[] = {
 		.dumpit = fast_classifier_nl_genl_msg_DUMP,
 	},
 };
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
+static struct genl_family fast_classifier_gnl_family = {
+	.id = GENL_ID_GENERATE,
+	.hdrsize = FAST_CLASSIFIER_GENL_HDRSIZE,
+	.name = FAST_CLASSIFIER_GENL_NAME,
+	.version = FAST_CLASSIFIER_GENL_VERSION,
+	.maxattr = FAST_CLASSIFIER_A_MAX,
+};
+#else
+static struct genl_family fast_classifier_gnl_family = {
+	.hdrsize = FAST_CLASSIFIER_GENL_HDRSIZE,
+	.name = FAST_CLASSIFIER_GENL_NAME,
+	.version = FAST_CLASSIFIER_GENL_VERSION,
+	.maxattr = FAST_CLASSIFIER_A_MAX,
+	.module		= THIS_MODULE,
+	.ops		= fast_classifier_gnl_ops,
+	.n_ops		= ARRAY_SIZE(fast_classifier_gnl_ops),
+	.mcgrps		= fast_classifier_genl_mcgrp,
+	.n_mcgrps	= ARRAY_SIZE(fast_classifier_genl_mcgrp),
+};
+#endif
 
 static atomic_t offload_msgs = ATOMIC_INIT(0);
 static atomic_t offload_no_match_msgs = ATOMIC_INIT(0);
@@ -223,7 +242,7 @@ static int fast_classifier_recv(struct sk_buff *skb)
 	    (dev->priv_flags & IFF_BRIDGE_PORT)) {
 		master_dev = sfe_dev_get_master(dev);
 		if (!master_dev) {
-			DEBUG_WARN("master dev is NULL %s\n", dev->name);
+			DEBUG_WARN("master dev is NULL\n");
 			goto rx_exit;
 		}
 		dev = master_dev;
@@ -309,32 +328,14 @@ rx_exit:
  * We look up the rtable entry for the address and, from its neighbour
  * structure, obtain the hardware address.  This means this function also
  * works if the neighbours are routers too.
- *
- * 21/10/17, quarkysg
- * - modified method signature to accept dst_entry from caller.  It will be used in place of existing method logic to lookup
- *   destination routes, which fails when packets are policy routed.
- *
- * 22/12/17, quarkysg
- * - changed method signature to accept sk_buff * instead, to make it more efficient.
  */
-static bool fast_classifier_find_dev_and_mac_addr(struct sk_buff *skb, sfe_ip_addr_t *addr, struct net_device **dev, u8 *mac_addr, bool is_v4)
+static bool fast_classifier_find_dev_and_mac_addr(sfe_ip_addr_t *addr, struct net_device **dev, u8 *mac_addr, bool is_v4)
 {
 	struct neighbour *neigh;
 	struct rtable *rt;
 	struct rt6_info *rt6;
 	struct dst_entry *dst;
 	struct net_device *mac_dev;
-
-	/*
-	 * If we have skb provided, use it as the original code is unable
-	 * to lookup routes that are policy routed.
-	 *
-	 * quarkysg, 22/12/17
-	 */
-	if (unlikely(skb)) {
-		dst = skb_dst(skb);
-		goto skip_dst_lookup;
-	}
 
 	/*
 	 * Look up the rtable entry for the IP address then get the hardware
@@ -349,7 +350,11 @@ static bool fast_classifier_find_dev_and_mac_addr(struct sk_buff *skb, sfe_ip_ad
 
 		dst = (struct dst_entry *)rt;
 	} else {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 		rt6 = rt6_lookup(&init_net, (struct in6_addr *)addr->ip6, 0, 0, 0);
+#else
+		rt6 = rt6_lookup(&init_net, (struct in6_addr *)addr->ip6, 0, 0, 0, 0);
+#endif
 		if (!rt6) {
 			goto ret_fail;
 		}
@@ -357,25 +362,18 @@ static bool fast_classifier_find_dev_and_mac_addr(struct sk_buff *skb, sfe_ip_ad
 		dst = (struct dst_entry *)rt6;
 	}
 
-skip_dst_lookup:	/* quarkysg, 21/10/17 */
 	rcu_read_lock();
 	neigh = dst_neigh_lookup(dst, addr);
 	if (unlikely(!neigh)) {
 		rcu_read_unlock();
-		/* only release dst_entry found in this method, quarkysg, 21/10/17 */
-		if (likely(!skb)) {
-			dst_release(dst);
-		}
+		dst_release(dst);
 		goto ret_fail;
 	}
 
 	if (unlikely(!(neigh->nud_state & NUD_VALID))) {
 		rcu_read_unlock();
 		neigh_release(neigh);
-		/* only release dst_entry found in this method, quarkysg, 21/10/17 */
-		if (likely(!skb)) {
-			dst_release(dst);
-		}
+		dst_release(dst);
 		goto ret_fail;
 	}
 
@@ -383,10 +381,7 @@ skip_dst_lookup:	/* quarkysg, 21/10/17 */
 	if (!mac_dev) {
 		rcu_read_unlock();
 		neigh_release(neigh);
-		/* only release dst_entry found in this method, quarkysg, 21/10/17 */
-		if (likely(!skb)) {
-			dst_release(dst);
-		}
+		dst_release(dst);
 		goto ret_fail;
 	}
 
@@ -396,10 +391,7 @@ skip_dst_lookup:	/* quarkysg, 21/10/17 */
 	*dev = mac_dev;
 	rcu_read_unlock();
 	neigh_release(neigh);
-	/* only release dst_entry found in this method, quarkysg, 21/10/17 */
-	if (likely(!skb)) {
-		dst_release(dst);
-	}
+	dst_release(dst);
 
 	return true;
 
@@ -820,6 +812,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 		return NF_ACCEPT;
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	/*
 	 * Don't process untracked connections.
 	 */
@@ -828,6 +821,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 		DEBUG_TRACE("untracked connection\n");
 		return NF_ACCEPT;
 	}
+#endif
 
 	/*
 	 * Unconfirmed connection may be dropped by Linux at the final step,
@@ -1033,27 +1027,26 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 	 * Get the net device and MAC addresses that correspond to the various source and
 	 * destination host addresses.
 	 */
-	if (!fast_classifier_find_dev_and_mac_addr(NULL, &sic.src_ip, &src_dev, sic.src_mac, is_v4)) {
+	if (!fast_classifier_find_dev_and_mac_addr(&sic.src_ip, &src_dev, sic.src_mac, is_v4)) {
 		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_NO_SRC_DEV);
 		return NF_ACCEPT;
 	}
 
-	if (!fast_classifier_find_dev_and_mac_addr(NULL, &sic.src_ip_xlate, &dev, sic.src_mac_xlate, is_v4)) {
+	if (!fast_classifier_find_dev_and_mac_addr(&sic.src_ip_xlate, &dev, sic.src_mac_xlate, is_v4)) {
 		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_NO_SRC_XLATE_DEV);
 		goto done1;
 	}
 
 	dev_put(dev);
 
-	if (!fast_classifier_find_dev_and_mac_addr(NULL, &sic.dest_ip, &dev, sic.dest_mac, is_v4)) {
+	if (!fast_classifier_find_dev_and_mac_addr(&sic.dest_ip, &dev, sic.dest_mac, is_v4)) {
 		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_NO_DEST_DEV);
 		goto done1;
 	}
 
 	dev_put(dev);
 
-	/* we pass in sk_buff(skb) to enable acceleration of policy routed packets, quarkysg, 22/12/17 */
-	if (!fast_classifier_find_dev_and_mac_addr(skb, &sic.dest_ip_xlate, &dest_dev, sic.dest_mac_xlate, is_v4)) {
+	if (!fast_classifier_find_dev_and_mac_addr(&sic.dest_ip_xlate, &dest_dev, sic.dest_mac_xlate, is_v4)) {
 		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_NO_DEST_XLATE_DEV);
 		goto done1;
 	}
@@ -1207,6 +1200,7 @@ static int fast_classifier_conntrack_event(struct notifier_block *this,
 		return NOTIFY_DONE;
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	/*
 	 * If this is an untracked connection then we can't have any state either.
 	 */
@@ -1214,6 +1208,7 @@ static int fast_classifier_conntrack_event(struct notifier_block *this,
 		DEBUG_TRACE("ignoring untracked conn\n");
 		return NOTIFY_DONE;
 	}
+#endif
 
 	orig_tuple = ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple;
 	sid.protocol = (s32)orig_tuple.dst.protonum;
@@ -1419,14 +1414,20 @@ static void fast_classifier_sync_rule(struct sfe_connection_sync *sis)
 	}
 
 	ct = nf_ct_tuplehash_to_ctrack(h);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
 	NF_CT_ASSERT(ct->timeout.data == (unsigned long)ct);
+#endif
 
 	/*
 	 * Only update if this is not a fixed timeout
 	 */
 	if (!test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
 		spin_lock_bh(&ct->lock);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
 		ct->timeout.expires += sis->delta_jiffies;
+#else
+		ct->timeout += (u32)sis->delta_jiffies;
+#endif
 		spin_unlock_bh(&ct->lock);
 	}
 
@@ -1638,6 +1639,25 @@ static const struct device_attribute fast_classifier_attrs[] = {
 	__ATTR(exceptions, S_IRUGO, fast_classifier_get_exceptions, NULL),
 };
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
+static int __net_init fast_classifier_nf_register(struct net *net)
+{
+	return nf_register_net_hooks(net, fast_classifier_ops_post_routing,
+				 ARRAY_SIZE(fast_classifier_ops_post_routing));
+}
+
+static void __net_exit fast_classifier_nf_unregister(struct net *net)
+{
+	nf_unregister_net_hooks(net, fast_classifier_ops_post_routing,
+				ARRAY_SIZE(fast_classifier_ops_post_routing));
+}
+
+static struct pernet_operations fast_classifier_net_ops = {
+	.init = fast_classifier_nf_register,
+	.exit = fast_classifier_nf_unregister,
+};
+#endif
+
 /*
  * fast_classifier_init()
  */
@@ -1647,7 +1667,7 @@ static int __init fast_classifier_init(void)
 	int result = -1;
 	size_t i, j;
 
-	printk(KERN_ALERT "fast-classifier (PBR safe v2.2): starting up\n");
+	printk(KERN_ALERT "fast-classifier: starting up\n");
 	DEBUG_INFO("SFE CM init\n");
 
 	hash_init(fc_conn_ht);
@@ -1685,7 +1705,11 @@ static int __init fast_classifier_init(void)
 	/*
 	 * Register our netfilter hooks.
 	 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	result = nf_register_hooks(fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
+#else
+	result = register_pernet_subsys(&fast_classifier_net_ops);
+#endif
 	if (result < 0) {
 		DEBUG_ERROR("can't register nf post routing hook: %d\n", result);
 		goto exit3;
@@ -1703,9 +1727,13 @@ static int __init fast_classifier_init(void)
 #endif
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
+	result = genl_register_family(&fast_classifier_gnl_family);
+#else
 	result = genl_register_family_with_ops_groups(&fast_classifier_gnl_family,
 						      fast_classifier_gnl_ops,
 						      fast_classifier_genl_mcgrp);
+#endif
 	if (result) {
 		DEBUG_ERROR("failed to register genl ops: %d\n", result);
 		goto exit5;
@@ -1731,7 +1759,7 @@ static int __init fast_classifier_init(void)
 	}
 #endif
 
-	printk(KERN_ALERT "fast-classifier (PBR safe v2.2): registered\n");
+	printk(KERN_ALERT "fast-classifier: registered\n");
 
 	spin_lock_init(&sc->lock);
 
@@ -1759,7 +1787,11 @@ exit5:
 
 exit4:
 #endif
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	nf_unregister_hooks(fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
+#else
+	unregister_pernet_subsys(&fast_classifier_net_ops);
+#endif
 
 exit3:
 	unregister_inetaddr_notifier(&sc->inet_notifier);
@@ -1785,7 +1817,7 @@ static void __exit fast_classifier_exit(void)
 	int result = -1;
 
 	DEBUG_INFO("SFE CM exit\n");
-	printk(KERN_ALERT "fast-classifier (PBR safe v2.2): shutting down\n");
+	printk(KERN_ALERT "fast-classifier: shutting down\n");
 
 	/*
 	 * Unregister our sync callback.
@@ -1825,7 +1857,11 @@ static void __exit fast_classifier_exit(void)
 	nf_conntrack_unregister_notifier(&init_net, &fast_classifier_conntrack_notifier);
 
 #endif
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	nf_unregister_hooks(fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
+#else
+	unregister_pernet_subsys(&fast_classifier_net_ops);
+#endif
 
 	unregister_inet6addr_notifier(&sc->inet6_notifier);
 	unregister_inetaddr_notifier(&sc->inet_notifier);

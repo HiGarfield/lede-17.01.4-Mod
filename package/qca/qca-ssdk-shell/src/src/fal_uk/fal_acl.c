@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2016-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -42,7 +42,7 @@ fal_acl_rule_add(a_uint32_t dev_id, a_uint32_t list_id, a_uint32_t rule_id,
     sw_error_t rv;
 
     rv = sw_uk_exec(SW_API_ACL_RULE_ADD, dev_id, list_id, rule_id,
-                    rule_nr, (a_uint32_t) rule);
+				rule_nr, rule);
     return rv;
 }
 
@@ -62,7 +62,7 @@ fal_acl_rule_query(a_uint32_t dev_id, a_uint32_t list_id, a_uint32_t rule_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_ACL_RULE_QUERY, dev_id, list_id, rule_id, (a_uint32_t) rule);
+    rv = sw_uk_exec(SW_API_ACL_RULE_QUERY, dev_id, list_id, rule_id, rule);
     return rv;
 }
 
@@ -93,7 +93,7 @@ fal_acl_status_set(a_uint32_t dev_id, a_bool_t enable)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_ACL_STATUS_SET, dev_id, (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_ACL_STATUS_SET, dev_id, enable);
     return rv;
 }
 
@@ -102,7 +102,7 @@ fal_acl_status_get(a_uint32_t dev_id, a_bool_t * enable)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_ACL_STATUS_GET, dev_id, (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_ACL_STATUS_GET, dev_id, enable);
     return rv;
 }
 
@@ -125,7 +125,8 @@ fal_acl_rule_dump(a_uint32_t dev_id)
 }
 
 sw_error_t
-fal_acl_port_udf_profile_set(a_uint32_t dev_id, fal_port_t port_id, fal_acl_udf_type_t udf_type, a_uint32_t offset, a_uint32_t length)
+fal_acl_port_udf_profile_set(a_uint32_t dev_id, fal_port_t port_id,
+		fal_acl_udf_type_t udf_type, a_uint32_t offset, a_uint32_t length)
 {
     sw_error_t rv;
 
@@ -134,11 +135,13 @@ fal_acl_port_udf_profile_set(a_uint32_t dev_id, fal_port_t port_id, fal_acl_udf_
 }
 
 sw_error_t
-fal_acl_port_udf_profile_get(a_uint32_t dev_id, fal_port_t port_id, fal_acl_udf_type_t udf_type, a_uint32_t * offset, a_uint32_t * length)
+fal_acl_port_udf_profile_get(a_uint32_t dev_id, fal_port_t port_id,
+		fal_acl_udf_type_t udf_type, a_uint32_t * offset, a_uint32_t * length)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_ACL_PT_UDF_PROFILE_GET, dev_id, port_id, udf_type, (a_uint32_t)offset, (a_uint32_t)length);
+    rv = sw_uk_exec(SW_API_ACL_PT_UDF_PROFILE_GET, dev_id, port_id,
+				udf_type, offset, length);
     return rv;
 }
 
@@ -179,6 +182,26 @@ fal_acl_rule_src_filter_sts_get(a_uint32_t dev_id,
     sw_error_t rv;
 
     rv = sw_uk_exec(SW_API_ACL_RULE_SRC_FILTER_STS_GET, dev_id, rule_id, enable);
+    return rv;
+}
+
+sw_error_t
+fal_acl_udf_profile_set(a_uint32_t dev_id, fal_acl_udf_pkt_type_t pkt_type,
+		a_uint32_t udf_idx, fal_acl_udf_type_t udf_type, a_uint32_t offset)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_ACL_UDF_SET, dev_id, pkt_type, udf_idx, udf_type, offset);
+    return rv;
+}
+
+sw_error_t
+fal_acl_udf_profile_get(a_uint32_t dev_id, fal_acl_udf_pkt_type_t pkt_type,
+		a_uint32_t udf_idx, fal_acl_udf_type_t *udf_type, a_uint32_t *offset)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_ACL_UDF_GET, dev_id, pkt_type, udf_idx, udf_type, offset);
     return rv;
 }
 

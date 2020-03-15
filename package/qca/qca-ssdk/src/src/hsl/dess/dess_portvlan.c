@@ -143,7 +143,7 @@ _dess_port_egvlanmode_set(a_uint32_t dev_id, fal_port_t port_id,
                           fal_pt_1q_egmode_t port_egvlanmode)
 {
     sw_error_t rv;
-    a_uint32_t data = 0, regval[FAL_EG_MODE_BUTT] = { 0, 1, 2, 3, 3 };
+    a_uint32_t regval[FAL_EG_MODE_BUTT] = { 0, 1, 2, 3, 3 };
 
     HSL_DEV_ID_CHECK(dev_id);
 
@@ -164,15 +164,6 @@ _dess_port_egvlanmode_set(a_uint32_t dev_id, fal_port_t port_id,
 
     SW_RTN_ON_ERROR(rv);
 
-    HSL_REG_ENTRY_GET(rv, dev_id, ROUTER_EG, 0,
-                      (a_uint8_t *) (&data), sizeof (a_uint32_t));
-    SW_RTN_ON_ERROR(rv);
-
-    data &= (~(0x3 << (port_id << 2)));
-    data |= (regval[port_egvlanmode] << (port_id << 2));
-
-    HSL_REG_ENTRY_SET(rv, dev_id, ROUTER_EG, 0,
-                      (a_uint8_t *) (&data), sizeof (a_uint32_t));
     return rv;
 }
 

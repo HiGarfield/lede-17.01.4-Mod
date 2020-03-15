@@ -700,7 +700,6 @@ nat_ipt_get_ctl(struct sock *sk, int cmd, void __user * user, int *len)
         struct ipt_get_entries entries;
 
         copy_from_user(&entries, user, sizeof (entries));
-        HNAT_PRINTK("IPT_SO_GET_ENTRIES: %s %d\n", entries.name, entries.size);
 
         nat_ipt_rules_cp_from_user((void **)&gbuffer, &glen,
                                    (user + sizeof (struct ipt_get_entries)),
@@ -713,7 +712,8 @@ nat_ipt_get_ctl(struct sock *sk, int cmd, void __user * user, int *len)
 void
 nat_ipt_sockopts_replace(void)
 {
-	int ret = 0;
+    int ret = 0;
+
     /*register an temp sockopts to find ipt_sockopts*/
     if((ret = nf_register_sockopt(&tmp_ipt_sockopts)) < 0) {
 		return;
@@ -757,5 +757,6 @@ nat_ipt_helper_exit(void)
 {
     nat_ipt_sockopts_restore();
     nat_ipt_data_cleanup();
+    nat_hw_flush();
 }
 

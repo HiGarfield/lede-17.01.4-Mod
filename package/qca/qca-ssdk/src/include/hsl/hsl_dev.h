@@ -13,7 +13,7 @@
  */
 
 
-
+/*qca808x_start*/
 #ifndef _HSL_DEV_H
 #define _HSL_DEV_H
 
@@ -44,28 +44,32 @@ do { \
         a_uint8_t nr_phy;
         a_uint8_t nr_queue;
         a_uint16_t nr_vlans;
-        a_bool_t hw_vlan_query;
+		a_bool_t hw_vlan_query;
         hsl_acl_func_t acl_func;
         hsl_init_mode  cpu_mode;
-	a_uint32_t wan_bmp;
+		a_uint32_t wan_bmp;
     } hsl_dev_t;
 
     hsl_dev_t *hsl_dev_ptr_get(a_uint32_t dev_id);
+/*qca808x_end*/
     hsl_acl_func_t *hsl_acl_ptr_get(a_uint32_t dev_id);
-
+/*qca808x_start*/
     sw_error_t
     hsl_dev_init(a_uint32_t dev_id, ssdk_init_cfg * cfg);
 
     sw_error_t
+    hsl_dev_cleanup(void);
+
+/*qca808x_end*/
+    sw_error_t
     hsl_ssdk_cfg(a_uint32_t dev_id, ssdk_cfg_t *ssdk_cfg);
 
     sw_error_t
-    hsl_dev_cleanup(void);
-
-    sw_error_t
     hsl_access_mode_set(a_uint32_t dev_id, hsl_access_mode reg_mode);
-
+/*qca808x_start*/
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
 #endif                          /* _HSL_DEV_H */
+/*qca808x_end*/
+

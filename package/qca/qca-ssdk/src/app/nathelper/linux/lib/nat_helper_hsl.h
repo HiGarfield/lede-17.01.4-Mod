@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015, 2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -26,7 +26,6 @@
 #include <linux/if_ether.h>
 #include "fal_nat.h"
 
-
 #define NAT_HW_NUM 32
 #define NAT_HW_PORT_RANGE_MAX 255
 
@@ -47,6 +46,73 @@
 /* define the H/W Age mode for NAPT entries */
 #define ARP_AGE_NEVER   7
 #define ARP_AGE 6
+
+#if !defined (HSL_STANDALONG)
+/*NAT API*/
+#define NAPT_ADD fal_napt_add
+#define NAPT_GET fal_napt_get
+#define NAT_PUB_ADDR_ADD fal_nat_pub_addr_add
+#define NAPT_NEXT fal_napt_next
+#define NAT_PRV_BASE_ADDR_SET fal_nat_prv_base_addr_set
+#define NAT_PRV_BASE_MASK_SET fal_nat_prv_base_mask_set
+#define NAPT_DEL fal_napt_del
+#define NAT_DEL fal_nat_del
+#define NAT_PUB_ADDR_DEL fal_nat_pub_addr_del
+#define NAT_ADD fal_nat_add
+#define NAT_PRV_ADDR_MODE_GET fal_nat_prv_addr_mode_get
+
+/*IP API*/
+#define IP_INTF_ENTRY_ADD fal_ip_intf_entry_add
+#define IP_HOST_ADD fal_ip_host_add
+#define IP_HOST_DEL fal_ip_host_del
+#define IP_HOST_GET fal_ip_host_get
+#define IP_HOST_NEXT fal_ip_host_next
+#define IP_INTF_ENTRY_DEL fal_ip_intf_entry_del
+#define IP_HOST_PPPOE_BIND fal_ip_host_pppoe_bind
+#define IP_ROUTE_STATUS_SET fal_ip_route_status_set
+#define IP_HOST_ROUTE_ADD fal_ip_host_route_set
+#define IP_PRV_BASE_ADDR_SET fal_ip_vrf_base_addr_set
+#define IP_PRV_BASE_MASK_SET fal_ip_vrf_base_mask_set
+
+/* PPPOE */
+#define PPPOE_STATUS_GET fal_pppoe_status_get
+#define PPPOE_STATUS_SET fal_pppoe_status_set
+#define PPPOE_SESSION_ID_SET fal_pppoe_session_id_set
+#define PPPOE_SESSION_TABLE_ADD fal_pppoe_session_table_add
+#define PPPOE_SESSION_TABLE_DEL fal_pppoe_session_table_del
+#define RTD_PPPOE_EN_SET fal_rtd_pppoe_en_set
+
+/*MISC API*/
+#define MISC_ARP_CMD_SET fal_arp_cmd_set
+#define CPU_VID_EN_SET fal_cpu_vid_en_set
+#define PORT_ARP_ACK_STATUS_SET fal_port_arp_ack_status_set
+#define CPU_PORT_STATUS_SET fal_cpu_port_status_set
+
+/*ACL API*/
+#define ACL_RULE_ADD fal_acl_rule_add
+#define ACL_RULE_DEL fal_acl_rule_delete
+#define ACL_LIST_CREATE fal_acl_list_creat
+#define ACL_LIST_DESTROY fal_acl_list_destroy
+#define ACL_LIST_BIND fal_acl_list_bind
+#define ACL_LIST_UNBIND fal_acl_list_unbind
+#define ACL_STATUS_GET fal_acl_status_get
+#define ACL_STATUS_SET fal_acl_status_set
+#define ACL_PORT_UDF_PROFILE_SET fal_acl_port_udf_profile_set
+
+/*VLAN API */
+#define VLAN_NEXT fal_vlan_next
+
+/* PORTVLAN API */
+#define PORTVLAN_ROUTE_DEFV_SET(dev_id, port_id)
+#define NETISOLATE_SET fal_netisolate_set
+
+/* PORT_CTRL API */
+#define HEADER_TYPE_SET fal_header_type_set
+#define PORT_TXHDR_MODE_SET fal_port_txhdr_mode_set
+
+/* REG ACCESS API */
+#define REG_GET fal_reg_get
+#endif
 
 extern int nf_athrs17_hnat;
 extern int nf_athrs17_hnat_wan_type;
@@ -177,6 +243,7 @@ a_int32_t
 napt_hw_next_by_age(napt_entry_t *napt, a_uint32_t age);
 a_int32_t
 napt_hw_get_by_index(napt_entry_t *napt, a_uint16_t hw_index);
+a_int32_t napt_hw_get_by_sip(a_uint32_t sip);
 a_uint32_t
 napt_hw_used_count_get(void);
 

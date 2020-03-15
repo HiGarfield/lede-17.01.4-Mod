@@ -74,163 +74,7 @@
 static a_uint32_t dess_mac_snap[SW_MAX_NR_DEV] = { 0 };
 static fal_intf_mac_entry_t dess_intf_snap[SW_MAX_NR_DEV][DESS_INTF_MAC_ADDR_NUM];
 
-struct ip_host_route_ip4 {
-	a_uint8_t valid;
-	fal_ip4_addr_t ip;
-	a_uint32_t ref;
-};
-struct ip_host_route_ip6 {
-	a_uint8_t valid;
-	fal_ip6_addr_t ip;
-	a_uint32_t ref;
-};
-#define IP_HOST_ROUTE_NUM   16
-struct ip_host_route_ip4 ip_host_route_ip4_table[IP_HOST_ROUTE_NUM];
-struct ip_host_route_ip6 ip_host_route_ip6_table[IP_HOST_ROUTE_NUM];
-static sw_error_t
-_dess_ip_host_route_set(a_uint32_t dev_id, a_uint32_t hroute_id, fal_host_route_t * entry);
-static sw_error_t
-_dess_ip_host_route_get(a_uint32_t dev_id, a_uint32_t hroute_id, fal_host_route_t * entry);
-
 extern aos_lock_t dess_nat_lock;
-
-static a_int32_t
-_dess_ip_host_route_ip4_hw_add(fal_host_entry_t *arp_entry)
-{
-	a_uint8_t exist = 0, idx = IP_HOST_ROUTE_NUM+1, i = 0;
-	fal_ip4_addr_t ip = arp_entry->ip4_addr;
-
-	ip = ip & 0xffff0000;
-	for(i = 0; i < IP_HOST_ROUTE_NUM; i++) {
-		if(ip_host_route_ip4_table[i].valid) {
-			if(ip_host_route_ip4_table[i].ip == ip) {
-				exist = 1;
-				idx = i;
-				break;
-			}
-		} else {
-			idx = i;
-		}
-	}
-	if(!exist) {
-		fal_host_route_t entry;
-		if(idx >= IP_HOST_ROUTE_NUM) {
-			return -1;
-		}
-
-		ip_host_route_ip4_table[idx].valid = 1;
-		ip_host_route_ip4_table[idx].ip = ip;
-		memset(&entry, 0, sizeof(entry));
-		entry.valid = 1;
-		entry.ip_version = 0;
-		entry.route_addr.ip4_addr = ip;
-		entry.prefix_length = 15;
-		_dess_ip_host_route_set(0, idx, &entry);
-		ip_host_route_ip4_table[idx].ref = 1;
-	} else {
-		ip_host_route_ip4_table[idx].ref++;
-	}
-
-	return 0;
-}
-
-static a_int32_t
-_dess_ip_host_route_ip4_hw_del(fal_host_entry_t *arp_entry)
-{
-	a_uint8_t exist = 0, i = 0;
-	fal_ip4_addr_t ip = arp_entry->ip4_addr;
-
-	ip = ip & 0xffff0000;
-	for(i = 0; i < IP_HOST_ROUTE_NUM; i++) {
-		if(ip_host_route_ip4_table[i].valid) {
-			if(ip_host_route_ip4_table[i].ip == ip) {
-				exist = 1;
-				break;
-			}
-		}
-	}
-	if(exist) {
-		ip_host_route_ip4_table[i].ref--;
-		if(ip_host_route_ip4_table[i].ref == 0) {
-			fal_host_route_t entry;
-			memset(&entry, 0, sizeof(entry));
-			ip_host_route_ip4_table[i].valid = 0;
-			return _dess_ip_host_route_set(0, i, &entry);
-		}
-	}
-	return SW_OK;
-}
-
-
-static a_int32_t
-_dess_ip_host_route_ip6_hw_add(fal_host_entry_t *arp_entry)
-{
-	a_uint8_t exist = 0, idx = IP_HOST_ROUTE_NUM+1, i = 0;
-	fal_ip6_addr_t ip = arp_entry->ip6_addr;
-
-	ip.ul[1] = 0;
-	ip.ul[2] = 0;
-	ip.ul[3] = 0;
-	for(i = 0; i < IP_HOST_ROUTE_NUM; i++) {
-		if(ip_host_route_ip6_table[i].valid) {
-			if(ip_host_route_ip6_table[i].ip.ul[0] == ip.ul[0]) {
-				exist = 1;
-				idx = i;
-				break;
-			}
-		} else {
-			idx = i;
-		}
-	}
-	if(!exist) {
-		fal_host_route_t entry;
-		if(idx >= IP_HOST_ROUTE_NUM) {
-			return -1;
-		}
-
-		ip_host_route_ip6_table[idx].valid = 1;
-		ip_host_route_ip6_table[idx].ip.ul[0] = ip.ul[0];
-		memset(&entry, 0, sizeof(entry));
-		entry.valid = 1;
-		entry.ip_version = 1;
-		entry.route_addr.ip6_addr.ul[0] = ip.ul[0];
-		entry.prefix_length = 31;
-		_dess_ip_host_route_set(0, idx, &entry);
-		ip_host_route_ip6_table[idx].ref = 1;
-	} else {
-		ip_host_route_ip6_table[idx].ref++;
-	}
-
-	return 0;
-}
-
-static a_int32_t
-_dess_ip_host_route_ip6_hw_del(fal_host_entry_t *arp_entry)
-{
-	a_uint8_t exist = 0, i = 0;
-	fal_ip6_addr_t ip = arp_entry->ip6_addr;
-
-	for(i = 0; i < IP_HOST_ROUTE_NUM; i++) {
-		if(ip_host_route_ip6_table[i].valid) {
-			if(ip_host_route_ip6_table[i].ip.ul[0] == ip.ul[0]) {
-				exist = 1;
-				break;
-			}
-		}
-	}
-	if(exist) {
-		ip_host_route_ip6_table[i].ref--;
-		if(ip_host_route_ip6_table[i].ref == 0) {
-			fal_host_route_t entry;
-			entry.valid = 0;
-			entry.ip_version = 1;
-			ip_host_route_ip6_table[i].valid = 0;
-			return _dess_ip_host_route_set(0, i, &entry);
-		}
-	}
-	return SW_OK;
-}
-
 
 
 static void
@@ -285,7 +129,6 @@ _dess_ip_feature_check(a_uint32_t dev_id)
                       (a_uint8_t *) (&entry), sizeof (a_uint32_t));
     SW_RTN_ON_ERROR(rv);
 
-/*linchen: force as dess*/
     if (DESS_DEVICE_ID == entry)
     {
         return SW_OK;
@@ -801,11 +644,7 @@ _dess_ip_host_add(a_uint32_t dev_id, fal_host_entry_t * entry)
 	}
 	aos_unlock_bh(&dess_nat_lock);
     SW_GET_FIELD_BY_REG(HOST_ENTRY7, TBL_IDX, entry->entry_id, reg[7]);
-	if(entry->flags == FAL_IP_IP4_ADDR) {
-		_dess_ip_host_route_ip4_hw_add(entry);
-	} else {
-		_dess_ip_host_route_ip6_hw_add(entry);
-	}
+
     return SW_OK;
 }
 
@@ -873,12 +712,7 @@ _dess_ip_host_del(a_uint32_t dev_id, a_uint32_t del_mode,
 
     rv = _dess_host_entry_commit(dev_id, DESS_ENTRY_ARP, op);
 	aos_unlock_bh(&dess_nat_lock);
-	if(!rv) {
-		if(FAL_IP_IP4_ADDR & entry->flags)
-			_dess_ip_host_route_ip4_hw_del(entry);
-		else
-			_dess_ip_host_route_ip6_hw_del(entry);
-	}
+
     return rv;
 }
 
@@ -3766,9 +3600,6 @@ dess_ip_init(a_uint32_t dev_id)
     sw_error_t rv;
 
     HSL_DEV_ID_CHECK(dev_id);
-
-	memset(ip_host_route_ip4_table, 0, sizeof(ip_host_route_ip4_table));
-	memset(ip_host_route_ip6_table, 0, sizeof(ip_host_route_ip6_table));
 
     rv = dess_ip_reset(dev_id);
     SW_RTN_ON_ERROR(rv);

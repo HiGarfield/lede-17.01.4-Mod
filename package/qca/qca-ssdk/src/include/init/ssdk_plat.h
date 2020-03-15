@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2014-2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2014-2015, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -11,9 +11,22 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
+/*qca808x_start*/
 #ifndef __SSDK_PLAT_H
 #define __SSDK_PLAT_H
+
+#include "sw.h"
+/*qca808x_end*/
+#include <linux/kconfig.h>
+#include <linux/version.h>
+#include <linux/kernel.h>
+#include <linux/module.h>
+
+#if defined(IN_SWCONFIG)
+#include <linux/switch.h>
+#endif
+/*qca808x_start*/
+#include <linux/phy.h>
 
 #ifndef BIT
 #define BIT(_n)			(1UL << (_n))
@@ -29,7 +42,7 @@
 #define QCA_MII_MMD_DATA		0x0e
 #define QCA_MII_DBG_ADDR		0x1d
 #define QCA_MII_DBG_DATA		0x1e
-
+/*qca808x_end*/
 #define AR8327_REG_CTRL			0x0000
 #define   AR8327_CTRL_REVISION		BITS(0, 8)
 #define   AR8327_CTRL_REVISION_S	0
@@ -101,6 +114,7 @@
 
 #define AR8327_REG_MODULE_EN  0x30
 #define   AR8327_REG_MODULE_EN_QM_ERR	BIT(8)
+#define   AR8327_REG_MODULE_EN_LOOKUP_ERR      BIT(9)
 
 #define AR8327_REG_MAC_SFT_RST		0x68
 
@@ -132,9 +146,11 @@
 #define DESS_PSGMII_VCO_CALIBRATION_CONTROL_1  0x9c
 
 #define SSDK_PSGMII_ID 5
+/*qca808x_start*/
 #define SSDK_PHY_BCAST_ID 0x1f
 #define SSDK_PHY_MIN_ID 0x0
-
+#define SSDK_PORT_CPU	0
+/*qca808x_end*/
 #define SSDK_PORT0_FC_THRESH_ON_DFLT	0x60
 #define SSDK_PORT0_FC_THRESH_OFF_DFLT	0x90
 
@@ -143,26 +159,44 @@
 #define AR8327_NUM_PORTS	7
 #define AR8327_MAX_VLANS  128
 
+#define MII_PHYADDR_C45	(1<<30)
+
 enum {
     AR8327_PORT_SPEED_10M = 0,
     AR8327_PORT_SPEED_100M = 1,
     AR8327_PORT_SPEED_1000M = 2,
     AR8327_PORT_SPEED_NONE = 3,
 };
-
+/*qca808x_start*/
 enum {
 	QCA_VER_AR8216 = 0x01,
 	QCA_VER_AR8227 = 0x02,
 	QCA_VER_AR8236 = 0x03,
 	QCA_VER_AR8316 = 0x10,
 	QCA_VER_AR8327 = 0x12,
-	QCA_VER_AR8337 = 0x13
+	QCA_VER_AR8337 = 0x13,
+	QCA_VER_DESS = 0x14,
+	QCA_VER_HPPE = 0x15
 };
-
+/*qca808x_end*/
 /*poll mib per 120secs*/
 #define QCA_PHY_MIB_WORK_DELAY	120000
 #define QCA_MIB_ITEM_NUMBER	41
 
+#define SSDK_MAX_UNIPHY_INSTANCE 3
+#define SSDK_UNIPHY_INSTANCE0	0
+#define SSDK_UNIPHY_INSTANCE1	1
+#define SSDK_UNIPHY_INSTANCE2	2
+/*qca808x_start*/
+#define SSDK_PHYSICAL_PORT0	0
+#define SSDK_PHYSICAL_PORT1	1
+#define SSDK_PHYSICAL_PORT2	2
+#define SSDK_PHYSICAL_PORT3	3
+#define SSDK_PHYSICAL_PORT4	4
+#define SSDK_PHYSICAL_PORT5	5
+#define SSDK_PHYSICAL_PORT6	6
+#define SSDK_PHYSICAL_PORT7	7
+/*qca808x_end*/
 #define SSDK_GLOBAL_INT0_ACL_INI_INT        (1<<29)
 #define SSDK_GLOBAL_INT0_LOOKUP_INI_INT     (1<<28)
 #define SSDK_GLOBAL_INT0_QM_INI_INT         (1<<27)
@@ -179,16 +213,38 @@ enum {
 			SSDK_GLOBAL_INT0_OFFLOAD_INI_INT |	\
 			SSDK_GLOBAL_INT0_HARDWARE_INI_DONE	\
 			)
+/*qca808x_start*/
+#define SSDK_LOG_LEVEL_ERROR    0
+#define SSDK_LOG_LEVEL_WARN     1
+#define SSDK_LOG_LEVEL_INFO     2
+#define SSDK_LOG_LEVEL_DEBUG    3
+#define SSDK_LOG_LEVEL_DEFAULT  SSDK_LOG_LEVEL_INFO
 
+extern a_uint32_t ssdk_log_level;
+
+#define __SSDK_LOG_FUN(lev, fmt, ...) \
+	do { \
+		if (SSDK_LOG_LEVEL_##lev <= ssdk_log_level) { \
+			printk("%s[%u]:"#lev":", __FUNCTION__, __LINE__); \
+			printk(fmt, ##__VA_ARGS__); \
+		} \
+	} while(0)
+
+#define SSDK_ERROR(fmt, ...) __SSDK_LOG_FUN(ERROR, fmt, ##__VA_ARGS__)
+#define SSDK_WARN(fmt, ...)  __SSDK_LOG_FUN(WARN, fmt, ##__VA_ARGS__)
+#define SSDK_INFO(fmt, ...)  __SSDK_LOG_FUN(INFO, fmt, ##__VA_ARGS__)
+#define SSDK_DEBUG(fmt, ...) __SSDK_LOG_FUN(DEBUG, fmt, ##__VA_ARGS__)
 
 struct qca_phy_priv {
 	struct phy_device *phy;
+#if defined(IN_SWCONFIG)
 	struct switch_dev sw_dev;
+#endif
     a_uint8_t version;
 	a_uint8_t revision;
-	a_uint32_t (*mii_read)(a_uint32_t reg);
-	void (*mii_write)(a_uint32_t reg, a_uint32_t val);
-        void (*phy_dbg_write)(a_uint32_t dev_id, a_uint32_t phy_addr,
+	a_uint32_t (*mii_read)(a_uint32_t dev_id, a_uint32_t reg);
+	void (*mii_write)(a_uint32_t dev_id, a_uint32_t reg, a_uint32_t val);
+    void (*phy_dbg_write)(a_uint32_t dev_id, a_uint32_t phy_addr,
                         a_uint16_t dbg_addr, a_uint16_t dbg_data);
 	void (*phy_dbg_read)(a_uint32_t dev_id, a_uint32_t phy_addr,
                         a_uint16_t dbg_addr, a_uint16_t *dbg_data);
@@ -196,30 +252,66 @@ struct qca_phy_priv {
                           a_uint16_t addr, a_uint16_t data);
     sw_error_t (*phy_write)(a_uint32_t dev_id, a_uint32_t phy_addr,
                             a_uint32_t reg, a_uint16_t data);
+    sw_error_t (*phy_read)(a_uint32_t dev_id, a_uint32_t phy_addr,
+                           a_uint32_t reg, a_uint16_t* data);
 
 	bool init;
+/*qca808x_end*/
+	a_bool_t qca_ssdk_sw_dev_registered;
+	a_bool_t ess_switch_flag;
 	struct mutex reg_mutex;
 	struct mutex mib_lock;
 	struct delayed_work mib_dwork;
 	/*qm_err_check*/
 	struct mutex 	qm_lock;
-	struct delayed_work qm_dwork;
+	a_uint32_t port_link_down[SW_MAX_NR_PORT];
+	a_uint32_t port_link_up[SW_MAX_NR_PORT];
+	a_uint32_t port_old_link[SW_MAX_NR_PORT];
+	a_uint32_t port_old_speed[SW_MAX_NR_PORT];
+	a_uint32_t port_old_duplex[SW_MAX_NR_PORT];
+	a_uint32_t port_old_phy_status[SW_MAX_NR_PORT];
+	a_uint32_t port_qm_buf[SW_MAX_NR_PORT];
+	a_bool_t port_old_tx_flowctrl[SW_MAX_NR_PORT];
+	a_bool_t port_old_rx_flowctrl[SW_MAX_NR_PORT];
+	a_bool_t port_tx_flowctrl_forcemode[SW_MAX_NR_PORT];
+	a_bool_t port_rx_flowctrl_forcemode[SW_MAX_NR_PORT];
+	struct delayed_work qm_dwork_polling;
+	struct work_struct	 intr_workqueue;
 	/*qm_err_check end*/
+/*qca808x_start*/
+	a_uint8_t device_id;
+	struct device_node *of_node;
+/*qca808x_end*/
 	/*dess_rgmii_mac*/
 	struct mutex rgmii_lock;
 	struct delayed_work rgmii_dwork;
 	/*dess_rgmii_mac end*/
+	/*hppe_mac_sw_sync*/
+	struct mutex mac_sw_sync_lock;
+	struct delayed_work mac_sw_sync_dwork;
+	/*hppe_mac_sw_sync end*/
+/*qca808x_start*/
+	struct mii_bus *miibus;
+/*qca808x_end*/
 	u64 *mib_counters;
 	/* dump buf */
 	a_uint8_t  buf[2048];
-
-    /* VLAN database */
-    bool       vlan;  /* True: 1q vlan mode, False: port vlan mode */
-    a_uint16_t vlan_id[AR8327_MAX_VLANS];
-    a_uint8_t  vlan_table[AR8327_MAX_VLANS];
-    a_uint8_t  vlan_tagged[AR8327_MAX_VLANS];
-    a_uint16_t pvid[AR8327_NUM_PORTS];
-
+	a_uint32_t link_polling_required;
+	/* it is valid only when link_polling_required is false*/
+	a_uint32_t link_interrupt_no;
+	a_uint32_t interrupt_flag;
+	char link_intr_name[IFNAMSIZ];
+	/* VLAN database */
+	bool       vlan;  /* True: 1q vlan mode, False: port vlan mode */
+	a_uint16_t vlan_id[AR8327_MAX_VLANS];
+	a_uint8_t  vlan_table[AR8327_MAX_VLANS];
+	a_uint8_t  vlan_tagged[AR8327_MAX_VLANS];
+	a_uint16_t pvid[SSDK_MAX_PORT_NUM];
+	a_uint32_t ports;
+	u8 __iomem *hw_addr;
+	u8 __iomem *psgmii_hw_addr;
+	u8 __iomem *uniphy_hw_addr;
+/*qca808x_start*/
 };
 
 struct ipq40xx_mdio_data {
@@ -228,14 +320,20 @@ struct ipq40xx_mdio_data {
         int phy_irq[PHY_MAX_ADDR];
 };
 
+#if defined(IN_SWCONFIG)
 #define qca_phy_priv_get(_dev) \
 		container_of(_dev, struct qca_phy_priv, sw_dev)
+#endif
 
-
+/*qca808x_end*/
 a_uint32_t
-qca_ar8216_mii_read(a_uint32_t reg);
+qca_ar8216_mii_read(a_uint32_t dev_id, a_uint32_t reg);
 void
-qca_ar8216_mii_write(a_uint32_t reg, a_uint32_t val);
+qca_ar8216_mii_write(a_uint32_t dev_id, a_uint32_t reg, a_uint32_t val);
+/*qca808x_start*/
+sw_error_t
+qca_ar8327_phy_read(a_uint32_t dev_id, a_uint32_t phy_addr,
+			a_uint32_t reg, a_uint16_t* data);
 sw_error_t
 qca_ar8327_phy_write(a_uint32_t dev_id, a_uint32_t phy_addr,
                             a_uint32_t reg, a_uint16_t data);
@@ -256,5 +354,38 @@ qca_phy_mmd_write(u32 dev_id, u32 phy_id,
 u16
 qca_phy_mmd_read(u32 dev_id, u32 phy_id,
 		u16 mmd_num, u16 reg_id);
+/*qca808x_end*/
+sw_error_t
+qca_switch_reg_read(a_uint32_t dev_id, a_uint32_t reg_addr,
+			a_uint8_t * reg_data, a_uint32_t len);
+
+sw_error_t
+qca_switch_reg_write(a_uint32_t dev_id, a_uint32_t reg_addr,
+			a_uint8_t * reg_data, a_uint32_t len);
+
+sw_error_t
+qca_psgmii_reg_read(a_uint32_t dev_id, a_uint32_t reg_addr,
+			a_uint8_t * reg_data, a_uint32_t len);
+
+sw_error_t
+qca_psgmii_reg_write(a_uint32_t dev_id, a_uint32_t reg_addr,
+			a_uint8_t * reg_data, a_uint32_t len);
+
+sw_error_t
+qca_uniphy_reg_write(a_uint32_t dev_id, a_uint32_t uniphy_index,
+				a_uint32_t reg_addr, a_uint8_t * reg_data, a_uint32_t len);
+
+sw_error_t
+qca_uniphy_reg_read(a_uint32_t dev_id, a_uint32_t uniphy_index,
+				a_uint32_t reg_addr, a_uint8_t * reg_data, a_uint32_t len);
+
+struct mii_bus *ssdk_miibus_get_by_device(a_uint32_t dev_id);
+
+int ssdk_sysfs_init (void);
+void ssdk_sysfs_exit (void);
+/*qca808x_start*/
+int ssdk_plat_init(ssdk_init_cfg *cfg, a_uint32_t dev_id);
+void ssdk_plat_exit(a_uint32_t dev_id);
 
 #endif
+/*qca808x_end*/

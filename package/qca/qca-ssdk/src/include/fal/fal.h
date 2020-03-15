@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -13,16 +13,16 @@
  */
 
 
-
+/*qca808x_start*/
 #ifndef _FAL_H
 #define _FAL_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif                          /* __cplusplus */
-
-#include "fal_misc.h"
 #include "fal_port_ctrl.h"
+/*qca808x_end*/
+#include "fal_misc.h"
 #include "fal_vlan.h"
 #include "fal_fdb.h"
 #include "fal_portvlan.h"
@@ -35,18 +35,32 @@ extern "C" {
 #include "fal_mib.h"
 #include "fal_acl.h"
 #include "fal_led.h"
+/*qca808x_start*/
 #include "fal_reg_access.h"
 #include "fal_init.h"
+/*qca808x_end*/
 #include "fal_cosmap.h"
 #include "fal_ip.h"
 #include "fal_nat.h"
+#include "fal_flow.h"
+#include "fal_qm.h"
 #include "fal_sec.h"
 #include "fal_trunk.h"
 #include "fal_interface_ctrl.h"
 #include "fal_fdb.h"
 #include "fal_multi.h"
+#include "fal_ctrlpkt.h"
+#include "fal_servcode.h"
+#include "fal_rss_hash.h"
+#include "fal_vsi.h"
+#include "fal_pppoe.h"
+#include "fal_bm.h"
+#include "fal_shaper.h"
+#include "fal_policer.h"
+/*qca808x_start*/
 
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
 #endif                          /* _FAL_H */
+/*qca808x_end*/

@@ -32,6 +32,16 @@ extern "C" {
         } \
     } while(0);
 
+#define SW_CNTU_ON_ERROR_AND_COND1_OR_GOTO_OUT(rtn, cond1) \
+    { \
+        if ((rtn != SW_OK)) { \
+		if (rtn == cond1) \
+			continue; \
+		else		  \
+			goto out; \
+	}			  \
+    }
+
 #define SW_RTN_ON_ERROR_EXCEPT_COND1(rtn, cond1) \
     do { \
         if ((rtn != SW_OK) && (rtn != cond1)) \

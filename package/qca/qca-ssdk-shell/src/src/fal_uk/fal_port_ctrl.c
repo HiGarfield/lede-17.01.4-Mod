@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, 2017, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014,2016-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -13,7 +13,7 @@
  */
 
 
-
+/*qca808x_start*/
 #include "sw.h"
 #include "sw_ioctl.h"
 #include "fal_port_ctrl.h"
@@ -36,8 +36,7 @@ fal_port_duplex_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_DUPLEX_GET, dev_id, port_id,
-                    (a_uint32_t) pduplex);
+    rv = sw_uk_exec(SW_API_PT_DUPLEX_GET, dev_id, port_id, pduplex);
     return rv;
 }
 
@@ -58,8 +57,7 @@ fal_port_speed_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_SPEED_GET, dev_id, port_id,
-                    (a_uint32_t) pspeed);
+    rv = sw_uk_exec(SW_API_PT_SPEED_GET, dev_id, port_id, pspeed);
     return rv;
 }
 
@@ -69,7 +67,7 @@ fal_port_autoneg_status_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_AN_GET, dev_id, port_id, (a_uint32_t) status);
+    rv = sw_uk_exec(SW_API_PT_AN_GET, dev_id, port_id, status);
     return rv;
 }
 
@@ -107,11 +105,10 @@ fal_port_autoneg_adv_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_AN_ADV_GET, dev_id, port_id,
-                    (a_uint32_t) autoadv);
+    rv = sw_uk_exec(SW_API_PT_AN_ADV_GET, dev_id, port_id, autoadv);
     return rv;
 }
-
+/*qca808x_end*/
 sw_error_t
 fal_port_hdr_status_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
 {
@@ -127,7 +124,7 @@ fal_port_hdr_status_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_HDR_GET, dev_id, port_id, (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_HDR_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -146,8 +143,7 @@ fal_port_flowctrl_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_FLOWCTRL_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_FLOWCTRL_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -168,8 +164,7 @@ fal_port_flowctrl_forcemode_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_FLOWCTRL_MODE_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_FLOWCTRL_MODE_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -190,11 +185,10 @@ fal_port_powersave_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_POWERSAVE_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_POWERSAVE_GET, dev_id, port_id, enable);
     return rv;
 }
-
+/*qca808x_start*/
 sw_error_t
 fal_port_hibernate_set(a_uint32_t dev_id, fal_port_t port_id,
                        a_bool_t enable)
@@ -212,8 +206,7 @@ fal_port_hibernate_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_HIBERNATE_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_HIBERNATE_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -224,10 +217,10 @@ fal_port_cdt(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t mdi_pair,
     sw_error_t rv;
 
     rv = sw_uk_exec(SW_API_PT_CDT, dev_id, port_id, mdi_pair,
-                    (a_uint32_t) cable_status, (a_uint32_t)cable_len);
+                    cable_status, cable_len);
     return rv;
 }
-
+/*qca808x_end*/
 sw_error_t
 fal_port_rxhdr_mode_set(a_uint32_t dev_id, fal_port_t port_id,
                         fal_port_header_mode_t mode)
@@ -244,7 +237,7 @@ fal_port_rxhdr_mode_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_RXHDR_GET, dev_id, port_id, (a_uint32_t)mode);
+    rv = sw_uk_exec(SW_API_PT_RXHDR_GET, dev_id, port_id, mode);
     return rv;
 }
 
@@ -264,7 +257,7 @@ fal_port_txhdr_mode_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_TXHDR_GET, dev_id, port_id, (a_uint32_t)mode);
+    rv = sw_uk_exec(SW_API_PT_TXHDR_GET, dev_id, port_id, mode);
     return rv;
 }
 
@@ -282,7 +275,7 @@ fal_header_type_get(a_uint32_t dev_id, a_bool_t * enable, a_uint32_t * type)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_HEADER_TYPE_GET, dev_id, (a_uint32_t)enable, (a_uint32_t)type);
+    rv = sw_uk_exec(SW_API_HEADER_TYPE_GET, dev_id, enable, type);
     return rv;
 }
 
@@ -300,7 +293,7 @@ fal_port_txmac_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enab
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_TXMAC_STATUS_GET, dev_id, port_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_TXMAC_STATUS_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -318,7 +311,7 @@ fal_port_rxmac_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enab
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_RXMAC_STATUS_GET, dev_id, port_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_RXMAC_STATUS_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -336,7 +329,7 @@ fal_port_txfc_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enabl
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_TXFC_STATUS_GET, dev_id, port_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_TXFC_STATUS_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -354,7 +347,7 @@ fal_port_rxfc_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enabl
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_RXFC_STATUS_GET, dev_id, port_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_RXFC_STATUS_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -372,7 +365,7 @@ fal_port_bp_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_BP_STATUS_GET, dev_id, port_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_BP_STATUS_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -390,25 +383,25 @@ fal_port_link_forcemode_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * en
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_LINK_MODE_GET, dev_id, port_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_PT_LINK_MODE_GET, dev_id, port_id, enable);
     return rv;
 }
-
+/*qca808x_start*/
 sw_error_t
 fal_port_link_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * status)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_LINK_STATUS_GET, dev_id, port_id, (a_uint32_t)status);
+    rv = sw_uk_exec(SW_API_PT_LINK_STATUS_GET, dev_id, port_id, status);
     return rv;
 }
-
+/*qca808x_end*/
 sw_error_t
 fal_ports_link_status_get(a_uint32_t dev_id, a_uint32_t * status)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PTS_LINK_STATUS_GET, dev_id, (a_uint32_t)status);
+    rv = sw_uk_exec(SW_API_PTS_LINK_STATUS_GET, dev_id, status);
     return rv;
 }
 
@@ -423,16 +416,18 @@ fal_port_mac_loopback_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable
 
 
 sw_error_t
-fal_port_mac_loopback_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t *enable)
+fal_port_mac_loopback_get(a_uint32_t dev_id, fal_port_t port_id,
+			a_bool_t *enable)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_MAC_LOOPBACK_GET, dev_id, port_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_PT_MAC_LOOPBACK_GET, dev_id, port_id, enable);
     return rv;
 }
 
 sw_error_t
-fal_port_congestion_drop_set(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t queue_id, a_bool_t enable)
+fal_port_congestion_drop_set(a_uint32_t dev_id, fal_port_t port_id,
+			a_uint32_t queue_id, a_bool_t enable)
 {
     sw_error_t rv;
 
@@ -442,16 +437,18 @@ fal_port_congestion_drop_set(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t q
 
 
 sw_error_t
-fal_port_congestion_drop_get(a_uint32_t dev_id, fal_port_t port_id, a_uint32_t queue_id, a_bool_t *enable)
+fal_port_congestion_drop_get(a_uint32_t dev_id, fal_port_t port_id,
+			a_uint32_t queue_id, a_bool_t *enable)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_CONGESTION_DROP_GET, dev_id, port_id, queue_id, (a_uint32_t)enable);
+    rv = sw_uk_exec(SW_API_PT_CONGESTION_DROP_GET, dev_id, port_id, queue_id, enable);
     return rv;
 }
 
 sw_error_t
-fal_ring_flow_ctrl_thres_set(a_uint32_t dev_id, a_uint32_t ring_id, a_uint8_t on_thres, a_uint8_t off_thres)
+fal_ring_flow_ctrl_thres_set(a_uint32_t dev_id, a_uint32_t ring_id,
+			a_uint8_t on_thres, a_uint8_t off_thres)
 {
     sw_error_t rv;
 
@@ -461,14 +458,15 @@ fal_ring_flow_ctrl_thres_set(a_uint32_t dev_id, a_uint32_t ring_id, a_uint8_t on
 
 
 sw_error_t
-fal_ring_flow_ctrl_thres_get(a_uint32_t dev_id, a_uint32_t ring_id, a_uint8_t *on_thres, a_uint8_t *off_thres)
+fal_ring_flow_ctrl_thres_get(a_uint32_t dev_id, a_uint32_t ring_id,
+			a_uint8_t *on_thres, a_uint8_t *off_thres)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_RING_FLOW_CTRL_THRES_GET, dev_id, ring_id, (a_uint32_t)on_thres, (a_uint32_t)off_thres);
+    rv = sw_uk_exec(SW_API_PT_RING_FLOW_CTRL_THRES_GET, dev_id, ring_id, on_thres, off_thres);
     return rv;
 }
-
+/*qca808x_start*/
 sw_error_t
 fal_port_8023az_set(a_uint32_t dev_id, fal_port_t port_id,
                        a_bool_t enable)
@@ -486,8 +484,7 @@ fal_port_8023az_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_8023AZ_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_8023AZ_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -507,7 +504,7 @@ fal_port_mdix_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_MDIX_GET, dev_id, port_id, (a_uint32_t)mode);
+    rv = sw_uk_exec(SW_API_PT_MDIX_GET, dev_id, port_id, mode);
     return rv;
 }
 
@@ -517,10 +514,10 @@ fal_port_mdix_status_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_MDIX_STATUS_GET, dev_id, port_id, (a_uint32_t)mode);
+    rv = sw_uk_exec(SW_API_PT_MDIX_STATUS_GET, dev_id, port_id, mode);
     return rv;
 }
-
+/*qca808x_end*/
 sw_error_t
 fal_port_combo_prefer_medium_set(a_uint32_t dev_id, fal_port_t port_id,
                         fal_port_medium_t medium)
@@ -537,7 +534,7 @@ fal_port_combo_prefer_medium_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_COMBO_PREFER_MEDIUM_GET, dev_id, port_id, (a_uint32_t)medium);
+    rv = sw_uk_exec(SW_API_PT_COMBO_PREFER_MEDIUM_GET, dev_id, port_id, medium);
     return rv;
 }
 
@@ -547,7 +544,7 @@ fal_port_combo_medium_status_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_COMBO_MEDIUM_STATUS_GET, dev_id, port_id, (a_uint32_t)medium);
+    rv = sw_uk_exec(SW_API_PT_COMBO_MEDIUM_STATUS_GET, dev_id, port_id, medium);
     return rv;
 }
 
@@ -567,10 +564,10 @@ fal_port_combo_fiber_mode_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_COMBO_FIBER_MODE_GET, dev_id, port_id, (a_uint32_t)mode);
+    rv = sw_uk_exec(SW_API_PT_COMBO_FIBER_MODE_GET, dev_id, port_id, mode);
     return rv;
 }
-
+/*qca808x_start*/
 sw_error_t
 fal_port_local_loopback_set(a_uint32_t dev_id, fal_port_t port_id,
                        a_bool_t enable)
@@ -588,8 +585,7 @@ fal_port_local_loopback_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_LOCAL_LOOPBACK_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_LOCAL_LOOPBACK_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -610,8 +606,7 @@ fal_port_remote_loopback_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_REMOTE_LOOPBACK_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_REMOTE_LOOPBACK_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -648,7 +643,7 @@ fal_port_power_on(a_uint32_t dev_id, fal_port_t port_id)
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_MAGIC_FRAME_MAC_SET, dev_id, port_id,(a_uint32_t) mac);
+    rv = sw_uk_exec(SW_API_PT_MAGIC_FRAME_MAC_SET, dev_id, port_id, mac);
     return rv;
 
 }
@@ -660,7 +655,7 @@ fal_port_power_on(a_uint32_t dev_id, fal_port_t port_id)
 
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_MAGIC_FRAME_MAC_GET, dev_id, port_id,(a_uint32_t) mac);
+    rv = sw_uk_exec(SW_API_PT_MAGIC_FRAME_MAC_GET, dev_id, port_id, mac);
     return rv;
 
 
@@ -671,7 +666,7 @@ fal_port_power_on(a_uint32_t dev_id, fal_port_t port_id)
  {
              sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_PHY_ID_GET, dev_id, port_id, (a_uint32_t) org_id, (a_uint32_t) rev_id);
+    rv = sw_uk_exec(SW_API_PT_PHY_ID_GET, dev_id, port_id, org_id, rev_id);
     return rv;
  }
  sw_error_t
@@ -691,34 +686,45 @@ fal_port_power_on(a_uint32_t dev_id, fal_port_t port_id)
  {
            sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_PT_WOL_STATUS_GET, dev_id, port_id,(a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_PT_WOL_STATUS_GET, dev_id, port_id,enable);
     return rv;
  }
-
+ /*qca808x_end*/
 sw_error_t
-fal_port_interface_mode_set (a_uint32_t dev_id, fal_port_t port_id, fal_port_interface_mode_t  mode)
+fal_port_interface_mode_set (a_uint32_t dev_id, fal_port_t port_id,
+			fal_port_interface_mode_t  mode)
 {
   sw_error_t rv;
-
   rv = sw_uk_exec(SW_API_PT_INTERFACE_MODE_SET, dev_id, port_id,(a_uint32_t) mode);
   return rv;
 }
 
 sw_error_t
-fal_port_interface_mode_get (a_uint32_t dev_id, fal_port_t port_id, fal_port_interface_mode_t * mode)
+fal_port_interface_mode_get (a_uint32_t dev_id, fal_port_t port_id,
+			fal_port_interface_mode_t * mode)
 {
   sw_error_t rv;
 
-  rv = sw_uk_exec(SW_API_PT_INTERFACE_MODE_GET, dev_id, port_id,(a_uint32_t) mode);
+  rv = sw_uk_exec(SW_API_PT_INTERFACE_MODE_GET, dev_id, port_id, mode);
   return rv;
 }
 
 sw_error_t
-fal_port_interface_mode_status_get (a_uint32_t dev_id, fal_port_t port_id, fal_port_interface_mode_t * mode)
+fal_port_interface_mode_apply (a_uint32_t dev_id)
 {
   sw_error_t rv;
 
-  rv = sw_uk_exec(SW_API_PT_INTERFACE_MODE_STATUS_GET, dev_id, port_id,(a_uint32_t) mode);
+  rv = sw_uk_exec(SW_API_PT_INTERFACE_MODE_APPLY, dev_id);
+  return rv;
+}
+/*qca808x_start*/
+sw_error_t
+fal_port_interface_mode_status_get (a_uint32_t dev_id, fal_port_t port_id,
+			fal_port_interface_mode_t * mode)
+{
+  sw_error_t rv;
+
+  rv = sw_uk_exec(SW_API_PT_INTERFACE_MODE_STATUS_GET, dev_id, port_id, mode);
   return rv;
 }
 
@@ -739,8 +745,7 @@ fal_debug_phycounter_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_DEBUG_PHYCOUNTER_GET, dev_id, port_id,
-                    (a_uint32_t) enable);
+    rv = sw_uk_exec(SW_API_DEBUG_PHYCOUNTER_GET, dev_id, port_id, enable);
     return rv;
 }
 
@@ -750,9 +755,153 @@ fal_debug_phycounter_show(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
 
-    rv = sw_uk_exec(SW_API_DEBUG_PHYCOUNTER_SHOW, dev_id, port_id,
-                    (a_uint32_t) port_counter_info);
+    rv = sw_uk_exec(SW_API_DEBUG_PHYCOUNTER_SHOW, dev_id, port_id, port_counter_info);
+    return rv;
+}
+/*qca808x_end*/
+sw_error_t
+fal_port_mtu_set(a_uint32_t dev_id, fal_port_t port_id,
+                       fal_mtu_ctrl_t *ctrl)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_PT_MTU_SET, dev_id, port_id, ctrl);
     return rv;
 }
 
+sw_error_t
+fal_port_mtu_get(a_uint32_t dev_id, fal_port_t port_id,
+                       fal_mtu_ctrl_t *ctrl)
+{
+    sw_error_t rv;
 
+    rv = sw_uk_exec(SW_API_PT_MTU_GET, dev_id, port_id, ctrl);
+    return rv;
+}
+
+sw_error_t
+fal_port_mru_set(a_uint32_t dev_id, fal_port_t port_id,
+                       fal_mru_ctrl_t *ctrl)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_PT_MRU_SET, dev_id, port_id, ctrl);
+    return rv;
+}
+
+sw_error_t
+fal_port_mru_get(a_uint32_t dev_id, fal_port_t port_id,
+                       fal_mru_ctrl_t *ctrl)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_PT_MRU_GET, dev_id, port_id, ctrl);
+    return rv;
+}
+
+sw_error_t
+fal_port_source_filter_enable(a_uint32_t dev_id, fal_port_t port_id,
+                       a_bool_t enable)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_PT_SOURCE_FILTER_SET, dev_id, port_id,
+                    (a_uint32_t) enable);
+    return rv;
+}
+
+sw_error_t
+fal_port_source_filter_status_get(a_uint32_t dev_id, fal_port_t port_id,
+                       a_bool_t * enable)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_PT_SOURCE_FILTER_GET, dev_id, port_id, enable);
+    return rv;
+}
+
+sw_error_t
+fal_port_max_frame_size_set(a_uint32_t dev_id, fal_port_t port_id,
+                       a_uint32_t max_frame)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_PT_FRAME_MAX_SIZE_SET, dev_id, port_id,
+                    max_frame);
+    return rv;
+}
+
+sw_error_t
+fal_port_max_frame_size_get(a_uint32_t dev_id, fal_port_t port_id,
+                       a_uint32_t* max_frame)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_PT_FRAME_MAX_SIZE_GET, dev_id, port_id, max_frame);
+    return rv;
+}
+sw_error_t
+fal_port_interface_3az_status_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
+{
+	sw_error_t rv;
+
+	rv = sw_uk_exec(SW_API_PT_INTERFACE_3AZ_STATUS_SET, dev_id, port_id, (a_uint32_t)enable);
+
+	return rv;
+}
+sw_error_t
+fal_port_interface_3az_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable)
+{
+
+	sw_error_t rv;
+
+	rv = sw_uk_exec(SW_API_PT_INTERFACE_3AZ_STATUS_GET, dev_id, port_id, (a_uint32_t)enable);
+
+	return rv;
+
+    return rv;
+}
+sw_error_t
+fal_port_promisc_mode_set(a_uint32_t dev_id, fal_port_t port_id,
+	a_bool_t enable)
+{
+	sw_error_t rv;
+
+ 	rv = sw_uk_exec(SW_API_PT_PROMISC_MODE_SET, dev_id, port_id, enable);
+
+	return rv;
+}
+
+sw_error_t
+fal_port_promisc_mode_get(a_uint32_t dev_id, fal_port_t port_id,
+	a_bool_t *enable)
+{
+	sw_error_t rv;
+
+	rv = sw_uk_exec(SW_API_PT_PROMISC_MODE_GET, dev_id, port_id, enable);
+
+	return rv;
+}
+sw_error_t
+fal_port_interface_eee_cfg_set(a_uint32_t dev_id, fal_port_t port_id,
+	fal_port_eee_cfg_t *port_eee_cfg)
+{
+	sw_error_t rv;
+
+	rv = sw_uk_exec(SW_API_PT_INTERFACE_EEE_CFG_SET, dev_id, port_id, port_eee_cfg);
+
+	return rv;
+}
+sw_error_t
+fal_port_interface_eee_cfg_get(a_uint32_t dev_id, fal_port_t port_id,
+	fal_port_eee_cfg_t *port_eee_cfg)
+
+{
+	sw_error_t rv;
+
+	rv = sw_uk_exec(SW_API_PT_INTERFACE_EEE_CFG_GET, dev_id, port_id, port_eee_cfg);
+
+	return rv;
+
+    return rv;
+}

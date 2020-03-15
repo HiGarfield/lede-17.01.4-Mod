@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -35,10 +35,7 @@
 #include <linux/types.h>
 //#include <asm/mach-types.h>
 #include <generated/autoconf.h>
-#if defined(CONFIG_OF) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0))
-#include <linux/switch.h>
-#else
-#include <net/switch.h>
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,14,0))
 #include <linux/ar8216_platform.h>
 #endif
 #include <linux/delay.h>
@@ -47,137 +44,15 @@
 #include "ssdk_plat.h"
 #include "ref_vlan.h"
 
+#if defined(IN_SWCONFIG)
 int
 _qca_ar8327_sw_capture_port_counter(struct switch_dev *dev, int port)
 {
-    int pos = 0;
     fal_mib_info_t  mib_Info;
     struct qca_phy_priv *priv = qca_phy_priv_get(dev);
 
     memset(&mib_Info, 0, sizeof(mib_Info));
-    fal_get_mib_info(0, port, &mib_Info);
-    pos = port * QCA_MIB_ITEM_NUMBER;
-    priv->mib_counters[pos++] += mib_Info.RxBroad;
-    priv->mib_counters[pos++] += mib_Info.RxPause;
-    priv->mib_counters[pos++] += mib_Info.RxMulti;
-    priv->mib_counters[pos++] += mib_Info.RxFcsErr;
-    priv->mib_counters[pos++] += mib_Info.RxAllignErr;
-    priv->mib_counters[pos++] += mib_Info.RxRunt;
-    priv->mib_counters[pos++] += mib_Info.RxFragment;
-    priv->mib_counters[pos++] += mib_Info.Rx64Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx128Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx256Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx512Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx1024Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx1518Byte;
-    priv->mib_counters[pos++] += mib_Info.RxMaxByte;
-    priv->mib_counters[pos++] += mib_Info.RxTooLong;
-    priv->mib_counters[pos] += mib_Info.RxGoodByte_lo;
-    priv->mib_counters[pos++] += (((u64)mib_Info.RxGoodByte_hi) << 32);
-    priv->mib_counters[pos] += mib_Info.RxBadByte_lo;
-    priv->mib_counters[pos++] += (((u64)mib_Info.RxBadByte_hi) << 32);
-    priv->mib_counters[pos++] += mib_Info.RxOverFlow;
-    priv->mib_counters[pos++] += mib_Info.Filtered;
-    priv->mib_counters[pos++] += mib_Info.TxBroad;
-    priv->mib_counters[pos++] += mib_Info.TxPause;
-    priv->mib_counters[pos++] += mib_Info.TxMulti;
-    priv->mib_counters[pos++] += mib_Info.TxUnderRun;
-    priv->mib_counters[pos++] += mib_Info.Tx64Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx128Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx256Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx512Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx1024Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx1518Byte;
-    priv->mib_counters[pos++] += mib_Info.TxMaxByte;
-    priv->mib_counters[pos++] += mib_Info.TxOverSize;
-    priv->mib_counters[pos] += mib_Info.TxByte_lo;
-    priv->mib_counters[pos++] += (((u64)mib_Info.TxByte_hi) << 32);
-    priv->mib_counters[pos++] += mib_Info.TxCollision;
-    priv->mib_counters[pos++] += mib_Info.TxAbortCol;
-    priv->mib_counters[pos++] += mib_Info.TxMultiCol;
-    priv->mib_counters[pos++] += mib_Info.TxSingalCol;
-    priv->mib_counters[pos++] += mib_Info.TxExcDefer;
-    priv->mib_counters[pos++] += mib_Info.TxDefer;
-    priv->mib_counters[pos++] += mib_Info.TxLateCol;
-    priv->mib_counters[pos++] += mib_Info.RxUniCast;
-    priv->mib_counters[pos++] += mib_Info.TxUniCast;
-
-    return 0;
-}
-
-int
-_qca_ar8327_sw_capture_port_rx_counter(struct switch_dev *dev, int port)
-{
-    int pos = 0;
-    fal_mib_info_t  mib_Info;
-    struct qca_phy_priv *priv = qca_phy_priv_get(dev);
-
-    memset(&mib_Info, 0, sizeof(fal_mib_info_t));
-    fal_get_rx_mib_info(0, port, &mib_Info);
-    pos = port * QCA_MIB_ITEM_NUMBER;
-    priv->mib_counters[pos++] += mib_Info.RxBroad;
-    priv->mib_counters[pos++] += mib_Info.RxPause;
-    priv->mib_counters[pos++] += mib_Info.RxMulti;
-    priv->mib_counters[pos++] += mib_Info.RxFcsErr;
-    priv->mib_counters[pos++] += mib_Info.RxAllignErr;
-    priv->mib_counters[pos++] += mib_Info.RxRunt;
-    priv->mib_counters[pos++] += mib_Info.RxFragment;
-    priv->mib_counters[pos++] += mib_Info.Rx64Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx128Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx256Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx512Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx1024Byte;
-    priv->mib_counters[pos++] += mib_Info.Rx1518Byte;
-    priv->mib_counters[pos++] += mib_Info.RxMaxByte;
-    priv->mib_counters[pos++] += mib_Info.RxTooLong;
-    priv->mib_counters[pos] += mib_Info.RxGoodByte_lo;
-    priv->mib_counters[pos++] += (((u64)mib_Info.RxGoodByte_hi) << 32);
-    priv->mib_counters[pos] += mib_Info.RxBadByte_lo;
-    priv->mib_counters[pos++] += (((u64)mib_Info.RxBadByte_hi) << 32);
-    priv->mib_counters[pos++] += mib_Info.RxOverFlow;
-    priv->mib_counters[pos++] += mib_Info.Filtered;
-
-    pos = pos + 20;
-    priv->mib_counters[pos++] += mib_Info.RxUniCast;
-
-    return 0;
-}
-
-int
-_qca_ar8327_sw_capture_port_tx_counter(struct switch_dev *dev, int port)
-{
-    int pos = 0;
-    fal_mib_info_t  mib_Info;
-    struct qca_phy_priv *priv = qca_phy_priv_get(dev);
-
-    memset(&mib_Info, 0, sizeof(fal_mib_info_t));
-    fal_get_tx_mib_info(0, port, &mib_Info);
-    pos = port * QCA_MIB_ITEM_NUMBER + 19;
-
-    priv->mib_counters[pos++] += mib_Info.TxBroad;
-    priv->mib_counters[pos++] += mib_Info.TxPause;
-    priv->mib_counters[pos++] += mib_Info.TxMulti;
-    priv->mib_counters[pos++] += mib_Info.TxUnderRun;
-    priv->mib_counters[pos++] += mib_Info.Tx64Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx128Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx256Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx512Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx1024Byte;
-    priv->mib_counters[pos++] += mib_Info.Tx1518Byte;
-    priv->mib_counters[pos++] += mib_Info.TxMaxByte;
-    priv->mib_counters[pos++] += mib_Info.TxOverSize;
-    priv->mib_counters[pos] += mib_Info.TxByte_lo;
-    priv->mib_counters[pos++] += (((u64)mib_Info.TxByte_hi) << 32);
-    priv->mib_counters[pos++] += mib_Info.TxCollision;
-    priv->mib_counters[pos++] += mib_Info.TxAbortCol;
-    priv->mib_counters[pos++] += mib_Info.TxMultiCol;
-    priv->mib_counters[pos++] += mib_Info.TxSingalCol;
-    priv->mib_counters[pos++] += mib_Info.TxExcDefer;
-    priv->mib_counters[pos++] += mib_Info.TxDefer;
-    priv->mib_counters[pos++] += mib_Info.TxLateCol;
-
-    pos++;
-    priv->mib_counters[pos++] += mib_Info.TxUniCast;
+    fal_get_mib_info(priv->device_id, port, &mib_Info);
 
     return 0;
 }
@@ -198,8 +73,8 @@ qca_ar8327_sw_set_reset_mibs(struct switch_dev *dev,
     memset(priv->mib_counters, '\0', len);
     for (i = 0; i < dev->ports; i++)
     {
-        fal_get_mib_info(0, i, &mib_Info);
-        fal_mib_port_flush_counters(0, i);
+        fal_get_mib_info(priv->device_id, i, &mib_Info);
+        fal_mib_port_flush_counters(priv->device_id, i);
     }
     mutex_unlock(&priv->mib_lock);
 
@@ -220,11 +95,183 @@ qca_ar8327_sw_set_port_reset_mib(struct switch_dev *dev,
 
     memset(priv->mib_counters + (val->port_vlan * QCA_MIB_ITEM_NUMBER), '\0', len);
 
-    fal_get_mib_info(0, val->port_vlan, &mib_Info);
-    fal_mib_port_flush_counters(0, val->port_vlan);
+    fal_get_mib_info(priv->device_id, val->port_vlan, &mib_Info);
+    fal_mib_port_flush_counters(priv->device_id, val->port_vlan);
     mutex_unlock(&priv->mib_lock);
 
     return 0;
+}
+
+
+static int qca_ar8327_sw_print_xgport_mib(struct switch_dev *dev,
+	const struct switch_attr *attr, struct switch_val *val)
+{
+	int port = 0;
+	int len = 0;
+	fal_xgmib_info_t xgmib_info;
+
+	struct qca_phy_priv *priv = qca_phy_priv_get(dev);
+	char *buf = (char *)(priv->buf);
+
+	port = val->port_vlan;
+	if (port >= dev->ports)
+	    return -EINVAL;
+
+	fal_get_xgmib_info(priv->device_id, port, &xgmib_info);
+
+	mutex_lock(&priv->mib_lock);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"XG Port %d MIB counters\n",
+	port);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxFrame", xgmib_info.RxFrame);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxByte", xgmib_info.RxByte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxByteGood", xgmib_info.RxByteGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxBroadGood", xgmib_info.RxBroadGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxMultiGood", xgmib_info.RxMultiGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxFcsErr", xgmib_info.RxFcsErr);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxRuntErr", xgmib_info.RxRuntErr );
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxJabberError", xgmib_info.RxJabberError);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxUndersizeGood", xgmib_info.RxUndersizeGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxOversizeGood", xgmib_info.RxOversizeGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Rx64Byte", xgmib_info.Rx64Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Rx128Byte", xgmib_info.Rx128Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Rx256Byte", xgmib_info.Rx256Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Rx512Byte", xgmib_info.Rx512Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Rx1024Byte", xgmib_info.Rx1024Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxMaxByte", xgmib_info.RxMaxByte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxUnicastGood", xgmib_info.RxUnicastGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxLengthError", xgmib_info.RxLengthError);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxOutOfRangeError", xgmib_info.RxOutOfRangeError);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxPause", xgmib_info.RxPause);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxOverFlow", xgmib_info.RxOverFlow);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxVLANFrameGoodBad", xgmib_info.RxVLANFrameGoodBad);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxWatchDogError", xgmib_info.RxWatchDogError);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxLPIUsec", xgmib_info.RxLPIUsec);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxLPITran", xgmib_info.RxLPITran);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxDropFrameGoodBad", xgmib_info.RxDropFrameGoodBad);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "RxDropByteGoodBad", xgmib_info.RxDropByteGoodBad);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxByte", xgmib_info.TxByte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxFrame", xgmib_info.TxFrame);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxBroadGood", xgmib_info.TxBroadGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxMultiGood", xgmib_info.TxMultiGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Tx64Byte", xgmib_info.Tx64Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Tx128Byte", xgmib_info.Tx128Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Tx256Byte", xgmib_info.Tx256Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Tx512Byte", xgmib_info.Tx512Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "Tx1024Byte", xgmib_info.Tx1024Byte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxMaxByte", xgmib_info.TxMaxByte);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxUnicast", xgmib_info.TxUnicast);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxMulti", xgmib_info.TxMulti);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxBroad", xgmib_info.TxBroad);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxUnderFlowError", xgmib_info.TxUnderFlowError);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxByteGood", xgmib_info.TxByteGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxByteGood", xgmib_info.TxByteGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxPause", xgmib_info.TxPause);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxVLANFrameGood", xgmib_info.TxVLANFrameGood);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxLPIUsec", xgmib_info.TxLPIUsec);
+
+	len += snprintf(buf + len, sizeof(priv->buf) - len,
+	"%-18s: %llu\n", "TxLPITran", xgmib_info.TxLPITran);
+
+	mutex_unlock(&priv->mib_lock);
+
+	val->value.s = buf;
+	val->len = len;
+
+	return 0;
 }
 
 int
@@ -243,9 +290,16 @@ qca_ar8327_sw_get_port_mib(struct switch_dev *dev,
     if (port >= dev->ports)
         return -EINVAL;
 
+    if (priv->version == QCA_VER_HPPE &&
+        qca_hppe_port_mac_type_get(priv->device_id, port) == PORT_XGMAC_TYPE)
+    {
+        qca_ar8327_sw_print_xgport_mib(dev, attr, val);
+        return 0;
+    }
+
     mutex_lock(&priv->mib_lock);
     _qca_ar8327_sw_capture_port_counter(dev, port);
-    pos = port * QCA_MIB_ITEM_NUMBER;
+    pos = port * (sizeof(fal_mib_counter_t)/sizeof(a_uint64_t));
     len += snprintf(buf + len, sizeof(priv->buf) - len,
                             "Port %d MIB counters\n",
                             port);
@@ -421,20 +475,41 @@ qca_ar8327_sw_get_port_mib(struct switch_dev *dev,
 
     return 0;
 }
+#endif
+
+int
+_qca_ar8327_sw_capture_port_tx_counter(struct qca_phy_priv *priv, int port)
+{
+    fal_mib_info_t  mib_Info;
+
+    memset(&mib_Info, 0, sizeof(fal_mib_info_t));
+    fal_get_tx_mib_info(priv->device_id, port, &mib_Info);
+
+    return 0;
+}
+
+int
+_qca_ar8327_sw_capture_port_rx_counter(struct qca_phy_priv *priv, int port)
+{
+    fal_mib_info_t  mib_Info;
+
+    memset(&mib_Info, 0, sizeof(fal_mib_info_t));
+    fal_get_rx_mib_info(priv->device_id, port, &mib_Info);
+    return 0;
+}
 
 void
-qca_ar8327_sw_mib_task(struct switch_dev *dev)
+qca_ar8327_sw_mib_task(struct qca_phy_priv *priv)
 {
 	static int loop = 0;
-	struct qca_phy_priv *priv = qca_phy_priv_get(dev);
 
 	mutex_lock(&priv->reg_mutex);
 	if ((loop % 2) == 0)
-		_qca_ar8327_sw_capture_port_rx_counter(dev, loop/2);
+		_qca_ar8327_sw_capture_port_rx_counter(priv, loop/2);
 	else
-		_qca_ar8327_sw_capture_port_tx_counter(dev, loop/2);
+		_qca_ar8327_sw_capture_port_tx_counter(priv, loop/2);
 
-	if(++loop == (2 * (dev->ports))) {
+	if(++loop == (2 * (priv->ports))) {
 		loop = 0;
 	}
 
@@ -442,5 +517,3 @@ qca_ar8327_sw_mib_task(struct switch_dev *dev)
 
 	return;
 }
-
-

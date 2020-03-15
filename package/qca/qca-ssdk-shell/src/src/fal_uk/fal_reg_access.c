@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -12,7 +12,7 @@
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
 
-
+/*qca808x_start*/
 #include "sw.h"
 #include "sw_ioctl.h"
 #include "fal_reg_access.h"
@@ -37,7 +37,7 @@ fal_phy_set(a_uint32_t dev_id, a_uint32_t phy_addr,
     rv = sw_uk_exec(SW_API_PHY_SET, dev_id, phy_addr, reg, value);
     return rv;
 }
-
+/*qca808x_end*/
 sw_error_t
 fal_reg_get(a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t value[],
             a_uint32_t value_len)
@@ -138,4 +138,22 @@ fal_phy_dump(a_uint32_t dev_id, a_uint32_t phy_addr, a_uint32_t reg_idx,fal_phy_
     return rv;
 }
 
+sw_error_t
+fal_uniphy_reg_get(a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr,
+		a_uint8_t value[], a_uint32_t value_len)
+{
+    sw_error_t rv;
 
+    rv = sw_uk_exec(SW_API_UNIPHY_REG_GET, dev_id, index, reg_addr, value, value_len);
+    return rv;
+}
+
+sw_error_t
+fal_uniphy_reg_set(a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr,
+		a_uint8_t value[], a_uint32_t value_len)
+{
+    sw_error_t rv;
+
+    rv = sw_uk_exec(SW_API_UNIPHY_REG_SET, dev_id, index, reg_addr, value, value_len);
+    return rv;
+}

@@ -16,6 +16,7 @@
  */
 
 #include <linux/module.h>
+#include <linux/version.h>
 #include <linux/sysfs.h>
 #include <linux/skbuff.h>
 #include <net/route.h>
@@ -29,7 +30,6 @@
 #include <net/netfilter/nf_conntrack_helper.h>
 #include <net/netfilter/nf_conntrack_zones.h>
 #include <net/netfilter/nf_conntrack_core.h>
-#include <net/netfilter/nf_conntrack_timeout.h>
 #include <linux/netfilter/xt_dscp.h>
 #include <linux/if_bridge.h>
 #include <net/pkt_sched.h>
@@ -43,7 +43,9 @@ typedef enum sfe_cm_exception {
 	SFE_CM_EXCEPTION_PACKET_MULTICAST,
 	SFE_CM_EXCEPTION_NO_IIF,
 	SFE_CM_EXCEPTION_NO_CT,
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	SFE_CM_EXCEPTION_CT_NO_TRACK,
+#endif
 	SFE_CM_EXCEPTION_CT_NO_CONFIRM,
 	SFE_CM_EXCEPTION_CT_IS_ALG,
 	SFE_CM_EXCEPTION_IS_IPV4_MCAST,
@@ -65,7 +67,9 @@ static char *sfe_cm_exception_events_string[SFE_CM_EXCEPTION_MAX] = {
 	"PACKET_MULTICAST",
 	"NO_IIF",
 	"NO_CT",
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	"CT_NO_TRACK",
+#endif
 	"CT_NO_CONFIRM",
 	"CT_IS_ALG",
 	"IS_IPV4_MCAST",
@@ -232,7 +236,11 @@ static bool sfe_cm_find_dev_and_mac_addr(sfe_ip_addr_t *addr, struct net_device 
 
 		dst = (struct dst_entry *)rt;
 	} else {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 		rt6 = rt6_lookup(&init_net, (struct in6_addr *)addr->ip6, 0, 0, 0);
+#else
+		rt6 = rt6_lookup(&init_net, (struct in6_addr *)addr->ip6, 0, 0, 0, 0);
+#endif
 		if (!rt6) {
 			goto ret_fail;
 		}
@@ -358,6 +366,7 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 		return NF_ACCEPT;
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	/*
 	 * Don't process untracked connections.
 	 */
@@ -366,6 +375,7 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 		DEBUG_TRACE("untracked connection\n");
 		return NF_ACCEPT;
 	}
+#endif
 
 	/*
 	 * Unconfirmed connection may be dropped by Linux at the final step,
@@ -686,6 +696,7 @@ static int sfe_cm_conntrack_event(struct notifier_block *this,
 		return NOTIFY_DONE;
 	}
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	/*
 	 * If this is an untracked connection then we can't have any state either.
 	 */
@@ -693,6 +704,7 @@ static int sfe_cm_conntrack_event(struct notifier_block *this,
 		DEBUG_TRACE("ignoring untracked conn\n");
 		return NOTIFY_DONE;
 	}
+#endif
 
 	/*
 	 * We're only interested in destroy events.
@@ -764,6 +776,18 @@ static struct nf_hook_ops sfe_cm_ops_post_routing[] __read_mostly = {
 #endif
 };
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,19,0))
+static inline struct nf_udp_net *udp_pernet(struct net *net)
+{
+	return &net->ct.nf_ct_proto.udp;
+}
+
+static unsigned int *udp_get_timeouts(struct net *net)
+{
+	return udp_pernet(net)->timeouts;
+}
+#endif
+
 /*
  * sfe_cm_sync_rule()
  *	Synchronize a connection's state.
@@ -814,14 +838,20 @@ static void sfe_cm_sync_rule(struct sfe_connection_sync *sis)
 	}
 
 	ct = nf_ct_tuplehash_to_ctrack(h);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
 	NF_CT_ASSERT(ct->timeout.data == (unsigned long)ct);
+#endif
 
 	/*
 	 * Only update if this is not a fixed timeout
 	 */
 	if (!test_bit(IPS_FIXED_TIMEOUT_BIT, &ct->status)) {
 		spin_lock_bh(&ct->lock);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
 		ct->timeout.expires += sis->delta_jiffies;
+#else
+		ct->timeout += (u32)sis->delta_jiffies;
+#endif
 		spin_unlock_bh(&ct->lock);
 	}
 
@@ -858,6 +888,51 @@ static void sfe_cm_sync_rule(struct sfe_connection_sync *sis)
 		}
 		spin_unlock_bh(&ct->lock);
 		break;
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 4, 0))
+	case IPPROTO_UDP:
+		/*
+		 * In Linux connection track, UDP flow has two timeout values:
+		 * /proc/sys/net/netfilter/nf_conntrack_udp_timeout:
+		 * 	this is for uni-direction UDP flow, normally its value is 60 seconds
+		 * /proc/sys/net/netfilter/nf_conntrack_udp_timeout_stream:
+		 * 	this is for bi-direction UDP flow, normally its value is 180 seconds
+		 *
+		 * Linux will update timer of UDP flow to stream timeout once it seen packets
+		 * in reply direction. But if flow is accelerated by NSS or SFE, Linux won't
+		 * see any packets. So we have to do the same thing in our stats sync message.
+		 */
+		if (!test_bit(IPS_ASSURED_BIT, &ct->status) && acct) {
+			u_int64_t reply_pkts = atomic64_read(&SFE_ACCT_COUNTER(acct)[IP_CT_DIR_REPLY].packets);
+
+			if (reply_pkts != 0) {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
+				struct nf_conntrack_l4proto *l4proto;
+#endif
+				unsigned int *timeouts;
+
+				set_bit(IPS_SEEN_REPLY_BIT, &ct->status);
+				set_bit(IPS_ASSURED_BIT, &ct->status);
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
+				l4proto = __nf_ct_l4proto_find((sis->is_v6 ? AF_INET6 : AF_INET), IPPROTO_UDP);
+				timeouts = nf_ct_timeout_lookup(&init_net, ct, l4proto);
+#else
+				timeouts = nf_ct_timeout_lookup(ct);
+				if (!timeouts)
+					timeouts = udp_get_timeouts(nf_ct_net(ct));
+#endif
+
+				spin_lock_bh(&ct->lock);
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,9,0))
+				ct->timeout.expires = jiffies + timeouts[UDP_CT_REPLIED];
+#else
+				ct->timeout = nfct_time_stamp + timeouts[UDP_CT_REPLIED];
+#endif
+				spin_unlock_bh(&ct->lock);
+			}
+		}
+		break;
+#endif /*KERNEL_VERSION(3, 4, 0)*/
 	}
 
 	/*
@@ -1000,6 +1075,25 @@ static const struct device_attribute sfe_attrs[] = {
 	__ATTR(defunct_all, S_IWUSR | S_IRUGO, sfe_cm_get_defunct_all, sfe_cm_set_defunct_all),
 };
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,14,0))
+static int __net_init sfe_nf_register(struct net *net)
+{
+	return nf_register_net_hooks(net, sfe_cm_ops_post_routing,
+				 ARRAY_SIZE(sfe_cm_ops_post_routing));
+}
+
+static void __net_exit sfe_nf_unregister(struct net *net)
+{
+	nf_unregister_net_hooks(net, sfe_cm_ops_post_routing,
+				ARRAY_SIZE(sfe_cm_ops_post_routing));
+}
+
+static struct pernet_operations sfe_net_ops = {
+	.init = sfe_nf_register,
+	.exit = sfe_nf_unregister,
+};
+#endif
+
 /*
  * sfe_cm_init()
  */
@@ -1043,28 +1137,25 @@ static int __init sfe_cm_init(void)
 	/*
 	 * Register our netfilter hooks.
 	 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	result = nf_register_hooks(sfe_cm_ops_post_routing, ARRAY_SIZE(sfe_cm_ops_post_routing));
+#else
+	result = register_pernet_subsys(&sfe_net_ops);
+#endif
 	if (result < 0) {
 		DEBUG_ERROR("can't register nf post routing hook: %d\n", result);
 		goto exit3;
 	}
 
-
+#ifdef CONFIG_NF_CONNTRACK_EVENTS
 	/*
 	 * Register a notifier hook to get fast notifications of expired connections.
-	 * Note: In CONFIG_NF_CONNTRACK_CHAIN_EVENTS enabled case, nf_conntrack_register_notifier()
-	 * function always returns 0.
 	 */
-#ifdef CONFIG_NF_CONNTRACK_EVENTS
-#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
-	(void)nf_conntrack_register_notifier(&init_net, &sfe_cm_conntrack_notifier);
-#else
 	result = nf_conntrack_register_notifier(&init_net, &sfe_cm_conntrack_notifier);
 	if (result < 0) {
 		DEBUG_ERROR("can't register nf notifier hook: %d\n", result);
 		goto exit4;
 	}
-#endif
 #endif
 
 	spin_lock_init(&sc->lock);
@@ -1077,9 +1168,11 @@ static int __init sfe_cm_init(void)
 	return 0;
 
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
-#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
 exit4:
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	nf_unregister_hooks(sfe_cm_ops_post_routing, ARRAY_SIZE(sfe_cm_ops_post_routing));
+#else
+	unregister_pernet_subsys(&sfe_net_ops);
 #endif
 #endif
 exit3:
@@ -1131,7 +1224,11 @@ static void __exit sfe_cm_exit(void)
 	nf_conntrack_unregister_notifier(&init_net, &sfe_cm_conntrack_notifier);
 
 #endif
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,14,0))
 	nf_unregister_hooks(sfe_cm_ops_post_routing, ARRAY_SIZE(sfe_cm_ops_post_routing));
+#else
+	unregister_pernet_subsys(&sfe_net_ops);
+#endif
 
 	unregister_inet6addr_notifier(&sc->inet6_notifier);
 	unregister_inetaddr_notifier(&sc->inet_notifier);

@@ -1,8 +1,6 @@
 name: Build LEDE y1s
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

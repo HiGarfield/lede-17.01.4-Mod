@@ -20,11 +20,10 @@ extern "C" {
 #endif                          /* __cplusplus */
 
 #include <linux/version.h>
-#if defined(CONFIG_OF) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0))
+#if defined(IN_SWCONFIG)
 #include <linux/switch.h>
-#else
-#include <net/switch.h>
 #endif
+
 #include <linux/notifier.h>
 
 /**
@@ -38,19 +37,16 @@ typedef struct{
     unsigned char duplex;/*0:half, 1:full*/
 }ssdk_port_status;
 
+#if defined(IN_SWCONFIG)
 int
 qca_ar8327_sw_get_port_link(struct switch_dev *dev, int port,
-			                        struct switch_port_link *link);
-
-void
-qca_ar8327_sw_mac_polling_task(struct switch_dev *dev);
-
-void
-dess_rgmii_sw_mac_polling_task(struct switch_dev *dev);
+						struct switch_port_link *link);
+#endif
 
 int ssdk_port_link_notify_register(struct notifier_block *nb);
 int ssdk_port_link_notify_unregister(struct notifier_block *nb);
-
+int ssdk_port_link_notify(unsigned char port_id,
+            unsigned char link, unsigned char speed, unsigned char duplex);
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */

@@ -15,6 +15,9 @@ ifeq (TRUE, $(IN_ACL))
 	ifeq (ALL_CHIP, $(CHIP_TYPE))
 		SRC_LIST += hsl_acl.c
 	endif
+	ifeq (NONHK_CHIP, $(CHIP_TYPE))
+                SRC_LIST += hsl_acl.c
+        endif
 endif
 
 ifeq (linux, $(OS))

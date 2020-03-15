@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012,2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -21,7 +21,7 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-#include "common/sw.h"
+#include "sw.h"
 
     sw_error_t
     shiva_acl_rule_write(a_uint32_t dev_id, a_uint32_t rule_idx, a_uint32_t vlu[8],

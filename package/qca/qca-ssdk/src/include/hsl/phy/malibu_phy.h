@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2015, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -47,7 +47,7 @@ extern "C"
 #define MALIBU_1_0 0x004DD0B0
 #define MALIBU_1_1 0x004DD0B1
 #define MALIBU_1_1_2PORT 0x004DD0B2
-
+#define MALIBU_ORG_ID_OFFSET_LEN 16
 
   /* PHY Registers */
 #define MALIBU_PHY_CONTROL                      0
@@ -76,6 +76,10 @@ extern "C"
 #define MALIBU_DEBUG_PHY_HIBERNATION_CTRL  0xb
 #define MALIBU_DEBUG_PHY_POWER_SAVING_CTRL  0x29
 #define MALIBU_PHY_MMD7_ADDR_8023AZ_EEE_CTRL       0x3c
+#define MALIBU_PHY_MMD7_ADDR_8023AZ_EEE_PARTNER       0x3d
+#define MALIBU_PHY_MMD7_ADDR_8023AZ_EEE_STATUS       0x8000
+#define MALIBU_PHY_MMD3_ADDR_8023AZ_EEE_CAPABILITY       0x14
+
 #define MALIBU_PHY_MMD3_ADDR_REMOTE_LOOPBACK_CTRL       0x805a
 #define MALIBU_PHY_MMD3_WOL_MAGIC_MAC_CTRL1   0x804a
 #define MALIBU_PHY_MMD3_WOL_MAGIC_MAC_CTRL2   0x804b
@@ -89,6 +93,15 @@ extern "C"
 #define MALIBU_DAC_CTRL_MASK  0x380
 #define MALIBU_DAC_CTRL_VALUE  0x280
 #define MALIBU_LED_1000_CTRL1_100_10_MASK  0x30
+
+#define MALIBU_PHY_EEE_ADV_100M 0x0002
+#define MALIBU_PHY_EEE_ADV_1000M 0x0004
+#define MALIBU_PHY_EEE_PARTNER_ADV_100M 0x0002
+#define MALIBU_PHY_EEE_PARTNER_ADV_1000M 0x0004
+#define MALIBU_PHY_EEE_CAPABILITY_100M 0x0002
+#define MALIBU_PHY_EEE_CAPABILITY_1000M 0x0004
+#define MALIBU_PHY_EEE_STATUS_100M 0x0002
+#define MALIBU_PHY_EEE_STATUS_1000M 0x0004
 
 
 #define AZ_TIMER_CTRL_DEFAULT_VALUE    0x3062
@@ -116,6 +129,17 @@ extern "C"
 #define MALIBU_PHY_PSGMII_MODE_CTRL_DEFAULT_VALUE       0x220d
 #define MALIBU_PHY_PSGMII_MODE_CTRL_ADJUST_VALUE        0x220c
 #define MALIBU_PHY_PSGMII_REDUCE_SERDES_TX_AMP	0x8a
+
+#define MALIBU_PHY_QSGMII 0x8504
+#define MALIBU_PHY_PSGMII_ADDR_INC 0x5
+#define MALIBU_PHY_MAX_ADDR_INC 0x4
+#define MALIBU_MODE_CHANAGE_RESET 0x0
+#define MALIBU_MODE_RESET_DEFAULT_VALUE 0x5f
+#define MALIBU_MODE_RESET_REG 0x0
+
+#define MALIBU_PHY_TX_FLOWCTRL_STATUS 0x8
+#define MALIBU_PHY_RX_FLOWCTRL_STATUS 0x4
+
 
 #define MALIBU_PHY_MMD7_NUM  7
 #define MALIBU_PHY_MMD3_NUM  3
@@ -159,6 +183,9 @@ extern "C"
 #define MODE_CFG                     BIT_0
 #define MODE_CFG_OFFSET              0
 #define MODE_CFG_LEN                 4
+
+#define MALIBU_MODECTRL_DFLT	0x533
+#define MALIBU_MIICTRL_DFLT	0x140
 
   /*debug port */
 #define MALIBU_DEBUG_PORT_RGMII_MODE            18
@@ -637,7 +664,7 @@ extern "C"
   malibu_phy_get_phy_id(a_uint32_t dev_id, a_uint32_t phy_id,
 			a_uint16_t * org_id, a_uint16_t * rev_id);
 
-  int malibu_phy_init(void);
+  int malibu_phy_init(a_uint32_t dev_id, a_uint32_t port_bmp);
 
 #ifdef __cplusplus
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -35,12 +35,7 @@
 #include <linux/types.h>
 //#include <asm/mach-types.h>
 #include <generated/autoconf.h>
-#if defined(CONFIG_OF) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0))
 #include <linux/switch.h>
-#else
-#include <net/switch.h>
-#include <linux/ar8216_platform.h>
-#endif
 #include <linux/delay.h>
 #include <linux/phy.h>
 #include <linux/netdevice.h>
@@ -52,10 +47,11 @@ qca_ar8327_sw_set_max_frame_size(struct switch_dev *dev,
 										const struct switch_attr *attr,
 		   								struct switch_val *val)
 {
+	struct qca_phy_priv *priv = qca_phy_priv_get(dev);
 	a_uint32_t size = val->value.i;
 	a_uint32_t ret;
 
-	ret = fal_frame_max_size_set(0, size);
+	ret = fal_frame_max_size_set(priv->device_id, size);
 	if (ret){
 		return -1;
 	}
@@ -68,10 +64,11 @@ qca_ar8327_sw_get_max_frame_size(struct switch_dev *dev,
 										const struct switch_attr *attr,
 		   								struct switch_val *val)
 {
+	struct qca_phy_priv *priv = qca_phy_priv_get(dev);
 	a_uint32_t size = 0;
 	a_uint32_t ret;
 
-	ret = fal_frame_max_size_get(0, &size);
+	ret = fal_frame_max_size_get(priv->device_id, &size);
 	if (ret){
 		return -1;
 	}
@@ -91,7 +88,7 @@ qca_ar8327_sw_reset_switch(struct switch_dev *dev)
 	mutex_lock(&priv->reg_mutex);
 
 	/* flush all vlan translation unit entries */
-	fal_vlan_flush(0);
+	fal_vlan_flush(priv->device_id);
 
 	/* reset VLAN shadow */
 	priv->vlan = 0;
@@ -106,12 +103,12 @@ qca_ar8327_sw_reset_switch(struct switch_dev *dev)
 	rv += qca_ar8327_sw_hw_apply(dev);
 	priv->init = false;
 
-	mac_mode = ssdk_dt_global_get_mac_mode();
+	mac_mode = ssdk_dt_global_get_mac_mode(priv->device_id, 0);
 	/* set mac5 flowcontol force for RGMII */
 	if ((mac_mode == PORT_WRAPPER_SGMII0_RGMII5)
 		||(mac_mode == PORT_WRAPPER_SGMII1_RGMII5)) {
-		fal_port_flowctrl_forcemode_set(0, 5, A_TRUE);
-		fal_port_flowctrl_set(0, 5, A_TRUE);
+		fal_port_flowctrl_forcemode_set(priv->device_id, 5, A_TRUE);
+		fal_port_flowctrl_set(priv->device_id, 5, A_TRUE);
 	}
 	/* set mac4 flowcontol force for RGMII */
 	if ((mac_mode == PORT_WRAPPER_SGMII0_RGMII4)
@@ -119,11 +116,11 @@ qca_ar8327_sw_reset_switch(struct switch_dev *dev)
 		||(mac_mode == PORT_WRAPPER_SGMII4_RGMII4)) {
 		/*  fix channel4 will recieve packets when enable channel0 as SGMII */
 		if(mac_mode == PORT_WRAPPER_SGMII0_RGMII4) {
-			fal_port_txmac_status_set (0, 5, A_FALSE);
-			fal_port_rxmac_status_set (0, 5, A_FALSE);
+			fal_port_txmac_status_set (priv->device_id, 5, A_FALSE);
+			fal_port_rxmac_status_set (priv->device_id, 5, A_FALSE);
 		}
-		fal_port_flowctrl_forcemode_set(0, 4, A_TRUE);
-		fal_port_flowctrl_set(0, 4, A_TRUE);
+		fal_port_flowctrl_forcemode_set(priv->device_id, 4, A_TRUE);
+		fal_port_flowctrl_set(priv->device_id, 4, A_TRUE);
 	}
 
 	return rv;

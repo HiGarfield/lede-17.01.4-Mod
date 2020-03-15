@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2015, 2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -37,6 +37,7 @@
 #include "../napt_acl.h"
 
 int nat_chip_ver = 0;
+a_bool_t napt_add_bypass_check = A_TRUE;
 
 /* support 4 different interfaces (or 4 VLANs) */
 static fal_intf_mac_entry_t global_if_mac_entry[MAX_INTF_NUM] = {{0}};
@@ -271,10 +272,18 @@ if_mac_cleanup(void)
 	return 0;
 }
 
+#define MACADDR_LEN	6
 a_int32_t
 if_mac_add(a_uint8_t *mac, a_uint32_t vid, uint32_t ipv6)
 {
     a_uint8_t i = 0;
+    a_uint8_t zero_mac[MACADDR_LEN] = {0};
+
+    if (!memcmp(mac, zero_mac, MACADDR_LEN))
+        return 0;
+
+    if(if_mac_count > MAX_INTF_NUM)
+        return -1;
 
     for(i = 0; i < if_mac_count; i++)
     {
@@ -282,7 +291,7 @@ if_mac_add(a_uint8_t *mac, a_uint32_t vid, uint32_t ipv6)
                 (global_if_mac_entry[i].vid_low == vid))
         {
             HNAT_PRINTK("%s: mac exist id:%d\n", __func__,
-                        global_if_mac_entry[if_mac_count].entry_id);
+                        global_if_mac_entry[i].entry_id);
             return 0;
         }
     }
@@ -336,117 +345,6 @@ _arp_hw_add(fal_host_entry_t *arp_entry)
 {
     return IP_HOST_ADD(0, arp_entry);
 }
-
-struct host_route_ip4 {
-	char valid;
-	fal_ip4_addr_t ip;
-	unsigned int ref;
-};
-struct host_route_ip6 {
-	char valid;
-	fal_ip6_addr_t ip;
-	unsigned int ref;
-};
-
-#define HOST_ROUTE_NUM   16
-struct host_route_ip4 host_route_ip4_table[HOST_ROUTE_NUM];
-struct host_route_ip6 host_route_ip6_table[HOST_ROUTE_NUM];
-
-static a_int32_t
-_arp_host_route_ip4_hw_add(fal_host_entry_t *arp_entry)
-{
-	char exist = 0;
-	unsigned char i = 0, idx = HOST_ROUTE_NUM+1;
-	fal_ip4_addr_t ip = arp_entry->ip4_addr;
-
-	ip = ip & 0xffff0000;
-	for(i = 0; i < HOST_ROUTE_NUM; i++) {
-		if(host_route_ip4_table[i].valid) {
-			if(host_route_ip4_table[i].ip == ip) {
-				exist = 1;
-				idx = i;
-				break;
-			}
-		} else {
-			idx = i;
-		}
-	}
-	if(!exist) {
-		fal_host_route_t entry;
-		if(idx >= HOST_ROUTE_NUM) {
-			HNAT_PRINTK("ino valid ip4 host route entry!\n");
-			return -1;
-		}
-
-		host_route_ip4_table[idx].valid = 1;
-		host_route_ip4_table[idx].ip = ip;
-		memset(&entry, 0, sizeof(entry));
-		entry.valid = 1;
-		entry.ip_version = 0;
-		entry.route_addr.ip4_addr = ip;
-		entry.prefix_length = 15;
-		IP_HOST_ROUTE_ADD(0, idx, &entry);
-	} else {
-		host_route_ip4_table[idx].ref++;
-	}
-
-	return 0;
-}
-
-static a_int32_t
-_arp_host_route_ip6_hw_add(fal_host_entry_t *arp_entry)
-{
-	char exist = 0;
-	unsigned char idx = HOST_ROUTE_NUM+1, i = 0;
-	fal_ip6_addr_t ip = arp_entry->ip6_addr;
-
-	ip.ul[1] = 0;
-	ip.ul[2] = 0;
-	ip.ul[3] = 0;
-	for(i = 0; i < HOST_ROUTE_NUM; i++) {
-		if(host_route_ip6_table[i].valid) {
-			if(host_route_ip6_table[i].ip.ul[0] == ip.ul[0]) {
-				exist = 1;
-				idx = i;
-				break;
-			}
-		} else {
-			idx = i;
-		}
-	}
-	if(!exist) {
-		fal_host_route_t entry;
-		if(idx >= HOST_ROUTE_NUM) {
-			HNAT_PRINTK("ino valid ip4 host route entry!\n");
-			return -1;
-		}
-		host_route_ip6_table[idx].valid = 1;
-		host_route_ip6_table[idx].ip.ul[0]  = ip.ul[0];
-		memset(&entry, 0, sizeof(entry));
-		entry.valid = 1;
-		entry.ip_version = 1;
-		entry.route_addr.ip6_addr.ul[0] = ip.ul[0];
-		entry.prefix_length = 31;
-		IP_HOST_ROUTE_ADD(0, idx, &entry);
-	} else {
-		host_route_ip6_table[idx].ref++;
-	}
-
-	return 0;
-}
-
-
-static a_int32_t
-_arp_host_route_hw_add(fal_host_entry_t *arp_entry)
-{
-	if(arp_entry->flags == FAL_IP_IP4_ADDR) {
-		return _arp_host_route_ip4_hw_add(arp_entry);
-	} else {
-		return _arp_host_route_ip6_hw_add(arp_entry);
-	}
-
-}
-
 
 a_int32_t
 arp_hw_add(a_uint32_t port, a_uint32_t intf_id, a_uint8_t *ip, a_uint8_t *mac, int is_ipv6_entry)
@@ -517,14 +415,6 @@ arp_hw_add(a_uint32_t port, a_uint32_t intf_id, a_uint8_t *ip, a_uint8_t *mac, i
 		{
 			HNAT_ERR_PRINTK("%s: fail\n", __func__);
 			return -1;
-		}
-
-		if(DESS_CHIP(nat_chip_ver)) {
-			if(_arp_host_route_hw_add(&arp_entry) != 0)
-			{
-				HNAT_ERR_PRINTK("%s: fail\n", __func__);
-				return -1;
-			}
 		}
 	}
 
@@ -656,9 +546,19 @@ napt_hw_mode_init(void)
 void
 napt_hw_mode_cleanup(void)
 {
-	if (!DESS_CHIP(nat_chip_ver))
+	a_uint32_t entry;
+	sw_error_t rv;
+	if (!DESS_CHIP(nat_chip_ver)) {
 		IP_ROUTE_STATUS_SET(0, A_FALSE);
-    ACL_STATUS_SET(0, A_FALSE);
+		entry = 0;
+	} else {
+		HSL_REG_ENTRY_GET(rv, 0, NAT_CTRL, 0,
+                      		(a_uint8_t *) (&entry), sizeof (a_uint32_t));
+		SW_SET_REG_BY_FIELD(NAT_CTRL, NAT_EN, 0, entry);
+	}
+	HSL_REG_ENTRY_SET(rv, 0, NAT_CTRL, 0,
+                      (a_uint8_t *) (&entry), sizeof (a_uint32_t));
+	ACL_STATUS_SET(0, A_FALSE);
 }
 
 a_int32_t
@@ -710,38 +610,42 @@ nat_hw_pub_ip_del(a_uint32_t index)
 a_int32_t
 napt_hw_add(napt_entry_t *napt)
 {
-    a_int32_t ret = 0;
-    fal_napt_entry_t fal_napt = {0};
+	a_int32_t ret = 0;
+	fal_napt_entry_t fal_napt = {0};
 	fal_host_entry_t host_entry = {0};
+	a_uint32_t next_hop = 0;
 
-    napt_entry_cp(&fal_napt, napt);
+	napt_entry_cp(&fal_napt, napt);
 
-    fal_napt.flags |= FAL_NAT_ENTRY_TRANS_IPADDR_INDEX;
-    fal_napt.counter_en = 1;
-    fal_napt.counter_id = nat_hw_debug_counter_get();
-    fal_napt.action = FAL_MAC_FRWRD;
+	fal_napt.flags |= FAL_NAT_ENTRY_TRANS_IPADDR_INDEX;
+	fal_napt.counter_en = 1;
+	fal_napt.counter_id = nat_hw_debug_counter_get();
+	fal_napt.action = FAL_MAC_FRWRD;
 
-	/*check arp entry*/
-	host_entry.flags = FAL_IP_IP4_ADDR;
-	host_entry.ip4_addr = fal_napt.src_addr;
-	ret = IP_HOST_GET(0, FAL_IP_ENTRY_IPADDR_EN, &host_entry);
-	if (ret) {
-		printk("can not find src host entry!\n");
-		return ret;
-	}
-	if (nf_athrs17_hnat_wan_type != NF_S17_WAN_TYPE_PPPOE) {
-		host_entry.ip4_addr = fal_napt.dst_addr;
+	if (!napt_add_bypass_check) {
+		/*check arp entry*/
+		host_entry.flags = FAL_IP_IP4_ADDR;
+		host_entry.ip4_addr = fal_napt.src_addr;
 		ret = IP_HOST_GET(0, FAL_IP_ENTRY_IPADDR_EN, &host_entry);
 		if (ret) {
-			printk("can not find dst host entry!\n");
+			HNAT_ERR_PRINTK("can not find src host entry!\n");
 			return ret;
+		}
+		if (nf_athrs17_hnat_wan_type != NF_S17_WAN_TYPE_PPPOE) {
+			next_hop = get_next_hop(fal_napt.dst_addr, fal_napt.src_addr);
+			host_entry.ip4_addr =  next_hop ? next_hop : fal_napt.dst_addr;
+			ret = IP_HOST_GET(0, FAL_IP_ENTRY_IPADDR_EN, &host_entry);
+			if (ret) {
+				HNAT_ERR_PRINTK("can not find dst host entry!\n");
+				return ret;
+			}
 		}
 	}
 
-    ret = NAPT_ADD(0, &fal_napt);
+	ret = NAPT_ADD(0, &fal_napt);
 
-    napt->entry_id = fal_napt.entry_id;
-    return ret;
+	napt->entry_id = fal_napt.entry_id;
+	return ret;
 }
 
 a_int32_t
@@ -892,6 +796,20 @@ napt_hw_get_by_index(napt_entry_t *napt, a_uint16_t hw_index)
     return 0;
 }
 
+a_int32_t napt_hw_get_by_sip(a_uint32_t sip)
+{
+	fal_napt_entry_t napt;
+
+	memset(&napt, 0, sizeof(fal_napt_entry_t));
+	napt.entry_id = FAL_NEXT_ENTRY_FIRST_ID;
+	napt.src_addr = sip;
+	if (fal_napt_next(0, FAL_NAT_ENTRY_SOURCE_IP_EN, &napt) == SW_OK) {
+		return 0;
+	}
+
+	return -1;
+}
+
 a_uint32_t
 napt_hw_used_count_get(void)
 {
@@ -955,8 +873,6 @@ sw_error_t napt_l3_status_get(a_uint32_t dev_id, a_bool_t * enable)
 
 sw_error_t napt_helper_hsl_init()
 {
-	memset(host_route_ip4_table, 0, sizeof(host_route_ip4_table));
-	memset(host_route_ip6_table, 0, sizeof(host_route_ip6_table));
 	return SW_OK;
 }
 

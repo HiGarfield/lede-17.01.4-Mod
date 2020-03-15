@@ -16,6 +16,7 @@
  */
 
 #include <linux/module.h>
+#include <linux/version.h>
 #include <linux/sysfs.h>
 #include <linux/skbuff.h>
 #include <linux/icmp.h>
@@ -37,7 +38,7 @@
  */
 #define SFE_IPV6_UNALIGNED_IP_HEADER 1
 #if SFE_IPV6_UNALIGNED_IP_HEADER
-#define SFE_IPV6_UNALIGNED_STRUCT __attribute__((aligned(4)))
+#define SFE_IPV6_UNALIGNED_STRUCT __attribute__((packed, aligned(2)))
 #else
 #define SFE_IPV6_UNALIGNED_STRUCT
 #endif
@@ -2752,9 +2753,17 @@ another_round:
 /*
  * sfe_ipv6_periodic_sync()
  */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 static void sfe_ipv6_periodic_sync(unsigned long arg)
+#else
+static void sfe_ipv6_periodic_sync(struct timer_list *t)
+#endif
 {
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 	struct sfe_ipv6 *si = (struct sfe_ipv6 *)arg;
+#else
+	struct sfe_ipv6 *si = from_timer(si, t, timer);
+#endif
 	u64 now_jiffies;
 	int quota;
 	sfe_sync_rule_callback_t sync_rule_callback;
@@ -3345,7 +3354,11 @@ static int __init sfe_ipv6_init(void)
 	/*
 	 * Create a timer to handle periodic statistics.
 	 */
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4,19,0))
 	setup_timer(&si->timer, sfe_ipv6_periodic_sync, (unsigned long)si);
+#else
+	timer_setup(&si->timer, sfe_ipv6_periodic_sync, 0);
+#endif
 	mod_timer(&si->timer, jiffies + ((HZ + 99) / 100));
 
 	spin_lock_init(&si->lock);

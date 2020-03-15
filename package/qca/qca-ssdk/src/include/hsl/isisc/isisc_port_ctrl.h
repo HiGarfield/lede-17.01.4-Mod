@@ -210,6 +210,13 @@ extern "C" {
 
     HSL_LOCAL sw_error_t
     isisc_port_mac_loopback_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t * enable);
+
+    HSL_LOCAL sw_error_t
+    isisc_port_8023az_set (a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable);
+
+    HSL_LOCAL sw_error_t
+    isisc_port_8023az_get (a_uint32_t dev_id, fal_port_t port_id, a_bool_t *enable);
+
 #endif
 
 #ifdef __cplusplus

@@ -55,46 +55,46 @@ extern "C" {
 #define ISIS_ACL_CLEANUP(rv, dev_id)
 #endif
 
-#ifdef HSL_STANDALONG
-
-    HSL_LOCAL sw_error_t
+    sw_error_t
     isis_acl_list_creat(a_uint32_t dev_id, a_uint32_t list_id,
                         a_uint32_t list_pri);
 
-    HSL_LOCAL sw_error_t
-    isis_acl_list_destroy(a_uint32_t dev_id, a_uint32_t list_id);
+    sw_error_t
+    isis_acl_rule_query(a_uint32_t dev_id, a_uint32_t list_id,
+                        a_uint32_t rule_id, fal_acl_rule_t * rule);
 
-    HSL_LOCAL sw_error_t
+    sw_error_t
     isis_acl_rule_add(a_uint32_t dev_id, a_uint32_t list_id,
                       a_uint32_t rule_id, a_uint32_t rule_nr,
                       fal_acl_rule_t * rule);
 
-    HSL_LOCAL sw_error_t
+    sw_error_t
     isis_acl_rule_delete(a_uint32_t dev_id, a_uint32_t list_id,
                          a_uint32_t rule_id, a_uint32_t rule_nr);
 
-    HSL_LOCAL sw_error_t
-    isis_acl_rule_query(a_uint32_t dev_id, a_uint32_t list_id,
-                        a_uint32_t rule_id, fal_acl_rule_t * rule);
-
-    HSL_LOCAL a_uint32_t
+    a_uint32_t
     isis_acl_rule_get_offset(a_uint32_t dev_id, a_uint32_t list_id, a_uint32_t rule_id);
 
-    HSL_LOCAL sw_error_t
+    sw_error_t
     isis_acl_rule_sync_multi_portmap(a_uint32_t dev_id, a_uint32_t pos, a_uint32_t *act);
 
-    HSL_LOCAL sw_error_t
+    sw_error_t
     isis_acl_list_bind(a_uint32_t dev_id, a_uint32_t list_id,
                        fal_acl_direc_t direc, fal_acl_bind_obj_t obj_t,
                        a_uint32_t obj_idx);
 
-    HSL_LOCAL sw_error_t
+    sw_error_t
     isis_acl_list_unbind(a_uint32_t dev_id, a_uint32_t list_id,
                          fal_acl_direc_t direc, fal_acl_bind_obj_t obj_t,
                          a_uint32_t obj_idx);
 
-    HSL_LOCAL sw_error_t
+    sw_error_t
     isis_acl_status_set(a_uint32_t dev_id, a_bool_t enable);
+
+#ifdef HSL_STANDALONG
+
+    HSL_LOCAL sw_error_t
+    isis_acl_list_destroy(a_uint32_t dev_id, a_uint32_t list_id);
 
     HSL_LOCAL sw_error_t
     isis_acl_status_get(a_uint32_t dev_id, a_bool_t * enable);

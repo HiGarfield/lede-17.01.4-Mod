@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2016-2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -37,6 +37,6 @@ fal_stp_port_state_get(a_uint32_t dev_id, a_uint32_t st_id,
     sw_error_t rv;
 
     rv = sw_uk_exec(SW_API_STP_PT_STATE_GET, dev_id, st_id, port_id,
-                    (a_uint32_t) state);
+                    state);
     return rv;
 }

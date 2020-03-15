@@ -1,6 +1,10 @@
 MODULE_CFLAG :=
 LOCAL_CFLAGS :=
 
+ifeq (TRUE, $(SWCONFIG))
+  MODULE_CFLAG += -DIN_SWCONFIG
+endif
+
 ifeq (TRUE, $(IN_ACL))
   MODULE_CFLAG += -DIN_ACL
 endif
@@ -101,6 +105,10 @@ ifeq (TRUE, $(IN_NAT))
   MODULE_CFLAG += -DIN_NAT
 endif
 
+ifeq (TRUE, $(IN_FLOW))
+  MODULE_CFLAG += -DIN_FLOW
+endif
+
 ifeq (TRUE, $(IN_SFE))
   MODULE_CFLAG += -DIN_SFE
 endif
@@ -113,12 +121,28 @@ ifeq (TRUE, $(IN_SEC))
   MODULE_CFLAG += -DIN_SEC
 endif
 
+ifeq (TRUE, $(IN_QM))
+  MODULE_CFLAG += -DIN_QM
+endif
+
 ifeq (TRUE, $(IN_NAT_HELPER))
   MODULE_CFLAG += -DIN_NAT_HELPER
 endif
 
 ifeq (TRUE, $(IN_INTERFACECONTROL))
   MODULE_CFLAG += -DIN_INTERFACECONTROL
+endif
+
+ifeq (TRUE, $(IN_CTRLPKT))
+  MODULE_CFLAG += -DIN_CTRLPKT
+endif
+
+ifeq (TRUE, $(IN_SERVCODE))
+  MODULE_CFLAG += -DIN_SERVCODE
+endif
+
+ifeq (TRUE, $(IN_RSS_HASH))
+  MODULE_CFLAG += -DIN_RSS_HASH
 endif
 
 ifeq (TRUE, $(IN_MACBLOCK))
@@ -131,6 +155,48 @@ endif
 
 ifeq (TRUE, $(IN_MALIBU_PHY))
   MODULE_CFLAG += -DIN_MALIBU_PHY
+endif
+ifeq (TRUE, $(IN_AQUANTIA_PHY))
+  MODULE_CFLAG += -DIN_AQUANTIA_PHY
+endif
+
+ifeq (TRUE, $(IN_QCA803X_PHY))
+  MODULE_CFLAG += -DIN_QCA803X_PHY
+endif
+
+ifeq (TRUE, $(IN_QCA808X_PHY))
+  MODULE_CFLAG += -DIN_QCA808X_PHY
+endif
+ifeq (TRUE, $(IN_SFP_PHY))
+  MODULE_CFLAG += -DIN_SFP_PHY
+endif
+
+ifeq (TRUE, $(IN_PHY_I2C_MODE))
+  MODULE_CFLAG += -DIN_PHY_I2C_MODE
+endif
+
+ifeq (TRUE, $(IN_VSI))
+  MODULE_CFLAG += -DIN_VSI
+endif
+
+ifeq (TRUE, $(IN_PPPOE))
+  MODULE_CFLAG += -DIN_PPPOE
+endif
+
+ifeq (TRUE, $(IN_BM))
+  MODULE_CFLAG += -DIN_BM
+endif
+
+ifeq (TRUE, $(IN_SHAPER))
+  MODULE_CFLAG += -DIN_SHAPER
+endif
+
+ifeq (TRUE, $(IN_POLICER))
+  MODULE_CFLAG += -DIN_POLICER
+endif
+
+ifeq (TRUE, $(HAWKEYE_CHIP))
+  MODULE_CFLAG += -DHAWKEYE_CHIP
 endif
 
 ifneq (TRUE, $(FAL))
@@ -161,16 +227,18 @@ ifeq (TRUE, $(DEBUG_ON))
   MODULE_CFLAG += -g
 endif
 
-MODULE_CFLAG += $(OPT_FLAG) -Wall -DVERSION=\"$(VERSION)\" -DBUILD_DATE=\"$(BUILD_DATE)\" -DCPU=\"$(CPU)\" -DOS=\"$(OS)\" -D"KBUILD_STR(s)=\#s" -D"KBUILD_MODNAME=KBUILD_STR(qca-ssdk)"
+MODULE_CFLAG += $(OPT_FLAG) -Wall -DVERSION=\"$(VERSION)\" -DBUILD_DATE=\"$(BUILD_DATE)\" -DOS=\"$(OS)\" -D"KBUILD_STR(s)=\#s" -D"KBUILD_MODNAME=KBUILD_STR(qca-ssdk)"
 
 MODULE_INC += -I$(PRJ_PATH)/include \
                    -I$(PRJ_PATH)/include/common \
                    -I$(PRJ_PATH)/include/api \
                    -I$(PRJ_PATH)/include/fal \
                    -I$(PRJ_PATH)/include/ref \
+                   -I$(PRJ_PATH)/include/adpt \
                    -I$(PRJ_PATH)/include/hsl \
                    -I$(PRJ_PATH)/include/hsl/phy \
                    -I$(PRJ_PATH)/include/sal/os \
+		   -I$(PRJ_PATH)/include/sal/os/linux \
                    -I$(PRJ_PATH)/include/sal/sd \
                    -I$(PRJ_PATH)/include/sal/sd/linux/hydra_howl \
                    -I$(PRJ_PATH)/include/sal/sd/linux/uk_interface \
@@ -213,6 +281,18 @@ ifneq (,$(findstring DESS, $(SUPPORT_CHIP)))
   MODULE_CFLAG += -DDESS
 endif
 
+ifneq (,$(findstring HPPE, $(SUPPORT_CHIP)))
+  MODULE_INC   += -I$(PRJ_PATH)/include/hsl/hppe
+  MODULE_INC   += -I$(PRJ_PATH)/include/adpt/hppe
+  MODULE_INC   += -I$(PRJ_PATH)/include/adpt/cppe
+  MODULE_CFLAG += -DHPPE
+endif
+
+ifneq (,$(findstring SCOMPHY, $(SUPPORT_CHIP)))
+  MODULE_INC   += -I$(PRJ_PATH)/include/hsl/scomphy
+  MODULE_CFLAG += -DSCOMPHY
+endif
+
 # check for GCC version
 ifeq (4, $(GCC_VER))
   MODULE_CFLAG += -DGCCV4
@@ -221,14 +301,33 @@ endif
 ifeq (KSLIB, $(MODULE_TYPE))
 
   MODULE_INC += -I$(PRJ_PATH)/include/shell_lib
+  ifndef TARGET_NAME
+	TARGET_NAME=arm-openwrt-linux-$(TARGET_SUFFIX)
+  endif
+
+  ifeq ($(CONFIG_KASAN_INLINE),y)
+        CALL_THRESHOLD=10000
+  else
+        CALL_THRESHOLD=0
+  endif
+  ifneq ($(CONFIG_KASAN_SHADOW_OFFSET),)
+        SHADOW_OFFSET=$(CONFIG_KASAN_SHADOW_OFFSET)
+  else
+        SHADOW_OFFSET=0xdfffff9000000000
+  endif
+  KASAN_OPTION=-fsanitize=kernel-address -fasan-shadow-offset=$(SHADOW_OFFSET) \
+               --param asan-stack=1 --param asan-globals=1 \
+               --param asan-instrumentation-with-call-threshold=$(CALL_THRESHOLD)
+  ifeq ($(CONFIG_KASAN),y)
+      MODULE_CFLAG += $(KASAN_OPTION)
+  endif
 
   ifeq (3_18, $(OS_VER))
 		MODULE_CFLAG += -DKVER34
 		MODULE_CFLAG += -DKVER32
 	    MODULE_CFLAG += -DLNX26_22
 	    MODULE_INC += -I$(SYS_PATH) \
-	          -I$(TOOL_PATH)/../lib/gcc/arm-openwrt-linux-uclibcgnueabi/4.8.3/include/ \
-		  -I$(TOOL_PATH)/../lib/gcc/arm-openwrt-linux-uclibcgnueabi/5.2.0/include/ \
+                  -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
 	          -I$(SYS_PATH)/include \
               -I$(SYS_PATH)/source/include \
               -I$(SYS_PATH)/source/arch/arm/mach-msm/include \
@@ -249,10 +348,27 @@ ifeq (KSLIB, $(MODULE_TYPE))
                 MODULE_CFLAG += -DKVER34
                 MODULE_CFLAG += -DKVER32
             MODULE_CFLAG += -DLNX26_22
-            ifeq ($(ARCH), arm)
+	    ifeq ($(ARCH), arm64)
             MODULE_INC += -I$(SYS_PATH) \
-                  -I$(TOOL_PATH)/../lib/gcc/arm-openwrt-linux-$(TARGET_SUFFIX)/$(GCC_VERSION)/include/ \
-	          -I$(SYS_PATH)/include \
+                  -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
+                  -I$(SYS_PATH)/include \
+              -I$(SYS_PATH)/source/include \
+	      -I$(SYS_PATH)/source/arch/arm64/mach-msm/include \
+              -I$(SYS_PATH)/arch/arm64/mach-msm/include \
+              -I$(SYS_PATH)/source/arch/arm64/include \
+              -I$(SYS_PATH)/arch/arm64/include \
+              -I$(SYS_PATH)/source/arch/arm64/include/asm \
+              -I$(SYS_PATH)/arch/arm64/include/generated \
+              -I$(SYS_PATH)/include/generated/uapi \
+              -I$(SYS_PATH)/include/uapi \
+              -I$(SYS_PATH)/arch/arm64/include/uapi \
+              -I$(SYS_PATH)/source/arch/arm64/include/asm/mach \
+	      -include $(SYS_PATH)/include/linux/kconfig.h
+	    else ifeq ($(ARCH), arm)
+	    MODULE_INC += -I$(SYS_PATH) \
+              -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
+              -I$(TOOL_PATH)/../../lib/armv7a-vfp-neon-rdk-linux-gnueabi/gcc/arm-rdk-linux-gnueabi/4.8.4/include/ \
+              -I$(SYS_PATH)/include \
               -I$(SYS_PATH)/source/include \
               -I$(SYS_PATH)/source/arch/arm/mach-msm/include \
               -I$(SYS_PATH)/arch/arm/mach-msm/include \
@@ -267,7 +383,75 @@ ifeq (KSLIB, $(MODULE_TYPE))
 	          -include $(SYS_PATH)/include/linux/kconfig.h
             else
             MODULE_INC += -I$(SYS_PATH) \
-	      -I$(TOOL_PATH)/../lib/gcc/mips-openwrt-linux-$(TARGET_SUFFIX)/$(GCC_VERSION)/include/ \
+              -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
+              -I$(SYS_PATH)/include \
+	      -I$(SYS_PATH)/source/include \
+              -I$(SYS_PATH)/source/arch/mips/mach-msm/include \
+	      -I$(SYS_PATH)/arch/mips/mach-msm/include \
+	      -I$(SYS_PATH)/source/arch/mips/include \
+              -I$(SYS_PATH)/arch/mips/include \
+	      -I$(SYS_PATH)/source/arch/mips/include/asm \
+	      -I$(SYS_PATH)/arch/mips/include/generated \
+              -I$(SYS_PATH)/include/generated/uapi \
+	      -I$(SYS_PATH)/include/uapi \
+	      -I$(SYS_PATH)/arch/mips/include/uapi \
+	      -I$(SYS_PATH)/source/arch/mips/include/asm/mach \
+	      -include $(SYS_PATH)/include/linux/kconfig.h \
+              -I$(SYS_PATH)/arch/mips/include/asm/mach-ar7240 \
+              -I$(SYS_PATH)/arch/mips/include/asm/mach-generic \
+              -I$(SYS_PATH)/arch/mips/include/asm/mach-ar7 \
+              -I$(SYS_PATH)/usr/include
+
+	    #CPU_CFLAG    = -G 0 -mno-abicalls -fno-pic -pipe -mabi=32 -march=mips32r2
+            ifndef CPU_CFLAG
+            CPU_CFLAG    = -Wstrict-prototypes -fomit-frame-pointer -G 0 -mno-abicalls -fno-strict-aliasing \
+			-O2 -fno-pic -pipe -mabi=32 -march=mips32r2 -DMODULE -mlong-calls -DEXPORT_SYMTAB
+            endif
+            endif
+
+  endif
+
+  ifeq ($(OS_VER),$(filter 4_14 4_9 4_1, $(OS_VER)))
+                MODULE_CFLAG += -DKVER34
+                MODULE_CFLAG += -DKVER32
+            MODULE_CFLAG += -DLNX26_22
+	    ifeq ($(ARCH), arm64)
+	    KCONF_FILE = $(SYS_PATH)/source/include/linux/kconfig.h
+            MODULE_INC += -I$(SYS_PATH) \
+                  -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
+                  -I$(SYS_PATH)/include \
+              -I$(SYS_PATH)/source/include \
+	      -I$(SYS_PATH)/source/arch/arm64/mach-msm/include \
+              -I$(SYS_PATH)/arch/arm64/mach-msm/include \
+              -I$(SYS_PATH)/source/arch/arm64/include \
+              -I$(SYS_PATH)/arch/arm64/include \
+              -I$(SYS_PATH)/source/arch/arm64/include/asm \
+              -I$(SYS_PATH)/arch/arm64/include/generated \
+              -I$(SYS_PATH)/include/generated/uapi \
+              -I$(SYS_PATH)/include/uapi \
+              -I$(SYS_PATH)/arch/arm64/include/uapi \
+	      -I$(SYS_PATH)/source/include/uapi \
+              -I$(SYS_PATH)/source/arch/arm64/include/asm/mach \
+	      -include $(KCONF_FILE)
+	    else ifeq ($(ARCH), arm)
+	    MODULE_INC += -I$(SYS_PATH) \
+              -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
+              -I$(SYS_PATH)/include \
+              -I$(SYS_PATH)/source/include \
+              -I$(SYS_PATH)/source/arch/arm/mach-msm/include \
+              -I$(SYS_PATH)/arch/arm/mach-msm/include \
+              -I$(SYS_PATH)/source/arch/arm/include \
+              -I$(SYS_PATH)/arch/arm/include \
+              -I$(SYS_PATH)/source/arch/arm/include/asm \
+              -I$(SYS_PATH)/arch/arm/include/generated \
+              -I$(SYS_PATH)/include/generated/uapi \
+              -I$(SYS_PATH)/include/uapi \
+              -I$(SYS_PATH)/arch/arm/include/uapi \
+              -I$(SYS_PATH)/source/arch/arm/include/asm/mach \
+	          -include $(SYS_PATH)/include/linux/kconfig.h
+            else
+            MODULE_INC += -I$(SYS_PATH) \
+              -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
               -I$(SYS_PATH)/include \
 	      -I$(SYS_PATH)/source/include \
               -I$(SYS_PATH)/source/arch/mips/mach-msm/include \
@@ -300,9 +484,9 @@ ifeq (KSLIB, $(MODULE_TYPE))
 		MODULE_CFLAG += -DKVER32
 	    MODULE_CFLAG += -DLNX26_22
 	    MODULE_INC += -I$(SYS_PATH) \
-	          -I$(TOOL_PATH)/../lib/gcc/arm-openwrt-linux-uclibcgnueabi/4.8.3/include/ \
-		  -I$(TOOL_PATH)/../lib/gcc/arm-openwrt-linux-uclibcgnueabi/5.2.0/include/ \
+                  -I$(TOOL_PATH)/../lib/gcc/$(TARGET_NAME)/$(GCC_VERSION)/include/ \
 		  -I$(TOOL_PATH)/../../lib/arm-poky-linux-gnueabi/gcc/arm-poky-linux-gnueabi/5.3.0/include/ \
+		  -I$(TOOL_PATH)/../../lib/armv7a-vfp-neon-rdk-linux-gnueabi/gcc/arm-rdk-linux-gnueabi/4.8.4/include/ \
 	          -I$(SYS_PATH)/include \
               -I$(SYS_PATH)/source/ \
               -I$(SYS_PATH)/source/include \

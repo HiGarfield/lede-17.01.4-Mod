@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -20,6 +20,7 @@
 #include "sw.h"
 #include "fal_qos.h"
 #include "hsl_api.h"
+#include "adpt.h"
 
 #ifndef IN_QOS_MINI
 static sw_error_t
@@ -368,6 +369,14 @@ _fal_qos_port_mode_pri_set(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_qos_port_mode_pri_set)
+            return SW_NOT_SUPPORTED;
+        rv = p_adpt_api->adpt_qos_port_mode_pri_set(dev_id, port_id, mode, pri);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -385,6 +394,14 @@ _fal_qos_port_mode_pri_get(a_uint32_t dev_id, fal_port_t port_id,
 {
     sw_error_t rv;
     hsl_api_t *p_api;
+    adpt_api_t *p_adpt_api;
+
+    if((p_adpt_api = adpt_api_ptr_get(dev_id)) != NULL) {
+        if (NULL == p_adpt_api->adpt_qos_port_mode_pri_get)
+            return SW_NOT_SUPPORTED;
+        rv = p_adpt_api->adpt_qos_port_mode_pri_get(dev_id, port_id, mode, pri);
+        return rv;
+    }
 
     SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
 
@@ -621,6 +638,342 @@ _fal_qos_queue_remark_table_get(a_uint32_t dev_id, fal_port_t port_id,
     rv = p_api->qos_queue_remark_table_get(dev_id, port_id, queue_id, tbl_id, enable);
     return rv;
 }
+
+sw_error_t
+_fal_qos_port_pri_precedence_set(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_pri_precedence_t *pri)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_port_pri_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_port_pri_set(dev_id, port_id, pri);
+	return rv;
+}
+sw_error_t
+_fal_qos_port_pri_precedence_get(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_pri_precedence_t *pri)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_port_pri_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_port_pri_get(dev_id, port_id, pri);
+	return rv;
+}
+sw_error_t
+_fal_qos_cosmap_pcp_get(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t pcp, fal_qos_cosmap_t *cosmap)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_cosmap_pcp_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_cosmap_pcp_get(dev_id, group_id, pcp, cosmap);
+	return rv;
+}
+sw_error_t 
+_fal_queue_scheduler_set(a_uint32_t dev_id,
+					a_uint32_t node_id, fal_queue_scheduler_level_t level,
+					fal_port_t port_id,
+					fal_qos_scheduler_cfg_t *scheduler_cfg)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_queue_scheduler_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_queue_scheduler_set(dev_id, node_id,
+					level, port_id, scheduler_cfg);
+	return rv;
+}
+sw_error_t 
+_fal_queue_scheduler_get(a_uint32_t dev_id,
+					a_uint32_t node_id, fal_queue_scheduler_level_t level,
+					fal_port_t *port_id,
+					fal_qos_scheduler_cfg_t *scheduler_cfg)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_queue_scheduler_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_queue_scheduler_get(dev_id, node_id,
+					level, port_id, scheduler_cfg);
+	return rv;
+}
+sw_error_t
+_fal_qos_cosmap_pcp_set(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t pcp, fal_qos_cosmap_t *cosmap)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_cosmap_pcp_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_cosmap_pcp_set(dev_id, group_id, pcp, cosmap);
+	return rv;
+}
+sw_error_t
+_fal_qos_port_remark_get(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_remark_enable_t *remark)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_port_remark_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_port_remark_get(dev_id, port_id, remark);
+	return rv;
+}
+sw_error_t
+_fal_qos_cosmap_dscp_get(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t dscp, fal_qos_cosmap_t *cosmap)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_cosmap_dscp_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_cosmap_dscp_get(dev_id, group_id, dscp, cosmap);
+	return rv;
+}
+sw_error_t
+_fal_qos_cosmap_flow_set(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t flow, fal_qos_cosmap_t *cosmap)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_cosmap_flow_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_cosmap_flow_set(dev_id, group_id, flow, cosmap);
+	return rv;
+}
+sw_error_t
+_fal_qos_port_group_set(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_group_t *group)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_port_group_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_port_group_set(dev_id, port_id, group);
+	return rv;
+}
+sw_error_t
+_fal_edma_ring_queue_map_set(a_uint32_t dev_id, 
+					a_uint32_t ring_id, fal_queue_bmp_t *queue_bmp)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_ring_queue_map_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_ring_queue_map_set(dev_id, ring_id, queue_bmp);
+	return rv;
+}
+sw_error_t
+_fal_qos_cosmap_dscp_set(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t dscp, fal_qos_cosmap_t *cosmap)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_cosmap_dscp_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_cosmap_dscp_set(dev_id, group_id, dscp, cosmap);
+	return rv;
+}
+sw_error_t
+_fal_qos_port_remark_set(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_remark_enable_t *remark)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_port_remark_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_port_remark_set(dev_id, port_id, remark);
+	return rv;
+}
+
+sw_error_t
+_fal_qos_cosmap_flow_get(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t flow, fal_qos_cosmap_t *cosmap)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_cosmap_flow_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_cosmap_flow_get(dev_id, group_id, flow, cosmap);
+	return rv;
+}
+sw_error_t
+_fal_qos_port_group_get(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_group_t *group)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_qos_port_group_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_qos_port_group_get(dev_id, port_id, group);
+	return rv;
+}
+sw_error_t
+_fal_edma_ring_queue_map_get(a_uint32_t dev_id, 
+					a_uint32_t ring_id, fal_queue_bmp_t *queue_bmp)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_ring_queue_map_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_ring_queue_map_get(dev_id, ring_id, queue_bmp);
+	return rv;
+}
+
+sw_error_t
+_fal_port_queues_get(a_uint32_t dev_id, 
+				fal_port_t port_id, fal_queue_bmp_t *queue_bmp)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_port_queues_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_port_queues_get(dev_id, port_id, queue_bmp);
+	return rv;
+}
+
+sw_error_t
+_fal_scheduler_dequeue_ctrl_set(
+		a_uint32_t dev_id,
+		a_uint32_t queue_id,
+		a_bool_t enable)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_scheduler_dequeue_ctrl_set)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_scheduler_dequeue_ctrl_set(dev_id, queue_id, enable);
+	return rv;
+}
+
+sw_error_t
+_fal_scheduler_dequeue_ctrl_get(
+		a_uint32_t dev_id,
+		a_uint32_t queue_id,
+		a_bool_t *enable)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_scheduler_dequeue_ctrl_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_scheduler_dequeue_ctrl_get(dev_id, queue_id, enable);
+	return rv;
+}
+
+sw_error_t
+_fal_port_scheduler_cfg_reset(
+		a_uint32_t dev_id,
+		fal_port_t port_id)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_port_scheduler_cfg_reset)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_port_scheduler_cfg_reset(dev_id, port_id);
+	return rv;
+}
+
+sw_error_t
+_fal_port_scheduler_resource_get(
+		a_uint32_t dev_id,
+		fal_port_t port_id,
+		fal_portscheduler_resource_t *cfg)
+{
+	adpt_api_t *p_api;
+	sw_error_t rv = SW_OK;
+
+	SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+	if (NULL == p_api->adpt_port_scheduler_resource_get)
+		return SW_NOT_SUPPORTED;
+
+	rv = p_api->adpt_port_scheduler_resource_get(dev_id, port_id, cfg);
+	return rv;
+}
+/*insert flag for inner fal, don't remove it*/
 
 /**
  * @brief Set traffic scheduling mode on particular one device.
@@ -1350,6 +1703,298 @@ fal_qos_queue_remark_table_get(a_uint32_t dev_id, fal_port_t port_id,
 }
 #endif
 
+sw_error_t
+fal_qos_port_pri_precedence_set(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_pri_precedence_t *pri)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_port_pri_precedence_set(dev_id, port_id, pri);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_port_pri_precedence_get(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_pri_precedence_t *pri)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_port_pri_precedence_get(dev_id, port_id, pri);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_cosmap_pcp_get(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t pcp, fal_qos_cosmap_t *cosmap)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_cosmap_pcp_get(dev_id, group_id, pcp, cosmap);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_queue_scheduler_set(a_uint32_t dev_id,
+					a_uint32_t node_id, fal_queue_scheduler_level_t level,
+					fal_port_t port_id,
+					fal_qos_scheduler_cfg_t *scheduler_cfg)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_queue_scheduler_set(dev_id, node_id, level, port_id, scheduler_cfg);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_queue_scheduler_get(a_uint32_t dev_id,
+					a_uint32_t node_id, fal_queue_scheduler_level_t level,
+					fal_port_t *port_id,
+					fal_qos_scheduler_cfg_t *scheduler_cfg)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_queue_scheduler_get(dev_id, node_id, level, port_id, scheduler_cfg);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_cosmap_pcp_set(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t pcp, fal_qos_cosmap_t *cosmap)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_cosmap_pcp_set(dev_id, group_id, pcp, cosmap);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_port_remark_get(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_remark_enable_t *remark)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_port_remark_get(dev_id, port_id, remark);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_cosmap_dscp_get(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t dscp, fal_qos_cosmap_t *cosmap)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_cosmap_dscp_get(dev_id, group_id, dscp, cosmap);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_cosmap_flow_set(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t flow, fal_qos_cosmap_t *cosmap)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_cosmap_flow_set(dev_id, group_id, flow, cosmap);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_port_group_set(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_group_t *group)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_port_group_set(dev_id, port_id, group);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_edma_ring_queue_map_set(a_uint32_t dev_id, 
+					a_uint32_t ring_id, fal_queue_bmp_t *queue_bmp)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_edma_ring_queue_map_set(dev_id, ring_id, queue_bmp);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_cosmap_dscp_set(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t dscp, fal_qos_cosmap_t *cosmap)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_cosmap_dscp_set(dev_id, group_id, dscp, cosmap);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_port_remark_set(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_remark_enable_t *remark)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_port_remark_set(dev_id, port_id, remark);
+	FAL_API_UNLOCK;
+	return rv;
+}
+
+sw_error_t
+fal_qos_cosmap_flow_get(a_uint32_t dev_id, a_uint8_t group_id,
+					a_uint8_t flow, fal_qos_cosmap_t *cosmap)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_cosmap_flow_get(dev_id, group_id, flow, cosmap);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_qos_port_group_get(a_uint32_t dev_id, fal_port_t port_id,
+					fal_qos_group_t *group)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_qos_port_group_get(dev_id, port_id, group);
+	FAL_API_UNLOCK;
+	return rv;
+}
+sw_error_t
+fal_edma_ring_queue_map_get(a_uint32_t dev_id, 
+					a_uint32_t ring_id, fal_queue_bmp_t *queue_bmp)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_edma_ring_queue_map_get(dev_id, ring_id, queue_bmp);
+	FAL_API_UNLOCK;
+	return rv;
+}
+
+sw_error_t
+fal_port_queues_get(a_uint32_t dev_id, 
+				fal_port_t port_id, fal_queue_bmp_t *queue_bmp)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_port_queues_get(dev_id, port_id, queue_bmp);
+	FAL_API_UNLOCK;
+	return rv;
+}
+
+sw_error_t
+fal_scheduler_dequeue_ctrl_set(
+		a_uint32_t dev_id,
+		a_uint32_t queue_id,
+		a_bool_t enable)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_scheduler_dequeue_ctrl_set(dev_id, queue_id, enable);
+	FAL_API_UNLOCK;
+	return rv;
+}
+
+sw_error_t
+fal_scheduler_dequeue_ctrl_get(
+		a_uint32_t dev_id,
+		a_uint32_t queue_id,
+		a_bool_t *enable)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_scheduler_dequeue_ctrl_get(dev_id, queue_id, enable);
+	FAL_API_UNLOCK;
+	return rv;
+}
+
+sw_error_t
+fal_port_scheduler_cfg_reset(
+		a_uint32_t dev_id,
+		fal_port_t port_id)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_port_scheduler_cfg_reset(dev_id, port_id);
+	FAL_API_UNLOCK;
+	return rv;
+}
+
+sw_error_t
+fal_port_scheduler_resource_get(
+		a_uint32_t dev_id,
+		fal_port_t port_id,
+		fal_portscheduler_resource_t *cfg)
+{
+	sw_error_t rv = SW_OK;
+
+	FAL_API_LOCK;
+	rv = _fal_port_scheduler_resource_get(dev_id, port_id, cfg);
+	FAL_API_UNLOCK;
+	return rv;
+}
+
+EXPORT_SYMBOL(fal_scheduler_dequeue_ctrl_get);
+
+EXPORT_SYMBOL(fal_scheduler_dequeue_ctrl_set);
+
+EXPORT_SYMBOL(fal_queue_scheduler_set);
+
+EXPORT_SYMBOL(fal_queue_scheduler_get);
+
+EXPORT_SYMBOL(fal_port_queues_get);
+
+EXPORT_SYMBOL(fal_qos_port_pri_precedence_set);
+
+EXPORT_SYMBOL(fal_qos_port_tx_buf_status_get);
+
+EXPORT_SYMBOL(fal_qos_port_pri_precedence_get);
+
+EXPORT_SYMBOL(fal_qos_port_group_set);
+
+EXPORT_SYMBOL(fal_qos_port_group_get);
+
+EXPORT_SYMBOL(fal_qos_cosmap_pcp_set);
+
+EXPORT_SYMBOL(fal_qos_cosmap_pcp_get);
+
+EXPORT_SYMBOL(fal_qos_cosmap_dscp_set);
+
+EXPORT_SYMBOL(fal_qos_cosmap_dscp_get);
+
+EXPORT_SYMBOL(fal_qos_cosmap_flow_set);
+
+EXPORT_SYMBOL(fal_qos_port_remark_set);
+
+EXPORT_SYMBOL(fal_qos_port_remark_get);
+
+EXPORT_SYMBOL(fal_edma_ring_queue_map_set);
+
+EXPORT_SYMBOL(fal_edma_ring_queue_map_get);
+
+EXPORT_SYMBOL(fal_port_scheduler_cfg_reset);
+
+EXPORT_SYMBOL(fal_port_scheduler_resource_get);
+
+/*insert flag for outter fal, don't remove it*/
 /**
  * @}
  */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -16,10 +16,13 @@
 #include <signal.h>
 #include <termios.h>
 #include "shell_config.h"
+#include "shell.h"
 
 #define printc(isPrint, fmt, args...) if(isPrint == 1) printf(fmt, ##args)
-
-static char *cmd_promptp = "dev0@qca>";       /*command prompt pointer */
+#ifndef PROMPT_STR
+#define PROMPT_STR "dev0@qca>"
+#endif
+static char *cmd_promptp = PROMPT_STR;       /*command prompt pointer */
 static struct termios term_save;    /* terminal setting saved */
 static int term_cursor;         /*terminal position */
 static int cmd_cursor;          /*command position */
@@ -166,6 +169,7 @@ term_echo(void)
         putchar(' ');
     }
 
+    fflush(stdout);
     term_cursor++;
     cmd_cursor++;
 }
@@ -212,7 +216,7 @@ handle_delete(void)
         return;
 
     /*delete one character from string */
-    strcpy(cmd_strp + cur_tmp, cmd_strp + cur_tmp + 1);
+    strlcpy(cmd_strp + cur_tmp, cmd_strp + cur_tmp + 1, CMDSTR_BUF_SIZE - cur_tmp);
     cmd_strlen--;
 
     /*clear characters after cursor  */
@@ -237,7 +241,7 @@ handle_up(void)
         return;
 
     /*copy current history cmd to out_cmd */
-    strcpy(cmd_strp, history_buf[history_cur]);
+    strlcpy(cmd_strp, history_buf[history_cur], CMDSTR_BUF_SIZE);
 
     /*print out_cmd */
     out_cmd_print();
@@ -252,7 +256,7 @@ handle_down(void)
         return;
 
     /*copy current history cmd to out_cmd */
-    strcpy(cmd_strp, history_buf[history_cur]);
+    strlcpy(cmd_strp, history_buf[history_cur], CMDSTR_BUF_SIZE);
 
     /*print out_cmd */
     out_cmd_print();
@@ -450,16 +454,21 @@ handle_help(void)
 {
     int pmatch_id = GCMD_DESC_NO_MATCH, pmatch_sub_id = GCMD_DESC_NO_MATCH, pmatch_act_id = GCMD_DESC_NO_MATCH;
     int cmd_nr = 0, pmatch_nr = 0, pmatch_sub_nr = 0;
-    char *tmp_str[3], *cmd_strp_cp = strdup(cmd_strp);
+    char *tmp_str[3], *cmd_strp_cp = strdup(cmd_strp), *str_save;
+
+    if (!cmd_strp_cp)
+        return;
+
+    cmd_strp_cp[strlen(cmd_strp) - 1] = '\0';
 
     /* split command string into temp array */
-    tmp_str[cmd_nr] = (void *) strtok(cmd_strp_cp, " ");
+    tmp_str[cmd_nr] = (void *) strtok_r(cmd_strp_cp, " ", &str_save);
 
     while (tmp_str[cmd_nr])
     {
         if (++cmd_nr == 3)
             break;
-        tmp_str[cmd_nr] = (void *) strtok(NULL, " ");
+        tmp_str[cmd_nr] = (void *) strtok_r(NULL, " ", &str_save);
     }
 
     /*echo input ? */
@@ -582,28 +591,26 @@ handle_tab(void)
 
     int cmd_nr = 0;
     char matchBuf[MATCH_BUF_MAX];
-    char *tmp_str[3];
+    char *tmp_str[3], *str_save;
 
     memset(matchBuf, 0, MATCH_BUF_MAX);
 
-	if(cmd_cursor < MATCH_BUF_MAX) {
-		strncpy(matchBuf, cmd_strp, cmd_cursor);
-		matchBuf[cmd_cursor] = '\0';
-	} else {
-		strncpy(matchBuf, cmd_strp, MATCH_BUF_MAX-1);
-		matchBuf[MATCH_BUF_MAX-1] = '\0';
-	}
+	if(cmd_cursor < MATCH_BUF_MAX) 
+		strlcpy(matchBuf, cmd_strp, cmd_cursor+1);
+	 else 
+		strlcpy(matchBuf, cmd_strp, MATCH_BUF_MAX);
 
     printf("\n");
 
     /* split command string into temp array */
-    tmp_str[cmd_nr] = (void *) strtok(matchBuf, " ");
+    tmp_str[cmd_nr] = (void *) strtok_r(matchBuf, " ", &str_save);
 
     if(!tmp_str[cmd_nr])
     {
         print_cmd_all();
         if (cmd_promptp)
             printf("\n%s%s", cmd_promptp, cmd_strp);
+	fflush(stdout);
         _cursor_recover();
         return;
     }
@@ -612,7 +619,7 @@ handle_tab(void)
     {
         if (++cmd_nr == 3)
             break;
-        tmp_str[cmd_nr] = (void *) strtok(NULL, " ");
+        tmp_str[cmd_nr] = (void *) strtok_r(NULL, " ", &str_save);
     }
 
     int is_print = 1, is_completed = 0;
@@ -639,7 +646,7 @@ handle_tab(void)
         }
 
     }
-    else if (cmd_nr > 1)
+    else
     {
         if (FULL_MATCHED(pmatch_nr, pmatch_id))
         {
@@ -658,7 +665,7 @@ handle_tab(void)
                 }
 
             }
-            else if (cmd_nr == 3)
+            else
             {
                 int pmatch_act_nr = 0, pmatch_act_id = GCMD_DESC_NO_MATCH;
                 pmatch_act_nr = search_cmd_action(pmatch_id, &pmatch_act_id, tmp_str[1], tmp_str[2], is_print);
@@ -683,6 +690,7 @@ handle_tab(void)
         /*re-echo */
         if (cmd_promptp)
             printf("\n%s%s", cmd_promptp, cmd_strp);
+	fflush(stdout);
         _cursor_recover();
     }
     //_cursor_recover();

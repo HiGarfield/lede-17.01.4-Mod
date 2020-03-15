@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -33,9 +33,18 @@ extern "C" {
 #define SW_CMD_INTFMAC_SHOW    (SW_API_MAX + 8)
 #define SW_CMD_PUBADDR_SHOW    (SW_API_MAX + 9)
 #define SW_CMD_FLOW_SHOW       (SW_API_MAX + 10)
-#define SW_CMD_MAX             (SW_API_MAX + 11)
+#define SW_CMD_HOST_IPV4_SHOW       (SW_API_MAX + 11)
+#define SW_CMD_HOST_IPV6_SHOW       (SW_API_MAX + 12)
+#define SW_CMD_HOST_IPV4M_SHOW       (SW_API_MAX + 13)
+#define SW_CMD_HOST_IPV6M_SHOW       (SW_API_MAX + 14)
+#define SW_CMD_CTRLPKT_SHOW	(SW_API_MAX + 15)
+#define SW_CMD_FLOW_IPV43T_SHOW       (SW_API_MAX + 16)
+#define SW_CMD_FLOW_IPV63T_SHOW       (SW_API_MAX + 17)
+#define SW_CMD_FLOW_IPV45T_SHOW       (SW_API_MAX + 18)
+#define SW_CMD_FLOW_IPV65T_SHOW       (SW_API_MAX + 19)
+#define SW_CMD_MAX             (SW_API_MAX + 20)
 
-#define MAX_SUB_CMD_DES_NUM  80
+#define MAX_SUB_CMD_DES_NUM  120
 
     struct sub_cmd_des_t
     {

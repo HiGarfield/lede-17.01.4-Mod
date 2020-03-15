@@ -22,14 +22,14 @@ extern "C" {
 
 #include "fal/fal_nat.h"
 
-    sw_error_t nat_helper_init(a_uint32_t dev_id);
+    sw_error_t nat_helper_init(a_uint32_t dev_id, a_uint32_t portbmp);
 
     sw_error_t nat_helper_cleanup(a_uint32_t dev_id);
 
 #ifdef IN_NAT_HELPER
-#define ISISC_NAT_HELPER_INIT(rv, dev_id) \
+#define ISISC_NAT_HELPER_INIT(rv, dev_id, portbmp) \
     { \
-        rv = nat_helper_init(dev_id); \
+        rv = nat_helper_init(dev_id, portbmp); \
         SW_RTN_ON_ERROR(rv); \
     }
 
@@ -39,7 +39,7 @@ extern "C" {
         SW_RTN_ON_ERROR(rv); \
     }
 #else
-#define ISISC_NAT_HELPER_INIT(rv, dev_id)
+#define ISISC_NAT_HELPER_INIT(rv, dev_id, portbmp)
 #define ISISC_NAT_HELPER_CLEANUP(rv, dev_id)
 #endif
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -13,13 +13,13 @@
  */
 
 
-
+/*qca808x_start*/
 #include "sw.h"
 #include "hsl.h"
 #include "hsl_dev.h"
 #include "hsl_lock.h"
 #include "sd.h"
-
+/*qca808x_end*/
 #if defined ATHENA
 #include "athena_init.h"
 #endif
@@ -41,13 +41,25 @@
 #if defined DESS
 #include "dess_init.h"
 #endif
+#if defined HPPE
+#include "hppe_init.h"
+#endif
+#if defined SCOMPHY
+/*qca808x_start*/
+#include "scomphy_init.h"
+/*qca808x_end*/
+#endif
+/*qca808x_start*/
 #include "sw_api.h"
+/*qca808x_end*/
 #ifdef KERNEL_MODULE
+/*qca808x_start*/
 #include "sw_api_ks.h"
+/*qca808x_end*/
 #else
 #include "sw_api_us.h"
 #endif
-
+/*qca808x_start*/
 static hsl_dev_t dev_table[SW_MAX_NR_DEV];
 static ssdk_init_cfg *dev_ssdk_cfg[SW_MAX_NR_DEV] = { 0 };
 ssdk_chip_type SSDK_CURRENT_CHIP_TYPE = CHIP_UNSPECIFIED;
@@ -60,6 +72,7 @@ static sw_error_t hsl_set_current_chip_type(ssdk_chip_type chip_type)
 
     if (SSDK_CURRENT_CHIP_TYPE == CHIP_UNSPECIFIED)
     {
+/*qca808x_end*/
 #if defined ATHENA
         SSDK_CURRENT_CHIP_TYPE = CHIP_ATHENA;
 #elif defined GARUDA
@@ -74,9 +87,16 @@ static sw_error_t hsl_set_current_chip_type(ssdk_chip_type chip_type)
         SSDK_CURRENT_CHIP_TYPE = CHIP_ISISC;
 #elif defined DESS
         SSDK_CURRENT_CHIP_TYPE = CHIP_DESS;
+#elif defined HPPE
+        SSDK_CURRENT_CHIP_TYPE = CHIP_HPPE;
+#elif defined SCOMPHY
+/*qca808x_start*/
+        SSDK_CURRENT_CHIP_TYPE = CHIP_SCOMPHY;
+/*qca808x_end*/
 #else
         rv = SW_FAIL;
 #endif
+/*qca808x_start*/
     }
     return rv;
 }
@@ -89,7 +109,7 @@ hsl_dev_ptr_get(a_uint32_t dev_id)
 
     return &dev_table[dev_id];
 }
-
+/*qca808x_end*/
 hsl_acl_func_t *
 hsl_acl_ptr_get(a_uint32_t dev_id)
 {
@@ -105,11 +125,12 @@ a_uint32_t hsl_dev_wan_port_get(a_uint32_t dev_id)
 		return dev_ssdk_cfg[dev_id]->port_cfg.wan_bmp;
 	return 0;
 }
-
+/*qca808x_start*/
 sw_error_t
 hsl_dev_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
 {
     sw_error_t rv = SW_OK;
+    static int dev_init = 0;
 
     if (SW_MAX_NR_DEV <= dev_id)
     {
@@ -118,21 +139,25 @@ hsl_dev_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
 
     aos_mem_set(&dev_table[dev_id], 0, sizeof (hsl_dev_t));
 
-    SW_RTN_ON_ERROR(sd_init(dev_id,cfg));
+    if (!dev_init) {
+        SW_RTN_ON_ERROR(sd_init(dev_id,cfg));
 
 #ifdef UK_IF
-    SW_RTN_ON_ERROR(sw_uk_init(cfg->nl_prot));
+        SW_RTN_ON_ERROR(sw_uk_init(cfg->nl_prot));
 #endif
 
 #if defined API_LOCK
-    SW_RTN_ON_ERROR(hsl_api_lock_init());
+        SW_RTN_ON_ERROR(hsl_api_lock_init());
 #endif
+        dev_init = 1;
+    }
     rv = hsl_set_current_chip_type(cfg->chip_type);
     SW_RTN_ON_ERROR(rv);
 
     rv = SW_INIT_ERROR;
     switch (cfg->chip_type)
     {
+/*qca808x_end*/
         case CHIP_ATHENA:
 #if defined ATHENA
             rv = athena_init(dev_id, cfg);
@@ -172,7 +197,22 @@ hsl_dev_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
             rv = dess_init(dev_id, cfg);
 #endif
             break;
-
+        case CHIP_HPPE:
+#if defined HPPE
+            rv = hppe_init(dev_id, cfg);
+#endif
+            break;
+/*qca808x_start*/
+	case CHIP_SCOMPHY:
+/*qca808x_end*/
+#if defined SCOMPHY
+/*qca808x_start*/
+	    rv = scomphy_init(dev_id, cfg);
+/*qca808x_end*/
+#endif
+/*qca808x_start*/
+	    break;
+/*qca808x_end*/
         case CHIP_UNSPECIFIED:
 #if defined ATHENA
             rv = athena_init(dev_id, cfg);
@@ -188,7 +228,7 @@ hsl_dev_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
             rv = isisc_init(dev_id, cfg);
 #endif
             break;
-
+/*qca808x_start*/
         default:
             return SW_BAD_PARAM;
     }
@@ -211,7 +251,7 @@ hsl_dev_init(a_uint32_t dev_id, ssdk_init_cfg *cfg)
 
     return rv;
 }
-
+/*qca808x_end*/
 sw_error_t
 hsl_ssdk_cfg(a_uint32_t dev_id, ssdk_cfg_t *ssdk_cfg)
 {
@@ -255,6 +295,10 @@ hsl_ssdk_cfg(a_uint32_t dev_id, ssdk_cfg_t *ssdk_cfg)
 
         case CHIP_DESS:
             aos_mem_copy(ssdk_cfg->chip_type, "dess", sizeof("dess"));
+            break;
+
+        case CHIP_HPPE:
+            aos_mem_copy(ssdk_cfg->chip_type, "hppe", sizeof("hppe"));
             break;
 
         case CHIP_UNSPECIFIED:
@@ -379,7 +423,7 @@ hsl_ssdk_cfg(a_uint32_t dev_id, ssdk_cfg_t *ssdk_cfg)
 
     return SW_OK;
 }
-
+/*qca808x_start*/
 sw_error_t
 hsl_dev_cleanup(void)
 {
@@ -410,7 +454,7 @@ hsl_dev_cleanup(void)
 
     return SW_OK;
 }
-
+/*qca808x_end*/
 sw_error_t
 hsl_access_mode_set(a_uint32_t dev_id, hsl_access_mode reg_mode)
 {
@@ -552,7 +596,7 @@ sw_error_t reduce_hsl_reg_field_gen_set(a_uint32_t dev,a_uint32_t regaddr,a_uint
 	return rv;
 }
 
-
+/*qca808x_start*/
 sw_error_t reduce_hsl_phy_set(a_uint32_t dev,a_uint32_t phy_addr,a_uint32_t reg,a_uint16_t value)
 {
 	sw_error_t rv;
@@ -581,6 +625,34 @@ sw_error_t reduce_hsl_phy_get(a_uint32_t dev,a_uint32_t phy_addr,a_uint32_t reg,
 	return rv;
 }
 
+sw_error_t hsl_phy_i2c_set(a_uint32_t dev,a_uint32_t phy_addr,a_uint32_t reg,a_uint16_t value)
+{
+	sw_error_t rv;
+
+	hsl_api_t *p_api = hsl_api_ptr_get(dev);
+	if (p_api) {
+	    rv = p_api->phy_i2c_set(dev, phy_addr, reg, value);
+	} else {
+	    rv = SW_NOT_INITIALIZED;
+	}
+
+	return rv;
+}
+
+sw_error_t hsl_phy_i2c_get(a_uint32_t dev,a_uint32_t phy_addr,a_uint32_t reg,a_uint16_t* value)
+{
+	sw_error_t rv;
+
+	hsl_api_t *p_api = hsl_api_ptr_get(dev);
+	if (p_api) {
+	    rv = p_api->phy_i2c_get(dev, phy_addr, reg, value);
+	} else {
+	    rv = SW_NOT_INITIALIZED;
+	}
+
+	return rv;
+}
+
 #if 0
 void reduce_sw_set_reg_by_field_u32(unsigned int reg_value,unsigned int field_value,
 													unsigned int reg_offset,unsigned int reg_len)
@@ -602,5 +674,5 @@ void reduce_sw_field_get_by_reg_u32(unsigned int reg_value,unsigned int field_va
 
 }
 #endif
-
+/*qca808x_end*/
 

@@ -1,8 +1,6 @@
 name: LEDE dl
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

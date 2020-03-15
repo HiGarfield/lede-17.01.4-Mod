@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -71,7 +71,7 @@ extern "c" {
     hsl_port_prop_cleanup_by_dev(a_uint32_t dev_id);
 
     sw_error_t
-    hsl_port_prop_init(void);
+    hsl_port_prop_init(a_uint32_t dev_id);
 
 #ifdef __cplusplus
 }

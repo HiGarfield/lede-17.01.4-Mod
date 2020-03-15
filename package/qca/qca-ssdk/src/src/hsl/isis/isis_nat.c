@@ -2375,7 +2375,7 @@ isis_nat_unk_session_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
  * @return SW_OK or error code
  */
 HSL_LOCAL sw_error_t
-isis_nat_global_set(a_uint32_t dev_id, a_bool_t enable)
+isis_nat_global_set(a_uint32_t dev_id, a_bool_t enable, a_uint32_t portbmp)
 {
     sw_error_t rv = SW_OK;
 
@@ -2385,7 +2385,7 @@ isis_nat_global_set(a_uint32_t dev_id, a_bool_t enable)
         if(isis_nat_global_status == 0) {
             isis_nat_global_status = 1;
 #if defined(IN_NAT_HELPER)
-            ISIS_NAT_HELPER_INIT(rv, dev_id);
+            ISIS_NAT_HELPER_INIT(rv, dev_id, portbmp);
 #endif
         }
     } else {

@@ -78,6 +78,18 @@ ifeq (TRUE, $(IN_SEC))
   MODULE_CFLAG += -DIN_SEC
 endif
 
+ifeq (TRUE, $(IN_QM))
+  MODULE_CFLAG += -DIN_QM
+endif
+
+ifeq (TRUE, $(IN_BM))
+  MODULE_CFLAG += -DIN_BM
+endif
+
+ifeq (TRUE, $(IN_FLOW))
+  MODULE_CFLAG += -DIN_FLOW
+endif
+
 ifeq (TRUE, $(IN_NAT_HELPER))
   MODULE_CFLAG += -DIN_NAT_HELPER
 endif
@@ -86,8 +98,40 @@ ifeq (TRUE, $(IN_INTERFACECONTROL))
   MODULE_CFLAG += -DIN_INTERFACECONTROL
 endif
 
+ifeq (TRUE, $(IN_CTRLPKT))
+  MODULE_CFLAG += -DIN_CTRLPKT
+endif
+
+ifeq (TRUE, $(IN_SERVCODE))
+  MODULE_CFLAG += -DIN_SERVCODE
+endif
+
+ifeq (TRUE, $(IN_RSS_HASH))
+  MODULE_CFLAG += -DIN_RSS_HASH
+endif
+
 ifeq (TRUE, $(IN_MACBLOCK))
   MODULE_CFLAG += -DIN_MACBLOCK
+endif
+
+ifeq (TRUE, $(IN_VSI))
+  MODULE_CFLAG += -DIN_VSI
+endif
+
+ifeq (TRUE, $(IN_POLICER))
+  MODULE_CFLAG += -DIN_POLICER
+endif
+
+ifeq (TRUE, $(IN_SHAPER))
+  MODULE_CFLAG += -DIN_SHAPER
+endif
+
+ifeq (TRUE, $(IN_PTP))
+  MODULE_CFLAG += -DIN_PTP
+endif
+
+ifeq (TRUE, $(IN_PPPOE))
+  MODULE_CFLAG += -DIN_PPPOE
 endif
 
 ifneq (TRUE, $(FAL))
@@ -128,6 +172,7 @@ MODULE_INC += -I$(PRJ_PATH)/include \
                    -I$(PRJ_PATH)/include/hsl \
                    -I$(PRJ_PATH)/include/hsl/phy \
                    -I$(PRJ_PATH)/include/sal/os \
+		   -I$(PRJ_PATH)/include/sal/os/linux_user \
                    -I$(PRJ_PATH)/include/sal/sd \
                    -I$(PRJ_PATH)/include/sal/sd/linux/hydra_howl \
                    -I$(PRJ_PATH)/include/sal/sd/linux/uk_interface \
@@ -263,11 +308,10 @@ ifeq (SHELL, $(MODULE_TYPE))
    	  MODULE_CFLAG += -DKVER24
     endif
 
-    ifeq (TRUE, $(KERNEL_MODE))
-      MODULE_CFLAG += -static
-    else
-      MODULE_CFLAG += -static -DUSER_MODE
+    ifneq (TRUE, $(KERNEL_MODE))
+      MODULE_CFLAG += -DUSER_MODE
     endif
+ 
 endif
 
 ifneq (TRUE, $(KERNEL_MODE))
@@ -276,4 +320,5 @@ ifneq (TRUE, $(KERNEL_MODE))
   endif
 endif
 
-EXTRA_CFLAGS += $(MODULE_INC) $(MODULE_CFLAG)
+EXTRA_CFLAGS += $(MODULE_INC) $(MODULE_CFLAG) -fpie
+EXTRA_LDFLAGS += -pie

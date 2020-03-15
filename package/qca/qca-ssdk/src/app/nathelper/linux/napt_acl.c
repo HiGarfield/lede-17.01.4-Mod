@@ -76,6 +76,7 @@ droute_add_acl_rules(uint32_t local_ip, uint32_t local_ip_mask, uint32_t gw_entr
     fal_acl_rule_t myacl;
     uint32_t rtnval;
     a_bool_t val;
+    int i;
 
     if (get_aclrulemask() & (1 << S17_ACL_LIST_DROUTE))
         return;
@@ -115,10 +116,10 @@ droute_add_acl_rules(uint32_t local_ip, uint32_t local_ip_mask, uint32_t gw_entr
         return ;
     }
 
-    ACL_LIST_BIND (0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-    ACL_LIST_BIND (0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-    ACL_LIST_BIND (0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-    ACL_LIST_BIND (0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND (0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+    }
 
     /* check for the ACL enable bit */
     if (ACL_STATUS_GET(0, &val) == SW_OK)
@@ -135,16 +136,18 @@ droute_add_acl_rules(uint32_t local_ip, uint32_t local_ip_mask, uint32_t gw_entr
 void
 droute_del_acl_rules(void)
 {
+	int i;
 
 	if (!(get_aclrulemask() & (1 << S17_ACL_LIST_DROUTE)))
 		return;
 
 	HNAT_PRINTK("IPv4 default route del rule #%d\n", S17_ACL_LIST_DROUTE);
 
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+	for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+		if (i != S17_WAN_PORT)
+			ACL_LIST_UNBIND(0, S17_ACL_LIST_DROUTE,
+				FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+	}
 
 	ACL_RULE_DEL(0, S17_ACL_LIST_DROUTE, 0, 1);
 
@@ -163,6 +166,7 @@ ipv6_droute_add_acl_rules(struct in6_addr *local_ip, uint32_t gw_entry_id)
     fal_acl_rule_t myacl;
     uint32_t rtnval;
     a_bool_t val;
+    int i;
 
     if (get_aclrulemask() & (1 << S17_ACL_LIST_IPV6DROUTE))
         return;
@@ -202,11 +206,10 @@ ipv6_droute_add_acl_rules(struct in6_addr *local_ip, uint32_t gw_entry_id)
         return ;
     }
 
-
-    ACL_LIST_BIND (0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-    ACL_LIST_BIND (0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-    ACL_LIST_BIND (0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-    ACL_LIST_BIND (0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND (0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+    }
 
     /* check for the ACL enable bit */
     if (ACL_STATUS_GET(0, &val) == SW_OK)
@@ -226,15 +229,17 @@ ipv6_droute_add_acl_rules(struct in6_addr *local_ip, uint32_t gw_entry_id)
  */
 void ipv6_droute_del_acl_rules(void)
 {
+    int i;
+
     HNAT_PRINTK("IPv6 default route del rule #%d\n", S17_ACL_LIST_IPV6DROUTE);
 
     if (!(get_aclrulemask() & (1 << S17_ACL_LIST_IPV6DROUTE)))
         return;
 
-    ACL_LIST_UNBIND(0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-    ACL_LIST_UNBIND(0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-    ACL_LIST_UNBIND(0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-    ACL_LIST_UNBIND(0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_UNBIND(0, S17_ACL_LIST_IPV6DROUTE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+    }
 
     ACL_RULE_DEL(0, S17_ACL_LIST_IPV6DROUTE, 0, 1);
 
@@ -504,6 +509,7 @@ ip_conflict_add_acl_rules(uint32_t wan_ip, uint32_t lan_ip, uint32_t gw_entry_id
     fal_acl_rule_t myacl;
     uint32_t rtnval, cnt;
     a_bool_t val;
+    int i;
 
     if (get_aclrulemask() & (1 << S17_ACL_LIST_IPCONF)) return;
 
@@ -544,10 +550,10 @@ ip_conflict_add_acl_rules(uint32_t wan_ip, uint32_t lan_ip, uint32_t gw_entry_id
                 }
 
                 /* bind to LAN ports */
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+	   for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+	       if (i != S17_WAN_PORT)
+                        ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+	   }
 
                 aclrulemask |= (1 << S17_ACL_LIST_IPCONF);
                 set_aclrulemask(S17_ACL_LIST_IPCONF);
@@ -590,10 +596,10 @@ ip_conflict_add_acl_rules(uint32_t wan_ip, uint32_t lan_ip, uint32_t gw_entry_id
                     break;
                 }
                 /* bind to LAN ports (1-4) */
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-                ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+	   for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+	       if (i != S17_WAN_PORT)
+                        ACL_LIST_BIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+	   }
 
                 break;
 
@@ -614,22 +620,21 @@ ip_conflict_add_acl_rules(uint32_t wan_ip, uint32_t lan_ip, uint32_t gw_entry_id
 
 void ip_conflict_del_acl_rules(void)
 {
+	int i;
+
 	if (!(get_aclrulemask() & (1 << S17_ACL_LIST_IPCONF)))
 		return;
 
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+	for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+	    if (i != S17_WAN_PORT) {
+	        ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+	        ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+	    }
+	}
 
 	ACL_RULE_DEL(0, S17_ACL_LIST_IPCONF, 0, 1);
 
 	ACL_LIST_DESTROY(0, S17_ACL_LIST_IPCONF);
-
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-	ACL_LIST_UNBIND(0, S17_ACL_LIST_IPCONF+1, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
 
 	ACL_RULE_DEL(0, S17_ACL_LIST_IPCONF+1, 0, 1);
 
@@ -649,6 +654,7 @@ ipv6_snooping_solicted_node_add_acl_rules ( void )
     fal_acl_rule_t myacl;
     uint32_t rtnval;
     a_bool_t val;
+    int i;
 
     memset ( &myacl, 0, sizeof ( fal_acl_rule_t ) );
 
@@ -708,10 +714,10 @@ ipv6_snooping_solicted_node_add_acl_rules ( void )
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SOLICITED_NODE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_WAN_PORT );
 #endif
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SOLICITED_NODE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_CPU_PORT );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SOLICITED_NODE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SOLICITED_NODE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SOLICITED_NODE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SOLICITED_NODE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3 );
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SOLICITED_NODE, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+    }
 
     if ( ACL_STATUS_GET ( 0, &val ) == SW_OK )
     {
@@ -734,6 +740,7 @@ ipv6_snooping_nodeinfo_query_add_acl_rules ( void )
     fal_acl_rule_t myacl;
     uint32_t rtnval;
     a_bool_t val;
+    int i;
 
     memset ( &myacl, 0, sizeof ( fal_acl_rule_t ) );
 
@@ -787,10 +794,10 @@ ipv6_snooping_nodeinfo_query_add_acl_rules ( void )
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_NODEINFO_QUERY, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_WAN_PORT );
 #endif
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_NODEINFO_QUERY, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_CPU_PORT );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_NODEINFO_QUERY, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_NODEINFO_QUERY, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_NODEINFO_QUERY, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_NODEINFO_QUERY, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3 );
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_NODEINFO_QUERY, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+    }
 
     if ( ACL_STATUS_GET ( 0, &val ) == SW_OK )
     {
@@ -818,6 +825,7 @@ ipv6_snooping_sextuple0_group_add_acl_rules ( void )
     fal_acl_rule_t myacl;
     uint32_t rtnval;
     a_bool_t val;
+    int i;
 
     memset ( &myacl, 0, sizeof ( fal_acl_rule_t ) );
 
@@ -875,10 +883,10 @@ ipv6_snooping_sextuple0_group_add_acl_rules ( void )
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SEXTUPLE0_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_WAN_PORT );
 #endif
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SEXTUPLE0_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_CPU_PORT );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SEXTUPLE0_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SEXTUPLE0_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SEXTUPLE0_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SEXTUPLE0_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3 );
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_SEXTUPLE0_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i );
+    }
 
     if ( ACL_STATUS_GET ( 0, &val ) == SW_OK )
     {
@@ -902,6 +910,7 @@ ipv6_snooping_quintruple0_1_group_add_acl_rules ( void )
     fal_acl_rule_t myacl;
     uint32_t rtnval;
     a_bool_t val;
+    int i;
 
     memset ( &myacl, 0, sizeof ( fal_acl_rule_t ) );
 
@@ -958,10 +967,10 @@ ipv6_snooping_quintruple0_1_group_add_acl_rules ( void )
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_QUINTRUPLE0_1_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_WAN_PORT );
 #endif
     ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_QUINTRUPLE0_1_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_CPU_PORT );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_QUINTRUPLE0_1_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_QUINTRUPLE0_1_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_QUINTRUPLE0_1_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_QUINTRUPLE0_1_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3 );
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND ( 0, S17_ACL_LIST_IPV6_QUINTRUPLE0_1_GROUP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i );
+    }
 
     if ( ACL_STATUS_GET ( 0, &val ) == SW_OK )
     {
@@ -981,6 +990,7 @@ void upnp_ssdp_add_acl_rules(void)
     fal_acl_rule_t myacl;
     uint32_t rtnval;
     a_bool_t val;
+    int i;
 
     aos_printk("Adding ACL rules %d - %s\n", S17_ACL_LIST_UPNP_SSDP, __func__);
     memset ( &myacl, 0, sizeof ( fal_acl_rule_t ) );
@@ -1016,10 +1026,10 @@ void upnp_ssdp_add_acl_rules(void)
 
     // Pattern source port
     ACL_LIST_BIND ( 0, S17_ACL_LIST_UPNP_SSDP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_CPU_PORT );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_UPNP_SSDP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_UPNP_SSDP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_UPNP_SSDP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2 );
-    ACL_LIST_BIND ( 0, S17_ACL_LIST_UPNP_SSDP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3 );
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND ( 0, S17_ACL_LIST_UPNP_SSDP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i );
+    }
 
     if (ACL_STATUS_GET(0, &val) == SW_OK)
     {
@@ -1140,6 +1150,7 @@ int pppoe_passthrough_acl_rules(uint32_t gw_entry_id, unsigned char *mac)
     a_bool_t val;
     uint32_t rule_list_id;
     unsigned char mac_mask[6] = { 0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+    int i;
 
     if (isis_pppoe_passthrough > MAX_PPPOE_PASSTHROUGH_NUM)
     {
@@ -1184,10 +1195,11 @@ int pppoe_passthrough_acl_rules(uint32_t gw_entry_id, unsigned char *mac)
             return -1;
         }
 
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+        for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+            if (i != S17_WAN_PORT)
+                ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+        }
+
     }
 
     {
@@ -1227,11 +1239,11 @@ int pppoe_passthrough_acl_rules(uint32_t gw_entry_id, unsigned char *mac)
         {
             aos_printk ( "pppoe_passthrough_acl_rules: ACL_RULE_ADD ERROR...(%d)\n", rtnval );
         }
+        for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+            if (i != S17_WAN_PORT)
+                ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+        }
 
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-        ACL_LIST_BIND ( 0, rule_list_id, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
     }
 
     {
@@ -1464,6 +1476,7 @@ void udp_checksum_zero_acl_rule(uint32_t gw_entry_id)
 {
     fal_acl_rule_t myacl;
     a_uint32_t rtnval;
+    int i;
 
     if (get_aclrulemask() & (1 << S17_ACL_LIST_UDP0)) return;
 
@@ -1480,16 +1493,10 @@ void udp_checksum_zero_acl_rule(uint32_t gw_entry_id)
     /* set the UDP ACL type as L3, with length 1, offset 9 */
     /* set the UDP ACL type as L4, with length 2, offset 6 */
 
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT0, FAL_ACL_UDF_TYPE_L3, 9, 1);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT0, FAL_ACL_UDF_TYPE_L4, 6, 2);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT1, FAL_ACL_UDF_TYPE_L3, 9, 1);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT1, FAL_ACL_UDF_TYPE_L4, 6, 2);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT2, FAL_ACL_UDF_TYPE_L3, 9, 1);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT2, FAL_ACL_UDF_TYPE_L4, 6, 2);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT3, FAL_ACL_UDF_TYPE_L3, 9, 1);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_LAN_PORT3, FAL_ACL_UDF_TYPE_L4, 6, 2);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_WAN_PORT, FAL_ACL_UDF_TYPE_L3, 9, 1);
-    ACL_PORT_UDF_PROFILE_SET(0, S17_WAN_PORT, FAL_ACL_UDF_TYPE_L4, 6, 2);
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        ACL_PORT_UDF_PROFILE_SET(0, i, FAL_ACL_UDF_TYPE_L3, 9, 1);
+        ACL_PORT_UDF_PROFILE_SET(0, i, FAL_ACL_UDF_TYPE_L4, 6, 2);
+    }
 
     myacl.udf_len = 3;
     myacl.udf_offset = 0;
@@ -1537,11 +1544,9 @@ void udp_checksum_zero_acl_rule(uint32_t gw_entry_id)
         return;
     }
 
-    ACL_LIST_BIND(0, S17_ACL_LIST_UDP0, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-    ACL_LIST_BIND(0, S17_ACL_LIST_UDP0, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-    ACL_LIST_BIND(0, S17_ACL_LIST_UDP0, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-    ACL_LIST_BIND(0, S17_ACL_LIST_UDP0, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
-    ACL_LIST_BIND(0, S17_ACL_LIST_UDP0, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_WAN_PORT);
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        ACL_LIST_BIND(0, S17_ACL_LIST_UDP0, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+    }
 
     set_aclrulemask(S17_ACL_LIST_UDP0);
 }
@@ -1553,6 +1558,7 @@ void dscp_remap_acl_rule(uint32_t ori_dscp, uint32_t dscp)
     a_uint32_t rtnval;
     uint32_t ori_tos, tos_val;
     a_bool_t val;
+    int i;
 
     ori_tos = ori_dscp << 2;
     tos_val = dscp << 2;
@@ -1597,10 +1603,10 @@ void dscp_remap_acl_rule(uint32_t ori_dscp, uint32_t dscp)
     }
 
     /* source port : LAN Ports */
-    ACL_LIST_BIND(0, S17_ACL_LIST_DSCP_REMAP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT0);
-    ACL_LIST_BIND(0, S17_ACL_LIST_DSCP_REMAP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT1);
-    ACL_LIST_BIND(0, S17_ACL_LIST_DSCP_REMAP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT2);
-    ACL_LIST_BIND(0, S17_ACL_LIST_DSCP_REMAP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, S17_LAN_PORT3);
+    for (i = S17_LAN_PORT0; i <= S17_LAN_PORT4; i++) {
+        if (i != S17_WAN_PORT)
+            ACL_LIST_BIND(0, S17_ACL_LIST_DSCP_REMAP, FAL_ACL_DIREC_IN, FAL_ACL_BIND_PORT, i);
+    }
 
     /* check for the ACL enable bit */
     if (ACL_STATUS_GET(0, &val) == SW_OK)

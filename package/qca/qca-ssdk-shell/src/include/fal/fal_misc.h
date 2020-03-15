@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -28,15 +28,6 @@ extern "C" {
 #include "fal/fal_type.h"
 
 
-    typedef struct
-    {
-        a_uint32_t entry_id;
-        a_uint32_t session_id;
-        a_bool_t   multi_session;
-        a_bool_t   uni_session;
-        a_uint32_t vrf_id;
-    } fal_pppoe_session_t;
-
     typedef enum
     {
         FAL_LOOP_CHECK_1MS = 0,
@@ -44,6 +35,20 @@ extern "C" {
         FAL_LOOP_CHECK_100MS,
         FAL_LOOP_CHECK_500MS,
     } fal_loop_check_time_t;
+
+	typedef struct
+	{
+		a_bool_t rx_counter_en; /* Enable/disable virtual port rx counter */
+		a_bool_t vp_uni_tx_counter_en; /* Enable/disable virtual port unicast tx counter */
+		a_bool_t port_mc_tx_counter_en; /* Enable/disable physical port multicast tx counter */
+		a_bool_t port_tx_counter_en; /* Enable/disable physical port tx counter */
+	} fal_counter_en_t;
+
+	sw_error_t
+	fal_debug_port_counter_enable(a_uint32_t dev_id, fal_port_t port_id, fal_counter_en_t * cnt_en);
+
+	sw_error_t
+	fal_debug_port_counter_status_get(a_uint32_t dev_id, fal_port_t port_id, fal_counter_en_t * cnt_en);
 
     /* define switch interrupt type bitmap */
 #define FAL_SWITCH_INTR_LINK_STATUS      0x1  /* up/down/speed/duplex status */
@@ -130,26 +135,6 @@ extern "C" {
 
 
     sw_error_t
-    fal_pppoe_cmd_set(a_uint32_t dev_id, fal_fwd_cmd_t cmd);
-
-
-
-    sw_error_t
-    fal_pppoe_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd);
-
-
-
-    sw_error_t
-    fal_pppoe_status_set(a_uint32_t dev_id, a_bool_t enable);
-
-
-
-    sw_error_t
-    fal_pppoe_status_get(a_uint32_t dev_id, a_bool_t * enable);
-
-
-
-    sw_error_t
     fal_port_dhcp_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable);
 
 
@@ -173,17 +158,6 @@ extern "C" {
     sw_error_t
     fal_eapol_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd);
 
-
-    sw_error_t
-    fal_pppoe_session_add(a_uint32_t dev_id, a_uint32_t session_id, a_bool_t strip_hdr);
-
-
-    sw_error_t
-    fal_pppoe_session_del(a_uint32_t dev_id, a_uint32_t session_id);
-
-
-    sw_error_t
-    fal_pppoe_session_get(a_uint32_t dev_id, a_uint32_t session_id, a_bool_t * strip_hdr);
 
     sw_error_t
     fal_eapol_status_set(a_uint32_t dev_id, a_uint32_t port_id, a_bool_t enable);
@@ -212,28 +186,6 @@ extern "C" {
 
     sw_error_t
     fal_port_arp_ack_status_get(a_uint32_t dev_id, fal_port_t port_id, a_bool_t *enable);
-
-
-    sw_error_t
-    fal_pppoe_session_table_add(a_uint32_t dev_id, fal_pppoe_session_t * session_tbl);
-
-
-    sw_error_t
-    fal_pppoe_session_table_del(a_uint32_t dev_id, fal_pppoe_session_t * session_tbl);
-
-
-    sw_error_t
-    fal_pppoe_session_table_get(a_uint32_t dev_id, fal_pppoe_session_t * session_tbl);
-
-
-    sw_error_t
-    fal_pppoe_session_id_set(a_uint32_t dev_id, a_uint32_t index,
-                             a_uint32_t id);
-
-
-    sw_error_t
-    fal_pppoe_session_id_get(a_uint32_t dev_id, a_uint32_t index,
-                             a_uint32_t * id);
 
 
     sw_error_t
@@ -279,12 +231,6 @@ extern "C" {
 
     sw_error_t
     fal_cpu_vid_en_get(a_uint32_t dev_id, a_bool_t * enable);
-
-    sw_error_t
-    fal_rtd_pppoe_en_set(a_uint32_t dev_id, a_bool_t enable);
-
-    sw_error_t
-    fal_rtd_pppoe_en_get(a_uint32_t dev_id, a_bool_t * enable);
 
     sw_error_t
     fal_intr_status_mac_linkchg_clear(a_uint32_t dev_id);

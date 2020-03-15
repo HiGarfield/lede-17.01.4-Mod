@@ -23,7 +23,7 @@ extern "C" {
 #include "sw_api.h"
 #include "ssdk_init.h"
 
-    extern a_uint32_t *ioctl_buf;
+    extern a_ulong_t *ioctl_buf;
     extern ssdk_init_cfg init_cfg;
     extern ssdk_cfg_t ssdk_cfg;
 
@@ -31,7 +31,7 @@ extern "C" {
 #define CMDSTR_BUF_SIZE 1024
 #define CMDSTR_ARGS_MAX 128
 #define dprintf cmd_print
-    extern sw_error_t cmd_exec_api(a_uint32_t *arg_val);
+    extern sw_error_t cmd_exec_api(a_ulong_t *arg_val);
     extern void cmd_print(char *fmt, ...);
     void cmd_print_error(sw_error_t rtn);
 

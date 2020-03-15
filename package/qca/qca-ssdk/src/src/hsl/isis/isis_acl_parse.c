@@ -1281,13 +1281,6 @@ _isis_acl_action_parse(a_uint32_t dev_id, const fal_acl_rule_t * sw,
 
     /* FAL_ACL_ACTION_PERMIT need't process */
 
-    /* we should ignore any other action flags when DENY bit is settd. */
-    if (FAL_ACTION_FLG_TST(sw->action_flg, FAL_ACL_ACTION_DENY))
-    {
-        FIELD_SET_ACTION(ACL_RSLT2, FWD_CMD, 0x7);
-        return SW_OK;
-    }
-
     if ((FAL_ACTION_FLG_TST(sw->action_flg, FAL_ACL_ACTION_RDTCPU))
             && (FAL_ACTION_FLG_TST(sw->action_flg, FAL_ACL_ACTION_CPYCPU)))
     {
@@ -1302,6 +1295,11 @@ _isis_acl_action_parse(a_uint32_t dev_id, const fal_acl_rule_t * sw,
     if (FAL_ACTION_FLG_TST(sw->action_flg, FAL_ACL_ACTION_CPYCPU))
     {
         FIELD_SET_ACTION(ACL_RSLT2, FWD_CMD, 0x1);
+    }
+
+    if (FAL_ACTION_FLG_TST(sw->action_flg, FAL_ACL_ACTION_DENY))
+    {
+        FIELD_SET_ACTION(ACL_RSLT2, FWD_CMD, 0x7);
     }
 
     if (FAL_ACTION_FLG_TST(sw->action_flg, FAL_ACL_ACTION_MIRROR))

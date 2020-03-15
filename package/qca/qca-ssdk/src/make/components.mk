@@ -4,7 +4,7 @@ ifeq (linux, $(OS))
     ifeq (TRUE, $(KERNEL_MODE))
       COMPONENTS = HSL SAL INIT UTIL REF SHELIB
       ifeq (TRUE, $(FAL))
-        COMPONENTS += FAL
+        COMPONENTS += FAL ADPT
       endif
     else
       COMPONENTS = HSL SAL INIT REF
@@ -19,7 +19,7 @@ ifeq (linux, $(OS))
     ifneq (TRUE, $(KERNEL_MODE))
       COMPONENTS = HSL SAL INIT UTIL REF
       ifeq (TRUE, $(FAL))
-        COMPONENTS += FAL
+        COMPONENTS += FAL ADPT
       endif
     else
       COMPONENTS = UK_IF SAL

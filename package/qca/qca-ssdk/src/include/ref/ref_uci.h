@@ -20,10 +20,12 @@ extern "C" {
 #endif                          /* __cplusplus */
 
 
+#if defined(IN_SWCONFIG)
 int
 qca_ar8327_sw_switch_ext(struct switch_dev *dev,
 			 	const struct switch_attr *attr,
 			 	struct switch_val *val);
+#endif
 
 
 #ifdef __cplusplus

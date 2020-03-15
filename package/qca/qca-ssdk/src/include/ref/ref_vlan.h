@@ -19,6 +19,9 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
+#if defined(IN_SWCONFIG)
+#include <linux/switch.h>
+
 int
 qca_ar8327_sw_set_vlan(struct switch_dev *dev,
                        const struct switch_attr *attr,
@@ -53,6 +56,7 @@ qca_ar8327_sw_set_ports(struct switch_dev *dev, struct switch_val *val);
 
 int
 qca_ar8327_sw_hw_apply(struct switch_dev *dev);
+#endif
 
 #ifdef __cplusplus
 }

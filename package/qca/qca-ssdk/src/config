@@ -9,6 +9,19 @@ endif
 ifeq ($(KVER),$(filter 4.4%,$(KVER)))
 OS_VER=4_4
 endif
+
+ifeq ($(KVER),$(filter 4.1%,$(KVER)))
+OS_VER=4_1
+endif
+
+ifeq ($(KVER),$(filter 4.9%,$(KVER)))
+OS_VER=4_9
+endif
+
+ifeq ($(KVER),$(filter 4.14%,$(KVER)))
+OS_VER=4_14
+endif
+
 ifeq ($(KVER), 3.4.0)
 OS_VER=3_4
 endif
@@ -83,29 +96,15 @@ CPU_CFLAG=-Wstrict-prototypes -fomit-frame-pointer -G 0 -mno-abicalls -fno-stric
 endif
 
 ifeq ($(ARCH), arm)
-ifeq ($(KVER), 3.4.0)
-  CPU_CFLAG=-D__LINUX_ARM_ARCH__=7  -DMODULE -fno-common -DCONFIG_MMU -D$(BOARD_NAME)
+  CPU_CFLAG=-D__LINUX_ARM_ARCH__=7 -DMODULE -Os -pipe -mcpu=cortex-a15 -D$(BOARD_NAME) -fno-common -msoft-float
 endif
-ifeq ($(KVER), 3.4.103)
-  CPU_CFLAG=-D__LINUX_ARM_ARCH__=7  -DMODULE -fno-common -DCONFIG_MMU -D$(BOARD_NAME)
-endif
-ifeq ($(KVER), 3.18.21)
-  CPU_CFLAG=-D__LINUX_ARM_ARCH__=7  -DMODULE -fno-common -DCONFIG_MMU -D$(BOARD_NAME)
-endif
+
+ifeq ($(ARCH), arm64)
 ifeq ($(KVER),$(filter 4.4%,$(KVER)))
-  CPU_CFLAG=-D__LINUX_ARM_ARCH__=7  -DMODULE -fno-common -DCONFIG_MMU -D$(BOARD_NAME)
+  CPU_CFLAG=  -DMODULE -Os -pipe -march=armv8-a -mcpu=cortex-a53+crypto -fno-caller-saves -fhonour-copts -fno-common -Wno-error=unused-but-set-variable -Wno-error=unused-result -mcmodel=large
 endif
-
-ifeq ($(KVER),$(filter 3.14%,$(KVER)))
-  CPU_CFLAG= -DMODULE -nostdinc -D$(BOARD_NAME) -mlittle-endian -Wundef -Wstrict-prototypes -Wno-trigraphs -Werror -fno-strict-aliasing -fno-common -Wno-format-security -fno-delete-null-pointer-checks -O2 -fno-dwarf2-cfi-asm -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fomit-frame-pointer -g -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -DCC_HAVE_ASM_GOTO    -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(mem)"
-endif
-
-ifeq ($(KVER),$(filter 4.4%,$(KVER)))
-  CPU_CFLAG= -DMODULE -nostdinc -D$(BOARD_NAME) -mlittle-endian -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Wno-format-security -fno-delete-null-pointer-checks -O2 -fno-dwarf2-cfi-asm -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fomit-frame-pointer -g -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -DCC_HAVE_ASM_GOTO    -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(mem)"  -D"KBUILD_MODNAME=KBUILD_STR(mem)"
-endif
-
-ifeq ($(KVER),$(filter 3.18%,$(KVER)))
-  CPU_CFLAG= -DMODULE -nostdinc -D$(BOARD_NAME) -mlittle-endian -Wundef -Wstrict-prototypes -Wno-trigraphs -fno-strict-aliasing -fno-common -Wno-format-security -fno-delete-null-pointer-checks -O2 -fno-dwarf2-cfi-asm -mabi=aapcs-linux -mno-thumb-interwork -mfpu=vfp -funwind-tables -marm -D__LINUX_ARM_ARCH__=7 -march=armv7-a -msoft-float -Uarm -Wframe-larger-than=1024 -fno-stack-protector -Wno-unused-but-set-variable -fomit-frame-pointer -g -Wdeclaration-after-statement -Wno-pointer-sign -fno-strict-overflow -fconserve-stack -Werror=implicit-int -DCC_HAVE_ASM_GOTO    -D"KBUILD_STR(s)=\#s" -D"KBUILD_BASENAME=KBUILD_STR(mem)"
+ifeq ($(KVER),$(filter 4.1% 4.9% 4.14%, $(KVER)))
+  CPU_CFLAG=  -DMODULE -Os -pipe -march=armv8-a -mcpu=cortex-a53+crypto -fno-caller-saves -fno-common -Wno-error=unused-but-set-variable -Wno-error=unused-result -mcmodel=large
 endif
 endif
 
@@ -124,6 +123,11 @@ endif
   #TOOLPREFIX=$(CPU)-$(OS)-
   #CPU_CFLAG=-Wstrict-prototypes -Wundef -fomit-frame-pointer -G 0 -mno-abicalls -Wno-trigraphs -fno-strict-aliasing -fno-common -ffreestanding -O2 -fno-pic -pipe -mabi=32 -march=r4600 -Wa,-32 -Wa,-march=r4600 -Wa,--trap -DMODULE -mlong-calls -DEXPORT_SYMTAB
 
+ifeq ($(SWCONFIG_FEATURE), disable)
+SWCONFIG=FALSE
+else
+SWCONFIG=TRUE
+endif
 
 KERNEL_MODE=TRUE
 #compatiable with OpenWRT
@@ -134,7 +138,7 @@ endif
 #FAL=FALSE or not define FAL, FAL will not be included in SSDK
 FAL=TRUE
 
-#CHIP_TYPE can be defined as ATHENA, GARUDA, SHIVA, HORUS, ISIS, ISISC, DESS and ALL_CHIP(ALL_CHIP means GARUDA, SHIVA, HORUS, ISIS, ISISC and DESS)
+#CHIP_TYPE can be defined as ATHENA, GARUDA, SHIVA, HORUS, ISIS, ISISC, DESS, HPPE and ALL_CHIP(ALL_CHIP means GARUDA, SHIVA, HORUS, ISIS, ISISC, DESS and HPPE)
 CHIP_TYPE=ALL_CHIP
 
 #UK_IF=FALSE or not define UK_IF, UK_IF will not be included in SSDK
@@ -178,8 +182,12 @@ IN_COSMAP=TRUE
 IN_COSMAP_MINI=FALSE
 IN_IP=TRUE
 IN_NAT=TRUE
+IN_FLOW=TRUE
 IN_TRUNK=TRUE
+IN_RSS_HASH=TRUE
 IN_SEC=TRUE
+IN_QM=TRUE
+IN_PPPOE=TRUE
 ifeq ($(HNAT_FEATURE), enable)
 IN_NAT_HELPER=TRUE
 else
@@ -190,11 +198,43 @@ IN_RFS=TRUE
 else
 IN_RFS=FALSE
 endif
+ifeq ($(ATH79_FIX), enable)
+IN_ATH79=TRUE
+else
+IN_ATH79=FALSE
+endif
 IN_INTERFACECONTROL=TRUE
 IN_MACBLOCK=FALSE
 IN_MALIBU_PHY=TRUE
+ifeq (ALL_CHIP, $(CHIP_TYPE))
+IN_AQUANTIA_PHY=TRUE
+IN_QCA803X_PHY=TRUE
+IN_QCA808X_PHY=TRUE
+IN_SFP_PHY=TRUE
+else
+IN_QCA803X_PHY=FALSE
+IN_QCA808X_PHY=TRUE
+IN_AQUANTIA_PHY=FALSE
+IN_SFP_PHY=FALSE
+endif
 ifeq ($(SFE_FEATURE), enable)
 IN_SFE=TRUE
 else
 IN_SFE=FALSE
 endif
+ifeq ($(IN_QCA808X_PHY), TRUE)
+IN_PHY_I2C_MODE=TRUE
+else
+IN_PHY_I2C_MODE=FALSE
+endif
+IN_VSI=TRUE
+IN_CTRLPKT=TRUE
+IN_SERVCODE=TRUE
+IN_BM=TRUE
+IN_SHAPER=TRUE
+IN_POLICER=TRUE
+IN_UNIPHY=TRUE
+ifneq ($(HK_CHIP), enable)
+CHIP_TYPE=NONHK_CHIP
+endif
+HAWKEYE_CHIP=TRUE

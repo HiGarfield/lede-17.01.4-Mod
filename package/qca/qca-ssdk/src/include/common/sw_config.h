@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -21,8 +21,8 @@
 extern "C" {
 #endif /* __cplusplus */
 
-#define SW_MAX_NR_DEV      1
-#define SW_MAX_NR_PORT     32
+#define SW_MAX_NR_DEV      3
+#define SW_MAX_NR_PORT     16
 
 #ifdef HSL_STANDALONG
 #define HSL_LOCAL

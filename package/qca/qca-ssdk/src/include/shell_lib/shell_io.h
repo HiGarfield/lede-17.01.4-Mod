@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, 2015, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013, 2015-2017, The Linux Foundation. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -38,6 +38,7 @@ typedef struct
 void  set_talk_mode(int mode);
 int get_talk_mode(void);
 void set_full_cmdstrp(char **cmdstrp);
+int get_jump(void);
 sw_data_type_t * cmd_data_type_find(sw_data_type_e type);
 void  cmd_strtol(char *str, a_uint32_t * arg_val);
 sw_error_t cmd_data_check_udf_element(char *cmdstr, a_uint8_t * val, a_uint32_t * len);
@@ -60,12 +61,39 @@ sw_error_t cmd_data_check_duplex(char *cmd_str, a_uint32_t * arg_val,
                                  a_uint32_t size);
 sw_error_t cmd_data_check_speed(char *cmd_str, a_uint32_t * arg_val,
                                 a_uint32_t size);
+sw_error_t
+cmd_data_check_port_eee_config(char *cmd_str, void * val, a_uint32_t size);
+
 #endif
 #ifdef IN_PORTVLAN
 sw_error_t cmd_data_check_1qmode(char *cmd_str, a_uint32_t * arg_val,
                                  a_uint32_t size);
 sw_error_t cmd_data_check_egmode(char *cmd_str, a_uint32_t * arg_val,
                                  a_uint32_t size);
+sw_error_t
+cmd_data_check_global_qinqmode(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_port_qinqmode(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_tpid(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_ingress_filter(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_port_vlan_direction(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
+sw_error_t
+cmd_data_check_port_default_vid_en(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_port_vlan_tag(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_tag_propagation(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_egress_mode(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_port_vlan_translation_adv_rule(char *info, void *val,
+				a_uint32_t size);
+sw_error_t
+cmd_data_check_port_vlan_translation_adv_action(char *info, void *val,
+				a_uint32_t size);
 #endif
 #ifdef IN_PORTCONTROL
 sw_error_t cmd_data_check_capable(char *cmd_str, a_uint32_t * arg_val,
@@ -73,6 +101,7 @@ sw_error_t cmd_data_check_capable(char *cmd_str, a_uint32_t * arg_val,
 #endif
 #ifdef IN_FDB
 sw_error_t cmd_data_check_fdbentry(char *cmdstr, void *val, a_uint32_t size);
+sw_error_t cmd_data_check_maclimit_ctrl(char *info, void *val, a_uint32_t size);
 #endif
 sw_error_t cmd_data_check_macaddr(char *cmdstr, void *val, a_uint32_t size);
 #ifdef IN_VLAN
@@ -85,6 +114,18 @@ sw_error_t cmd_data_check_qos_sch(char *cmdstr, fal_sch_mode_t * val,
 sw_error_t cmd_data_check_qos_pt(char *cmdstr, fal_qos_mode_t * val,
                                  a_uint32_t size);
 #endif
+sw_error_t
+cmd_data_check_port_group(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_port_pri(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_port_remark(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_cosmap(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_queue_scheduler(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_ring_queue(char *cmd_str, void * val, a_uint32_t size);
 #endif
 #ifdef IN_RATE
 sw_error_t cmd_data_check_storm(char *cmdstr, fal_storm_type_t * val,
@@ -133,11 +174,11 @@ cmd_data_check_hdrmode(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
 sw_error_t
 cmd_data_check_fdboperation(char *cmd_str, void * val, a_uint32_t size);
 #endif
-#ifdef IN_MISC
-#ifndef IN_MISC_MINI
+#ifdef IN_PPPOE
 sw_error_t
 cmd_data_check_pppoe(char *cmd_str, void * val, a_uint32_t size);
-#endif
+sw_error_t
+cmd_data_check_pppoe_less(char *cmd_str, void * val, a_uint32_t size);
 #endif
 #if defined(IN_IP) || defined(IN_NAT)
 sw_error_t
@@ -223,6 +264,15 @@ cmd_data_check_sec_icmp4(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
 
 sw_error_t
 cmd_data_check_sec_icmp6(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_l3_parser(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_l4_parser(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_exp_ctrl(char *cmd_str, void * val, a_uint32_t size);
 #endif
 #ifdef IN_COSMAP
 sw_error_t
@@ -239,6 +289,26 @@ sw_error_t
 cmd_data_check_ip4_rfs_entry(char *cmd_str, void * val, a_uint32_t size);
 sw_error_t
 cmd_data_check_ip6_rfs_entry(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_arp_sg(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_network_route(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_intf(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_vsi_intf(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_nexthop(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_ip_sg(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_ip_pub(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_ip_portmac(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_ip_mcmode(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_ip_global(char *cmd_str, void * val, a_uint32_t size);
 #endif
 #ifdef IN_NAT
 sw_error_t
@@ -260,11 +330,127 @@ cmd_data_check_prefer_medium(char *cmd_str, a_uint32_t * arg_val, a_uint32_t siz
 
 sw_error_t
 cmd_data_check_fiber_mode(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_mtu_entry(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_mru_entry(char *cmd_str, void * val, a_uint32_t size);
+
+
 #endif
 #endif
 #ifdef IN_INTERFACECONTROL
 sw_error_t
 cmd_data_check_interface_mode(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
+#endif
+#ifdef IN_VSI
+sw_error_t
+cmd_data_check_newadr_lrn(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_stamove(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_vsi_member(char *cmd_str, void * val, a_uint32_t size);
+
+#endif
+#ifdef IN_BM
+sw_error_t
+cmd_data_check_bm_dynamic_thresh(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_bm_static_thresh(char *cmd_str, void * val, a_uint32_t size);
+#endif
+#ifdef IN_QM
+sw_error_t
+cmd_data_check_u_qmap(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_ac_static_thresh(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_ac_dynamic_thresh(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_ac_group_buff(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_ac_ctrl(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_ac_obj(char *cmd_str, void * val, a_uint32_t size);
+
+#endif
+#ifdef IN_FLOW
+sw_error_t
+cmd_data_check_flow_age(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_flow_ctrl(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_flow(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_flow_global(char *cmd_str, void * val, a_uint32_t size);
+sw_error_t
+cmd_data_check_flow_host(char *cmd_str, void * val, a_uint32_t size);
+#endif
+
+#ifdef IN_POLICER
+sw_error_t
+cmd_data_check_port_policer_config(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_policer_cmd_config(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_acl_policer_config(char *cmd_str, void * val, a_uint32_t size);
+
+#endif
+
+#ifdef IN_SHAPER
+sw_error_t
+cmd_data_check_port_shaper_token_config(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_shaper_token_config(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_port_shaper_config(char *cmd_str, void * val, a_uint32_t size);
+
+sw_error_t
+cmd_data_check_shaper_config(char *cmd_str, void * val, a_uint32_t size);
+
+#endif
+
+#ifdef IN_SERVCODE
+sw_error_t
+cmd_data_check_servcode_config(char *info, fal_servcode_config_t *val, a_uint32_t size);
+#endif
+
+#ifdef IN_RSS_HASH
+sw_error_t
+cmd_data_check_rss_hash_mode(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
+sw_error_t
+cmd_data_check_rss_hash_config(char *info, fal_rss_hash_config_t *val, a_uint32_t size);
+#endif
+
+#ifdef IN_MIRROR
+sw_error_t
+cmd_data_check_mirr_analy_cfg(char *info, void *val, a_uint32_t size);
+sw_error_t
+cmd_data_check_mirr_direction(char *cmd_str, a_uint32_t * arg_val, a_uint32_t size);
+#endif
+sw_error_t
+cmd_data_check_integer(char *cmd_str, a_uint32_t * arg_val, a_uint32_t max_val, a_uint32_t min_val);
+#ifdef IN_CTRLPKT
+sw_error_t
+cmd_data_check_ctrlpkt_appprofile(char *info, void *val, a_uint32_t size);
+#endif
+#ifdef IN_ACL
+sw_error_t
+cmd_data_check_udf_type(char *cmdstr, fal_acl_udf_type_t * arg_val, a_uint32_t size);
+sw_error_t
+cmd_data_check_fieldop(char *cmdstr, fal_acl_field_op_t def, fal_acl_field_op_t * val);
+
 #endif
 #endif
 

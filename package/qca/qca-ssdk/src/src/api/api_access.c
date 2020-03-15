@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -11,7 +11,7 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT
  * OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
+/*qca808x_start*/
 #include "sw.h"
 #include "fal.h"
 #include "hsl.h"
@@ -19,6 +19,7 @@
 
 #include "sw_api.h"
 #include "api_desc.h"
+/*qca808x_end*/
 #if (((!defined(USER_MODE)) && defined(KERNEL_MODULE)) || (defined(USER_MODE) && (!defined(KERNEL_MODULE))))
 #ifdef HSL_STANDALONG
 #if defined ATHENA
@@ -52,10 +53,13 @@
 #include "isisc_api.h"
 #endif
 #else
+/*qca808x_start*/
 #include "fal_api.h"
+/*qca808x_end*/
 #endif
+#include "ref_vsi.h"
 
-
+/*qca808x_start*/
 static sw_api_func_t sw_api_func[] = { SSDK_API };
 static sw_api_param_t sw_api_param[] = { SSDK_PARAM };
 
@@ -159,3 +163,4 @@ sw_api_get(sw_api_t *sw_api)
 
     return SW_OK;
 }
+/*qca808x_end*/

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -21,6 +21,7 @@
 #include "sw.h"
 #include "fal_misc.h"
 #include "hsl_api.h"
+#include "adpt.h"
 
 #ifndef IN_MISC_MINI
 static sw_error_t
@@ -166,21 +167,6 @@ _fal_cpu_port_status_set(a_uint32_t dev_id, a_bool_t enable)
     return rv;
 }
 
-static sw_error_t
-_fal_pppoe_status_set(a_uint32_t dev_id, a_bool_t enable)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_status_set)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_status_set(dev_id, enable);
-    return rv;
-}
-
 #ifndef IN_MISC_MINI
 static sw_error_t
 _fal_port_unk_sa_cmd_get(a_uint32_t dev_id, fal_port_t port_id,
@@ -298,52 +284,6 @@ _fal_bc_to_cpu_port_get(a_uint32_t dev_id, a_bool_t * enable)
 
 
 static sw_error_t
-_fal_pppoe_cmd_set(a_uint32_t dev_id, fal_fwd_cmd_t cmd)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_cmd_set)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_cmd_set(dev_id, cmd);
-    return rv;
-}
-
-
-static sw_error_t
-_fal_pppoe_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_cmd_get)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_cmd_get(dev_id, cmd);
-    return rv;
-}
-
-static sw_error_t
-_fal_pppoe_status_get(a_uint32_t dev_id, a_bool_t * enable)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_status_get)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_status_get(dev_id, enable);
-    return rv;
-}
-
-static sw_error_t
 _fal_port_dhcp_set(a_uint32_t dev_id, fal_port_t port_id, a_bool_t enable)
 {
     sw_error_t rv;
@@ -434,51 +374,6 @@ _fal_eapol_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
     rv = p_api->eapol_cmd_get(dev_id, cmd);
     return rv;
 }
-
-static sw_error_t
-_fal_pppoe_session_add(a_uint32_t dev_id, a_uint32_t session_id, a_bool_t strip_hdr)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_add)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_add(dev_id, session_id, strip_hdr);
-    return rv;
-}
-
-static sw_error_t
-_fal_pppoe_session_del(a_uint32_t dev_id, a_uint32_t session_id)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_del)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_del(dev_id, session_id);
-    return rv;
-}
-
-static sw_error_t
-_fal_pppoe_session_get(a_uint32_t dev_id, a_uint32_t session_id, a_bool_t * strip_hdr)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_get)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_get(dev_id, session_id, strip_hdr);
-    return rv;
-}
 #endif
 
 static sw_error_t
@@ -539,87 +434,6 @@ _fal_ripv1_status_get(a_uint32_t dev_id, a_bool_t * enable)
         return SW_NOT_SUPPORTED;
 
     rv = p_api->ripv1_status_get(dev_id, enable);
-    return rv;
-}
-
-static sw_error_t
-_fal_pppoe_session_table_add(a_uint32_t dev_id,
-                             fal_pppoe_session_t * session_tbl)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_table_add)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_table_add(dev_id, session_tbl);
-    return rv;
-}
-
-
-static sw_error_t
-_fal_pppoe_session_table_del(a_uint32_t dev_id,
-                             fal_pppoe_session_t * session_tbl)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_table_del)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_table_del(dev_id, session_tbl);
-    return rv;
-}
-
-static sw_error_t
-_fal_pppoe_session_table_get(a_uint32_t dev_id,
-                             fal_pppoe_session_t * session_tbl)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_table_get)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_table_get(dev_id, session_tbl);
-    return rv;
-}
-
-static sw_error_t
-_fal_pppoe_session_id_set(a_uint32_t dev_id, a_uint32_t index,
-                          a_uint32_t id)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_id_set)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_id_set(dev_id, index, id);
-    return rv;
-}
-
-static sw_error_t
-_fal_pppoe_session_id_get(a_uint32_t dev_id, a_uint32_t index,
-                          a_uint32_t * id)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->pppoe_session_id_get)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->pppoe_session_id_get(dev_id, index, id);
     return rv;
 }
 
@@ -873,37 +687,6 @@ _fal_cpu_vid_en_get(a_uint32_t dev_id, a_bool_t * enable)
 }
 
 static sw_error_t
-_fal_rtd_pppoe_en_set(a_uint32_t dev_id, a_bool_t enable)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->rtd_pppoe_en_set)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->rtd_pppoe_en_set(dev_id, enable);
-    return rv;
-}
-
-
-static sw_error_t
-_fal_rtd_pppoe_en_get(a_uint32_t dev_id, a_bool_t * enable)
-{
-    sw_error_t rv;
-    hsl_api_t *p_api;
-
-    SW_RTN_ON_NULL(p_api = hsl_api_ptr_get(dev_id));
-
-    if (NULL == p_api->rtd_pppoe_en_get)
-        return SW_NOT_SUPPORTED;
-
-    rv = p_api->rtd_pppoe_en_get(dev_id, enable);
-    return rv;
-}
-
-static sw_error_t
 _fal_intr_status_mac_linkchg_clear(a_uint32_t dev_id)
 {
     sw_error_t rv;
@@ -1009,6 +792,35 @@ _fal_frame_crc_reserve_get(a_uint32_t dev_id, a_bool_t * enable)
     return rv;
 }
 
+sw_error_t
+_fal_debug_port_counter_enable(a_uint32_t dev_id, fal_port_t port_id, fal_counter_en_t * cnt_en)
+{
+    sw_error_t rv;
+    adpt_api_t *p_api;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_debug_port_counter_enable)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_debug_port_counter_enable(dev_id, port_id, cnt_en);
+    return rv;
+}
+
+sw_error_t
+_fal_debug_port_counter_status_get(a_uint32_t dev_id, fal_port_t port_id, fal_counter_en_t * cnt_en)
+{
+    sw_error_t rv;
+    adpt_api_t *p_api;
+
+    SW_RTN_ON_NULL(p_api = adpt_api_ptr_get(dev_id));
+
+    if (NULL == p_api->adpt_debug_port_counter_status_get)
+        return SW_NOT_SUPPORTED;
+
+    rv = p_api->adpt_debug_port_counter_status_get(dev_id, port_id, cnt_en);
+    return rv;
+}
 
 /**
  * @brief Set arp packets hardware acknowledgement status on a particular device.
@@ -1187,25 +999,6 @@ fal_cpu_port_status_set(a_uint32_t dev_id, a_bool_t enable)
     return rv;
 }
 
-/**
- * @brief Set pppoe packets hardware acknowledgement status on particular device.
- * @details     comments:
- *   Particular device may only support parts of pppoe packets.
- * @param[in] dev_id device id
- * @param[in] enable A_TRUE or A_FALSE
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_status_set(a_uint32_t dev_id, a_bool_t enable)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_status_set(dev_id, enable);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
 #ifndef IN_MISC_MINI
 /**
  * @brief Get forwarding command for packets which source address is unknown on a particular port.
@@ -1339,61 +1132,6 @@ fal_bc_to_cpu_port_get(a_uint32_t dev_id, a_bool_t * enable)
 }
 
 /**
- * @brief Set pppoe packets forwarding command on a particular device.
- * @details     comments:
- *   Particular device may only support parts of forwarding commands.
- *   Ihis operation will take effect only after enabling pppoe packets
- *   hardware acknowledgement
- * @param[in] dev_id device id
- * @param[in] cmd forwarding command
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_cmd_set(a_uint32_t dev_id, fal_fwd_cmd_t cmd)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_cmd_set(dev_id, cmd);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Get pppoe packets forwarding command on a particular device.
- * @param[in] dev_id device id
- * @param[out] cmd forwarding command
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_cmd_get(dev_id, cmd);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Get pppoe packets hardware acknowledgement status on a particular device.
- * @param[in] dev_id device id
- * @param[out] enable A_TRUE or A_FALSE
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_status_get(a_uint32_t dev_id, a_bool_t * enable)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_status_get(dev_id, enable);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
  * @brief Set dhcp packets hardware acknowledgement status on a particular device.
  * @param[in] dev_id device id
  * @param[in] enable A_TRUE or A_FALSE
@@ -1501,59 +1239,6 @@ fal_eapol_cmd_get(a_uint32_t dev_id, fal_fwd_cmd_t * cmd)
     FAL_API_UNLOCK;
     return rv;
 }
-
-/**
- * @brief Add a pppoe session entry to a particular device.
- * @param[in] dev_id device id
- * @param[in] session_id pppoe session id
- * @param[in] strip_hdr strip or not strip pppoe header
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_add(a_uint32_t dev_id, a_uint32_t session_id, a_bool_t strip_hdr)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_add(dev_id, session_id, strip_hdr);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Delete a pppoe session entry from a particular device.
- * @param[in] dev_id device id
- * @param[in] session_id pppoe session id
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_del(a_uint32_t dev_id, a_uint32_t session_id)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_del(dev_id, session_id);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Get a pppoe session entry from a particular device.
- * @param[in] dev_id device id
- * @param[in] session_id pppoe session id
- * @param[out] strip_hdr strip or not strip pppoe header
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_get(a_uint32_t dev_id, a_uint32_t session_id, a_bool_t * strip_hdr)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_get(dev_id, session_id, strip_hdr);
-    FAL_API_UNLOCK;
-    return rv;
-}
 #endif
 /**
  * @brief Set eapol packets hardware acknowledgement on a particular port.
@@ -1627,101 +1312,6 @@ fal_ripv1_status_get(a_uint32_t dev_id, a_bool_t * enable)
 
     FAL_API_LOCK;
     rv = _fal_ripv1_status_get(dev_id, enable);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Add a pppoe session entry to a particular device.
- *        The entry only for pppoe/ppp header remove.
- * @param[in] dev_id device id
- * @param[in] session_tbl pppoe session table
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_table_add(a_uint32_t dev_id,
-                            fal_pppoe_session_t * session_tbl)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_table_add(dev_id, session_tbl);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Delete a pppoe session entry from a particular device.
- *        The entry only for pppoe/ppp header remove.
- * @param[in] dev_id device id
- * @param[in] session_tbl pppoe session table
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_table_del(a_uint32_t dev_id,
-                            fal_pppoe_session_t * session_tbl)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_table_del(dev_id, session_tbl);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Get a pppoe session entry from a particular device.
- *        The entry only for pppoe/ppp header remove.
- * @param[in] dev_id device id
- * @param[out] session_tbl pppoe session table
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_table_get(a_uint32_t dev_id,
-                            fal_pppoe_session_t * session_tbl)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_table_get(dev_id, session_tbl);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Set a pppoe session id entry to a particular device.
- *        The entry only for pppoe/ppp header add.
- * @param[in] dev_id device id
- * @param[in] session_tbl pppoe session table
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_id_set(a_uint32_t dev_id, a_uint32_t index,
-                         a_uint32_t id)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_id_set(dev_id, index, id);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Get a pppoe session id entry to a particular device.
- *        The entry only for pppoe/ppp header add.
- * @param[in] dev_id device id
- * @param[out] session_tbl pppoe session table
- * @return SW_OK or error code
- */
-sw_error_t
-fal_pppoe_session_id_get(a_uint32_t dev_id, a_uint32_t index,
-                         a_uint32_t * id)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_pppoe_session_id_get(dev_id, index, id);
     FAL_API_UNLOCK;
     return rv;
 }
@@ -2007,40 +1597,6 @@ fal_cpu_vid_en_get(a_uint32_t dev_id, a_bool_t * enable)
 }
 
 /**
- * @brief Set RM_RTD_PPPOE_EN status on a particular device.
- * @param[in] dev_id device id
- * @param[in] enable A_TRUE or A_FALSE
- * @return SW_OK or error code
- */
-sw_error_t
-fal_rtd_pppoe_en_set(a_uint32_t dev_id, a_bool_t enable)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_rtd_pppoe_en_set(dev_id, enable);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
- * @brief Get RM_RTD_PPPOE_EN status on a particular device.
- * @param[in] dev_id device id
- * @param[in] enable A_TRUE or A_FALSE
- * @return SW_OK or error code
- */
-sw_error_t
-fal_rtd_pppoe_en_get(a_uint32_t dev_id, a_bool_t * enable)
-{
-    sw_error_t rv;
-
-    FAL_API_LOCK;
-    rv = _fal_rtd_pppoe_en_get(dev_id, enable);
-    FAL_API_UNLOCK;
-    return rv;
-}
-
-/**
  * @brief Get mac link change interrupt mask on particular port.
  * @param[in] dev_id device id
  * @return SW_OK or error code
@@ -2160,6 +1716,28 @@ fal_frame_crc_reserve_get(a_uint32_t dev_id, a_bool_t * enable)
 
     FAL_API_LOCK;
     rv = _fal_frame_crc_reserve_get(dev_id, enable);
+    FAL_API_UNLOCK;
+    return rv;
+}
+
+sw_error_t
+fal_debug_port_counter_enable(a_uint32_t dev_id, fal_port_t port_id, fal_counter_en_t * cnt_en)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_debug_port_counter_enable(dev_id, port_id, cnt_en);
+    FAL_API_UNLOCK;
+    return rv;
+}
+
+sw_error_t
+fal_debug_port_counter_status_get(a_uint32_t dev_id, fal_port_t port_id, fal_counter_en_t * cnt_en)
+{
+    sw_error_t rv = SW_OK;
+
+    FAL_API_LOCK;
+    rv = _fal_debug_port_counter_status_get(dev_id, port_id, cnt_en);
     FAL_API_UNLOCK;
     return rv;
 }

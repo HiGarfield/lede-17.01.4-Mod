@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2012, 2017, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -35,10 +35,7 @@
 #include <linux/types.h>
 //#include <asm/mach-types.h>
 #include <generated/autoconf.h>
-#if defined(CONFIG_OF) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3,14,0))
-#include <linux/switch.h>
-#else
-#include <net/switch.h>
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,14,0))
 #include <linux/ar8216_platform.h>
 #endif
 #include <linux/delay.h>
@@ -46,15 +43,18 @@
 #include <linux/netdevice.h>
 #include "ssdk_plat.h"
 #include "ref_vlan.h"
+#include "ref_fdb.h"
 
 
+#if defined(IN_SWCONFIG)
 int
 qca_ar8327_sw_atu_flush(struct switch_dev *dev,
 				const struct switch_attr *attr,
 				struct switch_val *val)
 {
+	struct qca_phy_priv *priv = qca_phy_priv_get(dev);
 	/* 0: dynamic 1:dynamic, static */
-	fal_fdb_del_all(0, 1);
+	fal_fdb_entry_flush(priv->device_id, 1);
 
 	return 0;
 }
@@ -78,9 +78,9 @@ qca_ar8327_sw_atu_dump(struct switch_dev *dev,
 	memset(&entry, 0, sizeof(fal_fdb_entry_t));
 
 	if (priv->version == QCA_VER_AR8227)
-		rv = fal_fdb_first(0, &entry);
+		rv = fal_fdb_entry_getfirst(priv->device_id, &entry);
 	else
-		rv = fal_fdb_extend_first(0, &option, &entry);
+		rv = fal_fdb_entry_extend_getfirst(priv->device_id, &option, &entry);
 	while (!rv)
     {
 		len += snprintf(buf+len, 2048-len, "MAC: %02x:%02x:%02x:%02x:%02x:%02x PORTMAP: 0x%02x VID: 0x%x STATUS: 0x%x\n",
@@ -94,9 +94,9 @@ qca_ar8327_sw_atu_dump(struct switch_dev *dev,
 			break;
 		}
 		if (priv->version == QCA_VER_AR8227)
-			rv = fal_fdb_iterate(0, &i, &entry);
+			rv = fal_fdb_entry_getnext_byindex(priv->device_id, &i, &entry);
 		else
-			rv = fal_fdb_extend_next(0, &option, &entry);
+			rv = fal_fdb_entry_extend_getnext(priv->device_id, &option, &entry);
     }
 
 	val->value.s = (char*)(priv->buf);
@@ -104,6 +104,7 @@ qca_ar8327_sw_atu_dump(struct switch_dev *dev,
 
 	return 0;
 }
+#endif
 
 #define MAX_PORT 6
 /*

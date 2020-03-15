@@ -26,7 +26,11 @@ extern "C" {
 
 #include "fal/fal_port_ctrl.h"
 
-    sw_error_t shiva_port_ctrl_init(a_uint32_t dev_id);
+#define RX_FC_EN 1
+#define TX_FC_FULL_EN 1
+#define TX_FC_HALF_EN 1
+
+sw_error_t shiva_port_ctrl_init(a_uint32_t dev_id);
 
 #ifdef IN_PORTCONTROL
 #define SHIVA_PORT_CTRL_INIT(rv, dev_id) \

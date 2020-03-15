@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2013, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2013, 2017, The Linux Foundation. All rights reserved.
  *
  * Permission to use, copy, modify, and/or distribute this software for any
  * purpose with or without fee is hereby granted, provided that the above
@@ -23,6 +23,7 @@ extern "C" {
 
     int get_devid(void);
     sw_error_t cmd_set_devid(a_uint32_t *arg_val);
+    sw_error_t uci_set_devid(a_uint32_t dev_id);
 
 #ifdef __cplusplus
 }

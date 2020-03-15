@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014, 2017-2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -13,7 +13,7 @@
  */
 
 
-
+/*qca808x_start*/
 #ifndef _SSDK_INIT_H_
 #define _SSDK_INIT_H_
 
@@ -21,10 +21,11 @@
 extern "C" {
 #endif                          /* __cplusplus */
 
-#include "common/sw.h"
+#include "sw.h"
+/*qca808x_end*/
 #include "fal_led.h"
 
-
+/*qca808x_start*/
     typedef enum {
         HSL_MDIO = 1,
         HSL_HEADER,
@@ -38,7 +39,6 @@ extern "C" {
         HSL_CPU_2,
         HSL_CPU_1_PLUS,
     } hsl_init_mode;
-
     typedef sw_error_t
     (*mdio_reg_set) (a_uint32_t dev_id, a_uint32_t phy_addr, a_uint32_t reg,
                      a_uint16_t data);
@@ -48,26 +48,52 @@ extern "C" {
                      a_uint16_t * data);
 
     typedef sw_error_t
+    (*i2c_reg_set) (a_uint32_t dev_id, a_uint32_t phy_addr, a_uint32_t reg,
+                     a_uint16_t data);
+
+    typedef sw_error_t
+    (*i2c_reg_get) (a_uint32_t dev_id, a_uint32_t phy_addr, a_uint32_t reg,
+                     a_uint16_t * data);
+/*qca808x_end*/
+    typedef sw_error_t
     (*hdr_reg_set) (a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
 
     typedef sw_error_t
     (*hdr_reg_get) (a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
-
     typedef sw_error_t
     (*psgmii_reg_set) (a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
 
     typedef sw_error_t
     (*psgmii_reg_get) (a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
 
+    typedef sw_error_t
+    (*uniphy_reg_set) (a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
+
+    typedef sw_error_t
+    (*uniphy_reg_get) (a_uint32_t dev_id, a_uint32_t index, a_uint32_t reg_addr, a_uint8_t *reg_data, a_uint32_t len);
+
+    typedef void (*mii_reg_set)(a_uint32_t reg, a_uint32_t val);
+
+    typedef a_uint32_t (*mii_reg_get)(a_uint32_t reg);
+/*qca808x_start*/
     typedef struct
     {
         mdio_reg_set    mdio_set;
         mdio_reg_get    mdio_get;
+/*qca808x_end*/
         hdr_reg_set     header_reg_set;
         hdr_reg_get     header_reg_get;
         psgmii_reg_set     psgmii_reg_set;
         psgmii_reg_get     psgmii_reg_get;
+        uniphy_reg_set     uniphy_reg_set;
+        uniphy_reg_get     uniphy_reg_get;
+	mii_reg_set	mii_reg_set;
+	mii_reg_get	mii_reg_get;
+/*qca808x_start*/
+        i2c_reg_set    i2c_set;
+        i2c_reg_get    i2c_get;
     } hsl_reg_func;
+/*qca808x_end*/
 
     typedef struct
     {
@@ -82,7 +108,7 @@ extern "C" {
         a_bool_t  phy4_rx_delay;
         a_bool_t  phy4_tx_delay;
     } garuda_init_spec_cfg;
-
+/*qca808x_start*/
     typedef enum
     {
         CHIP_UNSPECIFIED = 0,
@@ -93,8 +119,9 @@ extern "C" {
         CHIP_ISIS,
         CHIP_ISISC,
         CHIP_DESS,
+        CHIP_HPPE,
     } ssdk_chip_type;
-
+/*qca808x_end*/
     typedef struct
     {
         a_uint32_t  cpu_bmp;
@@ -109,7 +136,7 @@ extern "C" {
 	led_ctrl_pattern_t led_pattern;
 
 	} led_source_cfg_t;
-
+/*qca808x_start*/
 typedef struct
 {
 	hsl_init_mode   cpu_mode;
@@ -117,23 +144,26 @@ typedef struct
 	hsl_reg_func    reg_func;
 
 	ssdk_chip_type  chip_type;
-
+	a_uint32_t      chip_revision;
 	/* os specific parameter */
 	/* when uk_if based on netlink, it's netlink protocol type*/
 	/* when uk_if based on ioctl, it's minor device number, major number
 	is always 10(misc device) */
 	a_uint32_t      nl_prot;
-
 	/* chip specific parameter */
 	void *          chip_spec_cfg;
+/*qca808x_end*/
 	/* port cfg */
 	ssdk_port_cfg   port_cfg;
 	a_uint32_t      mac_mode;
 	a_uint32_t led_source_num;
 	led_source_cfg_t led_source_cfg[15];
+/*qca808x_start*/
 	a_uint32_t      phy_id;
+	a_uint32_t      mac_mode1;
+	a_uint32_t      mac_mode2;
 } ssdk_init_cfg;
-
+/*qca808x_end*/
 #if defined ATHENA
 #define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
 #elif defined GARUDA
@@ -188,9 +218,10 @@ typedef struct
 #elif defined ISIS
 #define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
 #elif defined ISISC
+/*qca808x_start*/
 #define def_init_cfg  {.reg_mode = HSL_MDIO, .cpu_mode = HSL_CPU_2};
+/*qca808x_end*/
 #endif
-
     typedef struct
     {
         a_bool_t in_acl;
@@ -216,7 +247,7 @@ typedef struct
         a_bool_t in_nathelper;
         a_bool_t in_interfacectrl;
     } ssdk_features;
-
+/*qca808x_start*/
 #define CFG_STR_SIZE 20
     typedef struct
     {
@@ -230,18 +261,19 @@ typedef struct
         a_bool_t  fal_mod;
         a_bool_t  kernel_mode;
         a_bool_t  uk_if;
-
+/*qca808x_end*/
         ssdk_features features;
+/*qca808x_start*/
         ssdk_init_cfg init_cfg;
     } ssdk_cfg_t;
-
     sw_error_t
     ssdk_init(a_uint32_t dev_id, ssdk_init_cfg *cfg);
-
+/*qca808x_end*/
     sw_error_t
     ssdk_hsl_access_mode_set(a_uint32_t dev_id, hsl_access_mode reg_mode);
-
+/*qca808x_start*/
 #ifdef __cplusplus
 }
 #endif                          /* __cplusplus */
 #endif                          /* _SSDK_INIT_H */
+/*qca808x_end*/

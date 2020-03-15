@@ -22,91 +22,30 @@
 extern ssdk_chip_type SSDK_CURRENT_CHIP_TYPE;  /*running chip type*/
 
 #if !defined (HSL_STANDALONG)
-/*NAT API*/
-#define NAPT_ADD hsl_api_ptr_get(0)->napt_add
-#define NAPT_GET hsl_api_ptr_get(0)->napt_get
-#define NAT_PUB_ADDR_ADD  hsl_api_ptr_get(0)->nat_pub_addr_add
-#define NAPT_NEXT hsl_api_ptr_get(0)->napt_next
-#define NAT_PRV_BASE_ADDR_SET hsl_api_ptr_get(0)->nat_prv_base_addr_set
-#define NAT_PRV_BASE_MASK_SET hsl_api_ptr_get(0)->nat_prv_base_mask_set
-#define NAPT_DEL hsl_api_ptr_get(0)->napt_del
-#define NAT_DEL hsl_api_ptr_get(0)->nat_del
-#define NAT_PUB_ADDR_DEL hsl_api_ptr_get(0)->nat_pub_addr_del
-#define NAT_ADD hsl_api_ptr_get(0)->nat_add
-#define NAT_PRV_ADDR_MODE_GET hsl_api_ptr_get(0)->nat_prv_addr_mode_get
-
-/*IP API*/
-#define IP_INTF_ENTRY_ADD hsl_api_ptr_get(0)->ip_intf_entry_add
-#define IP_HOST_ADD hsl_api_ptr_get(0)->ip_host_add
-#define IP_HOST_DEL hsl_api_ptr_get(0)->ip_host_del
-#define IP_HOST_GET hsl_api_ptr_get(0)->ip_host_get
-#define IP_HOST_NEXT hsl_api_ptr_get(0)->ip_host_next
-#define IP_INTF_ENTRY_DEL hsl_api_ptr_get(0)->ip_intf_entry_del
-#define IP_HOST_PPPOE_BIND hsl_api_ptr_get(0)->ip_host_pppoe_bind
-#define IP_ROUTE_STATUS_SET hsl_api_ptr_get(0)->ip_route_status_set
-#define IP_HOST_ROUTE_ADD hsl_api_ptr_get(0)->ip_host_route_set
-#define IP_PRV_BASE_ADDR_SET hsl_api_ptr_get(0)->ip_vrf_base_addr_set
-#define IP_PRV_BASE_MASK_SET hsl_api_ptr_get(0)->ip_vrf_base_mask_set
-
-
-
 /*MISC API*/
-#define PPPOE_STATUS_GET hsl_api_ptr_get(0)->pppoe_status_get
-#define PPPOE_STATUS_SET hsl_api_ptr_get(0)->pppoe_status_set
-#define PPPOE_SESSION_ID_SET hsl_api_ptr_get(0)->pppoe_session_id_set
-#define PPPOE_SESSION_TABLE_ADD hsl_api_ptr_get(0)->pppoe_session_table_add
-#define PPPOE_SESSION_TABLE_DEL hsl_api_ptr_get(0)->pppoe_session_table_del
-#define PORT_BC_FILTER_SET hsl_api_ptr_get(0)->port_bc_filter_set
-#define PORT_UNK_MC_FILTER_SET  hsl_api_ptr_get(0)->port_unk_mc_filter_set
-#define PORT_UNK_UC_FILTER_SET hsl_api_ptr_get(0)->port_unk_uc_filter_set
-#define PORT_RXMAC_STATUS_SET hsl_api_ptr_get(0)->port_rxmac_status_set
-#define MISC_ARP_CMD_SET hsl_api_ptr_get(0)->arp_cmd_set
-#define CPU_VID_EN_SET hsl_api_ptr_get(0)->cpu_vid_en_set
-#define RTD_PPPOE_EN_SET hsl_api_ptr_get(0)->rtd_pppoe_en_set
-#define PORT_ARP_ACK_STATUS_SET hsl_api_ptr_get(0)->port_arp_ack_status_set
-#define CPU_PORT_STATUS_SET hsl_api_ptr_get(0)->cpu_port_status_set
+#define PORT_BC_FILTER_SET fal_port_bc_filter_set
+#define PORT_UNK_MC_FILTER_SET fal_port_unk_mc_filter_set
+#define PORT_UNK_UC_FILTER_SET fal_port_unk_uc_filter_set
 
 /*ACL API*/
-#define ACL_RULE_ADD hsl_api_ptr_get(0)->acl_rule_add
-#define ACL_RULE_DEL hsl_api_ptr_get(0)->acl_rule_delete
-#define ACL_LIST_CREATE  hsl_api_ptr_get(0)->acl_list_creat
-#define ACL_LIST_DESTROY hsl_api_ptr_get(0)->acl_list_destroy
-#define ACL_LIST_BIND hsl_api_ptr_get(0)->acl_list_bind
-#define ACL_LIST_UNBIND  hsl_api_ptr_get(0)->acl_list_unbind
-#define ACL_RULE_GET_OFFSET hsl_api_ptr_get(0)->acl_rule_get_offset
-#define ACL_RULE_QUERY hsl_api_ptr_get(0)->acl_rule_query
-#define ACL_RULE_SYNC_MULTI_PORTMAP hsl_api_ptr_get(0)->acl_rule_sync_multi_portmap
-#define ACL_STATUS_GET hsl_api_ptr_get(0)->acl_status_get
-#define ACL_STATUS_SET hsl_api_ptr_get(0)->acl_status_set
-#define ACL_PORT_UDF_PROFILE_SET hsl_api_ptr_get(0)->acl_port_udf_profile_set
+#define ACL_RULE_QUERY fal_acl_rule_query
 
 /*VLAN API */
-#define VLAN_CREATE hsl_api_ptr_get(0)->vlan_creat
-#define VLAN_DEL hsl_api_ptr_get(0)->vlan_delete
-#define VLAN_FIND hsl_api_ptr_get(0)->vlan_find
-#define VLAN_MEMBER_ADD hsl_api_ptr_get(0)->vlan_member_add
-#define VLAN_NEXT hsl_api_ptr_get(0)->vlan_next
-
+#define VLAN_CREATE fal_vlan_create
+#define VLAN_DEL fal_vlan_delete
+#define VLAN_FIND fal_vlan_find
+#define VLAN_MEMBER_ADD fal_vlan_member_add
 
 /*RATE API*/
-#define RATE_ACL_POLICER_SET hsl_api_ptr_get(0)->rate_acl_policer_set
+#define RATE_ACL_POLICER_SET fal_rate_acl_policer_set
 
 /*MIB API*/
-#define MIB_STATUS_SET hsl_api_ptr_get(0)->mib_status_set
-#define GET_MIB_INFO hsl_api_ptr_get(0)->get_mib_info
-
-/* PORTVLAN API */
-#define PORTVLAN_ROUTE_DEFV_SET hsl_api_ptr_get(0)->port_route_defv_set
-#define NETISOLATE_SET hsl_api_ptr_get(0)->netisolate_set
+#define MIB_STATUS_SET fal_mib_status_set
+#define GET_MIB_INFO fal_get_mib_info
 
 /* PORT_CTRL API */
-#define HEADER_TYPE_SET hsl_api_ptr_get(0)->header_type_set
-#define PORT_TXHDR_MODE_SET hsl_api_ptr_get(0)->port_txhdr_mode_set
-#define PORT_TXMAC_STATUS_SET hsl_api_ptr_get(0)->port_txmac_status_set
-
-/* REG ACCESS API */
-#define REG_GET hsl_api_ptr_get(0)->reg_get
-
+#define PORT_TXMAC_STATUS_SET fal_port_txmac_status_set
+#define PORT_RXMAC_STATUS_SET fal_port_rxmac_status_set
 
 #elif defined(ISISC)
 /* NAT API*/

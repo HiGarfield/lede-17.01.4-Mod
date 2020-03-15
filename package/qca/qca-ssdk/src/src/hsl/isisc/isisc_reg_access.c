@@ -44,9 +44,6 @@ static aos_lock_t mdio_lock;
 static a_uint32_t mdio_base_addr = 0xffffffff;
 #endif
 
-extern a_uint32_t qca_ar8216_mii_read(a_uint32_t reg);
-extern void qca_ar8216_mii_write(a_uint32_t reg, a_uint32_t val);
-
 static sw_error_t
 _isisc_mdio_reg_get(a_uint32_t dev_id, a_uint32_t reg_addr,
                    a_uint8_t value[], a_uint32_t value_len)
@@ -96,7 +93,7 @@ _isisc_mdio_reg_get(a_uint32_t dev_id, a_uint32_t reg_addr,
     SW_RTN_ON_ERROR(rv);
     reg_val |= (((a_uint32_t)tmp_val) << 16);
 #else
-    reg_val = qca_ar8216_mii_read(reg_addr);
+    reg_val = sd_reg_mii_get(dev_id, reg_addr);
 #endif
     aos_mem_copy(value, &reg_val, sizeof (a_uint32_t));
 
@@ -155,7 +152,7 @@ _isisc_mdio_reg_set(a_uint32_t dev_id, a_uint32_t reg_addr, a_uint8_t value[],
     rv = sd_reg_mdio_set(dev_id, phy_addr, phy_reg, phy_val);
     SW_RTN_ON_ERROR(rv);
 #else
-    qca_ar8216_mii_write(reg_addr, reg_val);
+    sd_reg_mii_set(dev_id, reg_addr, reg_val);
 #endif
     return SW_OK;
 }

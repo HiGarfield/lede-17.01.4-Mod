@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2014, The Linux Foundation. All rights reserved.
+ * Copyright (c) 2014,2018, The Linux Foundation. All rights reserved.
  * Permission to use, copy, modify, and/or distribute this software for
  * any purpose with or without fee is hereby granted, provided that the
  * above copyright notice and this permission notice appear in all copies.
@@ -16,9 +16,9 @@
 #define _AOS_TYPES_H
 
 #ifdef KERNEL_MODULE
-#include "sal/os/linux/aos_types_pvt.h"
+#include "aos_types_pvt.h"
 #else
-#include "sal/os/linux_user/aos_types_pvt.h"
+#include "aos_types_pvt.h"
 #endif
 
 #ifndef NULL
@@ -48,6 +48,7 @@ typedef __a_uint32_t   a_uint32_t;
 typedef __a_int32_t    a_int32_t;
 typedef __a_uint64_t   a_uint64_t;
 typedef __a_int64_t    a_int64_t;
+typedef unsigned long  a_ulong_t;
 
 
 typedef void *                   acore_t;

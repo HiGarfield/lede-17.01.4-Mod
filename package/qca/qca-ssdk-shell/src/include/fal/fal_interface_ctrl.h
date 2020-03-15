@@ -114,12 +114,14 @@ extern "c" {
 
     typedef enum
     {
-        Fx100BASE_MODE = 2,
+	Fx100BASE_MODE = 2,
+	Fx100BASE_BUTT = 0xffff,
     } fx100_ctrl_link_mode_t;
 
     typedef enum
     {
-        FX100_SERDS_MODE = 1,
+	FX100_SERDS_MODE = 1,
+	Fx100_SERDS_BUTT = 0xffff,
     } sgmii_fiber_mode_t;
 
 #define    FX100_HALF_DUPLEX  0
