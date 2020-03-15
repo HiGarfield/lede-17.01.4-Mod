@@ -15,6 +15,10 @@ fi
 
 /etc/init.d/sysctl restart
 
+[ ! -f '/etc/crontabs/root' ] && echo "" > '/etc/crontabs/root'
+/etc/init.d/cron enable
+/etc/init.d/cron restart
+
 rm -f /usr/lib/lua/luci/view/admin_status/index/mwan.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/upnp.htm
 rm -f /usr/lib/lua/luci/view/admin_status/index/ddns.htm
@@ -31,10 +35,13 @@ sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
 
+
 uci -q batch <<-EOF >/dev/null
 	set luci.main.mediaurlbase=/luci-static/material
 	commit luci
 EOF
+
+
 
 
 sed -i '/log-facility/d' /etc/dnsmasq.conf

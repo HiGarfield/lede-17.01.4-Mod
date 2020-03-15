@@ -1,7 +1,7 @@
 #/bin/bash
 
 {
-	echo "Input commit message" &&
+	echo "Input commit message:" &&
 	read commit_msg &&
 	./clean_all.sh &&
 	./generate_workflow_yml.sh &&

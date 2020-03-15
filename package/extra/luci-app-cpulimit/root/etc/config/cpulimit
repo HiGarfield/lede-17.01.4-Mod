@@ -1,9 +1,0 @@
-config list
-	option enabled '0'
-	option exename 'aria2c'
-	option limit '40'
-
-config list
-	option enabled '0'
-	option exename 'transmission-daemon'
-	option limit '40'

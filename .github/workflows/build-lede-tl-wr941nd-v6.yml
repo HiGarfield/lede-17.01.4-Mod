@@ -1,8 +1,6 @@
 name: Build LEDE tl-wr941nd-v6
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

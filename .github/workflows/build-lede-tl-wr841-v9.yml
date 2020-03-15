@@ -1,8 +1,6 @@
 name: Build LEDE tl-wr841-v9
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

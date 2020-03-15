@@ -1,8 +1,6 @@
 name: Build LEDE tl-wr1041n-v2
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

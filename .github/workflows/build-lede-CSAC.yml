@@ -1,8 +1,6 @@
 name: Build LEDE CSAC
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master

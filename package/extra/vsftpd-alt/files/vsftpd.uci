@@ -7,7 +7,7 @@ config listen 'listen'
 	option port '21'
 	option dataport '20'
 	option pasv_min_port '50000'
-	option pasv_max_port '51000'
+	option pasv_max_port '50100'
 
 config local 'local'
 	option enabled '0'

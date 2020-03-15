@@ -8,17 +8,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wget
-PKG_VERSION:=1.18
-PKG_RELEASE:=2
+PKG_VERSION:=1.20.3
+PKG_RELEASE:=3
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
-PKG_MD5SUM:=af9ca95a4bb8ac4a9bf10aeae66fa5ec
-PKG_MAINTAINER:=Maxim Storchak <m.storchak@gmail.com>
-PKG_LICENSE:=GPL-3.0+
+PKG_HASH:=31cccfc6630528db1c8e3a06f6decf2a370060b982841cfab2b8677400a5092e
+PKG_MAINTAINER:=Peter Wagner <tripolar@gmx.at>
+PKG_LICENSE:=GPL-3.0-or-later
 PKG_LICENSE_FILES:=COPYING
-
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -28,7 +26,7 @@ define Package/wget/Default
   DEPENDS:=+libpcre +zlib
   SUBMENU:=File Transfer
   TITLE:=Non-interactive network downloader
-  URL:=http://www.gnu.org/software/wget/index.html
+  URL:=https://www.gnu.org/software/wget/index.html
 endef
 
 define Package/wget/Default/description
@@ -63,18 +61,29 @@ $(call Package/wget/Default/description)
  This package is built without SSL support.
 endef
 
+TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
+
 CONFIGURE_ARGS+= \
 	--disable-rpath \
 	--disable-iri \
-	--without-libuuid
+	--disable-pcre2 \
+	--with-included-libunistring \
+	--without-libuuid \
+	--without-libpsl
 
 CONFIGURE_VARS += \
-	ac_cv_header_uuid_uuid_h=no
+	ac_cv_header_uuid_uuid_h=no \
+	CFLAGS="$(TARGET_CFLAGS) $(EXTRA_CFLAGS)" \
+	LDFLAGS="$(TARGET_LDFLAGS) $(EXTRA_LDFLAGS)"
 
 ifeq ($(BUILD_VARIANT),ssl)
 	CONFIGURE_ARGS+= \
 		--with-ssl=openssl \
 		--with-libssl-prefix="$(STAGING_DIR)/usr"
+
+	CONFIGURE_VARS += \
+		ac_cv_libssl=yes
 endif
 
 ifeq ($(BUILD_VARIANT),nossl)

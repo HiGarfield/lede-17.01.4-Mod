@@ -1,8 +1,6 @@
 name: Build LEDE template_device_please_replace
 
 on:
-  release:
-    types: [published]
   push:
     branches: 
       - master
