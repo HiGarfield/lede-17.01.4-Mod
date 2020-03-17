@@ -95,7 +95,7 @@ transmission() {
 	
 
 	local MEM=$(sed -ne 's!^MemTotal:[[:space:]]*\([0-9]*\) kB$!\1!p' /proc/meminfo)
-	if [ "$MEM" -gt 1 ]; then
+	if [ "$MEM" -gt 0 ] 2>/dev/null; then
 		USE=$(expr $MEM \* $mem_percentage \* 10)
 	fi
 
@@ -147,7 +147,7 @@ transmission() {
 	procd_set_param nice $nice
 	procd_set_param respawn
 
-	if [ $USE -gt 0 ]; then
+	if [ $USE -gt 0 ] 2>/dev/null; then
 		procd_set_param limits core="0 0" as="$USE $USE"
 		logger -t transmission "Starting with $USE virt mem"		
 	else
