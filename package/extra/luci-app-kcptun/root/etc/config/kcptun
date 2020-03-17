@@ -4,6 +4,7 @@ config general 'general'
 	option client_file '/usr/bin/kcptun-client'
 	option daemon_user 'root'
 	option enable_logging '0'
+	option mem_percentage '35'
 
 config servers 'default'
 	option server_addr ''
