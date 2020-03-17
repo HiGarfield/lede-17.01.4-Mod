@@ -27,8 +27,8 @@ wpad dnsmasq-full luci-app-smartdns \
 iptables-mod-fullconenat \
 luci-app-autoreboot luci-app-adbyby-plus kmod-macvlan \
 luci-app-syncdial luci-app-mwan3 luci-app-arpbind \
-luci-app-openvpn-server \
-luci-app-pptp-server luci-app-accesscontrol \
+luci-app-openvpn-server luci-app-pptp-server \
+luci-app-accesscontrol luci-app-cpulimit \
 luci-app-wifischedule luci-app-uhttpd xl2tpd
 
 ifneq ($(_CONF_ROUTER_WITHOUT_USB_PORT_),1)
