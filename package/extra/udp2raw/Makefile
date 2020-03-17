@@ -39,23 +39,46 @@ define Package/udp2raw-tunnel/description
 	udp2raw-tunnel is a tunnel which turns UDP Traffic into Encrypted FakeTCP/UDP/ICMP Traffic by using Raw Socket.
 endef
 
-TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_CXXFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
+ifeq ($(ARCH),x86_64)
+	PKG_ARCH_UDP2RAW:=amd64
+endif
+ifeq ($(ARCH),mipsel)
+	PKG_ARCH_UDP2RAW:=mipsle
+endif
+ifeq ($(ARCH),mips)
+	PKG_ARCH_UDP2RAW:=mipsbe
+endif
+ifeq ($(ARCH),i386)
+	PKG_ARCH_UDP2RAW:=x86
+endif
+ifeq ($(ARCH),arm)
+	PKG_ARCH_UDP2RAW:=arm
+endif
+ifeq ($(BOARD),bcm53xx)
+	PKG_ARCH_UDP2RAW:=arm
+endif
+ifeq ($(BOARD),kirkwood)
+	PKG_ARCH_UDP2RAW:=arm
+endif
+ifeq ($(ARCH),aarch64)
+	PKG_ARCH_UDP2RAW:=arm64
+endif
 
-MAKE_FLAGS += cross
+ifndef PKG_ARCH_UDP2RAW
+	PKG_ARCH_UDP2RAW:=cross
+endif
+
+MAKE_FLAGS += $(PKG_ARCH_UDP2RAW)
 
 define Build/Configure
 	$(call Build/Configure/Default)
-	$(SED) 's/cc_cross[[:space:]]*=.*/cc_cross=$(TARGET_CXX)/' \
-		-e 's/\\".*shell git rev-parse HEAD.*\\"/\\"$(PKG_SOURCE_VERSION)\\"/' \
-		-e 's/-O3/-Os -flto/' \
-		$(PKG_BUILD_DIR)/makefile
+	rm -f $(PKG_BUILD_DIR)/makefile
+	$(CP) udp2raw_makefile $(PKG_BUILD_DIR)/makefile
 endef
 
 define Package/udp2raw-tunnel/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/udp2raw_cross $(1)/usr/bin/udp2raw
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/udp2raw $(1)/usr/bin/udp2raw
 endef
 
 $(eval $(call BuildPackage,udp2raw-tunnel))
