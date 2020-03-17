@@ -148,10 +148,10 @@ transmission() {
 	procd_set_param respawn
 
 	if [ $USE -gt 0 ]; then
-		procd_set_param limits core="0 0"
-	else
 		procd_set_param limits core="0 0" as="$USE $USE"
-		logger -t transmission "Starting with $USE virt mem"
+		logger -t transmission "Starting with $USE virt mem"		
+	else
+		procd_set_param limits core="0 0"
 	fi
 
 	procd_add_jail transmission log

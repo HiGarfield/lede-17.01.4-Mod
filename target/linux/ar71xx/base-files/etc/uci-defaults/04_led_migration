@@ -46,6 +46,9 @@ migrate_leds()
 board=$(ar71xx_board_name)
 
 case "$board" in
+archer-c7)
+	migrate_leds ":blue:=:green:"
+	;;
 dhp-1565-a1|\
 dir-825-c1|\
 dir-835-a1)

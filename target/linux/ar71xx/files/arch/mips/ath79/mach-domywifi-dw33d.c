@@ -140,13 +140,12 @@ static void __init dw33d_setup(void)
 	ath79_register_m25p80(NULL);
 
 	ath79_register_leds_gpio(-1, ARRAY_SIZE(dw33d_leds_gpio),
-		dw33d_leds_gpio);
+				 dw33d_leds_gpio);
 	ath79_register_gpio_keys_polled(-1, DW33D_KEYS_POLL_INTERVAL,
-		ARRAY_SIZE(dw33d_gpio_keys),
-		dw33d_gpio_keys);
+					ARRAY_SIZE(dw33d_gpio_keys),
+					dw33d_gpio_keys);
 
 	ath79_register_usb();
-
 	ath79_register_pci();
 
 	ath79_register_wmac(art + DW33D_WMAC_CALDATA_OFFSET, art + DW33D_WMAC_OFFSET);
@@ -159,13 +158,13 @@ static void __init dw33d_setup(void)
 	ath79_init_mac(ath79_eth1_data.mac_addr, art + DW33D_MAC1_OFFSET, 0);
 
 	mdiobus_register_board_info(dw33d_mdio0_info,
-		ARRAY_SIZE(dw33d_mdio0_info));
+				    ARRAY_SIZE(dw33d_mdio0_info));
 
 	/* GMAC0 is connected to the RMGII interface */
 	ath79_eth0_data.phy_if_mode = PHY_INTERFACE_MODE_RGMII;
 	ath79_eth0_data.phy_mask = BIT(0);
 	ath79_eth0_data.mii_bus_dev = &ath79_mdio0_device.dev;
-	ath79_eth0_pll_data.pll_1000 = 0x56000000;
+        ath79_eth0_pll_data.pll_1000 = 0x56000000;
 
 	ath79_register_eth(0);
 
@@ -173,13 +172,11 @@ static void __init dw33d_setup(void)
 	ath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_SGMII;
 	ath79_eth1_data.speed = SPEED_1000;
 	ath79_eth1_data.duplex = DUPLEX_FULL;
-	ath79_eth1_data.enable_sgmii_fixup = 1;
-	ath79_eth1_pll_data.pll_1000 = 0x03000101;
-
+        ath79_eth1_pll_data.pll_1000 = 0x03000101;
 
 	ath79_register_eth(1);
 }
 
 MIPS_MACHINE(ATH79_MACH_DOMYWIFI_DW33D, "DW33D",
-	"DomyWifi DW33D",
-	dw33d_setup);
+	     "DomyWifi DW33D",
+	     dw33d_setup);
