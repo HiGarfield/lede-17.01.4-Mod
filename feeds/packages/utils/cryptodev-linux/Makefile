@@ -10,18 +10,14 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=cryptodev-linux
-PKG_VERSION:=1.10
-PKG_RELEASE:=1
+PKG_VERSION:=1.8
+PKG_RELEASE:=2
 
-PKG_SOURCE_URL:=https://codeload.github.com/$(PKG_NAME)/$(PKG_NAME)/tar.gz/$(PKG_NAME)-$(PKG_VERSION)?
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_HASH:=833ab7c5c88d2b700a7c702a151254c089a3058886a63cc7d12630e364b8ea83
-PKG_LICENSE:=GPL-2.0
-PKG_LICENSE_FILES:=COPYING
+PKG_SOURCE_URL:=http://download.gna.org/cryptodev-linux/
+PKG_MD5SUM:=02644cc4cd02301e0b503a332eb2f0b5
 
-PKG_MAINTAINER:=Ansuel Smith <ansuelsmth@gmail.com>
-
-PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)-$(PKG_NAME)-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -39,7 +35,6 @@ define KernelPackage/cryptodev
   FILES:= \
 		$(PKG_BUILD_DIR)/cryptodev.$(LINUX_KMOD_SUFFIX)
   AUTOLOAD:=$(call AutoLoad,50,$(CRYPTODEV_AUTOLOAD))
-  MODPARAMS.cryptodev:= cryptodev_verbosity=-1
 endef
 
 define KernelPackage/cryptodev/description
@@ -68,6 +63,13 @@ endef
 define Build/InstallDev
 	$(INSTALL_DIR) $(STAGING_DIR)/usr/include/crypto
 	$(CP) $(PKG_BUILD_DIR)/crypto/cryptodev.h $(STAGING_DIR)/usr/include/crypto/
+endef
+
+define KernelPackage/cryptodev/install
+	$(INSTALL_DIR) $(1)/etc/modules.d
+	$(INSTALL_DATA) ./files/cryptodev.modules $(1)/etc/modules.d/80-cryptodev
+	$(INSTALL_DIR) $(1)/lib/modules/$(LINUX_VERSION)
+	$(INSTALL_DIR) $(1)/usr/sbin
 endef
 
 $(eval $(call KernelPackage,cryptodev))
