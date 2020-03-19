@@ -24,7 +24,7 @@ luci-app-upnp luci-app-wizard \
 luci-app-ssr-pro luci-app-kcptun luci-app-udp2raw \
 luci-app-sfe luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
 wpad dnsmasq-full luci-app-smartdns \
-iptables-mod-fullconenat \
+iptables-mod-fullconenat luci-app-nlbwmon \
 luci-app-autoreboot luci-app-adbyby-plus kmod-macvlan \
 luci-app-syncdial luci-app-mwan3 luci-app-arpbind \
 luci-app-openvpn-server luci-app-pptp-server \
