@@ -1,16 +1,8 @@
 diff --git a/luci/sqm-cbi.lua b/luci/sqm-cbi.lua
-index 56db8fd..b5df113 100644
+index 56db8fd..6307651 100644
 --- a/luci/sqm-cbi.lua
 +++ b/luci/sqm-cbi.lua
-@@ -57,11 +57,21 @@ function e.write(self, section, value)
- end
- -- TODO: inform the user what we just did...
- 
-+
-+-- Add to physical interface list a hint of the correpsonding network names,
-+-- used to help users better select e.g. lan or wan interface.
-+
- n = s:taboption("tab_basic", ListValue, "interface", translate("Interface name"))
+@@ -61,7 +61,13 @@ n = s:taboption("tab_basic", ListValue, "interface", translate("Interface name")
  -- sm lifted from luci-app-wol, the original implementation failed to show pppoe-ge00 type interface names
  for _, iface in ipairs(ifaces) do
  	if not (iface == "lo" or iface:match("^ifb.*")) then
@@ -25,7 +17,7 @@ index 56db8fd..b5df113 100644
  	end
  end
  n.rmempty = false
-@@ -75,7 +85,7 @@ ul = s:taboption("tab_basic", Value, "upload", translate("Upload speed (kbit/s)
+@@ -75,7 +81,7 @@ ul = s:taboption("tab_basic", Value, "upload", translate("Upload speed (kbit/s)
  ul.datatype = "and(uinteger,min(0))"
  ul.rmempty = false
  
