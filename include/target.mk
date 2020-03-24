@@ -26,7 +26,7 @@ luci-app-sfe luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
 wpad dnsmasq-full luci-app-smartdns \
 iptables-mod-fullconenat \
 luci-app-autoreboot luci-app-adbyby-plus \
-luci-app-arpbind \
+luci-app-arpbind luci-app-eqos \
 luci-app-openvpn-server luci-app-pptp-server \
 luci-app-accesscontrol luci-app-cpulimit \
 luci-app-wifischedule luci-app-uhttpd xl2tpd
