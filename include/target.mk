@@ -19,14 +19,14 @@ logd ca-bundle lede-info \
 iptables-mod-nat-extra kmod-nf-nathelper \
 kmod-nf-nathelper-extra \
 default-settings ipset-lists luci \
-luci-app-ddns ddns-scripts_aliyun luci-app-sqm \
+luci-app-ddns ddns-scripts_aliyun \
 luci-app-upnp luci-app-wizard \
 luci-app-ssr-pro luci-app-kcptun luci-app-udp2raw \
 luci-app-sfe luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
 wpad dnsmasq-full luci-app-smartdns \
-iptables-mod-fullconenat luci-app-nlbwmon \
-luci-app-autoreboot luci-app-adbyby-plus kmod-macvlan \
-luci-app-syncdial luci-app-mwan3 luci-app-arpbind \
+iptables-mod-fullconenat \
+luci-app-autoreboot luci-app-adbyby-plus \
+luci-app-arpbind \
 luci-app-openvpn-server luci-app-pptp-server \
 luci-app-accesscontrol luci-app-cpulimit \
 luci-app-wifischedule luci-app-uhttpd xl2tpd
