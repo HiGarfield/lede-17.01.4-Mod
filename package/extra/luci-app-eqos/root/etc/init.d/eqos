@@ -10,7 +10,7 @@ parse_device() {
 	config_get download "$cfg" download
 	config_get upload "$cfg" upload
 	
-	eqos add $ip $download $upload
+	/usr/sbin/eqos add $ip $download $upload
 }
 
 eqos_start() {
@@ -22,18 +22,18 @@ eqos_start() {
 	config_get download "$cfg" download
 	config_get upload "$cfg" upload
 	
-	eqos start $download $upload
+	/usr/sbin/eqos start $download $upload
 	
 	config_foreach parse_device device
 }
 
 start() {
-	eqos stop
+	/usr/sbin/eqos stop
 	
 	config_load eqos
 	config_foreach eqos_start eqos
 }
 
 stop() {
-	eqos stop
+	/usr/sbin/eqos stop
 }
