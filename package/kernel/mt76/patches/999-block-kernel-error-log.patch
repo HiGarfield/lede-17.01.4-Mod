@@ -1,0 +1,11 @@
+--- a/mt7603/mac.c
++++ b/mt7603/mac.c
+@@ -1,8 +1,6 @@
+ 			FIELD_PREP(MT_DMA_FQCR0_DEST_PORT_ID, port) |
+ 			FIELD_PREP(MT_DMA_FQCR0_DEST_QUEUE_ID, queue));
+ 
+-		WARN_ON_ONCE(!mt76_poll(dev, MT_DMA_FQCR0, MT_DMA_FQCR0_BUSY,
+-					0, 5000));
+ 	}
+ 
+ 	mt76_wr(dev, MT_TX_ABORT, 0);

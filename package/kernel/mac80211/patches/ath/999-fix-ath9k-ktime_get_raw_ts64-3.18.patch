@@ -1,0 +1,88 @@
+--- a/drivers/net/wireless/ath/ath9k/ath9k.h	2019-10-08 20:53:45.632600000 +0800
++++ b/drivers/net/wireless/ath/ath9k/ath9k.h	2019-10-08 21:21:53.207385108 +0800
+@@ -344,7 +344,7 @@
+ 
+ 	struct ath_beacon_config beacon;
+ 	struct ath9k_hw_cal_data caldata;
+-	struct timespec64 tsf_ts;
++	struct timespec tsf_ts;
+ 	u64 tsf_val;
+ 	u32 last_beacon;
+ 
+@@ -1044,7 +1044,7 @@
+ 	struct ath_offchannel offchannel;
+ 	struct ath_chanctx *next_chan;
+ 	struct completion go_beacon;
+-	struct timespec64 last_event_time;
++	struct timespec last_event_time;
+ #endif
+ 
+ 	unsigned long driver_data;
+--- a/drivers/net/wireless/ath/ath9k/hw.h	2019-10-08 11:57:43.094676000 +0800
++++ b/drivers/net/wireless/ath/ath9k/hw.h	2019-10-08 21:06:19.899118382 +0800
+@@ -1071,7 +1071,7 @@
+ u64 ath9k_hw_gettsf64(struct ath_hw *ah);
+ void ath9k_hw_settsf64(struct ath_hw *ah, u64 tsf64);
+ void ath9k_hw_reset_tsf(struct ath_hw *ah);
+-u32 ath9k_hw_get_tsf_offset(struct timespec64 *last, struct timespec64 *cur);
++u32 ath9k_hw_get_tsf_offset(struct timespec *last, struct timespec *cur);
+ void ath9k_hw_set_tsfadjust(struct ath_hw *ah, bool set);
+ void ath9k_hw_init_global_settings(struct ath_hw *ah);
+ u32 ar9003_get_pll_sqsum_dvc(struct ath_hw *ah);
+--- a/drivers/net/wireless/ath/ath9k/hw.c	2019-10-08 06:27:22.479855000 +0800
++++ b/drivers/net/wireless/ath/ath9k/hw.c	2019-10-08 06:31:26.372789242 +0800
+@@ -1891,13 +1891,13 @@
+ 	return -EINVAL;
+ }
+ 
+-u32 ath9k_hw_get_tsf_offset(struct timespec64 *last, struct timespec64 *cur)
++u32 ath9k_hw_get_tsf_offset(struct timespec *last, struct timespec *cur)
+ {
+-	struct timespec64 ts;
++	struct timespec ts;
+ 	s64 usec;
+ 
+ 	if (!cur) {
+-		ktime_get_raw_ts64(&ts);
++		getrawmonotonic(&ts);
+ 		cur = &ts;
+ 	}
+ 
+@@ -1929,7 +1929,7 @@
+ 	u32 saveLedState;
+ 	u32 saveDefAntenna;
+ 	u32 macStaId1;
+-	struct timespec64 tsf_ts;
++	struct timespec tsf_ts;
+ 	u32 tsf_offset;
+ 	u64 tsf = 0;
+ 	int r;
+@@ -1975,7 +1975,7 @@
+ 	macStaId1 = REG_READ(ah, AR_STA_ID1) & AR_STA_ID1_BASE_RATE_11B;
+ 
+ 	/* Save TSF before chip reset, a cold reset clears it */
+-	ktime_get_raw_ts64(&tsf_ts);
++	getrawmonotonic(&tsf_ts);
+ 	tsf = ath9k_hw_gettsf64(ah);
+ 
+ 	saveLedState = REG_READ(ah, AR_CFG_LED) &
+--- a/drivers/net/wireless/ath/ath9k/main.c	2019-10-07 22:22:06.535320000 +0800
++++ b/drivers/net/wireless/ath/ath9k/main.c	2018-09-26 04:12:56.000000000 +0800
+@@ -1879,7 +1879,7 @@
+ 	mutex_lock(&sc->mutex);
+ 	ath9k_ps_wakeup(sc);
+ 	tsf -= le64_to_cpu(avp->tsf_adjust);
+-	ktime_get_raw_ts64(&avp->chanctx->tsf_ts);
++	getrawmonotonic(&avp->chanctx->tsf_ts);
+ 	if (sc->cur_chan == avp->chanctx)
+ 		ath9k_hw_settsf64(sc->sc_ah, tsf);
+ 	avp->chanctx->tsf_val = tsf;
+@@ -1895,7 +1895,7 @@
+ 	mutex_lock(&sc->mutex);
+ 
+ 	ath9k_ps_wakeup(sc);
+-	ktime_get_raw_ts64(&avp->chanctx->tsf_ts);
++	getrawmonotonic(&avp->chanctx->tsf_ts);
+ 	if (sc->cur_chan == avp->chanctx)
+ 		ath9k_hw_reset_tsf(sc->sc_ah);
+ 	avp->chanctx->tsf_val = 0;

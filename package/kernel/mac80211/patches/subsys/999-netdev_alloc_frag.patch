@@ -1,0 +1,11 @@
+--- a/backport-include/linux/netdevice.h
++++ b/backport-include/linux/netdevice.h
+@@ -234,7 +234,7 @@ static inline void backport_unregister_netdevice_many(struct list_head *head)
+ #endif
+ 
+ #if LINUX_VERSION_IS_LESS(3,19,0)
+-#define napi_alloc_frag(fragsz) netdev_alloc_frag(fragsz)
++#define napi_alloc_frag netdev_alloc_frag
+ #endif
+ 
+ #if LINUX_VERSION_IS_LESS(3,19,0)

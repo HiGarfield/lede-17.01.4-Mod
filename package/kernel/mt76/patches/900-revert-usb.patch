@@ -1,0 +1,39 @@
+--- a/usb.c
++++ b/usb.c
+@@ -381,7 +381,7 @@
+ 		void *data;
+ 		int offset;
+ 
+-		data = page_frag_alloc(&q->rx_page, q->buf_size, gfp);
++		data = netdev_alloc_frag(q->buf_size);
+ 		if (!data)
+ 			break;
+ 
+@@ -415,7 +415,7 @@
+ 		return mt76u_fill_rx_sg(dev, q, urb, nsgs, gfp);
+ 
+ 	urb->transfer_buffer_length = q->buf_size;
+-	urb->transfer_buffer = page_frag_alloc(&q->rx_page, q->buf_size, gfp);
++	urb->transfer_buffer = netdev_alloc_frag(q->buf_size);
+ 
+ 	return urb->transfer_buffer ? 0 : -ENOMEM;
+ }
+@@ -733,18 +733,10 @@
+ static void
+ mt76u_free_rx_queue(struct mt76_dev *dev, struct mt76_queue *q)
+ {
+-	struct page *page;
+ 	int i;
+ 
+ 	for (i = 0; i < q->ndesc; i++)
+ 		mt76u_urb_free(q->entry[i].urb);
+-
+-	if (!q->rx_page.va)
+-		return;
+-
+-	page = virt_to_page(q->rx_page.va);
+-	__page_frag_cache_drain(page, q->rx_page.pagecnt_bias);
+-	memset(&q->rx_page, 0, sizeof(q->rx_page));
+ }
+ 
+ static void mt76u_free_rx(struct mt76_dev *dev)
