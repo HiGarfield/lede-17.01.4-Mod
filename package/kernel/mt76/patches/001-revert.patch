@@ -1,0 +1,125 @@
+--- a/dma.c
++++ b/dma.c
+@@ -358,7 +358,7 @@
+ }
+ 
+ static int
+-mt76_dma_rx_fill(struct mt76_dev *dev, struct mt76_queue *q)
++mt76_dma_rx_fill(struct mt76_dev *dev, struct mt76_queue *q, bool napi)
+ {
+ 	dma_addr_t addr;
+ 	void *buf;
+@@ -365,13 +365,19 @@
+ 	int frames = 0;
+ 	int len = SKB_WITH_OVERHEAD(q->buf_size);
+ 	int offset = q->buf_offset;
++	void *(*alloc)(unsigned int fragsz);
++	
++	if (napi)
++		alloc = napi_alloc_frag;
++	else
++		alloc = netdev_alloc_frag;
+ 
+ 	spin_lock_bh(&q->lock);
+ 
+ 	while (q->queued < q->ndesc - 1) {
+ 		struct mt76_queue_buf qbuf;
+ 
+-		buf = page_frag_alloc(&q->rx_page, q->buf_size, GFP_ATOMIC);
++		buf = alloc(q->buf_size);
+ 		if (!buf)
+ 			break;
+ 
+@@ -397,7 +403,6 @@
+ static void
+ mt76_dma_rx_cleanup(struct mt76_dev *dev, struct mt76_queue *q)
+ {
+-	struct page *page;
+ 	void *buf;
+ 	bool more;
+ 
+@@ -410,13 +415,6 @@
+ 		skb_free_frag(buf);
+ 	} while (1);
+ 	spin_unlock_bh(&q->lock);
+-
+-	if (!q->rx_page.va)
+-		return;
+-
+-	page = virt_to_page(q->rx_page.va);
+-	__page_frag_cache_drain(page, q->rx_page.pagecnt_bias);
+-	memset(&q->rx_page, 0, sizeof(q->rx_page));
+ }
+ 
+ static void
+@@ -426,7 +426,7 @@
+ 
+ 	mt76_dma_rx_cleanup(dev, q);
+ 	mt76_dma_sync_idx(dev, q);
+-	mt76_dma_rx_fill(dev, q);
++	mt76_dma_rx_fill(dev, q, false);
+ 
+ 	if (!q->rx_head)
+ 		return;
+@@ -514,7 +512,7 @@
+ 		dev->drv->rx_skb(dev, q - dev->q_rx, skb);
+ 	}
+ 
+-	mt76_dma_rx_fill(dev, q);
++	mt76_dma_rx_fill(dev, q, true);
+ 	return done;
+ }
+ 
+@@ -548,8 +546,10 @@
+ 
+ 	rcu_read_unlock_bh();
+ 
+-	if (done < budget && napi_complete(napi))
++	if (done < budget) {
++		napi_complete(napi);
+ 		dev->drv->rx_poll_complete(dev, qid);
++	}
+ 
+ 	return done;
+ }
+@@ -555,6 +555,6 @@
+ 	for (i = 0; i < ARRAY_SIZE(dev->q_rx); i++) {
+ 		netif_napi_add(&dev->napi_dev, &dev->napi[i], mt76_dma_rx_poll,
+ 			       64);
+-		mt76_dma_rx_fill(dev, &dev->q_rx[i]);
++		mt76_dma_rx_fill(dev, &dev->q_rx[i], false);
+ 		napi_enable(&dev->napi[i]);
+ 	}
+--- a/mt76.h
++++ b/mt76.h
+@@ -99,6 +99,5 @@ struct mt76_queue {
+ 
+ 	dma_addr_t desc_dma;
+ 	struct sk_buff *rx_head;
+-	struct page_frag_cache rx_page;
+ };
+ 
+ struct mt76_sw_queue {
+--- a/agg-rx.c
++++ b/agg-rx.c
+@@ -279,13 +279,17 @@
+ 
+ void mt76_rx_aggr_stop(struct mt76_dev *dev, struct mt76_wcid *wcid, u8 tidno)
+ {
+-	struct mt76_rx_tid *tid = NULL;
++	struct mt76_rx_tid *tid;
+ 
+-	rcu_swap_protected(wcid->aggr[tidno], tid,
+-			   lockdep_is_held(&dev->mutex));
++	rcu_read_lock();
++
++	tid = rcu_dereference(wcid->aggr[tidno]);
+ 	if (tid) {
++		rcu_assign_pointer(wcid->aggr[tidno], NULL);
+ 		mt76_rx_aggr_shutdown(dev, tid);
+ 		kfree_rcu(tid, rcu_head);
+ 	}
++
++	rcu_read_unlock();
+ }
+ EXPORT_SYMBOL_GPL(mt76_rx_aggr_stop);

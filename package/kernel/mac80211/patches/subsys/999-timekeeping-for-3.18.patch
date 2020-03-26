@@ -1,0 +1,55 @@
+--- a/backport-include/linux/timekeeping.h	2019-08-15 05:37:48.000000000 +0800
++++ a/backport-include/linux/timekeeping.h	2019-10-06 01:01:00.492624586 +0800
+@@ -24,10 +24,6 @@
+ }
+ #endif /* < 3.17 */
+ 
+-#if LINUX_VERSION_IS_LESS(4,18,0)
+-extern time64_t ktime_get_boottime_seconds(void);
+-#endif /* < 4.18 */
+-
+ #if LINUX_VERSION_IS_LESS(3,19,0)
+ static inline time64_t ktime_get_seconds(void)
+ {
+@@ -48,41 +44,4 @@
+ }
+ #endif
+ 
+-#if LINUX_VERSION_IS_LESS(3,17,0)
+-/* This was introduced in 4.15, but we only need it in the
+- * ktime_get_raw_ts64 backport() for < 3.17.
+- */
+-#if __BITS_PER_LONG == 64
+-static inline struct timespec64 timespec_to_timespec64(const struct timespec ts)
+-{
+-	return *(const struct timespec64 *)&ts;
+-}
+-
+-#else
+-static inline struct timespec64 timespec_to_timespec64(const struct timespec ts)
+-{
+-	struct timespec64 ret;
+-
+-	ret.tv_sec = ts.tv_sec;
+-	ret.tv_nsec = ts.tv_nsec;
+-	return ret;
+-}
+-#endif
+-#endif /* < 3.17 */
+-
+-#if LINUX_VERSION_IS_LESS(4,18,0)
+-#define ktime_get_raw_ts64 LINUX_BACKPORT(ktime_get_raw_ts64)
+-static inline void ktime_get_raw_ts64(struct timespec64 *ts)
+-{
+-#if LINUX_VERSION_IS_LESS(3,19,0)
+-	struct timespec64 ts64;
+-
+-	getrawmonotonic(&ts64);
+-	*ts = timespec_to_timespec64(ts64);
+-#else
+-	return getrawmonotonic64(ts);
+-#endif /* < 3.19 */
+-}
+-#endif
+-
+ #endif /* __BACKPORT_TIMEKEEPING_H */

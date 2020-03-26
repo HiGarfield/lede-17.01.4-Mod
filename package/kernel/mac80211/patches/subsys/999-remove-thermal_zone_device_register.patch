@@ -1,0 +1,13 @@
+diff --git a/backport-include/linux/thermal.h b/backport-include/linux/thermal.h
+index 108a8cf..0b904e1 100644
+--- a/backport-include/linux/thermal.h
++++ b/backport-include/linux/thermal.h
+@@ -39,7 +39,7 @@ static inline void thermal_notify_framework(struct thermal_zone_device *tz,
+ #define thermal_notify_framework notify_thermal_framework
+ #endif /* LINUX_VERSION_IS_LESS(3,10,0) */
+ 
+-#if LINUX_VERSION_IS_LESS(4,3,0)
++#if LINUX_VERSION_IS_LESS(3,10,0)
+ 
+ typedef struct thermal_zone_device_ops old_thermal_zone_device_ops_t;
+ 
