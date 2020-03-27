@@ -104,6 +104,8 @@ platform_check_image() {
 	newifi-d2|\
 	ghl-r-001|\
 	wr1200js|\
+	wr1200js-ram256m|\
+	wr1200js-ram512m|\
 	nixcore|\
 	nw718|\
 	omega2|\
@@ -178,7 +180,6 @@ platform_check_image() {
 	x8|\
 	y1|\
 	y1s|\
-	wr1200js|\
 	zbt-ape522ii|\
 	zbt-cpe102|\
 	zbt-wa05|\

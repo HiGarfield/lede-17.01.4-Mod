@@ -6,7 +6,7 @@
 #include <dt-bindings/input/input.h>
 
 / {
-	compatible = "youhua,wr1200js", "mediatek,mt7621-soc";
+	compatible = "wr1200js", "mediatek,mt7621-soc";
 	model = "YouHua WR1200JS";
 
 	memory@0 {
