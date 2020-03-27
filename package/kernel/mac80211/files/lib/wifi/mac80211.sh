@@ -84,9 +84,8 @@ detect_mac80211() {
 		iw phy "$dev" info | grep -q 'Capabilities:' && htmode="HT40"
 		iw phy "$dev" info | grep -q '2412 MHz' || { mode_band="a"; channel="auto"; }
 
-
 		# LEDE 17.01中QCA9558使用HT40频宽会导致2.4GHz丢失
-		[ -n "$(cat /sys/class/ieee80211/${dev}/device/uevent 2>/dev/null | grep 'MODALIAS=platform:qca955x_wmac')" ] && htmode="HT20"
+		grep -q '^MODALIAS=platform:qca955x_wmac$' "/sys/class/ieee80211/${dev}/device/uevent" && htmode="HT20"
 
 		vht_cap=$(iw phy "$dev" info | grep -c 'VHT Capabilities')
 		cap_5ghz=$(iw phy "$dev" info | grep -c "Band 2")
