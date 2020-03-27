@@ -77,8 +77,7 @@ detect_mac80211() {
 		[ "$found" -gt 0 ] && continue
 
 		mode_band="g"
-		# LEDE 17.01中mt7603e驱动无法使用auto信道，故设置为11。其余设备正常设置为auto。
-		[ -n "$(cat /sys/class/ieee80211/${dev}/device/uevent 2>/dev/null | grep 'DRIVER=mt7603e')" ] && channel="11" || channel="auto"
+		channel="auto"
 		htmode=""
 		ht_capab=""
 
