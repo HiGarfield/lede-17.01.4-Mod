@@ -358,6 +358,12 @@ ramips_board_detect() {
 	*"Newifi-D2")
 		name="newifi-d2"
 		;;
+	*"WR1200JS-RAM256M")
+		name="wr1200js-ram256m"
+		;;
+	*"WR1200JS-RAM512M")
+		name="wr1200js-ram512m"
+		;;
 	*"WR1200JS")
 		name="wr1200js"
 		;;
