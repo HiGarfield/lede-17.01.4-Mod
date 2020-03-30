@@ -7,13 +7,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=hostapd
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_URL:=http://w1.fi/hostap.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2019-04-21
-PKG_SOURCE_VERSION:=63962824309bb428e5f73d9caae08fcb949fbe36
-PKG_MIRROR_HASH:=b31e09b22284785f84ee4d2dfc2b8fa94cad5d7375d957bf2862a50cb5bc1475
+PKG_SOURCE_DATE:=2019-08-08
+PKG_SOURCE_VERSION:=ca8c2bd28ad53f431d6ee60ef754e98cfdb4c17b
+PKG_MIRROR_HASH:=9d9f1c60afa5324ee17219bd3ec61c1a6fa4043b4187da9bb44e59025d3ed31d
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_LICENSE:=BSD-3-Clause
@@ -92,11 +92,11 @@ endif
 
 ifeq ($(LOCAL_VARIANT),full)
   ifeq ($(SSL_VARIANT),openssl)
-    DRIVER_MAKEOPTS += CONFIG_TLS=openssl CONFIG_SAE=y CONFIG_OWE=y CONFIG_SUITEB192=y
+    DRIVER_MAKEOPTS += CONFIG_TLS=openssl CONFIG_SAE=y CONFIG_OWE=y CONFIG_SUITEB192=y CONFIG_AP=y CONFIG_MESH=y
     TARGET_LDFLAGS += -lcrypto -lssl
   endif
   ifeq ($(SSL_VARIANT),wolfssl)
-    DRIVER_MAKEOPTS += CONFIG_TLS=wolfssl CONFIG_WPS_NFC=1 CONFIG_SAE=y CONFIG_OWE=y CONFIG_SUITEB192=y
+    DRIVER_MAKEOPTS += CONFIG_TLS=wolfssl CONFIG_WPS_NFC=1 CONFIG_SAE=y CONFIG_OWE=y CONFIG_SUITEB192=y CONFIG_AP=y CONFIG_MESH=y
     TARGET_LDFLAGS += -lwolfssl
   endif
 endif
@@ -131,7 +131,7 @@ define Package/hostapd/Default
   CATEGORY:=Network
   TITLE:=IEEE 802.1x Authenticator
   URL:=http://hostap.epitest.fi/
-  DEPENDS:=$(DRV_DEPENDS) +hostapd-common +libubus +libopenssl
+  DEPENDS:=$(DRV_DEPENDS) +hostapd-common +libubus
   PROVIDES:=hostapd
   CONFLICTS:=$(HOSTAPD_PROVIDERS)
   HOSTAPD_PROVIDERS+=$(1)
@@ -141,7 +141,6 @@ define Package/hostapd
 $(call Package/hostapd/Default,$(1))
   TITLE+= (full)
   VARIANT:=full-internal
-  DEPENDS+=+libopenssl
 endef
 
 define Package/hostapd/description
@@ -171,7 +170,6 @@ define Package/hostapd-basic
 $(call Package/hostapd/Default,$(1))
   TITLE+= (WPA-PSK, 11r and 11w)
   VARIANT:=basic
-  DEPENDS+=+libopenssl
 endef
 
 define Package/hostapd-basic/description
@@ -182,7 +180,6 @@ define Package/hostapd-mini
 $(call Package/hostapd/Default,$(1))
   TITLE+= (WPA-PSK only)
   VARIANT:=mini
-  DEPENDS+=+libopenssl
 endef
 
 define Package/hostapd-mini/description
@@ -235,7 +232,6 @@ define Package/wpad-basic
 $(call Package/wpad/Default,$(1))
   TITLE+= (WPA-PSK, 11r and 11w)
   VARIANT:=wpad-basic
-  DEPENDS+=+libopenssl
 endef
 
 define Package/wpad-basic/description
@@ -246,7 +242,6 @@ define Package/wpad-mini
 $(call Package/wpad/Default,$(1))
   TITLE+= (WPA-PSK only)
   VARIANT:=wpad-mini
-  DEPENDS+=+libopenssl
 endef
 
 define Package/wpad-mini/description
