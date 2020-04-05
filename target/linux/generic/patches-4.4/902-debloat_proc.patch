@@ -1,6 +1,6 @@
 --- a/fs/locks.c
 +++ b/fs/locks.c
-@@ -2712,6 +2712,8 @@ static const struct file_operations proc
+@@ -2716,6 +2716,8 @@ static const struct file_operations proc
  
  static int __init proc_locks_init(void)
  {
@@ -34,7 +34,7 @@
  }
 --- a/fs/proc/proc_tty.c
 +++ b/fs/proc/proc_tty.c
-@@ -143,7 +143,10 @@ static const struct file_operations proc
+@@ -144,7 +144,10 @@ static const struct file_operations proc
  void proc_tty_register_driver(struct tty_driver *driver)
  {
  	struct proc_dir_entry *ent;
@@ -46,7 +46,7 @@
  	if (!driver->driver_name || driver->proc_entry ||
  	    !driver->ops->proc_fops)
  		return;
-@@ -160,6 +163,9 @@ void proc_tty_unregister_driver(struct t
+@@ -161,6 +164,9 @@ void proc_tty_unregister_driver(struct t
  {
  	struct proc_dir_entry *ent;
  
@@ -56,7 +56,7 @@
  	ent = driver->proc_entry;
  	if (!ent)
  		return;
-@@ -174,6 +180,9 @@ void proc_tty_unregister_driver(struct t
+@@ -175,6 +181,9 @@ void proc_tty_unregister_driver(struct t
   */
  void __init proc_tty_init(void)
  {
@@ -111,18 +111,18 @@
  	if (!root_irq_dir)
 --- a/kernel/time/timer_list.c
 +++ b/kernel/time/timer_list.c
-@@ -393,6 +393,8 @@ static int __init init_timer_list_procfs
+@@ -399,6 +399,8 @@ static int __init init_timer_list_procfs
  {
  	struct proc_dir_entry *pe;
  
 +	if (IS_ENABLED(CONFIG_PROC_STRIPPED))
 +		return 0;
- 	pe = proc_create("timer_list", 0444, NULL, &timer_list_fops);
+ 	pe = proc_create("timer_list", 0400, NULL, &timer_list_fops);
  	if (!pe)
  		return -ENOMEM;
 --- a/mm/vmalloc.c
 +++ b/mm/vmalloc.c
-@@ -2684,6 +2684,8 @@ static const struct file_operations proc
+@@ -2689,6 +2689,8 @@ static const struct file_operations proc
  
  static int __init proc_vmalloc_init(void)
  {
@@ -133,7 +133,7 @@
  }
 --- a/mm/vmstat.c
 +++ b/mm/vmstat.c
-@@ -1553,10 +1553,12 @@ static int __init setup_vmstat(void)
+@@ -1574,10 +1574,12 @@ static int __init setup_vmstat(void)
  	cpu_notifier_register_done();
  #endif
  #ifdef CONFIG_PROC_FS
@@ -173,7 +173,7 @@
  		goto err;
 --- a/net/core/sock.c
 +++ b/net/core/sock.c
-@@ -3042,6 +3042,8 @@ static __net_initdata struct pernet_oper
+@@ -3048,6 +3048,8 @@ static __net_initdata struct pernet_oper
  
  static int __init proto_init(void)
  {
@@ -184,7 +184,7 @@
  
 --- a/net/ipv4/fib_trie.c
 +++ b/net/ipv4/fib_trie.c
-@@ -2641,10 +2641,12 @@ static const struct file_operations fib_
+@@ -2651,10 +2651,12 @@ static const struct file_operations fib_
  
  int __net_init fib_proc_init(struct net *net)
  {
@@ -199,7 +199,7 @@
  			 &fib_triestat_fops))
  		goto out2;
  
-@@ -2654,17 +2656,21 @@ int __net_init fib_proc_init(struct net
+@@ -2664,17 +2666,21 @@ int __net_init fib_proc_init(struct net
  	return 0;
  
  out3:
@@ -227,7 +227,7 @@
  
 --- a/net/ipv4/proc.c
 +++ b/net/ipv4/proc.c
-@@ -539,6 +539,9 @@ static __net_initdata struct pernet_oper
+@@ -541,6 +541,9 @@ static __net_initdata struct pernet_oper
  
  int __init ip_misc_proc_init(void)
  {
@@ -239,7 +239,7 @@
  
 --- a/net/ipv4/route.c
 +++ b/net/ipv4/route.c
-@@ -420,6 +420,9 @@ static struct pernet_operations ip_rt_pr
+@@ -423,6 +423,9 @@ static struct pernet_operations ip_rt_pr
  
  static int __init ip_rt_proc_init(void)
  {
@@ -251,7 +251,7 @@
  
 --- a/ipc/msg.c
 +++ b/ipc/msg.c
-@@ -1068,6 +1068,9 @@ void __init msg_init(void)
+@@ -1071,6 +1071,9 @@ void __init msg_init(void)
  {
  	msg_init_ns(&init_ipc_ns);
  

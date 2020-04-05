@@ -41,7 +41,7 @@
   */
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
-@@ -2208,6 +2208,10 @@ static inline int pskb_trim(struct sk_bu
+@@ -2213,6 +2213,10 @@ static inline int pskb_trim(struct sk_bu
  	return (len < skb->len) ? __pskb_trim(skb, len) : 0;
  }
  
@@ -52,7 +52,7 @@
  /**
   *	pskb_trim_unique - remove end from a paged unique (not cloned) buffer
   *	@skb: buffer to alter
-@@ -2312,16 +2316,6 @@ static inline struct sk_buff *dev_alloc_
+@@ -2319,16 +2323,6 @@ static inline struct sk_buff *dev_alloc_
  }
  
  
@@ -86,7 +86,7 @@
  	help
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -2746,10 +2746,20 @@ static int xmit_one(struct sk_buff *skb,
+@@ -2776,10 +2776,20 @@ static int xmit_one(struct sk_buff *skb,
  	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
  		dev_queue_xmit_nit(skb, dev);
  
@@ -121,7 +121,7 @@
  
  #include <net/protocol.h>
  #include <net/dst.h>
-@@ -520,6 +521,22 @@ skb_fail:
+@@ -524,6 +525,22 @@ skb_fail:
  }
  EXPORT_SYMBOL(__napi_alloc_skb);
  

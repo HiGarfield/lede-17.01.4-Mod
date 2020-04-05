@@ -333,7 +333,7 @@ Implement optinal multicast->unicast conversion for igmp snooping
  	rcu_assign_pointer(*pp, p);
 --- a/net/bridge/br_forward.c
 +++ b/net/bridge/br_forward.c
-@@ -192,6 +192,34 @@ out:
+@@ -191,6 +191,34 @@ out:
  	return p;
  }
  
@@ -368,7 +368,7 @@ Implement optinal multicast->unicast conversion for igmp snooping
  /* called under bridge lock */
  static void br_flood(struct net_bridge *br, struct sk_buff *skb,
  		     struct sk_buff *skb0,
-@@ -264,6 +292,7 @@ static void br_multicast_flood(struct ne
+@@ -263,6 +291,7 @@ static void br_multicast_flood(struct ne
  	struct net_bridge_port *prev = NULL;
  	struct net_bridge_port_group *p;
  	struct hlist_node *rp;
@@ -376,7 +376,7 @@ Implement optinal multicast->unicast conversion for igmp snooping
  
  	rp = rcu_dereference(hlist_first_rcu(&br->router_list));
  	p = mdst ? rcu_dereference(mdst->ports) : NULL;
-@@ -274,10 +303,19 @@ static void br_multicast_flood(struct ne
+@@ -273,10 +302,19 @@ static void br_multicast_flood(struct ne
  		rport = rp ? hlist_entry(rp, struct net_bridge_port, rlist) :
  			     NULL;
  
