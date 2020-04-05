@@ -76,6 +76,7 @@
 		reg = <0>;
 		spi-max-frequency = <10000000>;
 		m25p,chunked-io = <32>;
+		apply-4byte-shutdown;
 
 		partition@0 {
 			label = "u-boot";
