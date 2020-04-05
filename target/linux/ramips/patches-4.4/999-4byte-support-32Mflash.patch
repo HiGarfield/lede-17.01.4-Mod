@@ -1,0 +1,61 @@
+From: lunatickochiya <125438787@qq.com>
+Subject: mtd: add apply-4byte-shutdown to dts for shutdown hack
+
+This patch comes from manfeel and improves by lunatickochiya
+usage:we can define apply-4byte-shutdown; under m25p80 to use manfeel's hack and drop this line to disable hack.
+
+example:			m25p80@0 {
+				#address-cells = <1>;
+				#size-cells = <1>;
+				compatible = "jedec,spi-nor";
+				reg = <0>;
+				linux,modalias = "m25p80";
+				spi-max-frequency = <10000000>;
+				m25p,chunked-io = <32>;
+				m25p,fast-read;
+				apply-4byte-shutdown;
+
+Signed-off-by: LunaticKochiya <125438787@qq.com>
+Tested-by:  LunaticKochiya <125438787@qq.com>
+
+--- a/drivers/mtd/devices/m25p80.c
++++ b/drivers/mtd/devices/m25p80.c
+@@ -26,6 +26,7 @@
+ #include <linux/spi/spi.h>
+ #include <linux/spi/flash.h>
+ #include <linux/mtd/spi-nor.h>
++#include <linux/of_platform.h>
+ 
+ #define	MAX_CMD_SIZE		6
+ struct m25p {
+@@ -256,11 +257,20 @@ static int m25p_probe(struct spi_device *spi)
+ 			data ? data->nr_parts : 0);
+ }
+ 
+-
+ static int m25p_remove(struct spi_device *spi)
+ {
+ 	struct m25p	*flash = spi_get_drvdata(spi);
+-
++	struct device_node *np = spi->dev.of_node;
++	if(np && of_property_read_bool(np, "apply-4byte-shutdown"))
++	{
++		printk(KERN_INFO "m25p80: exit 4-byte address mode\n");
++		flash->command[0] = SPINOR_OP_EX4B;  // exit 4-byte address mode: 0xe9
++		spi_write(flash->spi, flash->command, 1);
++		flash->command[0] = 0x66;
++		spi_write(flash->spi, flash->command, 1);
++		flash->command[0] = 0x99;
++		spi_write(flash->spi, flash->command, 1);
++	}
+ 	/* Clean up MTD stuff. */
+ 	return mtd_device_unregister(&flash->spi_nor.mtd);
+ }
+@@ -328,6 +338,7 @@ static struct spi_driver m25p80_driver = {
+ 	.id_table	= m25p_ids,
+ 	.probe	= m25p_probe,
+ 	.remove	= m25p_remove,
++	.shutdown = m25p_remove,
+ 
+ 	/* REVISIT: many of these chips have deep power-down modes, which
+ 	 * should clearly be entered on suspend() to minimize power use.
