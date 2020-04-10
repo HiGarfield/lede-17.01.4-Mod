@@ -3,7 +3,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=smartdns
 
 PKG_NAME:=smartdns
-PKG_VERSION:=2020-03-22
+PKG_VERSION:=2020-04-11
 PKG_RELEASE:=1
 
 PKG_MAINTAINER:=Nick Peng <pymumu@gmail.com>
