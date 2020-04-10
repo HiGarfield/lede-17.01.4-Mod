@@ -1,0 +1,628 @@
+diff -rauN ar71xx0/base-files/etc/board.d/02_network ar71xx/base-files/etc/board.d/02_network
+--- ar71xx0/base-files/etc/board.d/02_network	2020-04-11 02:42:32.353075211 +0800
++++ ar71xx/base-files/etc/board.d/02_network	2020-04-06 03:21:35.076082154 +0800
+@@ -152,12 +152,6 @@
+ 	wrtnode2q)
+ 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
+ 		;;
+-	rb-750-r2|\
+-	rb-750up-r2)
+-		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
+-		ucidef_add_switch "switch0" \
+-			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
+-		;;
+ 	all0258n|\
+ 	all0315n|\
+ 	dlan-hotspot|\
+diff -rauN ar71xx0/base-files/lib/ar71xx.sh ar71xx/base-files/lib/ar71xx.sh
+--- ar71xx0/base-files/lib/ar71xx.sh	2020-04-11 02:51:21.706055331 +0800
++++ ar71xx/base-files/lib/ar71xx.sh	2020-04-06 03:21:35.080083343 +0800
+@@ -224,9 +224,6 @@
+ 	"080200"*)
+ 		model="TP-Link TL-WR802N"
+ 		;;
+-	"081000"*)
+-		model="TP-Link TL-WR810N"
+-		;;
+ 	"083000"*)
+ 		model="TP-Link TL-WA830RE"
+ 
+@@ -246,7 +243,7 @@
+ 		;;
+ 	"084299"*)
+ 		model="TP-Link TL-WR842N/ND (CN)"
+-		;;
++		;;	
+ 	"084200"*)
+ 		model="TP-Link TL-WR842N/ND"
+ 		;;
+diff -rauN ar71xx0/base-files/lib/upgrade/platform.sh ar71xx/base-files/lib/upgrade/platform.sh
+--- ar71xx0/base-files/lib/upgrade/platform.sh	2020-04-11 02:55:24.075899759 +0800
++++ ar71xx/base-files/lib/upgrade/platform.sh	2020-04-06 03:21:35.080083343 +0800
+@@ -93,22 +93,6 @@
+ 	get_image "$@" | dd bs=4 count=1 skip=37 2>/dev/null | hexdump -v -n 4 -e '1/1 "%02x"'
+ }
+ 
+-tplink_pharos_check_support_list() {
+-	local image="$1"
+-	local offset="$2"
+-	local model="$3"
+-
+-	# Here $image is given to dd directly instead of using get_image;
+-	# otherwise the skip will take almost a second (as dd can't seek)
+-	dd if="$image" bs=1 skip=$offset count=1024 2>/dev/null | (
+-		while IFS= read -r line; do
+-			[ "$line" = "$model" ] && exit 0
+-		done
+-
+-		exit 1
+-	)
+-}
+-
+ tplink_pharos_check_image() {
+ 	local magic_long="$(get_magic_long "$1")"
+ 	[ "$magic_long" != "7f454c46" ] && {
+@@ -117,10 +101,18 @@
+ 	}
+ 
+ 	local model_string="$(tplink_pharos_get_model_string)"
++	local line
+ 
+-	# New images have the support list at 7802888, old ones at 1511432
+-	tplink_pharos_check_support_list "$1" 7802888 "$model_string" || \
+-	tplink_pharos_check_support_list "$1" 1511432 "$model_string" || {
++	# Here $1 is given to dd directly instead of get_image as otherwise the skip
++	# will take almost a second (as dd can't seek then)
++	#
++	# This will fail if the image isn't local, but that's fine: as the
++	# read loop won't be executed at all, it will return true, so the image
++	# is accepted (loading the first 1.5M of a remote image for this check seems
++	# a bit extreme)
++	dd if="$1" bs=1 skip=1511432 count=1024 2>/dev/null | while read line; do
++		[ "$line" = "$model_string" ] && break
++	done || {
+ 		echo "Unsupported image (model not in support-list)"
+ 		return 1
+ 	}
+diff -rauN ar71xx0/config-4.4 ar71xx/config-4.4
+--- ar71xx0/config-4.4	2020-04-11 02:57:23.218700268 +0800
++++ ar71xx/config-4.4	2020-04-06 03:21:35.080083343 +0800
+@@ -309,6 +309,7 @@
+ CONFIG_HAVE_FUNCTION_TRACER=y
+ CONFIG_HAVE_GENERIC_DMA_COHERENT=y
+ CONFIG_HAVE_IDE=y
++CONFIG_HAVE_IRQ_EXIT_ON_IRQ_STACK=y
+ CONFIG_HAVE_IRQ_TIME_ACCOUNTING=y
+ CONFIG_HAVE_KVM=y
+ CONFIG_HAVE_LATENCYTOP_SUPPORT=y
+@@ -415,7 +416,6 @@
+ CONFIG_RTL8366S_PHY=y
+ CONFIG_RTL8366_SMI=y
+ CONFIG_RTL8367_PHY=y
+-CONFIG_SCHED_HRTICK=y
+ # CONFIG_SCHED_INFO is not set
+ # CONFIG_SCSI_DMA is not set
+ # CONFIG_SERIAL_8250_FSL is not set
+diff -rauN ar71xx0/files/arch/mips/ath79/dev-eth.c ar71xx/files/arch/mips/ath79/dev-eth.c
+--- ar71xx0/files/arch/mips/ath79/dev-eth.c	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/files/arch/mips/ath79/dev-eth.c	2020-04-06 03:21:35.080083343 +0800
+@@ -685,7 +685,7 @@
+ 		case ATH79_SOC_AR7240:
+ 		case ATH79_SOC_AR7241:
+ 		case ATH79_SOC_AR9330:
+-		case ATH79_SOC_AR9331:
++		case ATH79_SOC_AR9331:		
+ 		case ATH79_SOC_TP9343:
+ 			pdata->phy_if_mode = PHY_INTERFACE_MODE_GMII;
+ 			break;
+@@ -1100,7 +1100,7 @@
+ 				pdata->set_speed = qca956x_set_speed_sgmii;
+ 			else
+ 				pdata->set_speed = ar934x_set_speed_ge0;
+-
++		
+ 			pdata->disable_inline_checksum_engine = 1;
+ 		} else {
+ 			pdata->reset_bit = QCA955X_RESET_GE1_MAC |
+diff -rauN ar71xx0/files/arch/mips/ath79/mach-archer-c7.c ar71xx/files/arch/mips/ath79/mach-archer-c7.c
+--- ar71xx0/files/arch/mips/ath79/mach-archer-c7.c	2020-04-11 03:02:18.449505230 +0800
++++ ar71xx/files/arch/mips/ath79/mach-archer-c7.c	2020-04-06 03:21:35.080083343 +0800
+@@ -242,6 +242,7 @@
+ 	ath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_SGMII;
+ 	ath79_eth1_data.speed = SPEED_1000;
+ 	ath79_eth1_data.duplex = DUPLEX_FULL;
++	ath79_eth1_data.enable_sgmii_fixup = 1;
+ 	ath79_eth1_pll_data.pll_1000 = 0x03000101;
+ 
+ 	ath79_init_mac(ath79_eth1_data.mac_addr, mac, 0);
+diff -rauN ar71xx0/files/arch/mips/ath79/mach-dir-869-a1.c ar71xx/files/arch/mips/ath79/mach-dir-869-a1.c
+--- ar71xx0/files/arch/mips/ath79/mach-dir-869-a1.c	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/files/arch/mips/ath79/mach-dir-869-a1.c	2020-04-06 03:21:35.080083343 +0800
+@@ -42,8 +42,8 @@
+ 
+ #define DIR869A1_GPIO_ENABLE_SWITCH	11
+ 
+-#define DIR869A1_GPIO_LED_ORANGE	15
+-#define DIR869A1_GPIO_LED_WHITE		16
++#define DIR869A1_GPIO_LED_POWER		15
++#define DIR869A1_GPIO_LED_ORANGE	16
+ 
+ #define DIR869A1_KEYS_POLL_INTERVAL	20 /* msecs */
+ #define DIR869A1_KEYS_DEBOUNCE_INTERVAL	(3 * DIR869A1_KEYS_POLL_INTERVAL)
+@@ -59,14 +59,17 @@
+ 
+ static struct gpio_led dir869a1_leds_gpio[] __initdata = {
+ 	{
++		/* Actually, this GPIO controls the LED power,
++		 * while d-link:orange:status switches it between
++		 * orange and white */
+ 		.name		= "d-link:white:status",
+-		.gpio		= DIR869A1_GPIO_LED_WHITE,
++		.gpio		= DIR869A1_GPIO_LED_POWER,
+ 		.active_low	= 1,
+ 	},
+ 	{
+ 		.name		= "d-link:orange:status",
+ 		.gpio		= DIR869A1_GPIO_LED_ORANGE,
+-		.active_low	= 1,
++		.active_low	= 0,
+ 	},
+ };
+ 
+diff -rauN ar71xx0/files/arch/mips/ath79/mach-tube2h.c ar71xx/files/arch/mips/ath79/mach-tube2h.c
+--- ar71xx0/files/arch/mips/ath79/mach-tube2h.c	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/files/arch/mips/ath79/mach-tube2h.c	2020-04-06 03:21:35.084084531 +0800
+@@ -28,15 +28,12 @@
+ #define TUBE2H_GPIO_LED_SIGNAL1		27
+ #define TUBE2H_GPIO_EXT_LNA		28
+ 
+-#define TUBE2H_GPIO_WDT_EN		22
+-#define TUBE2H_GPIO_WDT_IN		18
+-
+ #define TUBE2H_GPIO_BTN_RESET		12
+ 
+ #define TUBE2H_KEYS_POLL_INTERVAL	20	/* msecs */
+ #define TUBE2H_KEYS_DEBOUNCE_INTERVAL	(3 * TUBE2H_KEYS_POLL_INTERVAL)
+ 
+-#define TUBE2H_ART_ADDRESS		0x1fff0000
++#define TUBE2H_ART_ADDRESS		0x1f7f0000
+ #define TUBE2H_LAN_MAC_OFFSET		0x06
+ #define TUBE2H_CALDATA_OFFSET		0x1000
+ 
+@@ -100,14 +97,6 @@
+ 			GPIOF_OUT_INIT_HIGH | GPIOF_EXPORT_DIR_FIXED,
+ 			"external LNA0");
+ 
+-	gpio_request_one(TUBE2H_GPIO_WDT_IN,
+-			 GPIOF_OUT_INIT_LOW | GPIOF_EXPORT_DIR_FIXED,
+-			 "WDT input");
+-
+-	gpio_request_one(TUBE2H_GPIO_WDT_EN,
+-			 GPIOF_OUT_INIT_LOW | GPIOF_EXPORT_DIR_FIXED,
+-			 "WDT enable");
+-
+ 	ath79_register_wmac(art + TUBE2H_CALDATA_OFFSET, NULL);
+ 
+ 	ath79_register_m25p80(NULL);
+diff -rauN ar71xx0/files/arch/mips/include/asm/mach-ath79/ag71xx_platform.h ar71xx/files/arch/mips/include/asm/mach-ath79/ag71xx_platform.h
+--- ar71xx0/files/arch/mips/include/asm/mach-ath79/ag71xx_platform.h	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/files/arch/mips/include/asm/mach-ath79/ag71xx_platform.h	2020-04-06 03:21:35.088085719 +0800
+@@ -38,6 +38,7 @@
+ 	u8		has_ar8216:1;
+ 	u8		use_flow_control:1;
+ 	u8		disable_inline_checksum_engine:1;
++	u8		enable_sgmii_fixup:1;
+ 
+ 	struct ag71xx_switch_platform_data *switch_data;
+ 
+diff -rauN ar71xx0/files/drivers/mtd/tplinkpart.c ar71xx/files/drivers/mtd/tplinkpart.c
+--- ar71xx0/files/drivers/mtd/tplinkpart.c	2020-04-11 03:12:07.406768004 +0800
++++ ar71xx/files/drivers/mtd/tplinkpart.c	2020-04-06 03:21:35.088085719 +0800
+@@ -149,7 +149,7 @@
+ 	parts[0].name = "u-boot";
+ 	parts[0].offset = 0;
+ 	parts[0].size = offset;
+-	// parts[0].mask_flags = MTD_WRITEABLE;
++	/*parts[0].mask_flags = MTD_WRITEABLE;*/
+ 
+ 	parts[1].name = "kernel";
+ 	parts[1].offset = offset;
+@@ -162,7 +162,7 @@
+ 	parts[3].name = "art";
+ 	parts[3].offset = art_offset;
+ 	parts[3].size = TPLINK_ART_LEN;
+-	// parts[3].mask_flags = MTD_WRITEABLE;
++	/*parts[3].mask_flags = MTD_WRITEABLE;*/
+ 
+ 	parts[4].name = "firmware";
+ 	parts[4].offset = offset;
+diff -rauN ar71xx0/files/drivers/net/ethernet/atheros/ag71xx/ag71xx.h ar71xx/files/drivers/net/ethernet/atheros/ag71xx/ag71xx.h
+--- ar71xx0/files/drivers/net/ethernet/atheros/ag71xx/ag71xx.h	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/files/drivers/net/ethernet/atheros/ag71xx/ag71xx.h	2020-04-06 03:21:35.088085719 +0800
+@@ -61,6 +61,8 @@
+ #define AG71XX_TX_RING_SIZE_MAX		128
+ #define AG71XX_RX_RING_SIZE_MAX		256
+ 
++#define QCA955X_SGMII_LINK_WAR_MAX_TRY	10
++
+ #ifdef CONFIG_AG71XX_DEBUG
+ #define DBG(fmt, args...)	pr_debug(fmt, ## args)
+ #else
+diff -rauN ar71xx0/files/drivers/net/ethernet/atheros/ag71xx/ag71xx_main.c ar71xx/files/drivers/net/ethernet/atheros/ag71xx/ag71xx_main.c
+--- ar71xx0/files/drivers/net/ethernet/atheros/ag71xx/ag71xx_main.c	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/files/drivers/net/ethernet/atheros/ag71xx/ag71xx_main.c	2020-04-06 03:21:35.088085719 +0800
+@@ -38,6 +38,7 @@
+ #define ETH_SWITCH_HEADER_LEN	2
+ 
+ static int ag71xx_tx_packets(struct ag71xx *ag, bool flush);
++static void ag71xx_qca955x_sgmii_init(void);
+ 
+ static inline unsigned int ag71xx_max_frame_len(unsigned int mtu)
+ {
+@@ -626,10 +627,15 @@
+ 	if (update && pdata->set_speed)
+ 		pdata->set_speed(ag->speed);
+ 
++	if (update && pdata->enable_sgmii_fixup)
++		ag71xx_qca955x_sgmii_init();
++
++
+ 	ag71xx_wr(ag, AG71XX_REG_MAC_CFG2, cfg2);
+ 	ag71xx_wr(ag, AG71XX_REG_FIFO_CFG5, fifo5);
+ 	ag71xx_wr(ag, AG71XX_REG_MAC_IFCTL, ifctl);
+ 
++
+ 	if (pdata->disable_inline_checksum_engine) {
+ 		/*
+ 		 * The rx ring buffer can stall on small packets on QCA953x and
+@@ -930,6 +936,81 @@
+ 	schedule_delayed_work(&ag->restart_work, 1);
+ }
+ 
++static void ag71xx_bit_set(void __iomem *reg, u32 bit)
++{
++	u32 val = __raw_readl(reg) | bit;
++	__raw_writel(val, reg);
++	__raw_readl(reg);
++}
++
++static void ag71xx_bit_clear(void __iomem *reg, u32 bit)
++{
++	u32 val = __raw_readl(reg) & ~bit;
++	__raw_writel(val, reg);
++	__raw_readl(reg);
++}
++
++static void ag71xx_qca955x_sgmii_init()
++{
++	void __iomem *gmac_base;
++	u32 mr_an_status, sgmii_status;
++	u8 tries = 0;
++
++	gmac_base = ioremap_nocache(QCA955X_GMAC_BASE, QCA955X_GMAC_SIZE);
++
++	if (!gmac_base)
++		goto sgmii_out;
++
++	mr_an_status = __raw_readl(gmac_base + QCA955X_GMAC_REG_MR_AN_STATUS);
++	if (!(mr_an_status & QCA955X_MR_AN_STATUS_AN_ABILITY))
++		goto sgmii_out;
++
++	__raw_writel(QCA955X_SGMII_RESET_RX_CLK_N_RESET ,
++		     gmac_base + QCA955X_GMAC_REG_SGMII_RESET);
++	__raw_readl(gmac_base + QCA955X_GMAC_REG_SGMII_RESET);
++	udelay(10);
++
++	/* Init sequence */
++	ag71xx_bit_set(gmac_base + QCA955X_GMAC_REG_SGMII_RESET,
++		       QCA955X_SGMII_RESET_HW_RX_125M_N);
++	udelay(10);
++
++	ag71xx_bit_set(gmac_base + QCA955X_GMAC_REG_SGMII_RESET,
++		       QCA955X_SGMII_RESET_RX_125M_N);
++	udelay(10);
++
++	ag71xx_bit_set(gmac_base + QCA955X_GMAC_REG_SGMII_RESET,
++		       QCA955X_SGMII_RESET_TX_125M_N);
++	udelay(10);
++
++	ag71xx_bit_set(gmac_base + QCA955X_GMAC_REG_SGMII_RESET,
++		       QCA955X_SGMII_RESET_RX_CLK_N);
++	udelay(10);
++
++	ag71xx_bit_set(gmac_base + QCA955X_GMAC_REG_SGMII_RESET,
++		       QCA955X_SGMII_RESET_TX_CLK_N);
++	udelay(10);
++
++	do {
++		ag71xx_bit_set(gmac_base + QCA955X_GMAC_REG_MR_AN_CONTROL,
++			       QCA955X_MR_AN_CONTROL_PHY_RESET |
++			       QCA955X_MR_AN_CONTROL_AN_ENABLE);
++		udelay(100);
++		ag71xx_bit_clear(gmac_base + QCA955X_GMAC_REG_MR_AN_CONTROL,
++				 QCA955X_MR_AN_CONTROL_PHY_RESET);
++		mdelay(10);
++		sgmii_status = __raw_readl(gmac_base + QCA955X_GMAC_REG_SGMII_DEBUG) & 0xF;
++
++		if (tries++ >= QCA955X_SGMII_LINK_WAR_MAX_TRY) {
++			pr_warn("ag71xx: max retries for SGMII fixup exceeded!\n");
++			break;
++		}
++	} while (!(sgmii_status == 0xf || sgmii_status == 0x10));
++
++sgmii_out:
++	iounmap(gmac_base);
++}
++
+ static void ag71xx_restart_work_func(struct work_struct *work)
+ {
+ 	struct ag71xx *ag = container_of(work, struct ag71xx, restart_work.work);
+diff -rauN ar71xx0/image/generic.mk ar71xx/image/generic.mk
+--- ar71xx0/image/generic.mk	2020-04-11 03:35:44.458600300 +0800
++++ ar71xx/image/generic.mk	2020-04-06 03:21:35.088085719 +0800
+@@ -438,12 +438,12 @@
+ TARGET_DEVICES += mc-mac1200r
+ 
+ define Device/mw316r-v1
+-  $(Device/tplink-8mlzma)
+-  DEVICE_TITLE := Mercury MW316R v1
+-  DEVICE_PACKAGES := kmod-ath9k
+-  BOARDNAME := MW316R-v1
+-  DEVICE_PROFILE := MW316R
+-  TPLINK_HWID := 0x03160001
++    $(Device/tplink-8mlzma)
++    DEVICE_TITLE := Mercury MW316R v1
++    DEVICE_PACKAGES := kmod-ath9k
++    BOARDNAME := MW316R-v1
++    DEVICE_PROFILE := MW316R
++    TPLINK_HWID := 0x03160001
+ endef
+ TARGET_DEVICES += mw316r-v1
+ 
+@@ -749,25 +749,15 @@
+ endef
+ TARGET_DEVICES += bhr-4grv2
+ 
++
+ define Device/domywifi-dw33d
+   DEVICE_TITLE := DomyWifi DW33D
+   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
+   BOARDNAME = DW33D
+   IMAGE_SIZE = 16000k
+   CONSOLE = ttyS0,115200
+-  MTDPARTS = spi0.0:256k(u-boot),64k(u-boot-env),14528k(rootfs),1472k(kernel),64k(art),16000k@0x50000(firmware)
++  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
+   IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | pad-to 14528k | append-kernel | check-size $$$$(IMAGE_SIZE)
+ endef
+ TARGET_DEVICES += domywifi-dw33d
+ 
+-define Device/csac
+-  DEVICE_TITLE := CSAC
+-  BOARDNAME := CSAC
+-  DEVICE_PACKAGES += kmod-ath10k ath10k-firmware-qca9888 kmod-usb-core kmod-usb2 
+-  KERNEL_SIZE := 1472k
+-  ROOTFS_SIZE := 14528k
+-  IMAGE_SIZE := 16000k
+-  MTDPARTS := spi0.0:256k(u-boot),64k(u-boot-env),14528k(rootfs),1472k(kernel),64k(art),16000k@0x50000(firmware)
+-  IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
+-endef
+-TARGET_DEVICES += csac
+diff -rauN ar71xx0/image/legacy-devices.mk ar71xx/image/legacy-devices.mk
+--- ar71xx0/image/legacy-devices.mk	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/image/legacy-devices.mk	2020-04-06 03:21:35.088085719 +0800
+@@ -115,6 +115,12 @@
+ endef
+ LEGACY_DEVICES += AP152_16M
+ 
++define LegacyDevice/CSAC
++  DEVICE_TITLE := CSAC
++  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-ath10k ath10k-firmware-qca9888
++endef
++LEGACY_DEVICES += CSAC
++
+ define LegacyDevice/BXU2000N2
+   DEVICE_TITLE := BHU BXU2000n-2
+   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-storage
+@@ -436,11 +442,11 @@
+ define LegacyDevice/WNR2000V3
+   DEVICE_TITLE := NETGEAR WNR2000V3
+ endef
+-# FS#672 - Looses always settings after power loss, nothig is been saved 
+-#LEGACY_DEVICES += WNR2000V3
++LEGACY_DEVICES += WNR2000V3
+ 
+ define LegacyDevice/WNR2000V4
+   DEVICE_TITLE := NETGEAR WNR2000V4
++  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+ endef
+ LEGACY_DEVICES += WNR2000V4
+ 
+diff -rauN ar71xx0/image/legacy.mk ar71xx/image/legacy.mk
+--- ar71xx0/image/legacy.mk	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/image/legacy.mk	2020-04-06 03:21:35.088085719 +0800
+@@ -237,6 +237,7 @@
+ ap143_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
+ ap147_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
+ ap152_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
++csac_mtdlayout_16M=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
+ bxu2000n2_mtdlayout=mtdparts=spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,1408k(kernel),8448k(rootfs),6016k(user),64k(cfg),64k(oem),64k(art)ro
+ cameo_ap81_mtdlayout=mtdparts=spi0.0:128k(u-boot)ro,64k(config)ro,3840k(firmware),64k(art)ro
+ cameo_ap91_mtdlayout=mtdparts=spi0.0:192k(u-boot)ro,64k(nvram)ro,3712k(firmware),64k(mac)ro,64k(art)ro
+@@ -900,6 +901,7 @@
+ $(eval $(call SingleProfile,AthLzma,64k,AP143_16M,ap143-16M,AP143,ttyS0,115200,$$(ap143_mtdlayout_16M),RKuImage))
+ $(eval $(call SingleProfile,AthLzma,64k,AP147_010,ap147-010,AP147-010,ttyS0,115200,$$(ap147_mtdlayout),RKuImage))
+ $(eval $(call SingleProfile,AthLzma,64k,AP152_16M,ap152-16M,AP152,ttyS0,115200,$$(ap152_mtdlayout_16M),RKuImage))
++$(eval $(call SingleProfile,AthLzma,64k,CSAC,csac,CSAC,ttyS0,115200,$$(csac_mtdlayout_16M),RKuImage))
+ $(eval $(call SingleProfile,AthLzma,64k,BXU2000N2,bxu2000n-2-a1,BXU2000n-2-A1,ttyS0,115200,$$(bxu2000n2_mtdlayout),RKuImage))
+ $(eval $(call SingleProfile,AthLzma,64k,CAP4200AG,cap4200ag,CAP4200AG,ttyS0,115200,$$(cap4200ag_mtdlayout),KRuImage))
+ $(eval $(call SingleProfile,AthLzma,64k,DB120,db120,DB120,ttyS0,115200,$$(db120_mtdlayout),RKuImage))
+diff -rauN ar71xx0/image/nand.mk ar71xx/image/nand.mk
+--- ar71xx0/image/nand.mk	2020-04-11 03:30:59.052997826 +0800
++++ ar71xx/image/nand.mk	2020-04-06 03:21:35.088085719 +0800
+@@ -13,6 +13,7 @@
+ 
+ TARGET_DEVICES += c-60
+ 
++
+ define Build/MerakiNAND
+ 	-$(STAGING_DIR_HOST)/bin/mkmerakifw \
+ 		-B $(BOARDNAME) -s \
+diff -rauN ar71xx0/image/tp-link.mk ar71xx/image/tp-link.mk
+--- ar71xx0/image/tp-link.mk	2020-04-11 03:49:34.458862964 +0800
++++ ar71xx/image/tp-link.mk	2020-04-06 03:21:35.088085719 +0800
+@@ -67,32 +67,32 @@
+ 
+ define Device/tplink-4m
+ $(Device/tplink-nolzma)
+-#   TPLINK_FLASHLAYOUT := 4M
+-#   IMAGE_SIZE := 3904k
++#  TPLINK_FLASHLAYOUT := 4M
++#  IMAGE_SIZE := 3904k
+   TPLINK_FLASHLAYOUT := 16M
+   IMAGE_SIZE := 15872k
+ endef
+ 
+ define Device/tplink-8m
+ $(Device/tplink-nolzma)
+-#   TPLINK_FLASHLAYOUT := 8M
+-#   IMAGE_SIZE := 7936k
++#  TPLINK_FLASHLAYOUT := 8M
++#  IMAGE_SIZE := 7936k
+   TPLINK_FLASHLAYOUT := 16M
+   IMAGE_SIZE := 15872k
+ endef
+ 
+ define Device/tplink-4mlzma
+ $(Device/tplink)
+-#   TPLINK_FLASHLAYOUT := 4Mlzma
+-#   IMAGE_SIZE := 3904k
++#  TPLINK_FLASHLAYOUT := 4Mlzma
++#  IMAGE_SIZE := 3904k
+   TPLINK_FLASHLAYOUT := 16Mlzma
+   IMAGE_SIZE := 15872k
+ endef
+ 
+ define Device/tplink-8mlzma
+ $(Device/tplink)
+-#   TPLINK_FLASHLAYOUT := 8Mlzma
+-#   IMAGE_SIZE := 7936k
++#  TPLINK_FLASHLAYOUT := 8Mlzma
++#  IMAGE_SIZE := 7936k
+   TPLINK_FLASHLAYOUT := 16Mlzma
+   IMAGE_SIZE := 15872k
+ endef
+@@ -231,7 +231,7 @@
+ define Device/hq55-v1
+ $(Device/tplink-16mlzma)
+   DEVICE_TITLE := HQ55 v1
+-  DEVICE_PACKAGES := kmod-ath9k kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
++  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+   BOARDNAME := HQ55
+   DEVICE_PROFILE := TLWDR4300
+   TPLINK_HWID := 0x00550001
+@@ -733,21 +733,21 @@
+ TARGET_DEVICES += tl-wr841-v1.5 tl-wr841-v3 tl-wr841-v5 tl-wr841-v7 tl-wr841-v8 tl-wr841-v9 tl-wr841-v10 tl-wr841-v11 tl-wr841-v12 tl-wr842n-v1 tl-wr842n-v2 tl-wr842n-v3 tl-wr843nd-v1 tl-wr847n-v8
+ 
+ define Device/tl-wr841-v8-cn
+-  $(Device/tplink-4mlzma)
+-  DEVICE_TITLE := TP-LINK TL-WR841N/ND v8 (CN)
+-  BOARDNAME := TL-WR841N-v8-CN
+-  DEVICE_PROFILE := TLWR841
+-  TPLINK_HWID := 0x08419908
++    $(Device/tplink-4mlzma)
++    DEVICE_TITLE := TP-LINK TL-WR841N/ND v8 (CN)
++    BOARDNAME := TL-WR841N-v8-CN
++    DEVICE_PROFILE := TLWR841
++    TPLINK_HWID := 0x08419908
+ endef
+ TARGET_DEVICES += tl-wr841-v8-cn
+ 
+ define Device/tl-wr842n-v2-cn
+-  $(Device/tplink-8mlzma)
+-  DEVICE_TITLE := TP-LINK TL-WR842N/ND v2 (CN)
+-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+-  BOARDNAME := TL-WR842N-v2-CN
+-  DEVICE_PROFILE := TLWR842
+-  TPLINK_HWID := 0x8429902
++    $(Device/tplink-8mlzma)
++    DEVICE_TITLE := TP-LINK TL-WR842N/ND v2 (CN)
++    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
++    BOARDNAME := TL-WR842N-v2-CN
++    DEVICE_PROFILE := TLWR842
++    TPLINK_HWID := 0x8429902
+ endef
+ TARGET_DEVICES += tl-wr842n-v2-cn
+ 
+@@ -814,11 +814,11 @@
+ TARGET_DEVICES += tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr940n-v4
+ 
+ define Device/tl-wr941n-v7
+-  $(Device/tplink-4mlzma)
+-  DEVICE_TITLE := TP-LINK TL-WR941N/ND v7
+-  BOARDNAME := TL-WR941N-v7
+-  DEVICE_PROFILE := TLWR941
+-  TPLINK_HWID := 0x09410007
++	$(Device/tplink-4mlzma)
++	DEVICE_TITLE := TP-LINK TL-WR941N/ND v7
++	BOARDNAME := TL-WR941N-v7
++	DEVICE_PROFILE := TLWR941
++	TPLINK_HWID := 0x09410007
+ endef
+ TARGET_DEVICES += tl-wr941n-v7
+ 
+diff -rauN ar71xx0/image/ubnt.mk ar71xx/image/ubnt.mk
+--- ar71xx0/image/ubnt.mk	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/image/ubnt.mk	2020-04-06 03:21:35.088085719 +0800
+@@ -47,7 +47,6 @@
+   UBNT_TYPE := XM
+   UBNT_BOARD := XM
+   UBNT_CHIP := ar7240
+-  KERNEL := kernel-bin | patch-cmdline | relocate-kernel | lzma | uImage lzma
+   IMAGES := sysupgrade.bin factory.bin
+   IMAGE/factory.bin = $$(IMAGE/sysupgrade.bin) | mkubntimage-split
+   IMAGE/sysupgrade.bin = append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+@@ -83,7 +82,7 @@
+   DEVICE_PACKAGES := kmod-usb-core kmod-usb-ohci kmod-usb2
+   DEVICE_PROFILE := UBNT
+   IMAGE_SIZE := 7744k
+-  MTDPARTS = spi0.0:384k(u-boot)ro,64k(u-boot-env)ro,7744k(firmware),7744k(ubnt-airos)ro,128k(bs),256k(cfg)ro,64k(EEPROM)ro
++  MTDPARTS = spi0.0:384k(u-boot)ro,64k(u-boot-env)ro,7744k(firmware),7744k(ubnt-airos)ro,128k(bs)ro,256k(cfg)ro,64k(EEPROM)ro
+   IMAGES := sysupgrade.bin
+   IMAGE/sysupgrade.bin = append-kernel | pad-to $$$$(BLOCKSIZE) | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+ endef
+diff -rauN ar71xx0/mikrotik/config-default ar71xx/mikrotik/config-default
+--- ar71xx0/mikrotik/config-default	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/mikrotik/config-default	2020-04-06 03:21:35.088085719 +0800
+@@ -138,6 +138,8 @@
+ # CONFIG_ATH79_MACH_TL_WAX50RE is not set
+ # CONFIG_ATH79_MACH_TL_WDR3320_V2 is not set
+ # CONFIG_ATH79_MACH_TL_WDR3500 is not set
++# CONFIG_ATH79_MACH_HQ55 is not set
++# CONFIG_ATH79_MACH_CSAC is not set
+ # CONFIG_ATH79_MACH_TL_WDR4300 is not set
+ # CONFIG_ATH79_MACH_TL_WDR6500_V2 is not set
+ # CONFIG_ATH79_MACH_TL_WPA8630 is not set
+diff -rauN ar71xx0/nand/config-default ar71xx/nand/config-default
+--- ar71xx0/nand/config-default	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/nand/config-default	2020-04-06 03:21:35.088085719 +0800
+@@ -49,6 +49,8 @@
+ # CONFIG_ATH79_MACH_TL_WA901ND is not set
+ # CONFIG_ATH79_MACH_TL_WA901ND_V2 is not set
+ # CONFIG_ATH79_MACH_TL_WDR3500 is not set
++# CONFIG_ATH79_MACH_HQ55 is not set
++# CONFIG_ATH79_MACH_CSAC is not set
+ # CONFIG_ATH79_MACH_TL_WDR4300 is not set
+ # CONFIG_ATH79_MACH_TL_WR1041N_V2 is not set
+ # CONFIG_ATH79_MACH_TL_WR1043ND is not set
+diff -rauN ar71xx0/nand/profiles/00-default.mk ar71xx/nand/profiles/00-default.mk
+--- ar71xx0/nand/profiles/00-default.mk	2019-11-19 13:51:15.000000000 +0800
++++ ar71xx/nand/profiles/00-default.mk	2020-04-06 03:21:35.088085719 +0800
+@@ -8,7 +8,7 @@
+ define Profile/Default
+ 	NAME:=Default Profile
+ 	PACKAGES:= \
+-		kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport
++		kmod-usb-core kmod-usb-ohci kmod-usb2 kmod-usb-ledtrig-usbport 
+ 	PRIORITY := 1
+ endef
+ 

@@ -67,32 +67,32 @@ endef
 
 define Device/tplink-4m
 $(Device/tplink-nolzma)
-#  TPLINK_FLASHLAYOUT := 4M
-#  IMAGE_SIZE := 3904k
+#   TPLINK_FLASHLAYOUT := 4M
+#   IMAGE_SIZE := 3904k
   TPLINK_FLASHLAYOUT := 16M
   IMAGE_SIZE := 15872k
 endef
 
 define Device/tplink-8m
 $(Device/tplink-nolzma)
-#  TPLINK_FLASHLAYOUT := 8M
-#  IMAGE_SIZE := 7936k
+#   TPLINK_FLASHLAYOUT := 8M
+#   IMAGE_SIZE := 7936k
   TPLINK_FLASHLAYOUT := 16M
   IMAGE_SIZE := 15872k
 endef
 
 define Device/tplink-4mlzma
 $(Device/tplink)
-#  TPLINK_FLASHLAYOUT := 4Mlzma
-#  IMAGE_SIZE := 3904k
+#   TPLINK_FLASHLAYOUT := 4Mlzma
+#   IMAGE_SIZE := 3904k
   TPLINK_FLASHLAYOUT := 16Mlzma
   IMAGE_SIZE := 15872k
 endef
 
 define Device/tplink-8mlzma
 $(Device/tplink)
-#  TPLINK_FLASHLAYOUT := 8Mlzma
-#  IMAGE_SIZE := 7936k
+#   TPLINK_FLASHLAYOUT := 8Mlzma
+#   IMAGE_SIZE := 7936k
   TPLINK_FLASHLAYOUT := 16Mlzma
   IMAGE_SIZE := 15872k
 endef
@@ -231,7 +231,7 @@ TARGET_DEVICES += tl-wdr3500-v1 tl-wdr3600-v1 tl-wdr4300-v1 tl-wdr4300-v1-il tl-
 define Device/hq55-v1
 $(Device/tplink-16mlzma)
   DEVICE_TITLE := HQ55 v1
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-ath9k kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
   BOARDNAME := HQ55
   DEVICE_PROFILE := TLWDR4300
   TPLINK_HWID := 0x00550001
@@ -733,21 +733,21 @@ endef
 TARGET_DEVICES += tl-wr841-v1.5 tl-wr841-v3 tl-wr841-v5 tl-wr841-v7 tl-wr841-v8 tl-wr841-v9 tl-wr841-v10 tl-wr841-v11 tl-wr841-v12 tl-wr842n-v1 tl-wr842n-v2 tl-wr842n-v3 tl-wr843nd-v1 tl-wr847n-v8
 
 define Device/tl-wr841-v8-cn
-    $(Device/tplink-4mlzma)
-    DEVICE_TITLE := TP-LINK TL-WR841N/ND v8 (CN)
-    BOARDNAME := TL-WR841N-v8-CN
-    DEVICE_PROFILE := TLWR841
-    TPLINK_HWID := 0x08419908
+  $(Device/tplink-4mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR841N/ND v8 (CN)
+  BOARDNAME := TL-WR841N-v8-CN
+  DEVICE_PROFILE := TLWR841
+  TPLINK_HWID := 0x08419908
 endef
 TARGET_DEVICES += tl-wr841-v8-cn
 
 define Device/tl-wr842n-v2-cn
-    $(Device/tplink-8mlzma)
-    DEVICE_TITLE := TP-LINK TL-WR842N/ND v2 (CN)
-    DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
-    BOARDNAME := TL-WR842N-v2-CN
-    DEVICE_PROFILE := TLWR842
-    TPLINK_HWID := 0x8429902
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR842N/ND v2 (CN)
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := TL-WR842N-v2-CN
+  DEVICE_PROFILE := TLWR842
+  TPLINK_HWID := 0x8429902
 endef
 TARGET_DEVICES += tl-wr842n-v2-cn
 
@@ -814,11 +814,11 @@ endef
 TARGET_DEVICES += tl-wr941nd-v2 tl-wr941nd-v3 tl-wr941nd-v4 tl-wr941nd-v5 tl-wr941nd-v6 tl-wr941nd-v6-cn tl-wr940n-v4
 
 define Device/tl-wr941n-v7
-	$(Device/tplink-4mlzma)
-	DEVICE_TITLE := TP-LINK TL-WR941N/ND v7
-	BOARDNAME := TL-WR941N-v7
-	DEVICE_PROFILE := TLWR941
-	TPLINK_HWID := 0x09410007
+  $(Device/tplink-4mlzma)
+  DEVICE_TITLE := TP-LINK TL-WR941N/ND v7
+  BOARDNAME := TL-WR941N-v7
+  DEVICE_PROFILE := TLWR941
+  TPLINK_HWID := 0x09410007
 endef
 TARGET_DEVICES += tl-wr941n-v7
 
