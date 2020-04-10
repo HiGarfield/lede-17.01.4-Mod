@@ -438,12 +438,12 @@ endef
 TARGET_DEVICES += mc-mac1200r
 
 define Device/mw316r-v1
-    $(Device/tplink-8mlzma)
-    DEVICE_TITLE := Mercury MW316R v1
-    DEVICE_PACKAGES := kmod-ath9k
-    BOARDNAME := MW316R-v1
-    DEVICE_PROFILE := MW316R
-    TPLINK_HWID := 0x03160001
+  $(Device/tplink-8mlzma)
+  DEVICE_TITLE := Mercury MW316R v1
+  DEVICE_PACKAGES := kmod-ath9k
+  BOARDNAME := MW316R-v1
+  DEVICE_PROFILE := MW316R
+  TPLINK_HWID := 0x03160001
 endef
 TARGET_DEVICES += mw316r-v1
 
@@ -749,15 +749,25 @@ define Device/bhr-4grv2
 endef
 TARGET_DEVICES += bhr-4grv2
 
-
 define Device/domywifi-dw33d
   DEVICE_TITLE := DomyWifi DW33D
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage kmod-usb-ledtrig-usbport kmod-ath10k ath10k-firmware-qca988x
   BOARDNAME = DW33D
   IMAGE_SIZE = 16000k
   CONSOLE = ttyS0,115200
-  MTDPARTS = spi0.0:256k(u-boot)ro,64k(u-boot-env)ro,14528k(rootfs),1472k(kernel),64k(art)ro,16000k@0x50000(firmware)
+  MTDPARTS = spi0.0:256k(u-boot),64k(u-boot-env),14528k(rootfs),1472k(kernel),64k(art),16000k@0x50000(firmware)
   IMAGE/sysupgrade.bin = append-rootfs | pad-rootfs | pad-to 14528k | append-kernel | check-size $$$$(IMAGE_SIZE)
 endef
 TARGET_DEVICES += domywifi-dw33d
 
+define Device/csac
+  DEVICE_TITLE := CSAC
+  BOARDNAME := CSAC
+  DEVICE_PACKAGES += kmod-ath10k ath10k-firmware-qca9888 kmod-usb-core kmod-usb2
+  KERNEL_SIZE := 1472k
+  ROOTFS_SIZE := 14528k
+  IMAGE_SIZE := 16000k
+  MTDPARTS := spi0.0:256k(u-boot),64k(u-boot-env),14528k(rootfs),1472k(kernel),64k(art),16000k@0x50000(firmware)
+  IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
+endef
+TARGET_DEVICES += csac

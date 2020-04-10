@@ -88,7 +88,7 @@ export -n _CONF_ROUTER_WITHOUT_USB_PORT_
 
 ### ar71xx 74kc with USB
 devices=(
-	"ar71xx_generic_DEVICE_CSAC"
+	"ar71xx_generic_DEVICE_csac"
 	"ar71xx_generic_DEVICE_domywifi-dw33d"
 	"ar71xx_generic_DEVICE_hq55-v1"
 	"ar71xx_generic_DEVICE_tl-wdr7500-v3"

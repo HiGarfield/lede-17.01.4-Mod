@@ -242,7 +242,6 @@ static void __init common_setup(bool pcie_slot)
 	ath79_eth1_data.phy_if_mode = PHY_INTERFACE_MODE_SGMII;
 	ath79_eth1_data.speed = SPEED_1000;
 	ath79_eth1_data.duplex = DUPLEX_FULL;
-	ath79_eth1_data.enable_sgmii_fixup = 1;
 	ath79_eth1_pll_data.pll_1000 = 0x03000101;
 
 	ath79_init_mac(ath79_eth1_data.mac_addr, mac, 0);

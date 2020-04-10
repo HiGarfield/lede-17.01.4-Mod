@@ -13,7 +13,6 @@ endef
 
 TARGET_DEVICES += c-60
 
-
 define Build/MerakiNAND
 	-$(STAGING_DIR_HOST)/bin/mkmerakifw \
 		-B $(BOARDNAME) -s \

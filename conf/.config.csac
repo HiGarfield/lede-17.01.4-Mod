@@ -96,7 +96,7 @@ CONFIG_TARGET_ar71xx_generic=y
 # CONFIG_TARGET_ar71xx_generic_DEVICE_cf-e380ac-v2 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_cf-e520n is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_cf-e530n is not set
-CONFIG_TARGET_ar71xx_generic_DEVICE_CSAC=y
+CONFIG_TARGET_ar71xx_generic_DEVICE_csac=y
 # CONFIG_TARGET_ar71xx_generic_DEVICE_carambola2 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_WP543_16M is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_WP543_4M is not set
@@ -165,7 +165,6 @@ CONFIG_TARGET_ar71xx_generic_DEVICE_CSAC=y
 # CONFIG_TARGET_ar71xx_generic_DEVICE_REALWNR1000V2 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_WNR1000V2_VC is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_WNR2000 is not set
-# CONFIG_TARGET_ar71xx_generic_DEVICE_WNR2000V3 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_WNR2000V4 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_WNR2200 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_REALWNR612V2 is not set
@@ -356,7 +355,7 @@ CONFIG_HAS_SUBTARGETS=y
 CONFIG_HAS_DEVICES=y
 CONFIG_TARGET_BOARD="ar71xx"
 CONFIG_TARGET_SUBTARGET="generic"
-CONFIG_TARGET_PROFILE="DEVICE_CSAC"
+CONFIG_TARGET_PROFILE="DEVICE_csac"
 CONFIG_TARGET_ARCH_PACKAGES="mips_24kc"
 CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kc"
 CONFIG_CPU_TYPE="24kc"

@@ -685,7 +685,7 @@ static int __init ath79_setup_phy_if_mode(unsigned int id,
 		case ATH79_SOC_AR7240:
 		case ATH79_SOC_AR7241:
 		case ATH79_SOC_AR9330:
-		case ATH79_SOC_AR9331:		
+		case ATH79_SOC_AR9331:
 		case ATH79_SOC_TP9343:
 			pdata->phy_if_mode = PHY_INTERFACE_MODE_GMII;
 			break;
@@ -1100,7 +1100,7 @@ void __init ath79_register_eth(unsigned int id)
 				pdata->set_speed = qca956x_set_speed_sgmii;
 			else
 				pdata->set_speed = ar934x_set_speed_ge0;
-		
+
 			pdata->disable_inline_checksum_engine = 1;
 		} else {
 			pdata->reset_bit = QCA955X_RESET_GE1_MAC |
