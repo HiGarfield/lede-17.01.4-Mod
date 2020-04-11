@@ -32,24 +32,29 @@ ifeq ($(ARCH),aarch64)
 endif
 
 PKG_NAME:=kcptun-client
-PKG_VERSION:=1
+PKG_VERSION:=20200409
 PKG_RELEASE:=1
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE:=kcptun-linux-$(PKG_ARCH_KCPTUN)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://github.com/xtaci/kcptun/releases/download/v$(PKG_VERSION)
+PKG_HASH:=skip
 
 include $(INCLUDE_DIR)/package.mk
 
 define Package/$(PKG_NAME)
 	SECTION:=net
 	CATEGORY:=Network
-	DEPENDS:=libc
-	TITLE:=A Fast & Secure Tunnel Based on KCP with N:M Multiplexing
+	TITLE:=Kcptun is a cross-platform proxy software
+	DEPENDS:=
 	URL:=https://github.com/xtaci/kcptun
 endef
 
 define Package/$(PKG_NAME)/description
-Kcptun is a fast & secure tunnel based on KCP with N:M multiplexing
+  Kcptun is a Fast and Reliable ARQ Protocol tunnel
 endef
 
 define Build/Prepare
+	tar -xzvf $(DL_DIR)/$(PKG_SOURCE) -C $(PKG_BUILD_DIR)
 endef
 
 define Build/Configure
@@ -60,7 +65,7 @@ endef
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) ./files/client_linux_$(PKG_ARCH_KCPTUN) $(1)/usr/bin/kcptun-client
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/client_linux_$(PKG_ARCH_KCPTUN) $(1)/usr/bin/kcptun-client
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
