@@ -29,7 +29,7 @@ make_model(){
 clear
 
 tmpfs_size=9
-user_password="123456"
+user_password="111111"
 
 build_dir_path="`pwd`/build_dir"
 [ ! -d "${build_dir_path}" ] && mkdir -p "${build_dir_path}"

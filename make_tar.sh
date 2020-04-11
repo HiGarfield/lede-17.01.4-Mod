@@ -6,7 +6,7 @@
 build_dir_path="$(pwd)/build_dir"
 mount_record=`mount | grep "${build_dir_path}"`
 [ -n "${mount_record}" ] && {
-	echo "123456" | sudo -S umount ${build_dir_path} 
+	echo "111111" | sudo -S umount ${build_dir_path} 
 	echo ""
 }
 
