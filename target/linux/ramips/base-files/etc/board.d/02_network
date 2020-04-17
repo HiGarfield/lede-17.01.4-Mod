@@ -152,6 +152,7 @@ ramips_setup_interfaces()
 	wrtnode2r | \
 	wt3020|\
 	zbt-wa05|\
+	a3004ns|\
 	wr1200js-ram256m|\
 	wr1200js-ram512m|\
 	wr1200js)

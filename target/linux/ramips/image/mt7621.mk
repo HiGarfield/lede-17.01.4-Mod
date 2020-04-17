@@ -50,6 +50,14 @@ define Device/wr1200js-ram512m
 endef
 TARGET_DEVICES += wr1200js-ram512m
 
+define Device/a3004ns
+  DTS := A3004NS
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := A3004NS
+  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += a3004ns
+
 define Device/11acnas
   DTS := 11ACNAS
   IMAGE_SIZE := $(ralink_default_fw_size_16M)

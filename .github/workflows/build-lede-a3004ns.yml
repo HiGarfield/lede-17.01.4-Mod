@@ -1,4 +1,4 @@
-name: Build LEDE tl-wr941nd-v2
+name: Build LEDE a3004ns
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - master
 
 env:
-  TARGET_DEVICE: tl-wr941nd-v2
+  TARGET_DEVICE: a3004ns
   TZ: Asia/Shanghai
 
 jobs:
@@ -54,5 +54,5 @@ jobs:
       uses: actions/upload-artifact@master
       if: steps.compile.outputs.status == 'success'
       with:
-        name: lede-tl-wr941nd-v2
+        name: lede-a3004ns
         path: out

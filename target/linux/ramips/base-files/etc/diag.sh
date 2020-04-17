@@ -8,6 +8,9 @@ get_status_led() {
 	board=$(ramips_board_name)
 
 	case $board in
+	a3004ns)
+		status_led="$board:orange:status"
+		;;
 	3g150b|\
 	3g300m|\
 	w150m)
