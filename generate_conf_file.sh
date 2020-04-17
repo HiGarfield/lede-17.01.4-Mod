@@ -100,11 +100,11 @@ devices=(
 process_devices $devices "74kc"
 
 
-## ar71xx 24kc with USB  
-# devices=(
-# 	"ar71xx_generic_DEVICE_tl-wr941nd-v2"
-# )
-# process_devices $devices
+# ar71xx 24kc with USB  
+devices=(
+	"ar71xx_generic_DEVICE_tl-wr941nd-v2"
+)
+process_devices $devices
 
 
 ### 7621 with USB
