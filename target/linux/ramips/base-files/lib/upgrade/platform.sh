@@ -103,6 +103,7 @@ platform_check_image() {
 	newifi-d1|\
 	newifi-d2|\
 	ghl-r-001|\
+	a3004ns|\
 	wr1200js|\
 	wr1200js-ram256m|\
 	wr1200js-ram512m|\

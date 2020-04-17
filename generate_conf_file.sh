@@ -101,10 +101,10 @@ process_devices $devices "74kc"
 
 
 ## ar71xx 24kc with USB  
-devices=(
-	"ar71xx_generic_DEVICE_tl-wr941nd-v2"
-)
-process_devices $devices
+# devices=(
+# 	"ar71xx_generic_DEVICE_tl-wr941nd-v2"
+# )
+# process_devices $devices
 
 
 ### 7621 with USB
@@ -112,6 +112,7 @@ devices=(
 	"ramips_mt7621_DEVICE_wr1200js"
 	"ramips_mt7621_DEVICE_wr1200js-ram512m"
 	"ramips_mt7621_DEVICE_newifi-d2"
+	"ramips_mt7621_DEVICE_a3004ns"
 )
 process_devices $devices "1004kc"
 
