@@ -1,0 +1,262 @@
+diff --git a/drivers/net/ethernet/mediatek/esw_rt3050.c b/drivers/net/ethernet/mediatek/esw_rt3050.c
+index 6cad5856..816c588d 100644
+--- a/drivers/net/ethernet/mediatek/esw_rt3050.c
++++ b/drivers/net/ethernet/mediatek/esw_rt3050.c
+@@ -1358,8 +1358,8 @@ static int esw_probe(struct platform_device *pdev)
+ 	esw->dev = &pdev->dev;
+ 	esw->irq = irq_of_parse_and_map(np, 0);
+ 	esw->base = devm_ioremap_resource(&pdev->dev, res);
+-	if (!esw->base)
+-		return -EADDRNOTAVAIL;
++	if (IS_ERR(esw->base))
++		return PTR_ERR(esw->base);
+ 
+ 	port_map = of_get_property(np, "mediatek,portmap", NULL);
+ 	if (port_map)
+diff --git a/drivers/net/ethernet/mediatek/gsw_mt7620.c b/drivers/net/ethernet/mediatek/gsw_mt7620.c
+index b675ad0c..a4602c45 100644
+--- a/drivers/net/ethernet/mediatek/gsw_mt7620.c
++++ b/drivers/net/ethernet/mediatek/gsw_mt7620.c
+@@ -166,6 +166,7 @@ static void mt7620_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
+ 		_mt7620_mii_write(gsw, 4, 30, 0xa000);
+ 		_mt7620_mii_write(gsw, 4, 4, 0x05e1);
+ 		_mt7620_mii_write(gsw, 4, 16, 0x1313);
++		_mt7620_mii_write(gsw, 4, 0, 0x3100);
+ 		pr_info("gsw: setting port4 to ephy mode\n");
+ 	}
+ }
+@@ -214,8 +215,8 @@ static int mt7620_gsw_probe(struct platform_device *pdev)
+ 		return -ENOMEM;
+ 
+ 	gsw->base = devm_ioremap_resource(&pdev->dev, res);
+-	if (!gsw->base)
+-		return -EADDRNOTAVAIL;
++	if (IS_ERR(gsw->base))
++		return PTR_ERR(gsw->base);
+ 
+ 	gsw->dev = &pdev->dev;
+ 
+diff --git a/drivers/net/ethernet/mediatek/gsw_mt7621.c b/drivers/net/ethernet/mediatek/gsw_mt7621.c
+index a903ccbe..5cf61371 100644
+--- a/drivers/net/ethernet/mediatek/gsw_mt7621.c
++++ b/drivers/net/ethernet/mediatek/gsw_mt7621.c
+@@ -41,6 +41,7 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
+ 	u32 reg, i;
+ 
+ 	reg = mt7530_mdio_r32(gsw, 0x700c);
++	mt7530_mdio_w32(gsw, 0x700c, reg);
+ 
+ 	for (i = 0; i < 5; i++)
+ 		if (reg & BIT(i)) {
+@@ -61,7 +62,6 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
+ 		}
+ 
+ 	mt7620_handle_carrier(priv);
+-	mt7530_mdio_w32(gsw, 0x700c, 0x1f);
+ 
+ 	return IRQ_HANDLED;
+ }
+@@ -186,6 +186,22 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
+ 	mt7530_mdio_w32(gsw, 0x7a74, 0x44);
+ 	mt7530_mdio_w32(gsw, 0x7a7c, 0x44);
+ 
++	/* Disable EEE */
++	for (i = 0; i <= 4; i++) {
++		_mt7620_mii_write(gsw, i, 13, 0x7);
++		_mt7620_mii_write(gsw, i, 14, 0x3C);
++		_mt7620_mii_write(gsw, i, 13, 0x4007);
++		_mt7620_mii_write(gsw, i, 14, 0x0);
++	}
++
++	/* Disable EEE 10Base-Te */
++	for (i = 0; i <= 4; i++) {
++		_mt7620_mii_write(gsw, i, 13, 0x1f);
++		_mt7620_mii_write(gsw, i, 14, 0x027b);
++		_mt7620_mii_write(gsw, i, 13, 0x401f);
++		_mt7620_mii_write(gsw, i, 14, 0x1177);
++	}
++
+ 	/* turn on all PHYs */
+ 	for (i = 0; i <= 4; i++) {
+ 		val = _mt7620_mii_read(gsw, i, 0);
+@@ -194,6 +210,7 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
+ 	}
+ 
+ 	/* enable irq */
++	mt7530_mdio_w32(gsw, 0x7008, 0x1f);
+ 	val = mt7530_mdio_r32(gsw, 0x7808);
+ 	val |= 3 << 16;
+ 	mt7530_mdio_w32(gsw, 0x7808, val);
+@@ -220,42 +237,32 @@ int mtk_gsw_init(struct fe_priv *priv)
+ 	gsw = platform_get_drvdata(pdev);
+ 	priv->soc->swpriv = gsw;
+ 
+-	mt7621_hw_init(gsw, np);
+-
+ 	if (gsw->irq) {
+ 		request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
+ 			    "gsw", priv);
+-		mt7530_mdio_w32(gsw, 0x7008, 0x1f);
++		disable_irq(gsw->irq);
+ 	}
+ 
++	mt7621_hw_init(gsw, np);
++	if (gsw->irq)
++		enable_irq(gsw->irq);
+ 	return 0;
+ }
+ 
+ static int mt7621_gsw_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	const char *port4 = NULL;
+ 	struct mt7620_gsw *gsw;
+-	struct device_node *np;
+ 
+ 	gsw = devm_kzalloc(&pdev->dev, sizeof(struct mt7620_gsw), GFP_KERNEL);
+ 	if (!gsw)
+ 		return -ENOMEM;
+ 
+ 	gsw->base = devm_ioremap_resource(&pdev->dev, res);
+-	if (!gsw->base)
+-		return -EADDRNOTAVAIL;
++	if (IS_ERR(gsw->base))
++		return PTR_ERR(gsw->base);
+ 
+ 	gsw->dev = &pdev->dev;
+-
+-	of_property_read_string(np, "mediatek,port4", &port4);
+-	if (port4 && !strcmp(port4, "ephy"))
+-		gsw->port4 = PORT4_EPHY;
+-	else if (port4 && !strcmp(port4, "gmac"))
+-		gsw->port4 = PORT4_EXT;
+-	else
+-		gsw->port4 = PORT4_EPHY;
+-
+ 	gsw->irq = platform_get_irq(pdev, 0);
+ 
+ 	platform_set_drvdata(pdev, gsw);
+diff --git a/drivers/net/ethernet/mediatek/mdio.c b/drivers/net/ethernet/mediatek/mdio.c
+index 7cfbd8a0..0250db02 100644
+--- a/drivers/net/ethernet/mediatek/mdio.c
++++ b/drivers/net/ethernet/mediatek/mdio.c
+@@ -57,6 +57,7 @@ static void fe_phy_link_adjust(struct net_device *dev)
+ 			}
+ 		}
+ 	}
++	spin_unlock_irqrestore(&priv->phy->lock, flags);
+ }
+ 
+ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
+@@ -81,10 +82,10 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
+ 
+ 	phydev = of_phy_connect(priv->netdev, phy_node, fe_phy_link_adjust,
+ 				0, phy_mode);
+-	if (IS_ERR(phydev)) {
++	if (!phydev) {
+ 		dev_err(priv->device, "could not connect to PHY\n");
+ 		priv->phy->phy_node[port] = NULL;
+-		return PTR_ERR(phydev);
++		return -ENODEV;
+ 	}
+ 
+ 	phydev->supported &= PHY_GBIT_FEATURES;
+@@ -109,7 +110,8 @@ static void phy_init(struct fe_priv *priv, struct phy_device *phy)
+ 	phy->autoneg = AUTONEG_ENABLE;
+ 	phy->speed = 0;
+ 	phy->duplex = 0;
+-	phy->supported &= PHY_BASIC_FEATURES;
++	phy->supported &= IS_ENABLED(CONFIG_NET_MEDIATEK_MDIO_MT7620) ?
++			PHY_GBIT_FEATURES : PHY_BASIC_FEATURES;
+ 	phy->advertising = phy->supported | ADVERTISED_Autoneg;
+ 
+ 	phy_start_aneg(phy);
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+index 8c71a92f..d06c3bc7 100644
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -216,7 +216,7 @@ static void fe_clean_rx(struct fe_priv *priv)
+ 							 ring->rx_dma[i].rxd1,
+ 							 ring->rx_buf_size,
+ 							 DMA_FROM_DEVICE);
+-				put_page(virt_to_head_page(ring->rx_data[i]));
++				skb_free_frag(ring->rx_data[i]);
+ 			}
+ 
+ 		kfree(ring->rx_data);
+@@ -463,9 +463,9 @@ static struct rtnl_link_stats64 *fe_get_stats64(struct net_device *dev,
+ 	}
+ 
+ 	if (netif_running(dev) && netif_device_present(dev)) {
+-		if (spin_trylock(&hwstats->stats_lock)) {
++		if (spin_trylock_bh(&hwstats->stats_lock)) {
+ 			fe_stats_update(priv);
+-			spin_unlock(&hwstats->stats_lock);
++			spin_unlock_bh(&hwstats->stats_lock);
+ 		}
+ 	}
+ 
+@@ -544,7 +544,7 @@ static inline u32 fe_empty_txd(struct fe_tx_ring *ring)
+ 	barrier();
+ 	return (u32)(ring->tx_ring_size -
+ 			((ring->tx_next_idx - ring->tx_free_idx) &
+-			 (ring->tx_ring_size - 1)));
++			 (ring->tx_ring_size - 1)) - 1);
+ }
+ 
+ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
+@@ -834,7 +834,7 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
+ 			break;
+ 
+ 		/* alloc new buffer */
+-		new_data = netdev_alloc_frag(ring->frag_size);
++		new_data = napi_alloc_frag(ring->frag_size);
+ 		if (unlikely(!new_data)) {
+ 			stats->rx_dropped++;
+ 			goto release_desc;
+@@ -844,14 +844,14 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
+ 					  ring->rx_buf_size,
+ 					  DMA_FROM_DEVICE);
+ 		if (unlikely(dma_mapping_error(&netdev->dev, dma_addr))) {
+-			put_page(virt_to_head_page(new_data));
++			skb_free_frag(new_data);
+ 			goto release_desc;
+ 		}
+ 
+ 		/* receive data */
+ 		skb = build_skb(data, ring->frag_size);
+ 		if (unlikely(!skb)) {
+-			put_page(virt_to_head_page(new_data));
++			skb_free_frag(new_data);
+ 			goto release_desc;
+ 		}
+ 		skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
+@@ -1003,7 +1003,7 @@ static int fe_poll(struct napi_struct *napi, int budget)
+ 			goto poll_again;
+ 		}
+ 
+-		napi_complete(napi);
++		napi_complete_done(napi, rx_done);
+ 		fe_int_enable(tx_intr | rx_intr);
+ 	} else {
+ 		rx_done = budget;
+@@ -1467,7 +1467,7 @@ static int fe_probe(struct platform_device *pdev)
+ 		soc->reg_table = fe_reg_table;
+ 
+ 	fe_base = devm_ioremap_resource(&pdev->dev, res);
+-	if (!fe_base) {
++	if (IS_ERR(fe_base)) {
+ 		err = -EADDRNOTAVAIL;
+ 		goto err_out;
+ 	}
+@@ -1535,8 +1535,9 @@ static int fe_probe(struct platform_device *pdev)
+ 	priv->tx_ring.tx_ring_size = NUM_DMA_DESC;
+ 	priv->rx_ring.rx_ring_size = NUM_DMA_DESC;
+ 	INIT_WORK(&priv->pending_work, fe_pending_work);
++	u64_stats_init(&priv->hw_stats->syncp);
+ 
+-	napi_weight = 32;
++	napi_weight = 16;
+ 	if (priv->flags & FE_FLAG_NAPI_WEIGHT) {
+ 		napi_weight *= 4;
+ 		priv->tx_ring.tx_ring_size *= 4;
