@@ -3,13 +3,8 @@
 [ -f ".config" ] && { make dirclean; rm -f ".config"; }
 [ -f ".config.old" ] && rm -f ".config.old"
 
-build_dir_path="$(pwd)/build_dir"
-mount_record=`mount | grep "${build_dir_path}"`
-[ -n "${mount_record}" ] && {
-	echo "111111" | sudo -S umount ${build_dir_path} 
-	echo ""
-}
-
+./umount_build_dir.sh
+rm -rf build_dir
 ./clean_all.sh
 
 my_ver="$(cat version)"
