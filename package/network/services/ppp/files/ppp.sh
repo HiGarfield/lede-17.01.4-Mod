@@ -120,6 +120,8 @@ ppp_generic_setup() {
 		}
 	}
 
+	[ -n "$keepalive" ] || keepalive="5 1"
+
 	local lcp_failure="${keepalive%%[, ]*}"
 	local lcp_interval="${keepalive##*[, ]}"
 	local lcp_adaptive="lcp-echo-adaptive"
@@ -223,7 +225,7 @@ proto_pppoe_setup() {
 	json_get_var service service
 	json_get_var host_uniq host_uniq
 
-#By 蝈蝈：并发拨号同步的前期准备
+	#By 蝈蝈：并发拨号同步的前期准备
 	syncppp_option=""
 	[ "$(uci get syncdial.config.enabled)" == "1" ] && {
 		ppp_if_cnt=$(cat /etc/config/network | grep -c "proto 'pppoe'")
