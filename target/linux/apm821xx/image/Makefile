@@ -70,7 +70,7 @@ endef
 
 define Device/mr24
   DEVICE_TITLE := Cisco Meraki MR24
-  DEVICE_PACKAGES := kmod-spi-gpio kmod-ath9k wpad-mini
+  DEVICE_PACKAGES := kmod-spi-gpio
   DEVICE_PROFILE := MR24
   DEVICE_DTS := MR24
   BLOCKSIZE := 63k
@@ -90,8 +90,8 @@ TARGET_DEVICES += mr24
 
 define Device/mx60
   DEVICE_TITLE := Cisco Meraki MX60
-  DEVICE_PACKAGES := kmod-spi-gpio swconfig kmod-usb-ledtrig-usbport \
-	kmod-usb-dwc2 kmod-usb-storage block-mount
+  DEVICE_PACKAGES := kmod-spi-gpio kmod-usb-ledtrig-usbport kmod-usb-dwc2 \
+  kmod-usb-storage block-mount
   DEVICE_PROFILE := MX60
   DEVICE_DTS := MX60
   BLOCKSIZE := 63k
@@ -101,13 +101,10 @@ define Device/mx60
   # otherwise the final image will fail to boot. This is set within the
   # MX60 kernel header definition which is found at
   # ./tools/firmware-utils/src/mkmerakifw.c, line 103~
-  KERNEL_SIZE := 2984k
+  KERNEL_SIZE := 4031k
   IMAGE_SIZE := 1021m
   KERNEL := kernel-bin | gzip | uImage gzip | MerakiAdd-dtb | MerakiNAND
-  KERNEL_INITRAMFS := copy-file $(KDIR)/vmlinux | gzip | uImage gzip | \
-		      check-size $$(KERNEL_SIZE) | \
-		      MerakiAdd-dtb | pad-to 2047k | MerakiAdd-initramfs | \
-		      MerakiNAND
+  KERNEL_INITRAMFS := kernel-bin | gzip | dtb | wndr4700-specialImage gzip
   IMAGE/sysupgrade.tar := sysupgrade-tar
   UBINIZE_OPTS := -E 5
 endef
@@ -116,7 +113,6 @@ TARGET_DEVICES += mx60
 define Device/mx60w
 $(Device/mx60)
   DEVICE_TITLE := Cisco Meraki MX60W
-  DEVICE_PACKAGES += kmod-ath9k wpad-mini
 endef
 TARGET_DEVICES += mx60w
 
@@ -178,10 +174,10 @@ endef
 define Device/WNDR4700
   DEVICE_TITLE := Netgear Centria N900 WNDR4700/WNDR4720
   DEVICE_PACKAGES := badblocks block-mount e2fsprogs \
-	kmod-ath9k kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
+	kmod-dm kmod-fs-ext4 kmod-fs-vfat kmod-usb-ledtrig-usbport \
 	kmod-md-mod kmod-nls-cp437 kmod-nls-iso8859-1 kmod-nls-iso8859-15 \
 	kmod-nls-utf8 kmod-usb3 kmod-usb-dwc2 kmod-usb-storage \
-	partx-utils swconfig wpad-mini
+	partx-utils
   DEVICE_NAME := wndr4700
   DEVICE_PROFILE := wndr4700
   DEVICE_DTS := wndr4700
