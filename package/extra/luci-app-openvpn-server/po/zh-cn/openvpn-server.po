@@ -16,20 +16,17 @@ msgstr "端口"
 msgid "WAN DDNS or IP"
 msgstr "WAN口的 DDNS域名 或者 IP"
 
-
 msgid "Client Network"
 msgstr "客户端网段"
 
 msgid "VPN Client Network IP with subnet"
 msgstr "客户端分配的网段地址（默认为 10.8.0.0 255.255.255.0）"
 
-
 msgid "Client Settings"
 msgstr "客户端推送配置"
 
 msgid "OpenVPN Client config file"
 msgstr "OpenVPN 客户端配置文件"
-
 
 msgid "Download .ovpn file"
 msgstr "一键下载 .ovpn 文件"
@@ -48,3 +45,51 @@ msgstr "根据路由的实际LAN IP 修改 route 192.168.0.0 255.255.255.0 和 d
 
 msgid "OpenVPN status"
 msgstr "OpenVPN 服务器运行状态"
+
+msgid "Running log"
+msgstr "运行日志"
+
+msgid "Login log"
+msgstr "登陆日志"
+
+msgid "user password verify"
+msgstr "帐号密码验证"
+
+msgid "Default: /etc/openvpn/server/checkpsw.sh via-env, leave it empty to disable"
+msgstr "默认设置:/etc/openvpn/server/checkpsw.sh via-env,留空禁用"
+
+msgid "script_security: to use with user and password"
+msgstr "script_security配合帐号密码验证使用"
+
+msgid "Default 3, leave it empty to disable"
+msgstr "默认设置:3,留空禁用"
+
+msgid "This option allows multiple clients to connect using the same certificate and key and assign different IP addresses"
+msgstr "这个选项允许多个客户端使用相同的证书和密钥进行连接，并分配不同的 IP"
+
+msgid "Allow clients to see each other, otherwise multiple clients can only access the server and cannot connect to each other"
+msgstr "允许客户端之间相互可见，否则多个客户端只能看到服务器，而看不到彼此"
+
+msgid "After this option is enabled, the client does not need cert and key. If this option is not enabled, cert and key and user password double verification are required."
+msgstr "打开后客户端则不需要cert和key,不打开则需要cert和key以及帐号密码双重验证"
+
+msgid "If you use user password verification only, remember to delete the key and cert."
+msgstr "如果使用单独帐号密码验证,一定要记得删除key和cert内容"
+
+msgid "Client code"
+msgstr "客户端代码"
+
+msgid "Here is the code that you want to add to the .ovpn file. If you use user password verification, you need to add auth-user-pass"
+msgstr "想要加入到.ovpn文件里的代码,如果使用帐号密码验证则需要加入auth-user-pass"
+
+msgid "User and password"
+msgstr "帐号密码"
+
+msgid "Each line contains a pair of user and password, separated by a space"
+msgstr "每行一组帐号密码,帐号密码中间空格隔开"
+
+msgid "Verification script"
+msgstr "认证脚本"
+
+msgid "Use the UserName provided by the client as the Common Name"
+msgstr "使用客户提供的UserName作为Common Name"

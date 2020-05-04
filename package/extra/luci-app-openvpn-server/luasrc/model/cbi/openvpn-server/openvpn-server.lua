@@ -1,9 +1,11 @@
 
 --require("luci.tools.webadmin")
 
-mp = Map("openvpn", "OpenVPN Server","")
+mp = Map("openvpn", "OpenVPN Server",translate("An easy config OpenVPN Server Web-UI"))
 
-s = mp:section(TypedSection, "openvpn", "", translate("An easy config OpenVPN Server Web-UI"))
+mp:section(SimpleSection).template  = "openvpn/openvpn_status"
+
+s = mp:section(TypedSection, "openvpn")
 s.anonymous = true
 s.addremove = false
 
@@ -25,26 +27,40 @@ localnet.description = translate("VPN Client Network IP with subnet")
 
 proto = s:taboption("basic",Value,"proto", translate("proto"))
 proto.datatype = "string"
-proto.default ="tcp-server"
+proto:value("tcp4")
+proto:value("udp4")
+proto:value("tcp6")
+proto:value("udp6")
+proto.default ="tcp4"
 
 comp_lzo = s:taboption("basic",Value,"comp_lzo", translate("comp_lzo"))
 comp_lzo.datatype = "string"
+comp_lzo:value("adaptive")
+comp_lzo:value("yes")
+comp_lzo:value("no")
 comp_lzo.default="adaptive"
-comp_lzo.description = translate("yes,no,adaptive")
+comp_lzo.description = translate("compess data")
 
 
-auth_user_pass_verify = s:taboption("basic",Value,"auth_user_pass_verify", translate("帐号密码验证"))
+auth_user_pass_verify = s:taboption("basic",Value,"auth_user_pass_verify", translate("user password verify"))
 auth_user_pass_verify.datatype = "string"
-auth_user_pass_verify.description = translate("默认设置:/etc/openvpn/server/checkpsw.sh via-env,留空禁用")
+auth_user_pass_verify.description = translate("Default: /etc/openvpn/server/checkpsw.sh via-env, leave it empty to disable")
 
-script_security = s:taboption("basic",Value,"script_security", translate("script_security配合帐号密码验证使用"))
+script_security = s:taboption("basic",Value,"script_security", translate("script_security: to use with user and password"))
 script_security.datatype = "range(1,3)"
-script_security.description = translate("默认设置:3,留空禁用")
+script_security:value("1")
+script_security:value("2")
+script_security:value("3")
+script_security.description = translate("Default 3, leave it empty to disable")
 
 duplicate_cn = s:taboption("basic",Flag,"duplicate_cn", translate("duplicate_cn"))
+duplicate_cn.description = translate("This option allows multiple clients to connect using the same certificate and key and assign different IP addresses")
+client_to_client = s:taboption("basic",Flag,"client_to_client", translate("client-to-client"))
+client_to_client.description = translate("Allow clients to see each other, otherwise multiple clients can only access the server and cannot connect to each other")
 username_as_common_name = s:taboption("basic",Flag,"username_as_common_name", translate("username_as_common_name"))
+username_as_common_name.description = translate("Use the UserName provided by the client as the Common Name")
 client_cert_not_required = s:taboption("basic",Flag,"client_cert_not_required", translate("client_cert_not_required"))
-client_cert_not_required.description = translate("打开后客户端则不需要cert和key,不打开则需要cert和key以及帐号密码双重验证")
+client_cert_not_required.description = translate("After this option is enabled, the client does not need cert and key. If this option is not enabled, cert and key and user password double verification are required.")
 
 list = s:taboption("basic", DynamicList, "push")
 list.title = translate("Client Settings")
@@ -55,18 +71,18 @@ list.description = translate("Set route 192.168.0.0 255.255.255.0 and dhcp-optio
 local o
 o = s:taboption("basic", Button,"certificate",translate("OpenVPN Client config file"))
 o.inputtitle = translate("Download .ovpn file")
-o.description = translate("如果使用单独帐号密码验证,一定要记得删除key和cert内容")
+o.description = translate("If you use user password verification only, remember to delete the key and cert.")
 o.inputstyle = "reload"
 o.write = function()
   luci.sys.call("sh /etc/genovpn.sh 2>&1 >/dev/null")
 	Download()
 end
 
-s:tab("code",  translate("客户端代码"))
+s:tab("code",  translate("Client code"))
 local conf = "/etc/ovpnadd.conf"
 local NXFS = require "nixio.fs"
 o = s:taboption("code", TextValue, "conf")
-o.description = translate("想要加入到.ovpn文件里的代码,如果使用帐号密码验证则需要加入auth-user-pass")
+o.description = translate("Here is the code that you want to add to the .ovpn file. If you use user password verification, you need to add auth-user-pass")
 o.rows = 13
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -76,12 +92,11 @@ o.write = function(self, section, value)
 	NXFS.writefile(conf, value:gsub("\r\n", "\n"))
 end
 
-
-s:tab("passwordfile",  translate("帐号密码"))
+s:tab("passwordfile",  translate("User and password"))
 local pass = "/etc/openvpn/server/psw-file"
 local NXFS = require "nixio.fs"
 o = s:taboption("passwordfile", TextValue, "pass")
-o.description = translate("user_password一排一组帐号密码,帐号密码中间空格隔开")
+o.description = translate("Each line contains a pair of user and password, separated by a space")
 o.rows = 13
 o.wrap = "off"
 o.cfgvalue = function(self, section)
@@ -91,6 +106,19 @@ o.write = function(self, section, value)
 	NXFS.writefile(pass, value:gsub("\r\n", "\n"))
 end
 
+s:tab("checkpsw",  translate("Verification script"))
+local checkpswconf = "/etc/openvpn/server/checkpsw.sh"
+local NXFS = require "nixio.fs"
+o = s:taboption("checkpsw", TextValue, "checkpswconf")
+o.description = translate("Verification script")
+o.rows = 13
+o.wrap = "off"
+o.cfgvalue = function(self, section)
+	return NXFS.readfile(checkpswconf) or ""
+end
+o.write = function(self, section, value)
+	NXFS.writefile(checkpswconf, value:gsub("\r\n", "\n"))
+end
 
 local pid = luci.util.exec("/usr/bin/pgrep openvpn")
 

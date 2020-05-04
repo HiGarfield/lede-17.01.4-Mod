@@ -1,7 +1,7 @@
 
 config openvpn 'myvpn'
 	option enabled '0'
-	option proto 'tcp-server'
+	option proto 'tcp4'
 	option dev 'tun'
 	option topology 'subnet'
 	option server '10.8.0.0 255.255.255.0'
@@ -25,4 +25,3 @@ config openvpn 'myvpn'
 	list push 'comp-lzo adaptive'
 	list push 'redirect-gateway def1 bypass-dhcp'
 	list push 'dhcp-option DNS 192.168.1.1'
-

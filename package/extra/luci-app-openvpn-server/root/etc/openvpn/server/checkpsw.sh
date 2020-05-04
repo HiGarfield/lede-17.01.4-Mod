@@ -12,7 +12,7 @@ LOG_FILE="/var/etc/openvpn/openvpn-password.log"
 TIME_STAMP=`date "+%Y-%m-%d %T"`
 
 ###########################################################
-mkdir -p "$(dirname $LOG_FILE)"
+mkdir -p "$(dirname "$LOG_FILE")"
 
 if [ ! -r "${PASSFILE}" ]; then
   echo "${TIME_STAMP}: Could not open password file \"${PASSFILE}\" for reading." >> ${LOG_FILE}

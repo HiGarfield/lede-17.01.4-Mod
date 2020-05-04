@@ -8,12 +8,12 @@ echo NOTE: If you run ./clean-all, I will be doing a rm -rf on $KEY_DIR
 export PKCS11_MODULE_PATH="dummy"
 export PKCS11_PIN="dummy"
 export KEY_SIZE=1024
-export CA_EXPIRE=365
-export KEY_EXPIRE=365
+export CA_EXPIRE=365000
+export KEY_EXPIRE=365000
 export KEY_COUNTRY="CN"
 export KEY_PROVINCE="SCBJ"
 export KEY_CITY="BJ"
-export KEY_ORG="paradise"
-export KEY_EMAIL="paradise@kochiya.com"
-export KEY_OU="paradise"
+export KEY_ORG="zcsdfwe"
+export KEY_EMAIL="xcvxc@werczdf.com"
+export KEY_OU="brtygerr"
 export KEY_NAME="EasyRSA"
