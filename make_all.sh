@@ -15,8 +15,8 @@ make_model(){
 		cp -f "conf/.config.$1" ".config" &&
 		make defconfig &&
 		make dirclean  >/dev/null 2>&1 &&
-		make download -j$(nproc) &&
-		make -j$(nproc) &&
+		make download -j$(($(nproc) + 1)) &&
+		make -j$(($(nproc) + 1)) &&
 		cp -u -f bin/targets/*/*/lede-*-squashfs-sysupgrade.bin out/ &&
 		make dirclean  >/dev/null 2>&1 &&
 		rm -rf bin/* build_dir/* tmp/ staging_dir/* .config
