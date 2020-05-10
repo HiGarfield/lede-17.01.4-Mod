@@ -44,8 +44,8 @@ jobs:
     - name: Compile firmware
       id: compile
       run: |
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 V=s
+        echo -e "$(($(nproc) + 1)) thread compile"
+        make -j$(($(nproc) + 1)) || make -j1 V=s
         mkdir out
         cp -u -f bin/targets/*/*/lede-*-squashfs-sysupgrade.bin out/
         echo "::set-output name=status::success"
