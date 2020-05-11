@@ -43,7 +43,7 @@ uci -q batch <<-EOF >/dev/null
 	commit firewall
 EOF
 
-chmod 0777 /etc/openvpn/server/checkpsw.sh
+/etc/init.d/network reload
 
 rm -f /tmp/luci-indexcache
 exit 0

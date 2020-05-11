@@ -40,8 +40,8 @@ msgstr "特殊代码"
 msgid "(!)Special Code you know that add in to client .ovpn file"
 msgstr "(!)特殊代码将自动合并到客户端的 .ovpn 配置文件中"
 
-msgid "Set route 192.168.0.0 255.255.255.0 and dhcp-option DNS 192.168.0.1 base on your router"
-msgstr "根据路由的实际LAN IP 修改 route 192.168.0.0 255.255.255.0 和 dhcp-option DNS 192.168.0.1 这两行"
+msgid "Set route 192.168.1.0 255.255.255.0 and dhcp-option DNS 192.168.1.1 base on your router"
+msgstr "根据路由的实际LAN IP 修改 route 192.168.1.0 255.255.255.0 和 dhcp-option DNS 192.168.1.1 这两行"
 
 msgid "OpenVPN status"
 msgstr "OpenVPN 服务器运行状态"

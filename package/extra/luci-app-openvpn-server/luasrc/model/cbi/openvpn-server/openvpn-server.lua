@@ -65,7 +65,7 @@ client_cert_not_required.description = translate("After this option is enabled, 
 list = s:taboption("basic", DynamicList, "push")
 list.title = translate("Client Settings")
 list.datatype = "string"
-list.description = translate("Set route 192.168.0.0 255.255.255.0 and dhcp-option DNS 192.168.0.1 base on your router")
+list.description = translate("Set route 192.168.1.0 255.255.255.0 and dhcp-option DNS 192.168.1.1 base on your router")
 
 
 local o
