@@ -39,6 +39,12 @@
 			gpios = <&gpio0 16 1>;
 		};
 
+		usb {
+			label = "newifi-d2:blue:usb";
+			gpios = <&gpio0 10 1>;
+			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
+			linux,default-trigger = "usbport";
+		};
 	};
 
 	gpio-keys-polled {
