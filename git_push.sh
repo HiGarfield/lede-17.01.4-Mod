@@ -6,7 +6,7 @@
 	ver_num=$(cat version)
 	git add . &&
 	git commit -m "$ver_num"
-	git push origin master &&
+	git push origin master --force &&
 	./make_tar.sh
 } || exit 1
 
