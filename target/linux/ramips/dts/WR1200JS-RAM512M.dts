@@ -34,6 +34,8 @@
 		usb {
 			label = "wr1200js-ram512m:blue:usb";
 			gpios = <&gpio0 8 1>;
+			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
+			linux,default-trigger = "usbport";
 		};
 	};
 
