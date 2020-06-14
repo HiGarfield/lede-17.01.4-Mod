@@ -1,0 +1,151 @@
+diff --git a/include/linux/gfp.h b/include/linux/gfp.h
+index 8942af08..100542f1 100644
+--- a/include/linux/gfp.h
++++ b/include/linux/gfp.h
+@@ -492,9 +492,14 @@ extern void free_hot_cold_page(struct page *page, bool cold);
+ extern void free_hot_cold_page_list(struct list_head *list, bool cold);
+ 
+ struct page_frag_cache;
++extern void __page_frag_cache_drain(struct page *page,
++										unsigned int count);
+ extern void *__alloc_page_frag(struct page_frag_cache *nc,
+ 			       unsigned int fragsz, gfp_t gfp_mask);
++extern void *page_frag_alloc(struct page_frag_cache *nc,
++			       unsigned int fragsz, gfp_t gfp_mask);
+ extern void __free_page_frag(void *addr);
++extern void page_frag_free(void *addr);
+ 
+ extern void __free_kmem_pages(struct page *page, unsigned int order);
+ extern void free_kmem_pages(unsigned long addr, unsigned int order);
+diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
+index 0a93e9d1..ef1e9404 100644
+--- a/include/linux/rcupdate.h
++++ b/include/linux/rcupdate.h
+@@ -811,6 +811,22 @@ static inline void rcu_preempt_sleep_check(void)
+  */
+ #define rcu_pointer_handoff(p) (p)
+ 
++/**
++ * rcu_swap_protected() - swap an RCU and a regular pointer
++ * @rcu_ptr: RCU pointer
++ * @ptr: regular pointer
++ * @c: the conditions under which the dereference will take place
++ *
++ * Perform swap(@rcu_ptr, @ptr) where @rcu_ptr is an RCU-annotated pointer and
++ * @c is the argument that is passed to the rcu_dereference_protected() call
++ * used to read that pointer.
++ */
++#define rcu_swap_protected(rcu_ptr, ptr, c) do {			\
++	typeof(ptr) __tmp = rcu_dereference_protected((rcu_ptr), (c));	\
++	rcu_assign_pointer((rcu_ptr), (ptr));				\
++	(ptr) = __tmp;							\
++} while (0)
++
+ /**
+  * rcu_read_lock() - mark the beginning of an RCU read-side critical section
+  *
+diff --git a/mm/page_alloc.c b/mm/page_alloc.c
+index 9535d3e3..d8ad2e02 100644
+--- a/mm/page_alloc.c
++++ b/mm/page_alloc.c
+@@ -3400,6 +3400,20 @@ static struct page *__page_frag_refill(struct page_frag_cache *nc,
+ 	return page;
+ }
+ 
++void __page_frag_cache_drain(struct page *page, unsigned int count)
++{
++	VM_BUG_ON_PAGE(atomic_read(&page->_count) == 0, page);
++	if (atomic_sub_and_test(count, &page->_count)) {
++		unsigned int order = compound_order(page);
++
++		if (order == 0)
++			free_hot_cold_page(page, false);
++		else
++			__free_pages_ok(page, order);
++	}
++}
++EXPORT_SYMBOL(__page_frag_cache_drain);
++
+ void *__alloc_page_frag(struct page_frag_cache *nc,
+ 			unsigned int fragsz, gfp_t gfp_mask)
+ {
+@@ -3454,6 +3468,60 @@ refill:
+ }
+ EXPORT_SYMBOL(__alloc_page_frag);
+ 
++void *page_frag_alloc(struct page_frag_cache *nc,
++		      unsigned int fragsz, gfp_t gfp_mask)
++{
++	unsigned int size = PAGE_SIZE;
++	struct page *page;
++	int offset;
++
++	if (unlikely(!nc->va)) {
++refill:
++		page = __page_frag_refill(nc, gfp_mask);
++		if (!page)
++			return NULL;
++
++#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
++		/* if size can vary use size else just use PAGE_SIZE */
++		size = nc->size;
++#endif
++		/* Even if we own the page, we do not use atomic_set().
++		 * This would break get_page_unless_zero() users.
++		 */
++		atomic_add(size - 1, &page->_count);
++
++		/* reset page count bias and offset to start of new frag */
++		nc->pfmemalloc = page_is_pfmemalloc(page);
++		nc->pagecnt_bias = size;
++		nc->offset = size;
++	}
++
++	offset = nc->offset - fragsz;
++	if (unlikely(offset < 0)) {
++		page = virt_to_page(nc->va);
++
++		if (!atomic_sub_and_test(nc->pagecnt_bias, &page->_count))
++			goto refill;
++
++#if (PAGE_SIZE < PAGE_FRAG_CACHE_MAX_SIZE)
++		/* if size can vary use size else just use PAGE_SIZE */
++		size = nc->size;
++#endif
++		/* OK, page count is 0, we can safely set it */
++		atomic_set(&page->_count, size);
++
++		/* reset page count bias and offset to start of new frag */
++		nc->pagecnt_bias = size;
++		offset = size - fragsz;
++	}
++
++	nc->pagecnt_bias--;
++	nc->offset = offset;
++
++	return nc->va + offset;
++}
++EXPORT_SYMBOL(page_frag_alloc);
++
+ /*
+  * Frees a page fragment allocated out of either a compound or order 0 page.
+  */
+@@ -3466,6 +3534,18 @@ void __free_page_frag(void *addr)
+ }
+ EXPORT_SYMBOL(__free_page_frag);
+ 
++/*
++ * Frees a page fragment allocated out of either a compound or order 0 page.
++ */
++void page_frag_free(void *addr)
++{
++	struct page *page = virt_to_head_page(addr);
++
++	if (unlikely(put_page_testzero(page)))
++		__free_pages_ok(page, compound_order(page));
++}
++EXPORT_SYMBOL(page_frag_free);
++
+ /*
+  * alloc_kmem_pages charges newly allocated pages to the kmem resource counter
+  * of the current memory cgroup.
