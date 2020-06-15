@@ -82,7 +82,10 @@ detect_mac80211() {
 		ht_capab=""
 
 		iw phy "$dev" info | grep -q 'Capabilities:' && htmode="HT40"
-		iw phy "$dev" info | grep -q '2412 MHz' || { mode_band="a"; channel="auto"; }
+		iw phy "$dev" info | grep -q '2412 MHz' || {
+			mode_band="a"
+			htmode=""
+		}
 
 		# LEDE 17.01中QCA9558使用HT40频宽会导致2.4GHz丢失
 		grep -q '^MODALIAS=platform:qca955x_wmac$' "/sys/class/ieee80211/${dev}/device/uevent" && htmode="HT20"
@@ -91,17 +94,16 @@ detect_mac80211() {
 		cap_5ghz=$(iw phy "$dev" info | grep -c "Band 2")
 		[ "$vht_cap" -gt 0 -a "$cap_5ghz" -gt 0 ] && {
 			mode_band="a";
-			channel="auto"
 			htmode="VHT80"
 		}
 		
 		wifi_5ghz=""
-		[ "$mode_band" == "a" ] && wifi_5ghz="_5G"
+		[ "$mode_band" = "a" ] && wifi_5ghz="_5G"
 
 		[ -n "$htmode" ] && ht_capab="set wireless.radio${devidx}.htmode=${htmode}"
 
 		ht40_noscan=""		
-		[ "$htmode" == "HT40" ] && ht40_noscan="set wireless.radio${devidx}.noscan=1"
+		[ "$htmode" = "HT40" ] && ht40_noscan="set wireless.radio${devidx}.noscan=1"
 
 		if [ -x /usr/bin/readlink -a -h /sys/class/ieee80211/${dev} ]; then
 			path="$(readlink -f /sys/class/ieee80211/${dev}/device)"
@@ -118,7 +120,7 @@ detect_mac80211() {
 			dev_id="set wireless.radio${devidx}.macaddr=$(cat /sys/class/ieee80211/${dev}/macaddress)"
 		fi
 
-		mac_addr=`cat /sys/class/ieee80211/${dev}/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z`
+		mac_addr="$(cat /sys/class/ieee80211/${dev}/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)"
 		ssid_name="LEDE_${mac_addr}${wifi_5ghz}"
 
 		uci -q batch <<-EOF
