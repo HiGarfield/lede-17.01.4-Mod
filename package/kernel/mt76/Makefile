@@ -143,18 +143,10 @@ define KernelPackage/mt7603
   AUTOLOAD:=$(call AutoProbe,mt7603e)
 endef
 
-define KernelPackage/mt7615-common
-  $(KernelPackage/mt76-default)
-  TITLE:=MediaTek MT7615 wireless driver common code
-  HIDDEN:=1
-  DEPENDS+=@PCI_SUPPORT +kmod-mt76-core
-  FILES:= $(PKG_BUILD_DIR)/mt7615/mt7615-common.ko
-endef
-
 define KernelPackage/mt7615e
   $(KernelPackage/mt76-default)
-  TITLE:=MediaTek MT7615e wireless driver
-  DEPENDS+=@PCI_SUPPORT +kmod-mt7615-common
+  TITLE:=MediaTek MT7615 wireless driver
+  DEPENDS+=@PCI_SUPPORT +kmod-mt76-core
   FILES:=\
 	$(PKG_BUILD_DIR)/mt7615/mt7615e.ko
   AUTOLOAD:=$(call AutoProbe,mt7615e)
@@ -202,9 +194,6 @@ ifdef CONFIG_PACKAGE_kmod-mt76x2u
 endif
 ifdef CONFIG_PACKAGE_kmod-mt7603
   PKG_MAKE_FLAGS += CONFIG_MT7603E=m
-endif
-ifdef CONFIG_PACKAGE_kmod-mt7615-common
-  PKG_MAKE_FLAGS += CONFIG_MT7615_COMMON=m
 endif
 ifdef CONFIG_PACKAGE_kmod-mt7615e
   PKG_MAKE_FLAGS += CONFIG_MT7615E=m
@@ -290,6 +279,5 @@ $(eval $(call KernelPackage,mt76x2-common))
 $(eval $(call KernelPackage,mt76x2u))
 $(eval $(call KernelPackage,mt76x2))
 $(eval $(call KernelPackage,mt7603))
-$(eval $(call KernelPackage,mt7615-common))
 $(eval $(call KernelPackage,mt7615e))
 $(eval $(call KernelPackage,mt76))
