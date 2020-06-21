@@ -72,6 +72,10 @@ CONFIGURE_ARGS += \
 TARGET_CXXFLAGS += -ffunction-sections -fdata-sections -flto 
 TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto 
 
+define Package/aria2/conffiles
+/etc/config/aria2
+endef
+
 define Package/aria2/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/aria2c $(1)/usr/bin
