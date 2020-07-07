@@ -23,11 +23,11 @@ load_sfe_cm() {
 	fi
 
 	if [ -e /lib/modules/$kernel_version/shortcut-fe-cm.ko ] && [ ! -d /sys/module/shortcut_fe_cm ]; then
-		insmod /lib/modules/$kernel_version/shortcut-fe-cm.ko
+		insmod /lib/modules/$kernel_version/shortcut-fe-cm.ko && return
 	fi 
 
 	if [ -e /lib/modules/$kernel_version/fast-classifier.ko ] && [ ! -d /sys/module/fast_classifier ]; then
-		insmod /lib/modules/$kernel_version/fast-classifier.ko
+		insmod /lib/modules/$kernel_version/fast-classifier.ko && return
 	fi
 }
 
