@@ -125,12 +125,12 @@ o:depends("task_speed_limit", "1")
 o = s:taboption("task", Value, "max_concurrent_downloads", translate("Max concurrent downloads"))
 o.placeholder = "5"
 
-o = s:taboption("task", Value, "max_connection_per_server", translate("Max connection per server"), "1-128")
-o.datetype = "range(1, 16)"
+o = s:taboption("task", Value, "max_connection_per_server", translate("Max connection per server"), "1-1024")
+o.datetype = "range(1, 1024)"
 o.placeholder = "1"
 
-o = s:taboption("task", Value, "min_split_size", translate("Min split size"), "1M-1024M")
-o.placeholder = "20M"
+o = s:taboption("task", Value, "min_split_size", translate("Min split size"), "1K-1024M")
+o.placeholder = "100K"
 
 o = s:taboption("task", Value, "split", translate("Max number of split"))
 o.placeholder = "5"
