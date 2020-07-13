@@ -126,7 +126,7 @@ o = s:taboption("task", Value, "max_concurrent_downloads", translate("Max concur
 o.placeholder = "5"
 
 o = s:taboption("task", Value, "max_connection_per_server", translate("Max connection per server"), "1-1024")
-o.datetype = "range(1, 1024)"
+o.datatype = "range(1, 1024)"
 o.placeholder = "1"
 
 o = s:taboption("task", Value, "min_split_size", translate("Min split size"), "1K-1024M")
