@@ -9,11 +9,6 @@
 	compatible = "a3004ns", "mediatek,mt7621-soc";
 	model = "A3004NS";
 
-	memory@0 {
-		device_type = "memory";
-		reg = <0x0 0x10000000>;
-	};
-
 	chosen {
 		bootargs = "console=ttyS0,115200";
 	};
