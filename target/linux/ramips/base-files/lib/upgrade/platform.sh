@@ -105,8 +105,6 @@ platform_check_image() {
 	ghl-r-001|\
 	a3004ns|\
 	wr1200js|\
-	wr1200js-ram256m|\
-	wr1200js-ram512m|\
 	nixcore|\
 	nw718|\
 	omega2|\

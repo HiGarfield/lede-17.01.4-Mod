@@ -27,8 +27,6 @@ w2914nsv2|\
 wf-2881)
 	set_usb_led "$board:green:usb"
 	;;
-wr1200js-ram256m|\
-wr1200js-ram512m|\
 wr1200js)
 	set_usb_led "$boardname:blue:usb"
 	ucidef_set_led_switch "internet" "INTERNET" "$boardname:blue:internet" "switch0" "0x01"

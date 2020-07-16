@@ -77,8 +77,6 @@ CONFIG_TARGET_ramips_mt7621=y
 # CONFIG_TARGET_ramips_mt7621_DEVICE_11acnas is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_w2914nsv2 is not set
 CONFIG_TARGET_ramips_mt7621_DEVICE_wr1200js=y
-# CONFIG_TARGET_ramips_mt7621_DEVICE_wr1200js-ram256m is not set
-# CONFIG_TARGET_ramips_mt7621_DEVICE_wr1200js-ram512m is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_zbt-wg2626 is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_zbt-wg3526 is not set
 CONFIG_HAS_SUBTARGETS=y
