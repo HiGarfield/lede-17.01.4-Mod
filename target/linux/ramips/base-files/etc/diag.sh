@@ -111,8 +111,6 @@ get_status_led() {
 		;;
 	cy-swr1100|\
 	w502u|\
-	wr1200js-ram256m|\
-	wr1200js-ram512m|\
 	wr1200js)
 		status_led="$board:blue:wps"
 		;;

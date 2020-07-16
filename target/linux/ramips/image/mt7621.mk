@@ -34,22 +34,6 @@ define Device/wr1200js
 endef
 TARGET_DEVICES += wr1200js
 
-define Device/wr1200js-ram256m
-  DTS := WR1200JS-RAM256M
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_TITLE := Youhua WR1200JS (256M RAM)
-  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
-endef
-TARGET_DEVICES += wr1200js-ram256m
-
-define Device/wr1200js-ram512m
-  DTS := WR1200JS-RAM512M
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_TITLE := Youhua WR1200JS (512M RAM)
-  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
-endef
-TARGET_DEVICES += wr1200js-ram512m
-
 define Device/a3004ns
   DTS := A3004NS
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
