@@ -21,7 +21,7 @@ define Package/default-settings
   CATEGORY:=LuCI
   TITLE:=LuCI support for Default Settings
   PKGARCH:=all
-  DEPENDS:=+luci-base +@LUCI_LANG_zh-cn +jsonfilter +netifd
+  DEPENDS:=+luci-base +@LUCI_LANG_en +@LUCI_LANG_zh-cn +jsonfilter +netifd
 endef
 
 define Package/default-settings/description
