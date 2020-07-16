@@ -9,11 +9,6 @@
 	compatible = "wr1200js", "mediatek,mt7621-soc";
 	model = "YouHua WR1200JS";
 
-	memory@0 {
-		device_type = "memory";
-		reg = <0x0 0x8000000>;
-	};
-
 	chosen {
 		bootargs = "console=ttyS0,115200";
 	};
