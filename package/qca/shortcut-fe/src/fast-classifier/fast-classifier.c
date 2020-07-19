@@ -480,10 +480,31 @@ static void fast_classifier_send_genl_msg(int msg, struct fast_classifier_tuple 
 {
 	struct sk_buff *skb;
 	int rc;
+	int buf_len;
+	int total_len;
 	void *msg_head;
 
-	skb = genlmsg_new(sizeof(*fc_msg) + fast_classifier_gnl_family.hdrsize,
-			  GFP_ATOMIC);
+	/*
+	 * Calculate our packet payload size.
+	 * Start with our family header.
+	 */
+	buf_len = fast_classifier_gnl_family.hdrsize;
+
+	/*
+	 * Add the nla_total_size of each attribute we're going to nla_put().
+	 */
+	buf_len += nla_total_size(sizeof(*fc_msg));
+
+	/*
+	 * Lastly we need to add space for the NL message header since
+	 * genlmsg_new only accounts for the GENL header and not the
+	 * outer NL header. To do this, we use a NL helper function which
+	 * calculates the total size of a netlink message given a payload size.
+	 * Note this value does not include the GENL header, but that's
+	 * added automatically by genlmsg_new.
+	 */
+	total_len = nlmsg_total_size(buf_len);
+	skb = genlmsg_new(total_len, GFP_ATOMIC);
 	if (!skb)
 		return;
 
