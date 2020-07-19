@@ -24,6 +24,7 @@
 #include <net/addrconf.h>
 #include <net/dsfield.h>
 #include <linux/inetdevice.h>
+#include <net/pkt_sched.h>
 #include <linux/netfilter_bridge.h>
 #include <linux/netfilter_ipv6.h>
 #include <net/netfilter/nf_conntrack_acct.h>
@@ -138,6 +139,16 @@ static int sfe_cm_recv(struct sk_buff *skb)
 	barrier();
 
 	dev = skb->dev;
+
+#ifdef CONFIG_NET_CLS_ACT
+	/*
+	 * If ingress Qdisc configured, and packet not processed by ingress Qdisc yet
+	 * We can not accelerate this packet.
+	 */
+	if (dev->ingress_queue && !(skb->tc_verd & TC_NCLS)) {
+		return 0;
+	}
+#endif
 
 	/*
 	 * We're only interested in IPv4 and IPv6 packets.
