@@ -23,22 +23,12 @@ define KernelPackage/$(PKG_NAME)
   $(call KernelPackage/$(PKG_NAME)/Default)
 endef
 
-define KernelPackage/$(PKG_NAME)-noload
-  $(call KernelPackage/$(PKG_NAME)/Default)
-endef
-
 define KernelPackage/$(PKG_NAME)/Default/description
 FAST Classifier talks to SFE to make decisions about offloading connections
 endef
 
 define KernelPackage/$(PKG_NAME)/description
 $(call KernelPackage/$(PKG_NAME)/Default/description)
-endef
-
-define KernelPackage/$(PKG_NAME)-noload/description
-$(call KernelPackage/$(PKG_NAME)/Default/description)
-
-This package does not load $(PKG_NAME) at boot by default
 endef
 
 TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
@@ -64,4 +54,3 @@ define Build/InstallDev
 endef
 
 $(eval $(call KernelPackage,$(PKG_NAME)))
-$(eval $(call KernelPackage,$(PKG_NAME)-noload))

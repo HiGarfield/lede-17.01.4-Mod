@@ -59,7 +59,7 @@ Simple connection manager for the Shortcut forwarding engine.
 endef
 
 TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
-EXTRA_CFLAGS+=-DSFE_SUPPORT_IPV6 -O3
+EXTRA_CFLAGS+=-DSFE_SUPPORT_IPV6
 
 define Build/Compile
 	$(MAKE) -C "$(LINUX_DIR)" \
