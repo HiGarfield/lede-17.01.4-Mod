@@ -342,7 +342,7 @@ static bool fast_classifier_find_dev_and_mac_addr(sfe_ip_addr_t *addr, struct ne
 	 * address from its neighbour structure.  This means this works when the
 	 * neighbours are routers too.
 	 */
-	if (is_v4) {
+	if (likely(is_v4)) {
 		rt = ip_route_output(&init_net, addr->ip, 0, 0, 0);
 		if (unlikely(IS_ERR(rt))) {
 			goto ret_fail;
@@ -862,7 +862,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 	/*
 	 * Get addressing information, non-NAT first
 	 */
-	if (is_v4) {
+	if (likely(is_v4)) {
 		u32 dscp;
 
 		sic.src_ip.ip = (__be32)orig_tuple.src.u3.ip;
