@@ -374,6 +374,7 @@ struct sfe_connection {
 	struct sfe_connection_create *sic;
 	struct nf_conn *ct;
 	int hits;
+	int offload_permit;
 	int offloaded;
 	bool is_v4;
 	unsigned char smac[ETH_ALEN];
@@ -650,7 +651,6 @@ fast_classifier_add_conn(struct sfe_connection *conn)
 static int
 fast_classifier_offload_genl_msg(struct sk_buff *skb, struct genl_info *info)
 {
-	int ret;
 	struct nlattr *na;
 	struct fast_classifier_tuple *fc_msg;
 	struct sfe_connection *conn;
@@ -682,29 +682,11 @@ fast_classifier_offload_genl_msg(struct sk_buff *skb, struct genl_info *info)
 		return 0;
 	}
 
-	if (conn->offloaded != 0) {
-		spin_unlock_bh(&sfe_connections_lock);
-		DEBUG_TRACE("GOT REQUEST TO OFFLOAD ALREADY OFFLOADED CONN FROM USERSPACE\n");
-		return 0;
-	}
-
-	DEBUG_TRACE("USERSPACE OFFLOAD REQUEST, MATCH FOUND, WILL OFFLOAD\n");
-	if (fast_classifier_update_protocol(conn->sic, conn->ct) == 0) {
-		spin_unlock_bh(&sfe_connections_lock);
-		DEBUG_TRACE("UNKNOWN PROTOCOL OR CONNECTION CLOSING, SKIPPING\n");
-		return 0;
-	}
+	conn->offload_permit = 1;
+	spin_unlock_bh(&sfe_connections_lock);
+	atomic_inc(&offload_msgs);
 
 	DEBUG_TRACE("INFO: calling sfe rule creation!\n");
-	spin_unlock_bh(&sfe_connections_lock);
-	ret = conn->is_v4 ? sfe_ipv4_create_rule(conn->sic) : sfe_ipv6_create_rule(conn->sic);
-	if ((ret == 0) || (ret == -EADDRINUSE)) {
-		conn->offloaded = 1;
-		fast_classifier_send_genl_msg(FAST_CLASSIFIER_C_OFFLOADED,
-					      fc_msg);
-	}
-
-	atomic_inc(&offload_msgs);
 	return 0;
 }
 
@@ -935,7 +917,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 		conn->hits++;
 
 		if (!conn->offloaded) {
-			if (conn->hits >= offload_at_pkts) {
+			if (conn->offload_permit || conn->hits >= offload_at_pkts) {
 				DEBUG_TRACE("OFFLOADING CONNECTION, TOO MANY HITS\n");
 
 				if (fast_classifier_update_protocol(conn->sic, conn->ct) == 0) {
@@ -1058,6 +1040,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 		goto done3;
 	}
 	conn->hits = 0;
+	conn->offload_permit = 0;
 	conn->offloaded = 0;
 	conn->is_v4 = is_v4;
 	DEBUG_TRACE("Source MAC=%pM\n", sic.src_mac);
