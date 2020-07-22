@@ -40,7 +40,7 @@ define Build/Compile/kmod
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
 		SUBDIRS="$(PKG_BUILD_DIR)/fast-classifier" \
-		EXTRA_CFLAGS="$(EXTRA_CFLAGS) -Wno-implicit-function-declaration -O3" \
+		EXTRA_CFLAGS="$(EXTRA_CFLAGS) -Wno-implicit-function-declaration" \
 		modules
 endef
 
