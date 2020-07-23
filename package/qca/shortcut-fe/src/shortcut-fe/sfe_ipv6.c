@@ -362,6 +362,7 @@ enum sfe_ipv6_exception_events {
 	SFE_IPV6_EXCEPTION_EVENT_IP_OPTIONS_INCOMPLETE,
 	SFE_IPV6_EXCEPTION_EVENT_UNHANDLED_PROTOCOL,
 	SFE_IPV6_EXCEPTION_EVENT_FLOW_COOKIE_ADD_FAIL,
+	SFE_IPV6_EXCEPTION_EVENT_CLONED_SKB_UNSHARE_ERROR,
 	SFE_IPV6_EXCEPTION_EVENT_LAST
 };
 
@@ -402,7 +403,8 @@ static char *sfe_ipv6_exception_events_string[SFE_IPV6_EXCEPTION_EVENT_LAST] = {
 	"DATAGRAM_INCOMPLETE",
 	"IP_OPTIONS_INCOMPLETE",
 	"UNHANDLED_PROTOCOL",
-	"FLOW_COOKIE_ADD_FAIL"
+	"FLOW_COOKIE_ADD_FAIL",
+	"CLONED_SKB_UNSHARE_ERROR"
 };
 
 /*
@@ -1271,6 +1273,30 @@ static int sfe_ipv6_recv_udp(struct sfe_ipv6 *si, struct sk_buff *skb, struct ne
 	 */
 
 	/*
+	 * Check if skb was cloned. If it was, unshare it. Because
+	 * the data area is going to be written in this path and we don't want to
+	 * change the cloned skb's data section.
+	 */
+	if (unlikely(skb_cloned(skb))) {
+		DEBUG_TRACE("%p: skb is a cloned skb\n", skb);
+		skb = skb_unshare(skb, GFP_ATOMIC);
+                if (!skb) {
+			DEBUG_WARN("Failed to unshare the cloned skb\n");
+			si->exception_events[SFE_IPV6_EXCEPTION_EVENT_CLONED_SKB_UNSHARE_ERROR]++;
+			si->packets_not_forwarded++;
+			spin_unlock_bh(&si->lock);
+
+			return 0;
+		}
+
+		/*
+		 * Update the iph and udph pointers with the unshared skb's data area.
+		 */
+		iph = (struct sfe_ipv6_ip_hdr *)skb->data;
+		udph = (struct sfe_ipv6_udp_hdr *)(skb->data + ihl);
+	}
+
+	/*
 	 * Update DSCP
 	 */
 	if (unlikely(cm->flags & SFE_IPV6_CONNECTION_MATCH_FLAG_DSCP_REMARK)) {
@@ -1798,6 +1824,30 @@ static int sfe_ipv6_recv_tcp(struct sfe_ipv6 *si, struct sk_buff *skb, struct ne
 	/*
 	 * From this point on we're good to modify the packet.
 	 */
+
+	/*
+	 * Check if skb was cloned. If it was, unshare it. Because
+	 * the data area is going to be written in this path and we don't want to
+	 * change the cloned skb's data section.
+	 */
+	if (unlikely(skb_cloned(skb))) {
+		DEBUG_TRACE("%p: skb is a cloned skb\n", skb);
+		skb = skb_unshare(skb, GFP_ATOMIC);
+                if (!skb) {
+			DEBUG_WARN("Failed to unshare the cloned skb\n");
+			si->exception_events[SFE_IPV6_EXCEPTION_EVENT_CLONED_SKB_UNSHARE_ERROR]++;
+			si->packets_not_forwarded++;
+			spin_unlock_bh(&si->lock);
+
+			return 0;
+		}
+
+		/*
+		 * Update the iph and tcph pointers with the unshared skb's data area.
+		 */
+		iph = (struct sfe_ipv6_ip_hdr *)skb->data;
+		tcph = (struct sfe_ipv6_tcp_hdr *)(skb->data + ihl);
+	}
 
 	/*
 	 * Update DSCP
