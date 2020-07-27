@@ -2,8 +2,9 @@ name: Build LEDE a3004ns
 
 on:
   push:
-    branches: 
-      - master
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
   TARGET_DEVICE: a3004ns
@@ -15,7 +16,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@master
+      uses: actions/checkout@main
 
     - name: Initialization environment
       env:
@@ -52,7 +53,7 @@ jobs:
         echo "::set-output name=status::success"
 
     - name: Upload firmware directory
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@main
       if: steps.compile.outputs.status == 'success'
       with:
         name: lede-a3004ns
