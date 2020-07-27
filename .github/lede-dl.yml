@@ -2,11 +2,12 @@ name: LEDE dl
 
 on:
   push:
-    branches: 
-      - master
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 env:
-  REPO_BRANCH: master
+  REPO_BRANCH: main
   FREE_UP_DISK: true
   TZ: Asia/Shanghai
 
@@ -17,7 +18,7 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@master
+      uses: actions/checkout@main
 
     - name: Initialization environment
       env:
@@ -38,7 +39,7 @@ jobs:
         echo "::set-output name=status::success"
 
     - name: Upload dl dir
-      uses: actions/upload-artifact@master
+      uses: actions/upload-artifact@main
       if: steps.download.outputs.status == 'success'
       with:
         name: dl
