@@ -21,10 +21,10 @@ enable = s:option(Flag, "enabled", translate("Enable"))
 enable.default = 0
 enable.rmempty = false
 
-wifi = s:option(Flag, "wifi", translate("Wireless Acceleration"))
-wifi.default = 0
-wifi.rmempty = false
-wifi.description = translate("Enable Wireless Bridge Acceleration")
+bridge = s:option(Flag, "bridge", translate("Bridge Acceleration"))
+bridge.default = 0
+bridge.rmempty = false
+bridge.description = translate("Enable Bridge Acceleration")
 
 ipv6 = s:option(Flag, "ipv6", translate("IPv6 Acceleration"))
 ipv6.default = 0

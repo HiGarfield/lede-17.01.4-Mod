@@ -33,7 +33,7 @@ load_sfe_cm() {
 
 start() {
 	local enabled
-	local wifi
+	local bridge
 	local ipv6
 	local sfe_ipv6
 
@@ -42,9 +42,9 @@ start() {
 		if [ "$(have_cm)" -ne 1 ]; then
 			load_sfe_cm
 		fi
-		wifi=$(uci -q get sfe.config.wifi)
-		if [ -n "$wifi" ]; then
-			echo "$wifi" > /sys/fast_classifier/skip_to_bridge_ingress
+		bridge=$(uci -q get sfe.config.bridge)
+		if [ -n "$bridge" ]; then
+			echo "$bridge" > /sys/fast_classifier/skip_to_bridge_ingress
 		fi
 		ipv6=$(uci -q get sfe.config.ipv6)
 		if [ $ipv6 -eq 1 ]; then
