@@ -29,7 +29,8 @@ luci-app-autoreboot luci-app-adbyby-plus \
 luci-app-arpbind luci-app-eqos \
 luci-app-openvpn-server luci-app-pptp-server \
 luci-app-accesscontrol luci-app-cpulimit \
-luci-app-wifischedule luci-app-uhttpd xl2tpd
+luci-app-wifischedule luci-app-uhttpd xl2tpd \
+luci-app-syncdial
 
 ifneq ($(_CONF_ROUTER_WITHOUT_USB_PORT_),1)
 DEFAULT_PACKAGES += block-mount automount autosamba fdisk lsblk \
