@@ -16,20 +16,14 @@ msgstr "来自高通开源的 Shortcut FE 转发加速引擎 (Fast Path)"
 msgid "Enable"
 msgstr "启用"
 
-msgid "Wireless Acceleration"
-msgstr "无线加速"
+msgid "Bridge Acceleration"
+msgstr "桥接加速"
 
-msgid "Enable Wireless Bridge Acceleration"
-msgstr "开启无线桥接加速"
+msgid "Enable Bridge Acceleration"
+msgstr "开启桥接加速"
 
 msgid "IPv6 Acceleration"
 msgstr "IPv6 加速"
 
 msgid "Enable IPv6 Acceleration"
 msgstr "开启IPv6加速"
-
-
-
-
-
-
