@@ -9,7 +9,7 @@ get_status_led() {
 
 	case $board in
 	a3004ns)
-		status_led="$board:orange:status"
+		status_led="$board:orange:cpu"
 		;;
 	3g150b|\
 	3g300m|\
