@@ -32,6 +32,10 @@ wr1200js)
 	ucidef_set_led_switch "internet" "INTERNET" "$board:blue:internet" "switch0" "0x01"
 	ucidef_set_led_default "wps" "wps" "$board:blue:wps" "0"
 	;;
+a3004ns)
+	set_usb_led "$board:orange:usb"
+	ucidef_set_led_default "cpu" "CPU" "$board:orange:cpu" "1"
+	;;
 3g150b|\
 3g300m)
 	set_usb_led "$board:blue:3g"

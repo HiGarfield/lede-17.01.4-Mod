@@ -16,14 +16,16 @@
 	gpio-leds {
 		compatible = "gpio-leds";
 
-		status {
-			label = "a3004ns:orange:status";
+		cpu {
+			label = "a3004ns:orange:cpu";
 			gpios = <&gpio0 18 1>;
 		};
 
 		usb {
 			label = "a3004ns:orange:usb";
 			gpios = <&gpio0 7 1>;
+			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
+			linux,default-trigger = "usbport";
 		};
 	};
 
@@ -90,6 +92,11 @@
 			device_type = "pci";
 			mediatek,mtd-eeprom = <&factory 0x8000>;
 			ieee80211-freq-limit = <5000000 6000000>;
+
+			led {
+				led-sources = <2>;
+				led-active-low;
+			};
 		};
 	};
 
@@ -99,6 +106,11 @@
 			device_type = "pci";
 			mediatek,mtd-eeprom = <&factory 0x0000>;
 			ieee80211-freq-limit = <2400000 2500000>;
+
+			led {
+				led-sources = <2>;
+				led-active-low;
+			};
 		};
 	};
 };
