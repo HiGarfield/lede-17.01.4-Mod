@@ -1,0 +1,10 @@
+--- a/mt7615/mcu.c
++++ b/mt7615/mcu.c
+@@ -6,6 +6,7 @@
+  */
+ 
+ #include <linux/firmware.h>
++#include <linux/module.h>
+ #include "mt7615.h"
+ #include "mcu.h"
+ #include "mac.h"
