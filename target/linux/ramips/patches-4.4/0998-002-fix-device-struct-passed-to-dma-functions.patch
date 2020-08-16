@@ -1,0 +1,132 @@
+diff --git a/drivers/net/ethernet/mediatek/mtk_eth_soc.c b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+index 7da348a8..c8c2644d 100644
+--- a/drivers/net/ethernet/mediatek/mtk_eth_soc.c
++++ b/drivers/net/ethernet/mediatek/mtk_eth_soc.c
+@@ -213,7 +213,7 @@ static void fe_clean_rx(struct fe_priv *priv)
+ 		for (i = 0; i < ring->rx_ring_size; i++)
+ 			if (ring->rx_data[i]) {
+ 				if (ring->rx_dma && ring->rx_dma[i].rxd1)
+-					dma_unmap_single(&priv->netdev->dev,
++					dma_unmap_single(priv->device,
+ 							 ring->rx_dma[i].rxd1,
+ 							 ring->rx_buf_size,
+ 							 DMA_FROM_DEVICE);
+@@ -225,7 +225,7 @@ static void fe_clean_rx(struct fe_priv *priv)
+ 	}
+ 
+ 	if (ring->rx_dma) {
+-		dma_free_coherent(&priv->netdev->dev,
++		dma_free_coherent(priv->device,
+ 				  ring->rx_ring_size * sizeof(*ring->rx_dma),
+ 				  ring->rx_dma,
+ 				  ring->rx_phys);
+@@ -242,7 +242,6 @@ static void fe_clean_rx(struct fe_priv *priv)
+ 
+ static int fe_alloc_rx(struct fe_priv *priv)
+ {
+-	struct net_device *netdev = priv->netdev;
+ 	struct fe_rx_ring *ring = &priv->rx_ring;
+ 	int i, pad;
+ 
+@@ -259,7 +258,7 @@ static int fe_alloc_rx(struct fe_priv *priv)
+ 			goto no_rx_mem;
+ 	}
+ 
+-	ring->rx_dma = dma_alloc_coherent(&netdev->dev,
++	ring->rx_dma = dma_alloc_coherent(priv->device,
+ 			ring->rx_ring_size * sizeof(*ring->rx_dma),
+ 			&ring->rx_phys,
+ 			GFP_ATOMIC | __GFP_ZERO);
+@@ -271,11 +270,11 @@ static int fe_alloc_rx(struct fe_priv *priv)
+ 	else
+ 		pad = NET_IP_ALIGN;
+ 	for (i = 0; i < ring->rx_ring_size; i++) {
+-		dma_addr_t dma_addr = dma_map_single(&netdev->dev,
++		dma_addr_t dma_addr = dma_map_single(priv->device,
+ 				ring->rx_data[i] + NET_SKB_PAD + pad,
+ 				ring->rx_buf_size,
+ 				DMA_FROM_DEVICE);
+-		if (unlikely(dma_mapping_error(&netdev->dev, dma_addr)))
++		if (unlikely(dma_mapping_error(priv->device, dma_addr)))
+ 			goto no_rx_mem;
+ 		ring->rx_dma[i].rxd1 = (unsigned int)dma_addr;
+ 
+@@ -329,7 +328,7 @@ static void fe_txd_unmap(struct device *dev, struct fe_tx_buf *tx_buf)
+ static void fe_clean_tx(struct fe_priv *priv)
+ {
+ 	int i;
+-	struct device *dev = &priv->netdev->dev;
++	struct device *dev = priv->device;
+ 	struct fe_tx_ring *ring = &priv->tx_ring;
+ 
+ 	if (ring->tx_buf) {
+@@ -365,7 +364,7 @@ static int fe_alloc_tx(struct fe_priv *priv)
+ 	if (!ring->tx_buf)
+ 		goto no_tx_mem;
+ 
+-	ring->tx_dma = dma_alloc_coherent(&priv->netdev->dev,
++	ring->tx_dma = dma_alloc_coherent(priv->device,
+ 			ring->tx_ring_size * sizeof(*ring->tx_dma),
+ 			&ring->tx_phys,
+ 			GFP_ATOMIC | __GFP_ZERO);
+@@ -611,9 +610,9 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
+ 		}
+ 	}
+ 
+-	mapped_addr = dma_map_single(&dev->dev, skb->data,
++	mapped_addr = dma_map_single(priv->device, skb->data,
+ 				     skb_headlen(skb), DMA_TO_DEVICE);
+-	if (unlikely(dma_mapping_error(&dev->dev, mapped_addr)))
++	if (unlikely(dma_mapping_error(priv->device, mapped_addr)))
+ 		goto err_out;
+ 	txd.txd1 = mapped_addr;
+ 	txd.txd2 = TX_DMA_PLEN0(skb_headlen(skb));
+@@ -712,7 +711,7 @@ err_dma:
+ 		tx_buf = &ring->tx_buf[j];
+ 
+ 		/* unmap dma */
+-		fe_txd_unmap(&dev->dev, tx_buf);
++		fe_txd_unmap(priv->device, tx_buf);
+ 
+ 		ptxd->txd2 = TX_DMA_DESP2_DEF;
+ 		j = NEXT_TX_DESP_IDX(j);
+@@ -855,11 +854,11 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
+ 			stats->rx_dropped++;
+ 			goto release_desc;
+ 		}
+-		dma_addr = dma_map_single(&netdev->dev,
++		dma_addr = dma_map_single(priv->device,
+ 					  new_data + NET_SKB_PAD + pad,
+ 					  ring->rx_buf_size,
+ 					  DMA_FROM_DEVICE);
+-		if (unlikely(dma_mapping_error(&netdev->dev, dma_addr))) {
++		if (unlikely(dma_mapping_error(priv->device, dma_addr))) {
+ 			skb_free_frag(new_data);
+ 			goto release_desc;
+ 		}
+@@ -872,7 +871,7 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
+ 		}
+ 		skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
+ 
+-		dma_unmap_single(&netdev->dev, trxd.rxd1,
++		dma_unmap_single(priv->device, trxd.rxd1,
+ 				 ring->rx_buf_size, DMA_FROM_DEVICE);
+ 		pktlen = RX_DMA_GET_PLEN0(trxd.rxd2);
+ 		skb->dev = netdev;
+@@ -916,7 +915,6 @@ static int fe_poll_tx(struct fe_priv *priv, int budget, u32 tx_intr,
+ 		      int *tx_again)
+ {
+ 	struct net_device *netdev = priv->netdev;
+-	struct device *dev = &netdev->dev;
+ 	unsigned int bytes_compl = 0;
+ 	struct sk_buff *skb;
+ 	struct fe_tx_buf *tx_buf;
+@@ -939,7 +937,7 @@ static int fe_poll_tx(struct fe_priv *priv, int budget, u32 tx_intr,
+ 			done++;
+ 			budget--;
+ 		}
+-		fe_txd_unmap(dev, tx_buf);
++		fe_txd_unmap(priv->device, tx_buf);
+ 		idx = NEXT_TX_DESP_IDX(idx);
+ 	}
+ 	ring->tx_free_idx = idx;
