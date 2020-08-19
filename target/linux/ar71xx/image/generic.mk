@@ -751,7 +751,7 @@ TARGET_DEVICES += bhr-4grv2
 
 define Device/domywifi-dw33d
   DEVICE_TITLE := DomyWifi DW33D
-  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-storage kmod-usb-ledtrig-usbport kmod-ath10k-ct ath10k-firmware-qca988x-ct-full-htt
   BOARDNAME = DW33D
   IMAGE_SIZE = 16000k
   CONSOLE = ttyS0,115200
@@ -763,7 +763,7 @@ TARGET_DEVICES += domywifi-dw33d
 define Device/csac
   DEVICE_TITLE := CSAC
   BOARDNAME := CSAC
-  DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca9888-ct kmod-usb-core kmod-usb2
+  DEVICE_PACKAGES += kmod-ath10k-ct ath10k-firmware-qca9888-ct-full-htt kmod-usb-core kmod-usb2
   KERNEL_SIZE := 1472k
   ROOTFS_SIZE := 14528k
   IMAGE_SIZE := 16000k
