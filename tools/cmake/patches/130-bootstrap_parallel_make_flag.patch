@@ -1,11 +1,11 @@
 --- a/bootstrap
 +++ b/bootstrap
-@@ -958,7 +958,10 @@ int main(){ printf("1%c", (char)0x0a); r
+@@ -1151,7 +1151,10 @@ int main(){ printf("1%c", (char)0x0a); r
  ' > "test.c"
  cmake_original_make_flags="${cmake_make_flags}"
  if [ "x${cmake_parallel_make}" != "x" ]; then
 -  cmake_make_flags="${cmake_make_flags} -j ${cmake_parallel_make}"
-+  case "$cmake_paralle_make" in
++  case "$cmake_parallel_make" in
 +    [0-9]*) cmake_parallel_make="-j ${cmake_parallel_make}";;
 +  esac
 +  cmake_make_flags="${cmake_make_flags} ${cmake_parallel_make}"
