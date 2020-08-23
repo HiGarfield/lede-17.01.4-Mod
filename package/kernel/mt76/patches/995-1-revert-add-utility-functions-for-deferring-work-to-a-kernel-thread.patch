@@ -1,0 +1,124 @@
+--- a/util.c
++++ b/util.c
+@@ -110,32 +110,4 @@
+ }
+ EXPORT_SYMBOL_GPL(mt76_get_min_avg_rssi);
+ 
+-int __mt76_worker_fn(void *ptr)
+-{
+-	struct mt76_worker *w = ptr;
+-
+-	while (!kthread_should_stop()) {
+-		set_current_state(TASK_INTERRUPTIBLE);
+-
+-		if (kthread_should_park()) {
+-			kthread_parkme();
+-			continue;
+-		}
+-
+-		if (!test_and_clear_bit(MT76_WORKER_SCHEDULED, &w->state)) {
+-			schedule();
+-			continue;
+-		}
+-
+-		set_bit(MT76_WORKER_RUNNING, &w->state);
+-		set_current_state(TASK_RUNNING);
+-		w->fn(w);
+-		cond_resched();
+-		clear_bit(MT76_WORKER_RUNNING, &w->state);
+-	}
+-
+-	return 0;
+-}
+-EXPORT_SYMBOL_GPL(__mt76_worker_fn);
+-
+ MODULE_LICENSE("Dual BSD/GPL");
+--- a/util.h
++++ b/util.h
+@@ -10,19 +10,6 @@
+ #include <linux/skbuff.h>
+ #include <linux/bitops.h>
+ #include <linux/bitfield.h>
+-#include <net/mac80211.h>
+-
+-struct mt76_worker
+-{
+-	struct task_struct *task;
+-	void (*fn)(struct mt76_worker *);
+-	unsigned long state;
+-};
+-
+-enum {
+-	MT76_WORKER_SCHEDULED,
+-	MT76_WORKER_RUNNING,
+-};
+ 
+ #define MT76_INCR(_var, _size) \
+ 	(_var = (((_var) + 1) % (_size)))
+@@ -58,66 +45,4 @@
+ 		hdr->frame_control &= ~cpu_to_le16(IEEE80211_FCTL_MOREDATA);
+ }
+ 
+-int __mt76_worker_fn(void *ptr);
+-
+-static inline int
+-mt76_worker_setup(struct ieee80211_hw *hw, struct mt76_worker *w,
+-		  void (*fn)(struct mt76_worker *),
+-		  const char *name)
+-{
+-	const char *dev_name = wiphy_name(hw->wiphy);
+-	int ret;
+-
+-	w->fn = fn;
+-	w->task = kthread_create(__mt76_worker_fn, w, "mt76-%s %s",
+-				 name, dev_name);
+-
+-	ret = PTR_ERR_OR_ZERO(w->task);
+-	if (ret) {
+-		w->task = NULL;
+-		return ret;
+-	}
+-
+-	wake_up_process(w->task);
+-
+-	return 0;
+-}
+-
+-static inline void mt76_worker_schedule(struct mt76_worker *w)
+-{
+-	if (!w->task)
+-		return;
+-
+-	if (!test_and_set_bit(MT76_WORKER_SCHEDULED, &w->state) &&
+-	    !test_bit(MT76_WORKER_RUNNING, &w->state))
+-		wake_up_process(w->task);
+-}
+-
+-static inline void mt76_worker_disable(struct mt76_worker *w)
+-{
+-	if (!w->task)
+-		return;
+-
+-	kthread_park(w->task);
+-	WRITE_ONCE(w->state, 0);
+-}
+-
+-static inline void mt76_worker_enable(struct mt76_worker *w)
+-{
+-	if (!w->task)
+-		return;
+-
+-	kthread_unpark(w->task);
+-	mt76_worker_schedule(w);
+-}
+-
+-static inline void mt76_worker_teardown(struct mt76_worker *w)
+-{
+-	if (!w->task)
+-		return;
+-
+-	kthread_stop(w->task);
+-	w->task = NULL;
+-}
+-
+ #endif

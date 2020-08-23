@@ -1,0 +1,13 @@
+--- a/dma.c
++++ b/dma.c
+@@ -579,8 +579,8 @@
+ 	init_dummy_netdev(&dev->napi_dev);
+ 
+ 	mt76_for_each_q_rx(dev, i) {
+-		netif_threaded_napi_add(&dev->napi_dev, &dev->napi[i],
+-					mt76_dma_rx_poll, 64);
++		netif_napi_add(&dev->napi_dev, &dev->napi[i], mt76_dma_rx_poll,
++			       64);
+ 		mt76_dma_rx_fill(dev, &dev->q_rx[i]);
+ 		napi_enable(&dev->napi[i]);
+ 	}

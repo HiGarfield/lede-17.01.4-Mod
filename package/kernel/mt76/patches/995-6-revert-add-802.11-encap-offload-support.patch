@@ -1,0 +1,10 @@
+--- a/tx.c
++++ b/tx.c
+@@ -288,7 +288,6 @@
+ 	}
+ 
+ 	if ((dev->drv->drv_flags & MT_DRV_HW_MGMT_TXQ) &&
+-	    !(info->flags & IEEE80211_TX_CTL_HW_80211_ENCAP) &&
+ 	    !ieee80211_is_data(hdr->frame_control) &&
+ 	    !ieee80211_is_bufferable_mmpdu(hdr->frame_control)) {
+ 		qid = MT_TXQ_PSD;
