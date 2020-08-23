@@ -8,10 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=udp2raw-tunnel
+PKG_VERSION:=20200818.0
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/wangyu-/udp2raw-tunnel.git
 PKG_SOURCE_VERSION:=07e2e695a62dbe3eca9e6007400486f9c015e492
 PKG_MIRROR_HASH:=skip
+
 PKG_RELEASE:=1
 
 PKG_LICENSE:=MIT
@@ -63,7 +65,13 @@ ifndef PKG_ARCH_UDP2RAW
   PKG_ARCH_UDP2RAW:=cross
 endif
 
+MAKE_VARS += PKG_VERSION=$(PKG_VERSION)
 MAKE_FLAGS += $(PKG_ARCH_UDP2RAW)
+
+define Build/Configure
+	$(call Build/Configure/Default)
+	$(CP) files/udp2raw_makefile $(PKG_BUILD_DIR)/makefile
+endef
 
 define Package/udp2raw-tunnel/install
 	$(INSTALL_DIR) $(1)/usr/bin
