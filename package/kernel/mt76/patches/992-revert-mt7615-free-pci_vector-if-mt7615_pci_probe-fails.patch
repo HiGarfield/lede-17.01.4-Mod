@@ -1,6 +1,8 @@
+diff --git a/mt7615/pci.c b/mt7615/pci.c
+index 08bd5f8..c2f490f 100644
 --- a/mt7615/pci.c
 +++ b/mt7615/pci.c
-@@ -36,21 +36,13 @@
+@@ -36,21 +36,13 @@ static int mt7615_pci_probe(struct pci_dev *pdev,
  
  	ret = pci_set_dma_mask(pdev, DMA_BIT_MASK(32));
  	if (ret)
@@ -25,7 +27,7 @@
  }
  
  static void mt7615_pci_remove(struct pci_dev *pdev)
-@@ -59,7 +51,6 @@
+@@ -59,7 +51,6 @@ static void mt7615_pci_remove(struct pci_dev *pdev)
  	struct mt7615_dev *dev = container_of(mdev, struct mt7615_dev, mt76);
  
  	mt7615_unregister_device(dev);

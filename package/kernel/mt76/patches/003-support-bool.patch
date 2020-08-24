@@ -1,3 +1,5 @@
+diff --git a/mt7615/mcu.c b/mt7615/mcu.c
+index 77bc20c..4645395 100644
 --- a/mt7615/mcu.c
 +++ b/mt7615/mcu.c
 @@ -6,6 +6,7 @@

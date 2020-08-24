@@ -1,6 +1,8 @@
+diff --git a/tx.c b/tx.c
+index 85bd8c6..d8252e2 100644
 --- a/tx.c
 +++ b/tx.c
-@@ -288,7 +288,6 @@
+@@ -288,7 +288,6 @@ mt76_tx(struct mt76_phy *phy, struct ieee80211_sta *sta,
  	}
  
  	if ((dev->drv->drv_flags & MT_DRV_HW_MGMT_TXQ) &&
