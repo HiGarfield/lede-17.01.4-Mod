@@ -1,16 +1,8 @@
-fix:
-kern.warn kernel: [   18.530000] mt7615_common: Unknown symbol mt76_testmode_cmd (err 0)
-kern.warn kernel: [   18.540000] mt7615_common: Unknown symbol mt76_testmode_dump (err 0)
-kern.warn kernel: [   18.560000] mt7615_common: Unknown symbol mt76_testmode_cmd (err 0)
-kern.warn kernel: [   18.570000] mt7615_common: Unknown symbol mt76_testmode_dump (err 0)
-user.err kernel: [   18.570000] kmodloader: 2 modules could not be probed
-user.err kernel: [   18.580000] kmodloader: - mt7615-common - 0
-user.err kernel: [   18.580000] kmodloader: dependency not loaded mt7615-common
-user.err kernel: [   18.590000] kmodloader: - mt7615e - 1
-
+diff --git a/mt7615/main.c b/mt7615/main.c
+index 267faba..79802d0 100644
 --- a/mt7615/main.c
 +++ b/mt7615/main.c
-@@ -1243,8 +1243,8 @@
+@@ -1247,8 +1247,8 @@ const struct ieee80211_ops mt7615_ops = {
  	.sched_scan_stop = mt7615_stop_sched_scan,
  	.remain_on_channel = mt7615_remain_on_channel,
  	.cancel_remain_on_channel = mt7615_cancel_remain_on_channel,

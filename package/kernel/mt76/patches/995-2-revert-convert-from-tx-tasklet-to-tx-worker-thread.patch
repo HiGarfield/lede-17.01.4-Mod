@@ -1,7 +1,8 @@
-diff -u mt76-2f1318a/dma.c mt76-87a6942/dma.c
---- a/dma.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/dma.c	2020-08-22 21:56:57.000000000 +0800
-@@ -606,7 +606,6 @@
+diff --git a/dma.c b/dma.c
+index 77cefcd..0c2447d 100644
+--- a/dma.c
++++ b/dma.c
+@@ -608,7 +608,6 @@ void mt76_dma_cleanup(struct mt76_dev *dev)
  {
  	int i;
  
@@ -9,9 +10,10 @@ diff -u mt76-2f1318a/dma.c mt76-87a6942/dma.c
  	netif_napi_del(&dev->tx_napi);
  	for (i = 0; i < ARRAY_SIZE(dev->q_tx); i++)
  		mt76_dma_tx_cleanup(dev, i, true);
-diff -u mt76-2f1318a/mac80211.c mt76-87a6942/mac80211.c
---- a/mac80211.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mac80211.c	2020-08-22 21:56:57.000000000 +0800
+diff --git a/mac80211.c b/mac80211.c
+index 61bd3bf..a805c51 100644
+--- a/mac80211.c
++++ b/mac80211.c
 @@ -2,7 +2,6 @@
  /*
   * Copyright (C) 2016 Felix Fietkau <nbd@nbd.name>
@@ -20,7 +22,7 @@ diff -u mt76-2f1318a/mac80211.c mt76-87a6942/mac80211.c
  #include <linux/of.h>
  #include "mt76.h"
  
-@@ -443,6 +442,8 @@
+@@ -442,6 +441,8 @@ mt76_alloc_device(struct device *pdev, unsigned int size,
  	for (i = 0; i < ARRAY_SIZE(dev->q_rx); i++)
  		skb_queue_head_init(&dev->rx_skb[i]);
  
@@ -29,7 +31,7 @@ diff -u mt76-2f1318a/mac80211.c mt76-87a6942/mac80211.c
  	dev->wq = alloc_ordered_workqueue("mt76", 0);
  	if (!dev->wq) {
  		ieee80211_free_hw(hw);
-@@ -456,7 +457,6 @@
+@@ -455,7 +456,6 @@ EXPORT_SYMBOL_GPL(mt76_alloc_device);
  int mt76_register_device(struct mt76_dev *dev, bool vht,
  			 struct ieee80211_rate *rates, int n_rates)
  {
@@ -37,7 +39,7 @@ diff -u mt76-2f1318a/mac80211.c mt76-87a6942/mac80211.c
  	struct ieee80211_hw *hw = dev->hw;
  	struct mt76_phy *phy = &dev->phy;
  	int ret;
-@@ -486,14 +486,7 @@
+@@ -485,14 +485,7 @@ int mt76_register_device(struct mt76_dev *dev, bool vht,
  			return ret;
  	}
  
@@ -53,7 +55,7 @@ diff -u mt76-2f1318a/mac80211.c mt76-87a6942/mac80211.c
  }
  EXPORT_SYMBOL_GPL(mt76_register_device);
  
-@@ -510,7 +503,6 @@
+@@ -509,7 +502,6 @@ EXPORT_SYMBOL_GPL(mt76_unregister_device);
  
  void mt76_free_device(struct mt76_dev *dev)
  {
@@ -61,10 +63,11 @@ diff -u mt76-2f1318a/mac80211.c mt76-87a6942/mac80211.c
  	if (dev->wq) {
  		destroy_workqueue(dev->wq);
  		dev->wq = NULL;
-diff -u mt76-2f1318a/mt76.h mt76-87a6942/mt76.h
---- a/mt76.h	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt76.h	2020-08-22 21:56:57.000000000 +0800
-@@ -610,7 +610,7 @@
+diff --git a/mt76.h b/mt76.h
+index 1e44950..c35b06b 100644
+--- a/mt76.h
++++ b/mt76.h
+@@ -611,7 +611,7 @@ struct mt76_dev {
  	const struct mt76_queue_ops *queue_ops;
  	int tx_dma_idx[4];
  
@@ -73,7 +76,7 @@ diff -u mt76-2f1318a/mt76.h mt76-87a6942/mt76.h
  	struct napi_struct tx_napi;
  	struct delayed_work mac_work;
  
-@@ -920,7 +920,7 @@
+@@ -921,7 +921,7 @@ void mt76_stop_tx_queues(struct mt76_dev *dev, struct ieee80211_sta *sta,
  void mt76_tx_check_agg_ssn(struct ieee80211_sta *sta, struct sk_buff *skb);
  void mt76_txq_schedule(struct mt76_phy *phy, enum mt76_txq_id qid);
  void mt76_txq_schedule_all(struct mt76_phy *phy);
@@ -82,10 +85,11 @@ diff -u mt76-2f1318a/mt76.h mt76-87a6942/mt76.h
  void mt76_release_buffered_frames(struct ieee80211_hw *hw,
  				  struct ieee80211_sta *sta,
  				  u16 tids, int nframes,
-diff -u mt76-1/dma.c mt76-2/dma.c
---- a/mt7603/dma.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt7603/dma.c	2020-08-22 21:56:57.000000000 +0800
-@@ -165,7 +165,7 @@
+diff --git a/mt7603/dma.c b/mt7603/dma.c
+index 9ec86da..a08b852 100644
+--- a/mt7603/dma.c
++++ b/mt7603/dma.c
+@@ -165,7 +165,7 @@ static int mt7603_poll_tx(struct napi_struct *napi, int budget)
  
  	mt7603_mac_sta_poll(dev);
  
@@ -94,17 +98,18 @@ diff -u mt76-1/dma.c mt76-2/dma.c
  
  	return 0;
  }
-@@ -249,5 +249,6 @@
+@@ -249,5 +249,6 @@ void mt7603_dma_cleanup(struct mt7603_dev *dev)
  		   MT_WPDMA_GLO_CFG_RX_DMA_EN |
  		   MT_WPDMA_GLO_CFG_TX_WRITEBACK_DONE);
  
 +	tasklet_kill(&dev->mt76.tx_tasklet);
  	mt76_dma_cleanup(&dev->mt76);
  }
-diff -u mt76-1/mac.c mt76-2/mac.c
---- a/mt7603/mac.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt7603/mac.c	2020-08-22 21:56:57.000000000 +0800
-@@ -1405,7 +1405,7 @@
+diff --git a/mt7603/mac.c b/mt7603/mac.c
+index cbf21f4..625dc6d 100644
+--- a/mt7603/mac.c
++++ b/mt7603/mac.c
+@@ -1405,7 +1405,7 @@ static void mt7603_mac_watchdog_reset(struct mt7603_dev *dev)
  	/* lock/unlock all queues to ensure that no tx is pending */
  	mt76_txq_schedule_all(&dev->mphy);
  
@@ -113,7 +118,7 @@ diff -u mt76-1/mac.c mt76-2/mac.c
  	tasklet_disable(&dev->mt76.pre_tbtt_tasklet);
  	napi_disable(&dev->mt76.napi[0]);
  	napi_disable(&dev->mt76.napi[1]);
-@@ -1454,7 +1454,7 @@
+@@ -1454,7 +1454,7 @@ skip_dma_reset:
  	clear_bit(MT76_RESET, &dev->mphy.state);
  	mutex_unlock(&dev->mt76.mutex);
  
@@ -122,20 +127,22 @@ diff -u mt76-1/mac.c mt76-2/mac.c
  	napi_enable(&dev->mt76.tx_napi);
  	napi_schedule(&dev->mt76.tx_napi);
  
-diff -u mt76-1/dma.c mt76-2/dma.c
---- a/mt7615/dma.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt7615/dma.c	2020-08-22 21:56:57.000000000 +0800
-@@ -324,5 +324,6 @@
+diff --git a/mt7615/dma.c b/mt7615/dma.c
+index f5c2b08..abb83d4 100644
+--- a/mt7615/dma.c
++++ b/mt7615/dma.c
+@@ -306,5 +306,6 @@ void mt7615_dma_cleanup(struct mt7615_dev *dev)
  		   MT_WPDMA_GLO_CFG_RX_DMA_EN);
  	mt76_set(dev, MT_WPDMA_GLO_CFG, MT_WPDMA_GLO_CFG_SW_RESET);
  
 +	tasklet_kill(&dev->mt76.tx_tasklet);
  	mt76_dma_cleanup(&dev->mt76);
  }
-diff -u mt76-1/mac.c mt76-2/mac.c
---- a/mt7615/mac.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt7615/mac.c	2020-08-22 21:56:57.000000000 +0800
-@@ -1447,7 +1447,7 @@
+diff --git a/mt7615/mac.c b/mt7615/mac.c
+index 5fd964d..9b8fbf2 100644
+--- a/mt7615/mac.c
++++ b/mt7615/mac.c
+@@ -1455,7 +1455,7 @@ static void mt7615_mac_tx_free(struct mt7615_dev *dev, struct sk_buff *skb)
  	rcu_read_unlock();
  
  	mt7615_pm_power_save_sched(dev);
@@ -144,7 +151,7 @@ diff -u mt76-1/mac.c mt76-2/mac.c
  }
  
  void mt7615_queue_rx_skb(struct mt76_dev *mdev, enum mt76_rxq_id q,
-@@ -1872,7 +1872,7 @@
+@@ -1881,7 +1881,7 @@ void mt7615_pm_wake_work(struct work_struct *work)
  	}
  	spin_unlock_bh(&dev->pm.txq_lock);
  
@@ -153,7 +160,7 @@ diff -u mt76-1/mac.c mt76-2/mac.c
  
  out:
  	ieee80211_wake_queues(mphy->hw);
-@@ -2114,7 +2114,7 @@
+@@ -2123,7 +2123,7 @@ void mt7615_mac_reset_work(struct work_struct *work)
  	if (ext_phy)
  		mt76_txq_schedule_all(ext_phy);
  
@@ -162,7 +169,7 @@ diff -u mt76-1/mac.c mt76-2/mac.c
  	napi_disable(&dev->mt76.napi[0]);
  	napi_disable(&dev->mt76.napi[1]);
  	napi_disable(&dev->mt76.tx_napi);
-@@ -2135,7 +2135,7 @@
+@@ -2144,7 +2144,7 @@ void mt7615_mac_reset_work(struct work_struct *work)
  	clear_bit(MT76_MCU_RESET, &dev->mphy.state);
  	clear_bit(MT76_RESET, &dev->mphy.state);
  
@@ -171,10 +178,11 @@ diff -u mt76-1/mac.c mt76-2/mac.c
  	napi_enable(&dev->mt76.tx_napi);
  	napi_schedule(&dev->mt76.tx_napi);
  
-diff -u mt76-1/main.c mt76-2/main.c
---- a/mt7615/main.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt7615/main.c	2020-08-22 21:56:57.000000000 +0800
-@@ -707,7 +707,7 @@
+diff --git a/mt7615/main.c b/mt7615/main.c
+index 79802d0..77719bb 100644
+--- a/mt7615/main.c
++++ b/mt7615/main.c
+@@ -707,7 +707,7 @@ mt7615_wake_tx_queue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
  	}
  
  	dev->pm.last_activity = jiffies;
@@ -183,10 +191,11 @@ diff -u mt76-1/main.c mt76-2/main.c
  }
  
  static void mt7615_tx(struct ieee80211_hw *hw,
-diff -u mt76-1/pci.c mt76-2/pci.c
---- a/mt7615/pci.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt7615/pci.c	2020-08-22 21:56:57.000000000 +0800
-@@ -88,7 +88,7 @@
+diff --git a/mt7615/pci.c b/mt7615/pci.c
+index c2f490f..b5593bd 100644
+--- a/mt7615/pci.c
++++ b/mt7615/pci.c
+@@ -74,7 +74,7 @@ static int mt7615_pci_suspend(struct pci_dev *pdev, pm_message_t state)
  	}
  
  	napi_disable(&mdev->tx_napi);
@@ -195,7 +204,7 @@ diff -u mt76-1/pci.c mt76-2/pci.c
  
  	mt76_for_each_q_rx(mdev, i) {
  		napi_disable(&mdev->napi[i]);
-@@ -162,7 +162,6 @@
+@@ -148,7 +148,6 @@ static int mt7615_pci_resume(struct pci_dev *pdev)
  	if (pdma_reset)
  		dev_err(mdev->dev, "PDMA engine must be reinitialized\n");
  
@@ -203,10 +212,11 @@ diff -u mt76-1/pci.c mt76-2/pci.c
  	mt76_for_each_q_rx(mdev, i) {
  		napi_enable(&mdev->napi[i]);
  		napi_schedule(&mdev->napi[i]);
-diff -u mt76-1/usb.c mt76-2/usb.c
---- a/mt7615/usb.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt7615/usb.c	2020-08-22 21:56:57.000000000 +0800
-@@ -179,7 +179,9 @@
+diff --git a/mt7615/usb.c b/mt7615/usb.c
+index f0ad83a..23a2133 100644
+--- a/mt7615/usb.c
++++ b/mt7615/usb.c
+@@ -180,7 +180,9 @@ static int mt7663u_suspend(struct usb_interface *intf, pm_message_t state)
  	}
  
  	mt76u_stop_rx(&dev->mt76);
@@ -216,10 +226,11 @@ diff -u mt76-1/usb.c mt76-2/usb.c
  
  	return 0;
  }
-diff -u mt76-1/pci.c mt76-2/pci.c
---- a/mt76x0/pci.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt76x0/pci.c	2020-08-22 21:56:57.000000000 +0800
-@@ -204,7 +204,7 @@
+diff --git a/mt76x0/pci.c b/mt76x0/pci.c
+index dda11c7..5e56748 100644
+--- a/mt76x0/pci.c
++++ b/mt76x0/pci.c
+@@ -204,7 +204,7 @@ static void mt76x0e_cleanup(struct mt76x02_dev *dev)
  	tasklet_disable(&dev->mt76.pre_tbtt_tasklet);
  	mt76x0_chip_onoff(dev, false, false);
  	mt76x0e_stop_hw(dev);
@@ -228,20 +239,22 @@ diff -u mt76-1/pci.c mt76-2/pci.c
  	mt76x02_mcu_cleanup(dev);
  }
  
-diff -u mt76-2f1318a/mt76x02_dma.h mt76-87a6942/mt76x02_dma.h
---- a/mt76x02_dma.h	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt76x02_dma.h	2020-08-22 21:56:57.000000000 +0800
-@@ -61,5 +61,6 @@
+diff --git a/mt76x02_dma.h b/mt76x02_dma.h
+index 23b0e7d..4aff4f8 100644
+--- a/mt76x02_dma.h
++++ b/mt76x02_dma.h
+@@ -61,5 +61,6 @@ mt76x02_wait_for_wpdma(struct mt76_dev *dev, int timeout)
  
  int mt76x02_dma_init(struct mt76x02_dev *dev);
  void mt76x02_dma_disable(struct mt76x02_dev *dev);
 +void mt76x02_dma_cleanup(struct mt76x02_dev *dev);
  
  #endif /* __MT76x02_DMA_H */
-diff -u mt76-2f1318a/mt76x02_mmio.c mt76-87a6942/mt76x02_mmio.c
---- a/mt76x02_mmio.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt76x02_mmio.c	2020-08-22 21:56:57.000000000 +0800
-@@ -150,11 +150,9 @@
+diff --git a/mt76x02_mmio.c b/mt76x02_mmio.c
+index 156fed6..1389ba1 100644
+--- a/mt76x02_mmio.c
++++ b/mt76x02_mmio.c
+@@ -150,11 +150,9 @@ static void mt76x02_process_tx_status_fifo(struct mt76x02_dev *dev)
  		mt76x02_send_tx_status(dev, &stat, &update);
  }
  
@@ -255,7 +268,7 @@ diff -u mt76-2f1318a/mt76x02_mmio.c mt76-87a6942/mt76x02_mmio.c
  
  	mt76x02_mac_poll_tx_status(dev, false);
  	mt76x02_process_tx_status_fifo(dev);
-@@ -179,7 +177,7 @@
+@@ -179,7 +177,7 @@ static int mt76x02_poll_tx(struct napi_struct *napi, int budget)
  	for (i = MT_TXQ_MCU; i >= 0; i--)
  		mt76_queue_tx_cleanup(dev, i, false);
  
@@ -264,7 +277,7 @@ diff -u mt76-2f1318a/mt76x02_mmio.c mt76-87a6942/mt76x02_mmio.c
  
  	return 0;
  }
-@@ -198,7 +196,8 @@
+@@ -198,7 +196,8 @@ int mt76x02_dma_init(struct mt76x02_dev *dev)
  	if (!status_fifo)
  		return -ENOMEM;
  
@@ -274,7 +287,7 @@ diff -u mt76-2f1318a/mt76x02_mmio.c mt76-87a6942/mt76x02_mmio.c
  	tasklet_init(&dev->mt76.pre_tbtt_tasklet, mt76x02_pre_tbtt_tasklet,
  		     (unsigned long)dev);
  
-@@ -326,6 +325,13 @@
+@@ -326,6 +325,13 @@ static void mt76x02_dma_enable(struct mt76x02_dev *dev)
  		   MT_WPDMA_GLO_CFG_TX_WRITEBACK_DONE);
  }
  
@@ -288,7 +301,7 @@ diff -u mt76-2f1318a/mt76x02_mmio.c mt76-87a6942/mt76x02_mmio.c
  void mt76x02_dma_disable(struct mt76x02_dev *dev)
  {
  	u32 val = mt76_rr(dev, MT_WPDMA_GLO_CFG);
-@@ -443,7 +449,7 @@
+@@ -443,7 +449,7 @@ static void mt76x02_watchdog_reset(struct mt76x02_dev *dev)
  	set_bit(MT76_RESET, &dev->mphy.state);
  
  	tasklet_disable(&dev->mt76.pre_tbtt_tasklet);
@@ -297,7 +310,7 @@ diff -u mt76-2f1318a/mt76x02_mmio.c mt76-87a6942/mt76x02_mmio.c
  	napi_disable(&dev->mt76.tx_napi);
  
  	mt76_for_each_q_rx(&dev->mt76, i) {
-@@ -500,7 +506,7 @@
+@@ -500,7 +506,7 @@ static void mt76x02_watchdog_reset(struct mt76x02_dev *dev)
  
  	clear_bit(MT76_RESET, &dev->mphy.state);
  
@@ -306,10 +319,11 @@ diff -u mt76-2f1318a/mt76x02_mmio.c mt76-87a6942/mt76x02_mmio.c
  	napi_enable(&dev->mt76.tx_napi);
  	napi_schedule(&dev->mt76.tx_napi);
  
-diff -u mt76-1/pci.c mt76-2/pci.c
---- a/mt76x2/pci.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt76x2/pci.c	2020-08-22 21:56:57.000000000 +0800
-@@ -113,7 +113,7 @@
+diff --git a/mt76x2/pci.c b/mt76x2/pci.c
+index 4d50dad..377cf9c 100644
+--- a/mt76x2/pci.c
++++ b/mt76x2/pci.c
+@@ -113,7 +113,7 @@ mt76x2e_suspend(struct pci_dev *pdev, pm_message_t state)
  
  	napi_disable(&mdev->tx_napi);
  	tasklet_kill(&mdev->pre_tbtt_tasklet);
@@ -318,7 +332,7 @@ diff -u mt76-1/pci.c mt76-2/pci.c
  
  	mt76_for_each_q_rx(mdev, i)
  		napi_disable(&mdev->napi[i]);
-@@ -147,7 +147,6 @@
+@@ -147,7 +147,6 @@ mt76x2e_resume(struct pci_dev *pdev)
  
  	pci_restore_state(pdev);
  
@@ -326,10 +340,11 @@ diff -u mt76-1/pci.c mt76-2/pci.c
  	mt76_for_each_q_rx(mdev, i) {
  		napi_enable(&mdev->napi[i]);
  		napi_schedule(&mdev->napi[i]);
-diff -u mt76-1/pci_init.c mt76-2/pci_init.c
---- a/mt76x2/pci_init.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/mt76x2/pci_init.c	2020-08-22 21:56:57.000000000 +0800
-@@ -283,7 +283,7 @@
+diff --git a/mt76x2/pci_init.c b/mt76x2/pci_init.c
+index 48a3ebc..101a0fe 100644
+--- a/mt76x2/pci_init.c
++++ b/mt76x2/pci_init.c
+@@ -283,7 +283,7 @@ void mt76x2_cleanup(struct mt76x02_dev *dev)
  	tasklet_disable(&dev->dfs_pd.dfs_tasklet);
  	tasklet_disable(&dev->mt76.pre_tbtt_tasklet);
  	mt76x2_stop_hardware(dev);
@@ -338,10 +353,11 @@ diff -u mt76-1/pci_init.c mt76-2/pci_init.c
  	mt76x02_mcu_cleanup(dev);
  }
  
-diff -u mt76-2f1318a/testmode.c mt76-87a6942/testmode.c
---- a/testmode.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/testmode.c	2020-08-22 21:56:57.000000000 +0800
-@@ -160,7 +160,7 @@
+diff --git a/testmode.c b/testmode.c
+index 1653f0b..5bd6ac1 100644
+--- a/testmode.c
++++ b/testmode.c
+@@ -160,7 +160,7 @@ mt76_testmode_tx_start(struct mt76_dev *dev)
  	td->tx_queued = 0;
  	td->tx_done = 0;
  	td->tx_pending = td->tx_count;
@@ -350,7 +366,7 @@ diff -u mt76-2f1318a/testmode.c mt76-87a6942/testmode.c
  }
  
  static void
-@@ -168,11 +168,11 @@
+@@ -168,11 +168,11 @@ mt76_testmode_tx_stop(struct mt76_dev *dev)
  {
  	struct mt76_testmode_data *td = &dev->test;
  
@@ -364,10 +380,11 @@ diff -u mt76-2f1318a/testmode.c mt76-87a6942/testmode.c
  
  	wait_event_timeout(dev->tx_wait, td->tx_done == td->tx_queued, 10 * HZ);
  
-diff -u mt76-2f1318a/tx.c mt76-87a6942/tx.c
---- a/tx.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/tx.c	2020-08-22 21:56:57.000000000 +0800
-@@ -576,9 +576,9 @@
+diff --git a/tx.c b/tx.c
+index af82915..85bd8c6 100644
+--- a/tx.c
++++ b/tx.c
+@@ -576,9 +576,9 @@ void mt76_txq_schedule_all(struct mt76_phy *phy)
  }
  EXPORT_SYMBOL_GPL(mt76_txq_schedule_all);
  
@@ -379,7 +396,7 @@ diff -u mt76-2f1318a/tx.c mt76-87a6942/tx.c
  
  	mt76_txq_schedule_all(&dev->phy);
  	if (dev->phy2)
-@@ -621,7 +621,7 @@
+@@ -621,7 +621,7 @@ void mt76_wake_tx_queue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
  	if (!test_bit(MT76_STATE_RUNNING, &phy->state))
  		return;
  
@@ -388,10 +405,11 @@ diff -u mt76-2f1318a/tx.c mt76-87a6942/tx.c
  }
  EXPORT_SYMBOL_GPL(mt76_wake_tx_queue);
  
-diff -u mt76-2f1318a/usb.c mt76-87a6942/usb.c
---- a/usb.c	2020-08-22 21:56:57.000000000 +0800
-+++ b/usb.c	2020-08-22 21:56:57.000000000 +0800
-@@ -792,9 +792,9 @@
+diff --git a/usb.c b/usb.c
+index 9f6c370..dcab599 100644
+--- a/usb.c
++++ b/usb.c
+@@ -792,9 +792,9 @@ int mt76u_resume_rx(struct mt76_dev *dev)
  }
  EXPORT_SYMBOL_GPL(mt76u_resume_rx);
  
@@ -403,7 +421,7 @@ diff -u mt76-2f1318a/usb.c mt76-87a6942/usb.c
  	struct mt76_queue_entry entry;
  	struct mt76_sw_queue *sq;
  	struct mt76_queue *q;
-@@ -882,7 +882,7 @@
+@@ -882,7 +882,7 @@ static void mt76u_complete_tx(struct urb *urb)
  		dev_err(dev->dev, "tx urb failed: %d\n", urb->status);
  	e->done = true;
  
@@ -412,16 +430,16 @@ diff -u mt76-2f1318a/usb.c mt76-87a6942/usb.c
  }
  
  static int
-@@ -1037,8 +1037,6 @@
- 	struct mt76_queue *q;
- 	int i, j, ret;
+@@ -1040,8 +1040,6 @@ void mt76u_stop_tx(struct mt76_dev *dev)
+ {
+ 	int ret;
  
 -	mt76_worker_disable(&dev->tx_worker);
 -
  	ret = wait_event_timeout(dev->tx_wait, !mt76_has_tx_pending(&dev->phy),
  				 HZ / 5);
  	if (!ret) {
-@@ -1050,6 +1048,8 @@
+@@ -1060,6 +1058,8 @@ void mt76u_stop_tx(struct mt76_dev *dev)
  				usb_kill_urb(q->entry[j].urb);
  		}
  
@@ -430,7 +448,7 @@ diff -u mt76-2f1318a/usb.c mt76-87a6942/usb.c
  		/* On device removal we maight queue skb's, but mt76u_tx_kick()
  		 * will fail to submit urb, cleanup those skb's manually.
  		 */
-@@ -1072,8 +1072,6 @@
+@@ -1084,8 +1084,6 @@ void mt76u_stop_tx(struct mt76_dev *dev)
  	cancel_work_sync(&dev->usb.stat_work);
  	clear_bit(MT76_READING_STATS, &dev->phy.state);
  
@@ -439,7 +457,7 @@ diff -u mt76-2f1318a/usb.c mt76-87a6942/usb.c
  	mt76_tx_status_check(dev, NULL, true);
  }
  EXPORT_SYMBOL_GPL(mt76u_stop_tx);
-@@ -1123,8 +1121,8 @@
+@@ -1135,8 +1133,8 @@ int mt76u_init(struct mt76_dev *dev,
  	mt76u_ops.rmw = ext ? mt76u_rmw_ext : mt76u_rmw;
  	mt76u_ops.write_copy = ext ? mt76u_copy_ext : mt76u_copy;
  

@@ -1,10 +1,10 @@
 diff --git a/dma.c b/dma.c
-index 126be59..603cf34 100644
+index 67fd507..77cefcd 100644
 --- a/dma.c
 +++ b/dma.c
-@@ -564,8 +564,10 @@ mt76_dma_rx_poll(struct napi_struct *napi, int budget)
+@@ -563,8 +563,10 @@ mt76_dma_rx_poll(struct napi_struct *napi, int budget)
+ 
  	rcu_read_unlock();
- 	local_bh_enable();
  
 -	if (done < budget && napi_complete(napi))
 +	if (done < budget) {

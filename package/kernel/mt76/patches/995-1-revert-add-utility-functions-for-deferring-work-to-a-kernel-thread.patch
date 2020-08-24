@@ -1,6 +1,8 @@
+diff --git a/util.c b/util.c
+index 5819644..f53bb4a 100644
 --- a/util.c
 +++ b/util.c
-@@ -110,32 +110,4 @@
+@@ -110,32 +110,4 @@ int mt76_get_min_avg_rssi(struct mt76_dev *dev, bool ext_phy)
  }
  EXPORT_SYMBOL_GPL(mt76_get_min_avg_rssi);
  
@@ -33,6 +35,8 @@
 -EXPORT_SYMBOL_GPL(__mt76_worker_fn);
 -
  MODULE_LICENSE("Dual BSD/GPL");
+diff --git a/util.h b/util.h
+index 09bf5e0..fd1a688 100644
 --- a/util.h
 +++ b/util.h
 @@ -10,19 +10,6 @@
@@ -55,7 +59,7 @@
  
  #define MT76_INCR(_var, _size) \
  	(_var = (((_var) + 1) % (_size)))
-@@ -58,66 +45,4 @@
+@@ -58,66 +45,4 @@ mt76_skb_set_moredata(struct sk_buff *skb, bool enable)
  		hdr->frame_control &= ~cpu_to_le16(IEEE80211_FCTL_MOREDATA);
  }
  
