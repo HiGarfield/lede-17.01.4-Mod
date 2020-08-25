@@ -1,0 +1,104 @@
+diff --git a/mt76.h b/mt76.h
+index ffe878f..d891250 100644
+--- a/mt76.h
++++ b/mt76.h
+@@ -138,6 +138,9 @@ struct mt76_queue {
+ 
+ struct mt76_sw_queue {
+ 	struct mt76_queue *q;
++
++	struct list_head swq;
++	int swq_queued;
+ };
+ 
+ struct mt76_mcu_ops {
+diff --git a/mt7603/dma.c b/mt7603/dma.c
+index 7007be6..7d27dfc 100644
+--- a/mt7603/dma.c
++++ b/mt7603/dma.c
+@@ -19,6 +19,7 @@ mt7603_init_tx_queue(struct mt7603_dev *dev, struct mt76_sw_queue *q,
+ 	if (err < 0)
+ 		return err;
+ 
++	INIT_LIST_HEAD(&q->swq);
+ 	q->q = hwq;
+ 
+ 	mt7603_irq_enable(dev, MT_INT_TX_DONE(idx));
+diff --git a/mt7615/dma.c b/mt7615/dma.c
+index 5f0469b..abb83d4 100644
+--- a/mt7615/dma.c
++++ b/mt7615/dma.c
+@@ -26,6 +26,7 @@ mt7615_init_tx_queue(struct mt7615_dev *dev, struct mt76_sw_queue *q,
+ 	if (err < 0)
+ 		return err;
+ 
++	INIT_LIST_HEAD(&q->swq);
+ 	q->q = hwq;
+ 
+ 	return 0;
+@@ -83,6 +84,7 @@ mt7615_init_tx_queues(struct mt7615_dev *dev)
+ 
+ 	for (i = 1; i < MT_TXQ_MCU; i++) {
+ 		q = &dev->mt76.q_tx[i];
++		INIT_LIST_HEAD(&q->swq);
+ 		q->q = dev->mt76.q_tx[0].q;
+ 	}
+ 
+diff --git a/mt76x02_mmio.c b/mt76x02_mmio.c
+index 57a0fd6..3aacf61 100644
+--- a/mt76x02_mmio.c
++++ b/mt76x02_mmio.c
+@@ -117,6 +117,7 @@ mt76x02_init_tx_queue(struct mt76x02_dev *dev, struct mt76_sw_queue *q,
+ 	if (err < 0)
+ 		return err;
+ 
++	INIT_LIST_HEAD(&q->swq);
+ 	q->q = hwq;
+ 
+ 	mt76x02_irq_enable(dev, MT_INT_TX_DONE(idx));
+diff --git a/mt7915/dma.c b/mt7915/dma.c
+index 3dec15b..b58b3cc 100644
+--- a/mt7915/dma.c
++++ b/mt7915/dma.c
+@@ -23,6 +23,7 @@ mt7915_init_tx_queues(struct mt7915_dev *dev, int n_desc)
+ 
+ 	for (i = 0; i < MT_TXQ_MCU; i++) {
+ 		q = &dev->mt76.q_tx[i];
++		INIT_LIST_HEAD(&q->swq);
+ 		q->q = hwq;
+ 	}
+ 
+@@ -44,6 +45,7 @@ mt7915_init_mcu_queue(struct mt7915_dev *dev, struct mt76_sw_queue *q,
+ 	if (err < 0)
+ 		return err;
+ 
++	INIT_LIST_HEAD(&q->swq);
+ 	q->q = hwq;
+ 
+ 	return 0;
+diff --git a/sdio.c b/sdio.c
+index e41037a..326d9c5 100644
+--- a/sdio.c
++++ b/sdio.c
+@@ -42,6 +42,8 @@ static int mt76s_alloc_tx(struct mt76_dev *dev)
+ 	int i;
+ 
+ 	for (i = 0; i < MT_TXQ_MCU_WA; i++) {
++		INIT_LIST_HEAD(&dev->q_tx[i].swq);
++
+ 		q = devm_kzalloc(dev->dev, sizeof(*q), GFP_KERNEL);
+ 		if (!q)
+ 			return -ENOMEM;
+diff --git a/usb.c b/usb.c
+index 14b93a0..730d173 100644
+--- a/usb.c
++++ b/usb.c
+@@ -972,6 +972,8 @@ static int mt76u_alloc_tx(struct mt76_dev *dev)
+ 	int i, j, err;
+ 
+ 	for (i = 0; i <= MT_TXQ_PSD; i++) {
++		INIT_LIST_HEAD(&dev->q_tx[i].swq);
++
+ 		if (i >= IEEE80211_NUM_ACS) {
+ 			dev->q_tx[i].q = dev->q_tx[0].q;
+ 			continue;

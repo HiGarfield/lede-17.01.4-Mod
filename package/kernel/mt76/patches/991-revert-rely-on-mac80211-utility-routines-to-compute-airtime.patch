@@ -344,10 +344,10 @@ index 0000000..a4a7854
 +}
 +EXPORT_SYMBOL_GPL(mt76_calc_tx_airtime);
 diff --git a/mac80211.c b/mac80211.c
-index bded1dc..61bd3bf 100644
+index 7fe8fea..0866bce 100644
 --- a/mac80211.c
 +++ b/mac80211.c
-@@ -790,18 +790,10 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
+@@ -791,18 +791,10 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
  		    int len)
  {
  	struct mt76_wcid *wcid = status->wcid;
@@ -368,10 +368,10 @@ index bded1dc..61bd3bf 100644
  	dev->cur_cc_bss_rx += airtime;
  	spin_unlock(&dev->cc_lock);
 diff --git a/mt76.h b/mt76.h
-index 0e9ecea..1e44950 100644
+index b7fc8e5..f0f16b1 100644
 --- a/mt76.h
 +++ b/mt76.h
-@@ -1003,6 +1003,9 @@ static inline void mt76_testmode_reset(struct mt76_dev *dev, bool disable)
+@@ -998,6 +998,9 @@ static inline void mt76_testmode_reset(struct mt76_dev *dev, bool disable)
  }
  
  
@@ -381,17 +381,17 @@ index 0e9ecea..1e44950 100644
  /* internal */
  static inline struct ieee80211_hw *
  mt76_tx_status_get_hw(struct mt76_dev *dev, struct sk_buff *skb)
-@@ -1026,6 +1029,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
+@@ -1021,6 +1024,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
  void mt76_rx_poll_complete(struct mt76_dev *dev, enum mt76_rxq_id q,
  			   struct napi_struct *napi);
  void mt76_rx_aggr_reorder(struct sk_buff *skb, struct sk_buff_head *frames);
 +u32 mt76_calc_rx_airtime(struct mt76_dev *dev, struct mt76_rx_status *status,
 +			 int len);
  void mt76_testmode_tx_pending(struct mt76_dev *dev);
- 
- /* usb */
+ void mt76_queue_tx_complete(struct mt76_dev *dev, struct mt76_queue *q,
+ 			    struct mt76_queue_entry *e);
 diff --git a/mt76x02_mac.c b/mt76x02_mac.c
-index af2e6ff..9243a88 100644
+index 8529837..68a9c7a 100644
 --- a/mt76x02_mac.c
 +++ b/mt76x02_mac.c
 @@ -636,7 +636,7 @@ void mt76x02_send_tx_status(struct mt76x02_dev *dev,

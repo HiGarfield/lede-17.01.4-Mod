@@ -1,8 +1,8 @@
 diff --git a/mt7615/main.c b/mt7615/main.c
-index 267faba..79802d0 100644
+index 3c0101a..1d5cd7a 100644
 --- a/mt7615/main.c
 +++ b/mt7615/main.c
-@@ -1247,8 +1247,8 @@ const struct ieee80211_ops mt7615_ops = {
+@@ -1248,8 +1248,8 @@ const struct ieee80211_ops mt7615_ops = {
  	.sched_scan_stop = mt7615_stop_sched_scan,
  	.remain_on_channel = mt7615_remain_on_channel,
  	.cancel_remain_on_channel = mt7615_cancel_remain_on_channel,

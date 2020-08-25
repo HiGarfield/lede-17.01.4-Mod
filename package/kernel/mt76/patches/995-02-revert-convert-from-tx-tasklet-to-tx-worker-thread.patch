@@ -1,8 +1,8 @@
 diff --git a/dma.c b/dma.c
-index 77cefcd..0c2447d 100644
+index 8eb925b..dbf006a 100644
 --- a/dma.c
 +++ b/dma.c
-@@ -608,7 +608,6 @@ void mt76_dma_cleanup(struct mt76_dev *dev)
+@@ -592,7 +592,6 @@ void mt76_dma_cleanup(struct mt76_dev *dev)
  {
  	int i;
  
@@ -11,7 +11,7 @@ index 77cefcd..0c2447d 100644
  	for (i = 0; i < ARRAY_SIZE(dev->q_tx); i++)
  		mt76_dma_tx_cleanup(dev, i, true);
 diff --git a/mac80211.c b/mac80211.c
-index 61bd3bf..a805c51 100644
+index 0866bce..425b95d 100644
 --- a/mac80211.c
 +++ b/mac80211.c
 @@ -2,7 +2,6 @@
@@ -22,7 +22,7 @@ index 61bd3bf..a805c51 100644
  #include <linux/of.h>
  #include "mt76.h"
  
-@@ -442,6 +441,8 @@ mt76_alloc_device(struct device *pdev, unsigned int size,
+@@ -443,6 +442,8 @@ mt76_alloc_device(struct device *pdev, unsigned int size,
  	for (i = 0; i < ARRAY_SIZE(dev->q_rx); i++)
  		skb_queue_head_init(&dev->rx_skb[i]);
  
@@ -31,7 +31,7 @@ index 61bd3bf..a805c51 100644
  	dev->wq = alloc_ordered_workqueue("mt76", 0);
  	if (!dev->wq) {
  		ieee80211_free_hw(hw);
-@@ -455,7 +456,6 @@ EXPORT_SYMBOL_GPL(mt76_alloc_device);
+@@ -456,7 +457,6 @@ EXPORT_SYMBOL_GPL(mt76_alloc_device);
  int mt76_register_device(struct mt76_dev *dev, bool vht,
  			 struct ieee80211_rate *rates, int n_rates)
  {
@@ -39,7 +39,7 @@ index 61bd3bf..a805c51 100644
  	struct ieee80211_hw *hw = dev->hw;
  	struct mt76_phy *phy = &dev->phy;
  	int ret;
-@@ -485,14 +485,7 @@ int mt76_register_device(struct mt76_dev *dev, bool vht,
+@@ -486,14 +486,7 @@ int mt76_register_device(struct mt76_dev *dev, bool vht,
  			return ret;
  	}
  
@@ -47,7 +47,7 @@ index 61bd3bf..a805c51 100644
 -	if (ret)
 -		return ret;
 -
--	WARN_ON(mt76_worker_setup(hw, &dev->tx_worker, mt76_tx_worker, "tx"));
+-	WARN_ON(mt76_worker_setup(hw, &dev->tx_worker, NULL, "tx"));
 -	sched_setscheduler(dev->tx_worker.task, SCHED_FIFO, &sparam);
 -
 -	return 0;
@@ -55,7 +55,7 @@ index 61bd3bf..a805c51 100644
  }
  EXPORT_SYMBOL_GPL(mt76_register_device);
  
-@@ -509,7 +502,6 @@ EXPORT_SYMBOL_GPL(mt76_unregister_device);
+@@ -510,7 +503,6 @@ EXPORT_SYMBOL_GPL(mt76_unregister_device);
  
  void mt76_free_device(struct mt76_dev *dev)
  {
@@ -64,10 +64,10 @@ index 61bd3bf..a805c51 100644
  		destroy_workqueue(dev->wq);
  		dev->wq = NULL;
 diff --git a/mt76.h b/mt76.h
-index 1e44950..c35b06b 100644
+index f0f16b1..8fc9d65 100644
 --- a/mt76.h
 +++ b/mt76.h
-@@ -611,7 +611,7 @@ struct mt76_dev {
+@@ -606,7 +606,7 @@ struct mt76_dev {
  	const struct mt76_queue_ops *queue_ops;
  	int tx_dma_idx[4];
  
@@ -76,7 +76,7 @@ index 1e44950..c35b06b 100644
  	struct napi_struct tx_napi;
  	struct delayed_work mac_work;
  
-@@ -921,7 +921,7 @@ void mt76_stop_tx_queues(struct mt76_dev *dev, struct ieee80211_sta *sta,
+@@ -916,7 +916,7 @@ void mt76_stop_tx_queues(struct mt76_dev *dev, struct ieee80211_sta *sta,
  void mt76_tx_check_agg_ssn(struct ieee80211_sta *sta, struct sk_buff *skb);
  void mt76_txq_schedule(struct mt76_phy *phy, enum mt76_txq_id qid);
  void mt76_txq_schedule_all(struct mt76_phy *phy);
@@ -86,10 +86,10 @@ index 1e44950..c35b06b 100644
  				  struct ieee80211_sta *sta,
  				  u16 tids, int nframes,
 diff --git a/mt7603/dma.c b/mt7603/dma.c
-index 9ec86da..a08b852 100644
+index 46be157..b51b894 100644
 --- a/mt7603/dma.c
 +++ b/mt7603/dma.c
-@@ -165,7 +165,7 @@ static int mt7603_poll_tx(struct napi_struct *napi, int budget)
+@@ -163,7 +163,7 @@ static int mt7603_poll_tx(struct napi_struct *napi, int budget)
  
  	mt7603_mac_sta_poll(dev);
  
@@ -98,7 +98,7 @@ index 9ec86da..a08b852 100644
  
  	return 0;
  }
-@@ -249,5 +249,6 @@ void mt7603_dma_cleanup(struct mt7603_dev *dev)
+@@ -246,5 +246,6 @@ void mt7603_dma_cleanup(struct mt7603_dev *dev)
  		   MT_WPDMA_GLO_CFG_RX_DMA_EN |
  		   MT_WPDMA_GLO_CFG_TX_WRITEBACK_DONE);
  
@@ -106,10 +106,10 @@ index 9ec86da..a08b852 100644
  	mt76_dma_cleanup(&dev->mt76);
  }
 diff --git a/mt7603/mac.c b/mt7603/mac.c
-index cbf21f4..625dc6d 100644
+index 97679eb..91a4f70 100644
 --- a/mt7603/mac.c
 +++ b/mt7603/mac.c
-@@ -1405,7 +1405,7 @@ static void mt7603_mac_watchdog_reset(struct mt7603_dev *dev)
+@@ -1402,7 +1402,7 @@ static void mt7603_mac_watchdog_reset(struct mt7603_dev *dev)
  	/* lock/unlock all queues to ensure that no tx is pending */
  	mt76_txq_schedule_all(&dev->mphy);
  
@@ -118,7 +118,7 @@ index cbf21f4..625dc6d 100644
  	tasklet_disable(&dev->mt76.pre_tbtt_tasklet);
  	napi_disable(&dev->mt76.napi[0]);
  	napi_disable(&dev->mt76.napi[1]);
-@@ -1454,7 +1454,7 @@ skip_dma_reset:
+@@ -1451,7 +1451,7 @@ skip_dma_reset:
  	clear_bit(MT76_RESET, &dev->mphy.state);
  	mutex_unlock(&dev->mt76.mutex);
  
@@ -128,10 +128,10 @@ index cbf21f4..625dc6d 100644
  	napi_schedule(&dev->mt76.tx_napi);
  
 diff --git a/mt7615/dma.c b/mt7615/dma.c
-index f5c2b08..abb83d4 100644
+index bf8ae14..242638f 100644
 --- a/mt7615/dma.c
 +++ b/mt7615/dma.c
-@@ -306,5 +306,6 @@ void mt7615_dma_cleanup(struct mt7615_dev *dev)
+@@ -297,5 +297,6 @@ void mt7615_dma_cleanup(struct mt7615_dev *dev)
  		   MT_WPDMA_GLO_CFG_RX_DMA_EN);
  	mt76_set(dev, MT_WPDMA_GLO_CFG, MT_WPDMA_GLO_CFG_SW_RESET);
  
@@ -139,10 +139,10 @@ index f5c2b08..abb83d4 100644
  	mt76_dma_cleanup(&dev->mt76);
  }
 diff --git a/mt7615/mac.c b/mt7615/mac.c
-index 5fd964d..9b8fbf2 100644
+index ab1fbf4..9d0edba 100644
 --- a/mt7615/mac.c
 +++ b/mt7615/mac.c
-@@ -1455,7 +1455,7 @@ static void mt7615_mac_tx_free(struct mt7615_dev *dev, struct sk_buff *skb)
+@@ -1462,7 +1462,7 @@ static void mt7615_mac_tx_free(struct mt7615_dev *dev, struct sk_buff *skb)
  	rcu_read_unlock();
  
  	mt7615_pm_power_save_sched(dev);
@@ -151,7 +151,7 @@ index 5fd964d..9b8fbf2 100644
  }
  
  void mt7615_queue_rx_skb(struct mt76_dev *mdev, enum mt76_rxq_id q,
-@@ -1881,7 +1881,7 @@ void mt7615_pm_wake_work(struct work_struct *work)
+@@ -1888,7 +1888,7 @@ void mt7615_pm_wake_work(struct work_struct *work)
  	}
  	spin_unlock_bh(&dev->pm.txq_lock);
  
@@ -160,7 +160,7 @@ index 5fd964d..9b8fbf2 100644
  
  out:
  	ieee80211_wake_queues(mphy->hw);
-@@ -2123,7 +2123,7 @@ void mt7615_mac_reset_work(struct work_struct *work)
+@@ -2130,7 +2130,7 @@ void mt7615_mac_reset_work(struct work_struct *work)
  	if (ext_phy)
  		mt76_txq_schedule_all(ext_phy);
  
@@ -169,7 +169,7 @@ index 5fd964d..9b8fbf2 100644
  	napi_disable(&dev->mt76.napi[0]);
  	napi_disable(&dev->mt76.napi[1]);
  	napi_disable(&dev->mt76.tx_napi);
-@@ -2144,7 +2144,7 @@ void mt7615_mac_reset_work(struct work_struct *work)
+@@ -2151,7 +2151,7 @@ void mt7615_mac_reset_work(struct work_struct *work)
  	clear_bit(MT76_MCU_RESET, &dev->mphy.state);
  	clear_bit(MT76_RESET, &dev->mphy.state);
  
@@ -179,7 +179,7 @@ index 5fd964d..9b8fbf2 100644
  	napi_schedule(&dev->mt76.tx_napi);
  
 diff --git a/mt7615/main.c b/mt7615/main.c
-index 79802d0..77719bb 100644
+index 1d5cd7a..aa550c0 100644
 --- a/mt7615/main.c
 +++ b/mt7615/main.c
 @@ -707,7 +707,7 @@ mt7615_wake_tx_queue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
@@ -251,10 +251,10 @@ index 23b0e7d..4aff4f8 100644
  
  #endif /* __MT76x02_DMA_H */
 diff --git a/mt76x02_mmio.c b/mt76x02_mmio.c
-index 156fed6..1389ba1 100644
+index d3d61b1..ffb38d1 100644
 --- a/mt76x02_mmio.c
 +++ b/mt76x02_mmio.c
-@@ -150,11 +150,9 @@ static void mt76x02_process_tx_status_fifo(struct mt76x02_dev *dev)
+@@ -148,11 +148,9 @@ static void mt76x02_process_tx_status_fifo(struct mt76x02_dev *dev)
  		mt76x02_send_tx_status(dev, &stat, &update);
  }
  
@@ -268,7 +268,7 @@ index 156fed6..1389ba1 100644
  
  	mt76x02_mac_poll_tx_status(dev, false);
  	mt76x02_process_tx_status_fifo(dev);
-@@ -179,7 +177,7 @@ static int mt76x02_poll_tx(struct napi_struct *napi, int budget)
+@@ -177,7 +175,7 @@ static int mt76x02_poll_tx(struct napi_struct *napi, int budget)
  	for (i = MT_TXQ_MCU; i >= 0; i--)
  		mt76_queue_tx_cleanup(dev, i, false);
  
@@ -277,7 +277,7 @@ index 156fed6..1389ba1 100644
  
  	return 0;
  }
-@@ -198,7 +196,8 @@ int mt76x02_dma_init(struct mt76x02_dev *dev)
+@@ -196,7 +194,8 @@ int mt76x02_dma_init(struct mt76x02_dev *dev)
  	if (!status_fifo)
  		return -ENOMEM;
  
@@ -287,7 +287,7 @@ index 156fed6..1389ba1 100644
  	tasklet_init(&dev->mt76.pre_tbtt_tasklet, mt76x02_pre_tbtt_tasklet,
  		     (unsigned long)dev);
  
-@@ -326,6 +325,13 @@ static void mt76x02_dma_enable(struct mt76x02_dev *dev)
+@@ -323,6 +322,13 @@ static void mt76x02_dma_enable(struct mt76x02_dev *dev)
  		   MT_WPDMA_GLO_CFG_TX_WRITEBACK_DONE);
  }
  
@@ -301,7 +301,7 @@ index 156fed6..1389ba1 100644
  void mt76x02_dma_disable(struct mt76x02_dev *dev)
  {
  	u32 val = mt76_rr(dev, MT_WPDMA_GLO_CFG);
-@@ -443,7 +449,7 @@ static void mt76x02_watchdog_reset(struct mt76x02_dev *dev)
+@@ -440,7 +446,7 @@ static void mt76x02_watchdog_reset(struct mt76x02_dev *dev)
  	set_bit(MT76_RESET, &dev->mphy.state);
  
  	tasklet_disable(&dev->mt76.pre_tbtt_tasklet);
@@ -310,7 +310,7 @@ index 156fed6..1389ba1 100644
  	napi_disable(&dev->mt76.tx_napi);
  
  	mt76_for_each_q_rx(&dev->mt76, i) {
-@@ -500,7 +506,7 @@ static void mt76x02_watchdog_reset(struct mt76x02_dev *dev)
+@@ -497,7 +503,7 @@ static void mt76x02_watchdog_reset(struct mt76x02_dev *dev)
  
  	clear_bit(MT76_RESET, &dev->mphy.state);
  
@@ -354,7 +354,7 @@ index 48a3ebc..101a0fe 100644
  }
  
 diff --git a/testmode.c b/testmode.c
-index 1653f0b..5bd6ac1 100644
+index 3808808..f6fd515 100644
 --- a/testmode.c
 +++ b/testmode.c
 @@ -160,7 +160,7 @@ mt76_testmode_tx_start(struct mt76_dev *dev)
@@ -381,10 +381,10 @@ index 1653f0b..5bd6ac1 100644
  	wait_event_timeout(dev->tx_wait, td->tx_done == td->tx_queued, 10 * HZ);
  
 diff --git a/tx.c b/tx.c
-index af82915..85bd8c6 100644
+index 66bf565..959cb74 100644
 --- a/tx.c
 +++ b/tx.c
-@@ -576,9 +576,9 @@ void mt76_txq_schedule_all(struct mt76_phy *phy)
+@@ -602,9 +602,9 @@ void mt76_txq_schedule_all(struct mt76_phy *phy)
  }
  EXPORT_SYMBOL_GPL(mt76_txq_schedule_all);
  
@@ -396,7 +396,7 @@ index af82915..85bd8c6 100644
  
  	mt76_txq_schedule_all(&dev->phy);
  	if (dev->phy2)
-@@ -621,7 +621,7 @@ void mt76_wake_tx_queue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
+@@ -647,7 +647,7 @@ void mt76_wake_tx_queue(struct ieee80211_hw *hw, struct ieee80211_txq *txq)
  	if (!test_bit(MT76_STATE_RUNNING, &phy->state))
  		return;
  
@@ -406,7 +406,7 @@ index af82915..85bd8c6 100644
  EXPORT_SYMBOL_GPL(mt76_wake_tx_queue);
  
 diff --git a/usb.c b/usb.c
-index 9f6c370..dcab599 100644
+index edbcabd..18dbeca 100644
 --- a/usb.c
 +++ b/usb.c
 @@ -792,9 +792,9 @@ int mt76u_resume_rx(struct mt76_dev *dev)
@@ -419,9 +419,9 @@ index 9f6c370..dcab599 100644
 -	struct mt76_dev *dev = container_of(w, struct mt76_dev, tx_worker);
 +	struct mt76_dev *dev = (struct mt76_dev *)data;
  	struct mt76_queue_entry entry;
- 	struct mt76_sw_queue *sq;
  	struct mt76_queue *q;
-@@ -882,7 +882,7 @@ static void mt76u_complete_tx(struct urb *urb)
+ 	bool wake;
+@@ -864,7 +864,7 @@ static void mt76u_complete_tx(struct urb *urb)
  		dev_err(dev->dev, "tx urb failed: %d\n", urb->status);
  	e->done = true;
  
@@ -430,7 +430,7 @@ index 9f6c370..dcab599 100644
  }
  
  static int
-@@ -1040,8 +1040,6 @@ void mt76u_stop_tx(struct mt76_dev *dev)
+@@ -1020,8 +1020,6 @@ void mt76u_stop_tx(struct mt76_dev *dev)
  {
  	int ret;
  
@@ -439,7 +439,7 @@ index 9f6c370..dcab599 100644
  	ret = wait_event_timeout(dev->tx_wait, !mt76_has_tx_pending(&dev->phy),
  				 HZ / 5);
  	if (!ret) {
-@@ -1060,6 +1058,8 @@ void mt76u_stop_tx(struct mt76_dev *dev)
+@@ -1040,6 +1038,8 @@ void mt76u_stop_tx(struct mt76_dev *dev)
  				usb_kill_urb(q->entry[j].urb);
  		}
  
@@ -448,7 +448,7 @@ index 9f6c370..dcab599 100644
  		/* On device removal we maight queue skb's, but mt76u_tx_kick()
  		 * will fail to submit urb, cleanup those skb's manually.
  		 */
-@@ -1084,8 +1084,6 @@ void mt76u_stop_tx(struct mt76_dev *dev)
+@@ -1058,8 +1058,6 @@ void mt76u_stop_tx(struct mt76_dev *dev)
  	cancel_work_sync(&dev->usb.stat_work);
  	clear_bit(MT76_READING_STATS, &dev->phy.state);
  
@@ -457,7 +457,7 @@ index 9f6c370..dcab599 100644
  	mt76_tx_status_check(dev, NULL, true);
  }
  EXPORT_SYMBOL_GPL(mt76u_stop_tx);
-@@ -1135,8 +1133,8 @@ int mt76u_init(struct mt76_dev *dev,
+@@ -1109,8 +1107,8 @@ int mt76u_init(struct mt76_dev *dev,
  	mt76u_ops.rmw = ext ? mt76u_rmw_ext : mt76u_rmw;
  	mt76u_ops.write_copy = ext ? mt76u_copy_ext : mt76u_copy;
  

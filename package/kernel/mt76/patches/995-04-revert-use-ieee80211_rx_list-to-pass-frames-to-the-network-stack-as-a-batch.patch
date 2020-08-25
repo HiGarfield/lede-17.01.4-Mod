@@ -1,8 +1,8 @@
 diff --git a/mac80211.c b/mac80211.c
-index a805c51..87699b2 100644
+index 425b95d..1173339 100644
 --- a/mac80211.c
 +++ b/mac80211.c
-@@ -935,8 +935,7 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
+@@ -936,8 +936,7 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
  {
  	struct ieee80211_sta *sta;
  	struct ieee80211_hw *hw;
@@ -12,7 +12,7 @@ index a805c51..87699b2 100644
  
  	spin_lock(&dev->rx_lock);
  	while ((skb = __skb_dequeue(frames)) != NULL) {
-@@ -946,19 +945,9 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
+@@ -947,19 +946,9 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
  		}
  
  		mt76_rx_convert(dev, skb, &hw, &sta);
