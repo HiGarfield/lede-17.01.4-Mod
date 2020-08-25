@@ -1,8 +1,8 @@
 diff --git a/dma.c b/dma.c
-index 0c2447d..bc23466 100644
+index dbf006a..5f4a1b7 100644
 --- a/dma.c
 +++ b/dma.c
-@@ -579,8 +579,8 @@ mt76_dma_init(struct mt76_dev *dev)
+@@ -563,8 +563,8 @@ mt76_dma_init(struct mt76_dev *dev)
  	init_dummy_netdev(&dev->napi_dev);
  
  	mt76_for_each_q_rx(dev, i) {

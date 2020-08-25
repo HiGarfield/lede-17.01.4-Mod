@@ -1,5 +1,5 @@
 diff --git a/mac80211.c b/mac80211.c
-index 9cc7371..bded1dc 100644
+index e0c6495..7fe8fea 100644
 --- a/mac80211.c
 +++ b/mac80211.c
 @@ -288,7 +288,6 @@ mt76_phy_init(struct mt76_dev *dev, struct ieee80211_hw *hw)
