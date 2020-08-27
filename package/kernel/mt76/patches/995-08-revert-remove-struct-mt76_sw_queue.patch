@@ -1,5 +1,3 @@
-diff --git a/debugfs.c b/debugfs.c
-index bd35360..9958930 100644
 --- a/debugfs.c
 +++ b/debugfs.c
 @@ -31,7 +31,7 @@ int mt76_queues_read(struct seq_file *s, void *data)
@@ -11,11 +9,9 @@ index bd35360..9958930 100644
  
  		if (!q)
  			continue;
-diff --git a/dma.c b/dma.c
-index 5f4a1b7..8001783 100644
 --- a/dma.c
 +++ b/dma.c
-@@ -150,7 +150,8 @@ mt76_dma_kick_queue(struct mt76_dev *dev, struct mt76_queue *q)
+@@ -147,7 +147,8 @@ mt76_dma_kick_queue(struct mt76_dev *dev, struct mt76_queue *q)
  static void
  mt76_dma_tx_cleanup(struct mt76_dev *dev, enum mt76_txq_id qid, bool flush)
  {
@@ -25,7 +21,7 @@ index 5f4a1b7..8001783 100644
  	struct mt76_queue_entry entry;
  	bool wake = false;
  	int last;
-@@ -248,7 +249,7 @@ static int
+@@ -245,7 +246,7 @@ static int
  mt76_dma_tx_queue_skb_raw(struct mt76_dev *dev, enum mt76_txq_id qid,
  			  struct sk_buff *skb, u32 tx_info)
  {
@@ -34,7 +30,7 @@ index 5f4a1b7..8001783 100644
  	struct mt76_queue_buf buf;
  	dma_addr_t addr;
  
-@@ -280,7 +281,7 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, enum mt76_txq_id qid,
+@@ -277,7 +278,7 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, enum mt76_txq_id qid,
  		      struct sk_buff *skb, struct mt76_wcid *wcid,
  		      struct ieee80211_sta *sta)
  {
@@ -43,8 +39,6 @@ index 5f4a1b7..8001783 100644
  	struct mt76_tx_info tx_info = {
  		.skb = skb,
  	};
-diff --git a/mac80211.c b/mac80211.c
-index 23d0277..87699b2 100644
 --- a/mac80211.c
 +++ b/mac80211.c
 @@ -542,7 +542,7 @@ bool mt76_has_tx_pending(struct mt76_phy *phy)
@@ -56,11 +50,9 @@ index 23d0277..87699b2 100644
  		if (q && q->queued)
  			return true;
  	}
-diff --git a/mt76.h b/mt76.h
-index 3ba2f61..ffe878f 100644
 --- a/mt76.h
 +++ b/mt76.h
-@@ -136,6 +136,10 @@ struct mt76_queue {
+@@ -138,6 +138,10 @@ struct mt76_queue {
  	struct page_frag_cache rx_page;
  };
  
@@ -71,7 +63,7 @@ index 3ba2f61..ffe878f 100644
  struct mt76_mcu_ops {
  	u32 headroom;
  	u32 tailroom;
-@@ -222,7 +226,7 @@ struct mt76_wcid {
+@@ -224,7 +228,7 @@ struct mt76_wcid {
  };
  
  struct mt76_txq {
@@ -80,7 +72,7 @@ index 3ba2f61..ffe878f 100644
  	struct mt76_wcid *wcid;
  
  	struct sk_buff_head retry_q;
-@@ -598,7 +602,7 @@ struct mt76_dev {
+@@ -600,7 +604,7 @@ struct mt76_dev {
  	struct sk_buff_head rx_skb[__MT_RXQ_MAX];
  
  	struct list_head txwi_cache;
@@ -89,8 +81,6 @@ index 3ba2f61..ffe878f 100644
  	struct mt76_queue q_rx[__MT_RXQ_MAX];
  	const struct mt76_queue_ops *queue_ops;
  	int tx_dma_idx[4];
-diff --git a/mt7603/beacon.c b/mt7603/beacon.c
-index d728c5e..7a41cdf 100644
 --- a/mt7603/beacon.c
 +++ b/mt7603/beacon.c
 @@ -29,7 +29,7 @@ mt7603_update_beacon_iter(void *priv, u8 *mac, struct ieee80211_vif *vif)
@@ -129,8 +119,6 @@ index d728c5e..7a41cdf 100644
  	    hweight8(dev->mt76.beacon_mask))
  		dev->beacon_check++;
  }
-diff --git a/mt7603/dma.c b/mt7603/dma.c
-index b51b894..7007be6 100644
 --- a/mt7603/dma.c
 +++ b/mt7603/dma.c
 @@ -5,7 +5,8 @@
@@ -187,8 +175,6 @@ index b51b894..7007be6 100644
  				   MT_TX_HW_QUEUE_BMC, MT_MCU_RING_SIZE);
  	if (ret)
  		return ret;
-diff --git a/mt7603/mac.c b/mt7603/mac.c
-index 6a99ca6..cb99b7c 100644
 --- a/mt7603/mac.c
 +++ b/mt7603/mac.c
 @@ -445,7 +445,7 @@ void mt7603_mac_sta_poll(struct mt7603_dev *dev)
@@ -218,8 +204,6 @@ index 6a99ca6..cb99b7c 100644
  
  		if (!q->queued)
  			continue;
-diff --git a/mt7603/main.c b/mt7603/main.c
-index f9ffa88..447f2c6 100644
 --- a/mt7603/main.c
 +++ b/mt7603/main.c
 @@ -514,7 +514,7 @@ mt7603_conf_tx(struct ieee80211_hw *hw, struct ieee80211_vif *vif, u16 queue,
@@ -231,8 +215,6 @@ index f9ffa88..447f2c6 100644
  
  	if (params->cw_min)
  		cw_min = params->cw_min;
-diff --git a/mt7615/debugfs.c b/mt7615/debugfs.c
-index 27c3216..937cb71 100644
 --- a/mt7615/debugfs.c
 +++ b/mt7615/debugfs.c
 @@ -339,15 +339,15 @@ mt7615_queues_read(struct seq_file *s, void *data)
@@ -255,8 +237,6 @@ index 27c3216..937cb71 100644
  	}
  
  	return 0;
-diff --git a/mt7615/dma.c b/mt7615/dma.c
-index 242638f..5f0469b 100644
 --- a/mt7615/dma.c
 +++ b/mt7615/dma.c
 @@ -12,7 +12,8 @@
@@ -336,8 +316,6 @@ index 242638f..5f0469b 100644
  				   MT7615_TX_MCU_RING_SIZE);
  	return 0;
  }
-diff --git a/mt7615/mt7615.h b/mt7615/mt7615.h
-index 6a9f918..9e048ff 100644
 --- a/mt7615/mt7615.h
 +++ b/mt7615/mt7615.h
 @@ -542,7 +542,7 @@ static inline u8 mt7615_lmac_mapping(struct mt7615_dev *dev, u8 ac)
@@ -349,8 +327,6 @@ index 6a9f918..9e048ff 100644
  }
  
  void mt7615_dma_reset(struct mt7615_dev *dev);
-diff --git a/mt7615/sdio_mcu.c b/mt7615/sdio_mcu.c
-index 38670c0..53fb601 100644
 --- a/mt7615/sdio_mcu.c
 +++ b/mt7615/sdio_mcu.c
 @@ -53,7 +53,7 @@ mt7663s_mcu_send_message(struct mt76_dev *mdev, struct sk_buff *skb,
@@ -362,8 +338,6 @@ index 38670c0..53fb601 100644
  	if (wait_resp)
  		ret = mt7615_mcu_wait_response(dev, cmd, seq);
  
-diff --git a/mt7615/sdio_txrx.c b/mt7615/sdio_txrx.c
-index 3557df5..8863c3a 100644
 --- a/mt7615/sdio_txrx.c
 +++ b/mt7615/sdio_txrx.c
 @@ -162,7 +162,7 @@ static int mt7663s_tx_update_sched(struct mt76_dev *dev,
@@ -384,8 +358,6 @@ index 3557df5..8863c3a 100644
  		if (ret < 0)
  			break;
  
-diff --git a/mt76x02_mmio.c b/mt76x02_mmio.c
-index ffb38d1..57a0fd6 100644
 --- a/mt76x02_mmio.c
 +++ b/mt76x02_mmio.c
 @@ -14,7 +14,7 @@
@@ -457,8 +429,6 @@ index ffb38d1..57a0fd6 100644
  
  		if (!q->queued)
  			continue;
-diff --git a/mt76x02_usb_core.c b/mt76x02_usb_core.c
-index 0eac1de..cc28583 100644
 --- a/mt76x02_usb_core.c
 +++ b/mt76x02_usb_core.c
 @@ -66,7 +66,7 @@ int mt76x02u_tx_prepare_skb(struct mt76_dev *mdev, void *data,
@@ -470,8 +440,6 @@ index 0eac1de..cc28583 100644
  	struct mt76x02_txwi *txwi;
  	bool ampdu = IEEE80211_SKB_CB(tx_info->skb)->flags & IEEE80211_TX_CTL_AMPDU;
  	enum mt76_qsel qsel;
-diff --git a/mt76x02_util.c b/mt76x02_util.c
-index 412f3f7..dbd4077 100644
 --- a/mt76x02_util.c
 +++ b/mt76x02_util.c
 @@ -490,7 +490,7 @@ int mt76x02_conf_tx(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
@@ -483,8 +451,6 @@ index 412f3f7..dbd4077 100644
  
  	if (params->cw_min)
  		cw_min = fls(params->cw_min);
-diff --git a/mt7915/debugfs.c b/mt7915/debugfs.c
-index 388077a..677b947 100644
 --- a/mt7915/debugfs.c
 +++ b/mt7915/debugfs.c
 @@ -292,15 +292,15 @@ mt7915_queues_read(struct seq_file *s, void *data)
@@ -507,8 +473,6 @@ index 388077a..677b947 100644
  	}
  
  	return 0;
-diff --git a/mt7915/dma.c b/mt7915/dma.c
-index 875badc..3dec15b 100644
 --- a/mt7915/dma.c
 +++ b/mt7915/dma.c
 @@ -8,6 +8,7 @@
@@ -575,8 +539,6 @@ index 875badc..3dec15b 100644
  				    MT7915_TX_FWDL_RING_SIZE);
  	if (ret)
  		return ret;
-diff --git a/sdio.c b/sdio.c
-index 57484e7..e41037a 100644
 --- a/sdio.c
 +++ b/sdio.c
 @@ -48,7 +48,7 @@ static int mt76s_alloc_tx(struct mt76_dev *dev)
@@ -617,8 +579,6 @@ index 57484e7..e41037a 100644
  	int ret = -ENOSPC, len = skb->len;
  
  	if (q->queued == q->ndesc)
-diff --git a/testmode.c b/testmode.c
-index f6fd515..5bd6ac1 100644
 --- a/testmode.c
 +++ b/testmode.c
 @@ -29,7 +29,7 @@ void mt76_testmode_tx_pending(struct mt76_dev *dev)
@@ -630,8 +590,6 @@ index f6fd515..5bd6ac1 100644
  
  	spin_lock_bh(&q->lock);
  
-diff --git a/tx.c b/tx.c
-index 3ba8c14..3dac8f7 100644
 --- a/tx.c
 +++ b/tx.c
 @@ -301,7 +301,7 @@ mt76_tx(struct mt76_phy *phy, struct ieee80211_sta *sta,
@@ -668,7 +626,7 @@ index 3ba8c14..3dac8f7 100644
  	struct ieee80211_tx_info *info;
  	struct sk_buff *skb;
  	int n_frames = 1, limit;
-@@ -483,7 +484,7 @@ mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
+@@ -484,7 +485,7 @@ mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
  		sq->swq_queued++;
  	}
  
@@ -677,7 +635,7 @@ index 3ba8c14..3dac8f7 100644
  
  	return n_frames;
  }
-@@ -492,13 +493,14 @@ static int
+@@ -493,13 +494,14 @@ static int
  mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
  {
  	struct mt76_dev *dev = phy->dev;
@@ -694,7 +652,7 @@ index 3ba8c14..3dac8f7 100644
  	while (1) {
  		if (sq->swq_queued >= 4)
  			break;
-@@ -526,16 +528,16 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
+@@ -527,16 +529,16 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
  			u8 tid = txq->tid;
  
  			mtxq->send_bar = false;
@@ -715,7 +673,7 @@ index 3ba8c14..3dac8f7 100644
  
  	return ret;
  }
-@@ -601,7 +603,7 @@ void mt76_stop_tx_queues(struct mt76_dev *dev, struct ieee80211_sta *sta,
+@@ -602,7 +604,7 @@ void mt76_stop_tx_queues(struct mt76_dev *dev, struct ieee80211_sta *sta,
  			continue;
  
  		mtxq = (struct mt76_txq *)txq->drv_priv;
@@ -724,7 +682,7 @@ index 3ba8c14..3dac8f7 100644
  
  		spin_lock_bh(&hwq->lock);
  		mtxq->send_bar = mtxq->aggr && send_bar;
-@@ -646,7 +648,7 @@ void mt76_txq_init(struct mt76_dev *dev, struct ieee80211_txq *txq)
+@@ -647,7 +649,7 @@ void mt76_txq_init(struct mt76_dev *dev, struct ieee80211_txq *txq)
  
  	skb_queue_head_init(&mtxq->retry_q);
  
@@ -733,8 +691,6 @@ index 3ba8c14..3dac8f7 100644
  }
  EXPORT_SYMBOL_GPL(mt76_txq_init);
  
-diff --git a/usb.c b/usb.c
-index 703d4a5..14b93a0 100644
 --- a/usb.c
 +++ b/usb.c
 @@ -796,12 +796,14 @@ static void mt76u_tx_tasklet(unsigned long data)

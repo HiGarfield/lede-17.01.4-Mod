@@ -1,5 +1,3 @@
-diff --git a/mt7603/main.c b/mt7603/main.c
-index 447f2c6..44152d9 100644
 --- a/mt7603/main.c
 +++ b/mt7603/main.c
 @@ -569,7 +569,6 @@ mt7603_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
@@ -28,8 +26,6 @@ index 447f2c6..44152d9 100644
  }
  
  static void
-diff --git a/mt7615/main.c b/mt7615/main.c
-index aa550c0..77719bb 100644
 --- a/mt7615/main.c
 +++ b/mt7615/main.c
 @@ -783,7 +783,6 @@ mt7615_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
@@ -58,8 +54,6 @@ index aa550c0..77719bb 100644
  }
  
  static int
-diff --git a/mt76x02_util.c b/mt76x02_util.c
-index dbd4077..6febbca 100644
 --- a/mt76x02_util.c
 +++ b/mt76x02_util.c
 @@ -363,7 +363,6 @@ int mt76x02_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,

@@ -1,5 +1,3 @@
-diff --git a/mac80211.c b/mac80211.c
-index 425b95d..1173339 100644
 --- a/mac80211.c
 +++ b/mac80211.c
 @@ -936,8 +936,7 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,

@@ -1,5 +1,3 @@
-diff --git a/util.c b/util.c
-index 5819644..f53bb4a 100644
 --- a/util.c
 +++ b/util.c
 @@ -110,32 +110,4 @@ int mt76_get_min_avg_rssi(struct mt76_dev *dev, bool ext_phy)
@@ -35,8 +33,6 @@ index 5819644..f53bb4a 100644
 -EXPORT_SYMBOL_GPL(__mt76_worker_fn);
 -
  MODULE_LICENSE("Dual BSD/GPL");
-diff --git a/util.h b/util.h
-index 1c363ea..fd1a688 100644
 --- a/util.h
 +++ b/util.h
 @@ -10,19 +10,6 @@

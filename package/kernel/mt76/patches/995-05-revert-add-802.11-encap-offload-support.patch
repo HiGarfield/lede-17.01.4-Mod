@@ -1,5 +1,3 @@
-diff --git a/tx.c b/tx.c
-index 959cb74..b6e52a3 100644
 --- a/tx.c
 +++ b/tx.c
 @@ -341,7 +341,6 @@ mt76_tx(struct mt76_phy *phy, struct ieee80211_sta *sta,
