@@ -1,8 +1,6 @@
-diff --git a/dma.c b/dma.c
-index 3548d0f..8eb925b 100644
 --- a/dma.c
 +++ b/dma.c
-@@ -547,8 +547,10 @@ mt76_dma_rx_poll(struct napi_struct *napi, int budget)
+@@ -544,8 +544,10 @@ mt76_dma_rx_poll(struct napi_struct *napi, int budget)
  
  	rcu_read_unlock();
  

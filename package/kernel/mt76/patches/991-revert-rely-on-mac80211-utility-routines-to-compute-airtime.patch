@@ -1,5 +1,3 @@
-diff --git a/Makefile b/Makefile
-index 544ea7f..9137f7b 100644
 --- a/Makefile
 +++ b/Makefile
 @@ -8,7 +8,7 @@ obj-$(CONFIG_MT76x02_USB) += mt76x02-usb.o
@@ -11,9 +9,6 @@ index 544ea7f..9137f7b 100644
  
  mt76-$(CONFIG_PCI) += pci.o
  mt76-$(CONFIG_NL80211_TESTMODE) += testmode.o
-diff --git a/airtime.c b/airtime.c
-new file mode 100644
-index 0000000..a4a7854
 --- /dev/null
 +++ b/airtime.c
 @@ -0,0 +1,326 @@
@@ -343,8 +338,6 @@ index 0000000..a4a7854
 +	return duration;
 +}
 +EXPORT_SYMBOL_GPL(mt76_calc_tx_airtime);
-diff --git a/mac80211.c b/mac80211.c
-index 7fe8fea..0866bce 100644
 --- a/mac80211.c
 +++ b/mac80211.c
 @@ -791,18 +791,10 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
@@ -367,11 +360,9 @@ index 7fe8fea..0866bce 100644
  	spin_lock(&dev->cc_lock);
  	dev->cur_cc_bss_rx += airtime;
  	spin_unlock(&dev->cc_lock);
-diff --git a/mt76.h b/mt76.h
-index b7fc8e5..f0f16b1 100644
 --- a/mt76.h
 +++ b/mt76.h
-@@ -998,6 +998,9 @@ static inline void mt76_testmode_reset(struct mt76_dev *dev, bool disable)
+@@ -1000,6 +1000,9 @@ static inline void mt76_testmode_reset(struct mt76_dev *dev, bool disable)
  }
  
  
@@ -381,7 +372,7 @@ index b7fc8e5..f0f16b1 100644
  /* internal */
  static inline struct ieee80211_hw *
  mt76_tx_status_get_hw(struct mt76_dev *dev, struct sk_buff *skb)
-@@ -1021,6 +1024,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
+@@ -1023,6 +1026,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
  void mt76_rx_poll_complete(struct mt76_dev *dev, enum mt76_rxq_id q,
  			   struct napi_struct *napi);
  void mt76_rx_aggr_reorder(struct sk_buff *skb, struct sk_buff_head *frames);
@@ -390,8 +381,6 @@ index b7fc8e5..f0f16b1 100644
  void mt76_testmode_tx_pending(struct mt76_dev *dev);
  void mt76_queue_tx_complete(struct mt76_dev *dev, struct mt76_queue *q,
  			    struct mt76_queue_entry *e);
-diff --git a/mt76x02_mac.c b/mt76x02_mac.c
-index 8529837..68a9c7a 100644
 --- a/mt76x02_mac.c
 +++ b/mt76x02_mac.c
 @@ -636,7 +636,7 @@ void mt76x02_send_tx_status(struct mt76x02_dev *dev,

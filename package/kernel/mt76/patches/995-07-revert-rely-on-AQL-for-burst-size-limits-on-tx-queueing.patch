@@ -1,5 +1,3 @@
-diff --git a/mt76.h b/mt76.h
-index 8fc9d65..3ba2f61 100644
 --- a/mt76.h
 +++ b/mt76.h
 @@ -21,9 +21,6 @@
@@ -12,10 +10,10 @@ index 8fc9d65..3ba2f61 100644
  struct mt76_dev;
  struct mt76_phy;
  struct mt76_wcid;
-@@ -102,9 +99,10 @@ struct mt76_queue_entry {
- 		struct urb *urb;
- 		int buf_sz;
+@@ -104,9 +101,10 @@ struct mt76_queue_entry {
  	};
+ 	u32 dma_addr[2];
+ 	u16 dma_len[2];
 -	u16 wcid;
 +	enum mt76_txq_id qid;
  	bool skip_buf0:1;
@@ -24,7 +22,7 @@ index 8fc9d65..3ba2f61 100644
  	bool done:1;
  };
  
-@@ -201,7 +199,6 @@ DECLARE_EWMA(signal, 10, 8);
+@@ -203,7 +201,6 @@ DECLARE_EWMA(signal, 10, 8);
  struct mt76_wcid {
  	struct mt76_rx_tid __rcu *aggr[IEEE80211_NUM_TIDS];
  
@@ -32,7 +30,7 @@ index 8fc9d65..3ba2f61 100644
  	unsigned long flags;
  
  	struct ewma_signal rssi;
-@@ -949,7 +946,7 @@ struct sk_buff *mt76_tx_status_skb_get(struct mt76_dev *dev,
+@@ -951,7 +948,7 @@ struct sk_buff *mt76_tx_status_skb_get(struct mt76_dev *dev,
  				       struct sk_buff_head *list);
  void mt76_tx_status_skb_done(struct mt76_dev *dev, struct sk_buff *skb,
  			     struct sk_buff_head *list);
@@ -41,8 +39,6 @@ index 8fc9d65..3ba2f61 100644
  void mt76_tx_status_check(struct mt76_dev *dev, struct mt76_wcid *wcid,
  			  bool flush);
  int mt76_sta_state(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
-diff --git a/mt7603/mac.c b/mt7603/mac.c
-index 91a4f70..6a99ca6 100644
 --- a/mt7603/mac.c
 +++ b/mt7603/mac.c
 @@ -1282,7 +1282,7 @@ void mt7603_tx_complete_skb(struct mt76_dev *mdev, struct mt76_queue_entry *e)
@@ -54,8 +50,6 @@ index 91a4f70..6a99ca6 100644
  }
  
  static bool
-diff --git a/mt7615/mac.c b/mt7615/mac.c
-index 9d0edba..9b8fbf2 100644
 --- a/mt7615/mac.c
 +++ b/mt7615/mac.c
 @@ -1400,9 +1400,6 @@ mt7615_mac_tx_free_token(struct mt7615_dev *dev, u16 token)
@@ -83,8 +77,6 @@ index 9d0edba..9b8fbf2 100644
  		txwi->skb = NULL;
  	}
  
-diff --git a/mt7615/pci_mac.c b/mt7615/pci_mac.c
-index 4cf7c5d..ba53606 100644
 --- a/mt7615/pci_mac.c
 +++ b/mt7615/pci_mac.c
 @@ -44,7 +44,7 @@ void mt7615_tx_complete_skb(struct mt76_dev *mdev, struct mt76_queue_entry *e)
@@ -96,8 +88,6 @@ index 4cf7c5d..ba53606 100644
  }
  
  static void
-diff --git a/mt7615/usb_sdio.c b/mt7615/usb_sdio.c
-index 56d82bd..30065b0 100644
 --- a/mt7615/usb_sdio.c
 +++ b/mt7615/usb_sdio.c
 @@ -234,7 +234,7 @@ void mt7663_usb_sdio_tx_complete_skb(struct mt76_dev *mdev,
@@ -109,8 +99,6 @@ index 56d82bd..30065b0 100644
  }
  EXPORT_SYMBOL_GPL(mt7663_usb_sdio_tx_complete_skb);
  
-diff --git a/mt76x02_mac.c b/mt76x02_mac.c
-index 68a9c7a..d8f21bd 100644
 --- a/mt76x02_mac.c
 +++ b/mt76x02_mac.c
 @@ -917,7 +917,7 @@ void mt76x02_tx_complete_skb(struct mt76_dev *mdev, struct mt76_queue_entry *e)
@@ -122,8 +110,6 @@ index 68a9c7a..d8f21bd 100644
  }
  EXPORT_SYMBOL_GPL(mt76x02_tx_complete_skb);
  
-diff --git a/mt76x02_usb_core.c b/mt76x02_usb_core.c
-index 5d0a285..0eac1de 100644
 --- a/mt76x02_usb_core.c
 +++ b/mt76x02_usb_core.c
 @@ -18,7 +18,7 @@ static void mt76x02u_remove_dma_hdr(struct sk_buff *skb)
@@ -135,8 +121,6 @@ index 5d0a285..0eac1de 100644
  }
  EXPORT_SYMBOL_GPL(mt76x02u_tx_complete_skb);
  
-diff --git a/mt7915/mac.c b/mt7915/mac.c
-index 6008bab..e41945b 100644
 --- a/mt7915/mac.c
 +++ b/mt7915/mac.c
 @@ -997,21 +997,10 @@ void mt7915_mac_tx_free(struct mt7915_dev *dev, struct sk_buff *skb)
@@ -161,8 +145,6 @@ index 6008bab..e41945b 100644
  			mt7915_tx_complete_status(mdev, txwi->skb, sta, stat);
  			txwi->skb = NULL;
  		}
-diff --git a/sdio.c b/sdio.c
-index 7777d49..57484e7 100644
 --- a/sdio.c
 +++ b/sdio.c
 @@ -143,6 +143,7 @@ static void mt76s_process_tx_queue(struct mt76_dev *dev, enum mt76_txq_id qid)
@@ -173,8 +155,6 @@ index 7777d49..57484e7 100644
  
  		if (qid == MT_TXQ_MCU) {
  			dev_kfree_skb(entry.skb);
-diff --git a/tx.c b/tx.c
-index b6e52a3..3ba8c14 100644
 --- a/tx.c
 +++ b/tx.c
 @@ -241,32 +241,7 @@ mt76_tx_status_check(struct mt76_dev *dev, struct mt76_wcid *wcid, bool flush)
@@ -292,7 +272,7 @@ index b6e52a3..3ba8c14 100644
  	skb = mt76_txq_dequeue(phy, mtxq, false);
  	if (!skb)
  		return 0;
-@@ -487,34 +433,55 @@ mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
+@@ -487,37 +433,56 @@ mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
  	if (!(wcid->tx_info & MT_WCID_TX_INFO_SET))
  		ieee80211_get_tx_rates(txq->vif, txq->sta, skb,
  				       info->control.rates, 1);
@@ -310,9 +290,12 @@ index b6e52a3..3ba8c14 100644
  
  	do {
 -		if (test_bit(MT76_STATE_PM, &phy->state) ||
--		    test_bit(MT76_RESET, &phy->state) || stop)
+-		    test_bit(MT76_RESET, &phy->state))
 -			return -EBUSY;
 +		bool cur_ampdu;
+ 
+-		if (stop)
+-			break;
  
 -		if (q->queued + MT_TXQ_FREE_THR >= q->ndesc)
 +		if (probe)
@@ -359,7 +342,7 @@ index b6e52a3..3ba8c14 100644
  
  	dev->queue_ops->kick(dev, q);
  
-@@ -533,15 +500,15 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
+@@ -536,15 +501,15 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
  
  	spin_lock_bh(&q->lock);
  	while (1) {
@@ -378,7 +361,7 @@ index b6e52a3..3ba8c14 100644
  		txq = ieee80211_next_txq(phy->hw, qid);
  		if (!txq)
  			break;
-@@ -575,11 +542,16 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
+@@ -578,11 +543,16 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
  
  void mt76_txq_schedule(struct mt76_phy *phy, enum mt76_txq_id qid)
  {
@@ -395,7 +378,7 @@ index b6e52a3..3ba8c14 100644
  	rcu_read_lock();
  
  	do {
-@@ -726,12 +698,21 @@ EXPORT_SYMBOL_GPL(mt76_skb_adjust_pad);
+@@ -729,12 +699,21 @@ EXPORT_SYMBOL_GPL(mt76_skb_adjust_pad);
  void mt76_queue_tx_complete(struct mt76_dev *dev, struct mt76_queue *q,
  			    struct mt76_queue_entry *e)
  {
@@ -417,8 +400,6 @@ index b6e52a3..3ba8c14 100644
  	spin_unlock_bh(&q->lock);
  }
  EXPORT_SYMBOL_GPL(mt76_queue_tx_complete);
-diff --git a/usb.c b/usb.c
-index 18dbeca..703d4a5 100644
 --- a/usb.c
 +++ b/usb.c
 @@ -809,6 +809,7 @@ static void mt76u_tx_tasklet(unsigned long data)
