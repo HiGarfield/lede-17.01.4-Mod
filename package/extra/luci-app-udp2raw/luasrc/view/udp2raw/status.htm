@@ -1,12 +1,11 @@
 <%
 local function get_udp2raw_version(name)
 	local info = luci.util.split(luci.sys.exec("%s -h 2>/dev/null" %{name}), "\n")
-	local version = string.match(info[2], "git version:(%w+)")
-	local build = string.match(info[2], "build date:(.+)")
-	return info[1] == "udp2raw-tunnel" and version or "", info[1] == "udp2raw-tunnel" and build or ""
+	local version = string.match(info[2], "^git version:([^%s]+)")
+	return info[1] == "udp2raw-tunnel" and version or ""
 end
 
-local udp2raw_version, udp2raw_build = get_udp2raw_version("udp2raw")
+local udp2raw_version = get_udp2raw_version("udp2raw")
 -%>
 
 <fieldset class="cbi-section">
