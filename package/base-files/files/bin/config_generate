@@ -220,7 +220,7 @@ generate_switch() {
 
 
 generate_static_system() {
-	local board_name=$(cat /tmp/sysinfo/board_name 2>/dev/null)
+	local board_name="$(awk -F',' '{print $1}' /tmp/sysinfo/board_name | tr ' ' '_' | tr -d ' \n')"
 	[ -z "$board_name" ] && board_name="LEDE"
 
 	uci -q batch <<-EOF
