@@ -15,6 +15,7 @@
 	guest account = root
 	map to guest = Bad User
 	max protocol = SMB2
+	protocol = SMB2
 	min receivefile size = 16384
 	null passwords = yes
 	passdb backend = smbpasswd

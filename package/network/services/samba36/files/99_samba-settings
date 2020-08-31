@@ -1,6 +1,6 @@
 #!/bin/sh
 
-board_name=$(cat /tmp/sysinfo/board_name 2>/dev/null)
+board_name="$(awk -F',' '{print $1}' /tmp/sysinfo/board_name | tr ' ' '_' | tr -d ' \n' | awk '{print toupper($0)}')"
 
 [ -n "$board_name" ] && uci -q batch <<-EOF
 	set samba.@samba[0].name="$board_name"
