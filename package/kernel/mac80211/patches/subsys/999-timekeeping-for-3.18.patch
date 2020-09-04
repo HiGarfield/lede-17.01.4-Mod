@@ -1,17 +1,6 @@
 --- a/backport-include/linux/timekeeping.h	2019-08-15 05:37:48.000000000 +0800
 +++ a/backport-include/linux/timekeeping.h	2019-10-06 01:01:00.492624586 +0800
-@@ -24,10 +24,6 @@
- }
- #endif /* < 3.17 */
- 
--#if LINUX_VERSION_IS_LESS(4,18,0)
--extern time64_t ktime_get_boottime_seconds(void);
--#endif /* < 4.18 */
--
- #if LINUX_VERSION_IS_LESS(3,19,0)
- static inline time64_t ktime_get_seconds(void)
- {
-@@ -48,41 +44,4 @@
+@@ -48,41 +48,4 @@
  }
  #endif
  
