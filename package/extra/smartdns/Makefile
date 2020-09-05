@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=smartdns
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://www.github.com/pymumu/smartdns.git
-PKG_SOURCE_VERSION:=2b81fffb7eab2d96f59022961140d954be423a4f
+PKG_SOURCE_VERSION:=6f30fe6d0539e95ae337dca9f7a73798219aea66
 PKG_MIRROR_HASH:=skip
 PKG_RELEASE:=1
 
