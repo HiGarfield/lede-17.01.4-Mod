@@ -80,25 +80,15 @@ detect_mac80211() {
 		channel="auto"
 		htmode=""
 		ht_capab=""
+		wifi_5ghz=""
 
 		iw phy "$dev" info | grep -q 'Capabilities:' && htmode="HT40"
-		iw phy "$dev" info | grep -q '2412 MHz' || {
+
+		iw phy "$dev" info | grep -Eq '5180 MHz|5745 MHz' && {
 			mode_band="a"
-			htmode=""
+			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
+			wifi_5ghz="_5G"
 		}
-
-		# LEDE 17.01中QCA9558使用HT40频宽会导致2.4GHz丢失
-		grep -q '^MODALIAS=platform:qca955x_wmac$' "/sys/class/ieee80211/${dev}/device/uevent" && htmode="HT20"
-
-		vht_cap=$(iw phy "$dev" info | grep -c 'VHT Capabilities')
-		cap_5ghz=$(iw phy "$dev" info | grep -c "Band 2")
-		[ "$vht_cap" -gt 0 -a "$cap_5ghz" -gt 0 ] && {
-			mode_band="a";
-			htmode="VHT80"
-		}
-		
-		wifi_5ghz=""
-		[ "$mode_band" = "a" ] && wifi_5ghz="_5G"
 
 		[ -n "$htmode" ] && ht_capab="set wireless.radio${devidx}.htmode=${htmode}"
 
@@ -121,7 +111,7 @@ detect_mac80211() {
 		fi
 
 		mac_addr="$(cat /sys/class/ieee80211/${dev}/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)"
-		ssid_name="LEDE_${mac_addr}${wifi_5ghz}"
+		ssid="LEDE_${mac_addr}${wifi_5ghz}"
 
 		uci -q batch <<-EOF
 			set wireless.radio${devidx}=wifi-device
@@ -137,7 +127,7 @@ detect_mac80211() {
 			set wireless.default_radio${devidx}.device=radio${devidx}
 			set wireless.default_radio${devidx}.network=lan
 			set wireless.default_radio${devidx}.mode=ap
-			set wireless.default_radio${devidx}.ssid=${ssid_name}
+			set wireless.default_radio${devidx}.ssid=${ssid}
 			set wireless.default_radio${devidx}.encryption=none
 EOF
 		uci -q commit wireless
