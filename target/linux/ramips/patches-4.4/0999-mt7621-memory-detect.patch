@@ -1,5 +1,3 @@
-diff --git a/arch/mips/include/asm/mach-ralink/mt7621.h b/arch/mips/include/asm/mach-ralink/mt7621.h
-index 5eca174c..87b63d98 100644
 --- a/arch/mips/include/asm/mach-ralink/mt7621.h
 +++ b/arch/mips/include/asm/mach-ralink/mt7621.h
 @@ -30,9 +30,10 @@
@@ -16,8 +14,6 @@ index 5eca174c..87b63d98 100644
  
  #define MT7621_CHIP_NAME0		0x3637544D
  #define MT7621_CHIP_NAME1		0x20203132
-diff --git a/arch/mips/ralink/common.h b/arch/mips/ralink/common.h
-index 8e7d8e61..57b9f819 100644
 --- a/arch/mips/ralink/common.h
 +++ b/arch/mips/ralink/common.h
 @@ -19,6 +19,7 @@ struct ralink_soc_info {
@@ -28,8 +24,6 @@ index 8e7d8e61..57b9f819 100644
  };
  extern struct ralink_soc_info soc_info;
  
-diff --git a/arch/mips/ralink/mt7621.c b/arch/mips/ralink/mt7621.c
-index 34198900..46a668e1 100644
 --- a/arch/mips/ralink/mt7621.c
 +++ b/arch/mips/ralink/mt7621.c
 @@ -13,7 +13,10 @@
@@ -92,8 +86,6 @@ index 34198900..46a668e1 100644
  
  	rt2880_pinmux_data = mt7621_pinmux_data;
  
-diff --git a/arch/mips/ralink/of.c b/arch/mips/ralink/of.c
-index 9196b571..586eb985 100644
 --- a/arch/mips/ralink/of.c
 +++ b/arch/mips/ralink/of.c
 @@ -96,6 +96,8 @@ void __init plat_mem_setup(void)
