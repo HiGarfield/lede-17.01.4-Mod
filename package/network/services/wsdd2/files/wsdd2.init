@@ -13,20 +13,12 @@ start_service() {
 
 	. /lib/functions/network.sh
 
-	if [ -e /etc/ksmbd/smb.conf ] && [ -e /etc/init.d/ksmbd ] && /etc/init.d/ksmbd running; then
-		SMB_CONF="/etc/ksmbd/smb.conf"
+	if [ -e /etc/samba/smb.conf ] && [ -e /etc/init.d/samba ] && [ -n "$(ps | grep -w smbd | grep -v -w grep)" ]; then
+			SMB_CONF="/etc/samba/smb.conf"
 	fi
 
-	[ -e /etc/samba/smb.conf ] && {
-		if [ -e /etc/init.d/samba4 ] && /etc/init.d/samba4 running; then
-			SMB_CONF="/etc/samba/smb.conf"
-		elif [ -e /etc/init.d/samba ] && /etc/init.d/samba running; then
-			SMB_CONF="/etc/samba/smb.conf"
-		fi
-	}
-
 	[ -z "$SMB_CONF" ] && {
-		logger -p daemon.error -t 'wsdd2' "samba36/4 or ksmbd is not running, can't start wsdd2!"
+		logger -p daemon.error -t 'wsdd2' "samba is not running, can't start wsdd2!"
 		exit 1
 	}
 	
@@ -85,5 +77,5 @@ start_service() {
 
 service_triggers() {
 	PROCD_RELOAD_DELAY=1000
-	procd_add_reload_trigger "dhcp" "system" "samba" "samba4" "ksmbd"
+	procd_add_reload_trigger "dhcp" "system" "samba"
 }
