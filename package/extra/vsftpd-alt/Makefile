@@ -84,7 +84,7 @@ define Build/Compile
 	$(SED) 's/-lcrypt -lnsl/$(NLSSTRING)/' $(PKG_BUILD_DIR)/Makefile
 	$(MAKE) -C $(PKG_BUILD_DIR) \
 		CC="$(TARGET_CC)" \
-		CFLAGS="$(TARGET_CFLAGS)" \
+		CFLAGS="$(TARGET_CFLAGS) $(TARGET_CPPFLAGS)" \
 		LDFLAGS="$(TARGET_LDFLAGS)" \
 		vsftpd
 endef
