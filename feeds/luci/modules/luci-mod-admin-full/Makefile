@@ -7,7 +7,7 @@
 include $(TOPDIR)/rules.mk
 
 LUCI_TITLE:=LuCI Administration - full-featured for full control
-LUCI_DEPENDS:=+luci-base +lede-info
+LUCI_DEPENDS:=+luci-base +lede-info +force-unmount
 
 PKG_BUILD_DEPENDS:=iwinfo
 

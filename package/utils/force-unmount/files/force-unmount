@@ -1,0 +1,105 @@
+#!/bin/sh
+
+. /usr/share/libubox/jshn.sh
+
+# compare_pid process_id pid
+# 当process_id与pid相等，或process_id是pid子进程时返回1，否则返回0
+compare_pid()
+{
+	local process_id=$1
+	local pid=$2
+	local p
+	[ -z "$pid" -o -z "$process_id" ] && return 0
+	[ "$process_id" -eq "$pid" ] && return 1
+	for p in $(pgrep -P "$pid" | tr "\n" " "); do
+		compare_pid "$process_id" "$p"
+		[ "$?" -eq 1 ] && return 1
+	done
+	return 0
+}
+
+# stop_occupying_service mount_point
+# 停止所有占用挂载点的服务
+# example: stop_occupying_service /mnt/sda1
+stop_occupying_service()
+{
+	local dir_name process_id services service instances instance kill_flag pid running
+	
+	json_init
+	json_load "$(ubus call service list)"
+	json_get_keys services
+	
+	dir_name="$1"
+	for process_id in $(busybox lsof | awk '{print $3,$1}' | grep -w "^$dir_name" | awk '{print $NF}' | uniq | tr "\n" " "); do
+		for service in $services; do
+			kill_flag=0
+			if json_is_a $service object; then
+				json_select $service
+				if json_is_a instances object; then
+					json_select instances
+					json_get_keys instances
+					for instance in $instances; do
+						if json_is_a $instance object; then
+							json_select $instance
+							json_get_var pid pid
+							json_get_var running running							
+							[ -n "$running" -a "$running" -eq 1 ] && {
+								compare_pid "$process_id" "$pid"
+								[ $? -eq 1 ] && kill_flag=1
+							}
+							json_select ..
+						fi
+					done
+					json_select ..
+				fi
+				json_select ..
+			fi
+			[ "$kill_flag" -eq 1 ] && {
+				logger -t force-unmount "Stopping service: ${service}."
+				/etc/init.d/$service stop
+			}
+		done
+	done
+}
+
+# kill_occupying_process mount_point
+# 结束所有占用挂载点的进程
+# example: kill_occupying_process /mnt/sda1
+kill_occupying_process()
+{
+	local dir_name pids
+	dir_name="$1"
+
+	pids=$(busybox lsof | awk '{print $3,$1}' | grep -w "^$dir_name" | awk '{print $2}' | uniq | tr "\n" " ")
+	[ -n "$pids" ] && kill -9 $pids >/dev/null 2>&1
+}
+
+
+MAX_TRY=5
+
+[ $# -ne 1 ] && exit 1
+mountpoint="$1"
+
+if awk '{print $2}' /proc/mounts | grep -q "$mountpoint"; then
+	success=0
+	for try_count in $(seq $MAX_TRY); do
+		logger -t force-unmount "Unmount $mountpoint: try count $try_count."
+		stop_occupying_service "$mountpoint"
+		kill_occupying_process "$mountpoint"
+		umount "$mountpoint"
+		[ "$?" -eq 0 ] && {
+			success=1
+			break
+		}
+	done
+
+	if [ $success -eq 1 ]; then
+		logger -t force-unmount "Unmount $mountpoint successfully."
+	else
+		logger -t force-unmount "Cannot unmount $mountpoint."
+	fi
+else
+	logger -t force-unmount "$mountpoint is not mounted."
+fi
+
+exit 0

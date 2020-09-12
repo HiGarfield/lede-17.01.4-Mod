@@ -123,8 +123,6 @@ ifneq ($(CONFIG_BUSYBOX_$(BUSYBOX_SYM)_NTPD),)
 	$(INSTALL_BIN) ./files/ntpd-hotplug $(1)/usr/sbin/ntpd-hotplug
 endif
 	-rm -rf $(1)/lib64
-	$(INSTALL_DIR) $(1)/bin
-	$(INSTALL_BIN) ./files/force-unmount $(1)/bin/
 endef
 
 $(eval $(call BuildPackage,busybox))
