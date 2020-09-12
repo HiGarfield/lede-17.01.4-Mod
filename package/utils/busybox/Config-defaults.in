@@ -2602,7 +2602,7 @@ config BUSYBOX_DEFAULT_KILLALL5
 	default n
 config BUSYBOX_DEFAULT_LSOF
 	bool
-	default y
+	default n
 config BUSYBOX_DEFAULT_MPSTAT
 	bool
 	default n
