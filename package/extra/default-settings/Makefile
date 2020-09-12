@@ -25,7 +25,7 @@ define Package/default-settings
 endef
 
 define Package/default-settings/description
-	Language Support Packages.
+Provide default settings
 endef
 
 define Build/Prepare
