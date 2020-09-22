@@ -11,11 +11,10 @@ PKG_NAME:=fstools
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(LEDE_GIT)/project/fstools.git
-PKG_SOURCE_DATE:=2018-04-16
-PKG_SOURCE_VERSION:=6609e98a7416e107d1718b6ec6cc7339ab6523b8
-PKG_MIRROR_HASH:=29d384e3681762d5cb6fc22f6d8c123b2b3ee8966ef79e0177a21902eff0ebf6
-PKG_RELEASE:=1
+PKG_SOURCE_URL=$(PROJECT_GIT)/project/fstools.git
+PKG_MIRROR_HASH:=1b875efd7d675d74a56602f57dd27093e2feef8761ba28b567e2d2f43db14b48
+PKG_SOURCE_DATE:=2020-05-12
+PKG_SOURCE_VERSION:=84269037b75de93bdd4ea75b7f50ba77ba976377
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -34,6 +33,8 @@ include $(INCLUDE_DIR)/cmake.mk
 
 TARGET_LDFLAGS += $(if $(CONFIG_USE_GLIBC),-lrt)
 CMAKE_OPTIONS += $(if $(CONFIG_FSTOOLS_UBIFS_EXTROOT),-DCMAKE_UBIFS_EXTROOT=y)
+CMAKE_OPTIONS += $(if $(CONFIG_FSTOOLS_OVL_MOUNT_FULL_ACCESS_TIME),-DCMAKE_OVL_MOUNT_FULL_ACCESS_TIME=y)
+CMAKE_OPTIONS += $(if $(CONFIG_FSTOOLS_OVL_MOUNT_COMPRESS_ZLIB),-DCMAKE_OVL_MOUNT_COMPRESS_ZLIB=y)
 
 define Package/fstools
   SECTION:=base
@@ -51,6 +52,20 @@ define Package/fstools/config
 		default y
 		help
 			This option makes it possible to use extroot functionality if the root filesystem resides on an UBIFS partition
+
+	config FSTOOLS_OVL_MOUNT_FULL_ACCESS_TIME
+		depends on PACKAGE_fstools
+		bool "Full access time accounting"
+		default n
+		help
+			This option enables the full access time accounting (warning: it will increase the flash writes).
+
+	config FSTOOLS_OVL_MOUNT_COMPRESS_ZLIB
+		depends on PACKAGE_fstools
+		bool "Compress using zlib"
+		default n
+		help
+			This option enables the compression using zlib on the storage device.
 endef
 
 define Package/snapshot-tool
@@ -64,7 +79,7 @@ define Package/block-mount
   SECTION:=base
   CATEGORY:=Base system
   TITLE:=Block device mounting and checking
-  DEPENDS:=+ubox +libubox +libuci
+  DEPENDS:=+ubox +libubox +libuci +libblobmsg-json +libjson-c
 endef
 
 define Package/fstools/install
@@ -86,8 +101,9 @@ define Package/block-mount/install
 	$(INSTALL_DIR) $(1)/sbin $(1)/lib $(1)/usr/sbin $(1)/etc/hotplug.d/block $(1)/etc/init.d/ $(1)/etc/uci-defaults/
 
 	$(INSTALL_BIN) ./files/fstab.init $(1)/etc/init.d/fstab
-	$(INSTALL_DATA) ./files/fstab.default $(1)/etc/uci-defaults/10-fstab
-	$(INSTALL_DATA) ./files/mount.hotplug $(1)/etc/hotplug.d/block/10-mount
+	$(INSTALL_CONF) ./files/fstab.default $(1)/etc/uci-defaults/10-fstab
+	$(INSTALL_CONF) ./files/mount.hotplug $(1)/etc/hotplug.d/block/10-mount
+	$(INSTALL_CONF) ./files/media-change.hotplug  $(1)/etc/hotplug.d/block/00-media-change
 
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/block $(1)/sbin/
 	$(INSTALL_DATA) $(PKG_INSTALL_DIR)/usr/lib/libblkid-tiny.so $(1)/lib/
