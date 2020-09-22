@@ -1,0 +1,765 @@
+--- a/debugfs.c
++++ b/debugfs.c
+@@ -31,7 +31,7 @@ int mt76_queues_read(struct seq_file *s, void *data)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(dev->q_tx); i++) {
+-		struct mt76_queue *q = dev->q_tx[i];
++		struct mt76_queue *q = dev->q_tx[i].q;
+ 
+ 		if (!q)
+ 			continue;
+--- a/dma.c
++++ b/dma.c
+@@ -150,7 +150,8 @@ mt76_dma_kick_queue(struct mt76_dev *dev, struct mt76_queue *q)
+ static void
+ mt76_dma_tx_cleanup(struct mt76_dev *dev, enum mt76_txq_id qid, bool flush)
+ {
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_sw_queue *sq = &dev->q_tx[qid];
++	struct mt76_queue *q = sq->q;
+ 	struct mt76_queue_entry entry;
+ 	bool wake = false;
+ 	int last;
+@@ -248,7 +249,7 @@ static int
+ mt76_dma_tx_queue_skb_raw(struct mt76_dev *dev, enum mt76_txq_id qid,
+ 			  struct sk_buff *skb, u32 tx_info)
+ {
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_queue *q = dev->q_tx[qid].q;
+ 	struct mt76_queue_buf buf;
+ 	dma_addr_t addr;
+ 
+@@ -280,7 +281,7 @@ mt76_dma_tx_queue_skb(struct mt76_dev *dev, enum mt76_txq_id qid,
+ 		      struct sk_buff *skb, struct mt76_wcid *wcid,
+ 		      struct ieee80211_sta *sta)
+ {
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_queue *q = dev->q_tx[qid].q;
+ 	struct mt76_tx_info tx_info = {
+ 		.skb = skb,
+ 	};
+--- a/mac80211.c
++++ b/mac80211.c
+@@ -542,7 +542,7 @@ bool mt76_has_tx_pending(struct mt76_phy *phy)
+ 	offset = __MT_TXQ_MAX * (phy != &dev->phy);
+ 
+ 	for (i = 0; i < __MT_TXQ_MAX; i++) {
+-		q = dev->q_tx[offset + i];
++		q = dev->q_tx[offset + i].q;
+ 		if (q && q->queued)
+ 			return true;
+ 	}
+--- a/mt76.h
++++ b/mt76.h
+@@ -136,6 +136,10 @@ struct mt76_queue {
+ 	struct page_frag_cache rx_page;
+ };
+ 
++struct mt76_sw_queue {
++	struct mt76_queue *q;
++};
++
+ struct mt76_mcu_ops {
+ 	u32 headroom;
+ 	u32 tailroom;
+@@ -222,7 +226,7 @@ struct mt76_wcid {
+ };
+ 
+ struct mt76_txq {
+-	struct mt76_queue *q;
++	struct mt76_sw_queue *swq;
+ 	struct mt76_wcid *wcid;
+ 
+ 	struct sk_buff_head retry_q;
+@@ -598,7 +602,7 @@ struct mt76_dev {
+ 	struct sk_buff_head rx_skb[__MT_RXQ_MAX];
+ 
+ 	struct list_head txwi_cache;
+-	struct mt76_queue *q_tx[2 * __MT_TXQ_MAX];
++	struct mt76_sw_queue q_tx[2 * __MT_TXQ_MAX];
+ 	struct mt76_queue q_rx[__MT_RXQ_MAX];
+ 	const struct mt76_queue_ops *queue_ops;
+ 	int tx_dma_idx[4];
+--- a/mt7603/beacon.c
++++ b/mt7603/beacon.c
+@@ -29,7 +29,7 @@ mt7603_update_beacon_iter(void *priv, u8 *mac, struct ieee80211_vif *vif)
+ 	mt76_wr(dev, MT_DMA_FQCR0, MT_DMA_FQCR0_BUSY |
+ 		FIELD_PREP(MT_DMA_FQCR0_TARGET_WCID, mvif->sta.wcid.idx) |
+ 		FIELD_PREP(MT_DMA_FQCR0_TARGET_QID,
+-			   dev->mt76.q_tx[MT_TXQ_CAB]->hw_idx) |
++			   dev->mt76.q_tx[MT_TXQ_CAB].q->hw_idx) |
+ 		FIELD_PREP(MT_DMA_FQCR0_DEST_PORT_ID, 3) |
+ 		FIELD_PREP(MT_DMA_FQCR0_DEST_QUEUE_ID, 8));
+ 
+@@ -78,7 +78,7 @@ void mt7603_pre_tbtt_tasklet(unsigned long arg)
+ 	data.dev = dev;
+ 	__skb_queue_head_init(&data.q);
+ 
+-	q = dev->mt76.q_tx[MT_TXQ_BEACON];
++	q = dev->mt76.q_tx[MT_TXQ_BEACON].q;
+ 	spin_lock_bh(&q->lock);
+ 	ieee80211_iterate_active_interfaces_atomic(mt76_hw(dev),
+ 		IEEE80211_IFACE_ITER_RESUME_ALL,
+@@ -95,7 +95,7 @@ void mt7603_pre_tbtt_tasklet(unsigned long arg)
+ 	if (dev->mt76.csa_complete)
+ 		goto out;
+ 
+-	q = dev->mt76.q_tx[MT_TXQ_CAB];
++	q = dev->mt76.q_tx[MT_TXQ_CAB].q;
+ 	do {
+ 		nframes = skb_queue_len(&data.q);
+ 		ieee80211_iterate_active_interfaces_atomic(mt76_hw(dev),
+@@ -136,7 +136,7 @@ void mt7603_pre_tbtt_tasklet(unsigned long arg)
+ 
+ out:
+ 	mt76_queue_tx_cleanup(dev, MT_TXQ_BEACON, false);
+-	if (dev->mt76.q_tx[MT_TXQ_BEACON]->queued >
++	if (dev->mt76.q_tx[MT_TXQ_BEACON].q->queued >
+ 	    hweight8(dev->mt76.beacon_mask))
+ 		dev->beacon_check++;
+ }
+--- a/mt7603/dma.c
++++ b/mt7603/dma.c
+@@ -5,7 +5,8 @@
+ #include "../dma.h"
+ 
+ static int
+-mt7603_init_tx_queue(struct mt7603_dev *dev, int qid, int idx, int n_desc)
++mt7603_init_tx_queue(struct mt7603_dev *dev, struct mt76_sw_queue *q,
++		     int idx, int n_desc)
+ {
+ 	struct mt76_queue *hwq;
+ 	int err;
+@@ -18,7 +19,7 @@ mt7603_init_tx_queue(struct mt7603_dev *dev, int qid, int idx, int n_desc)
+ 	if (err < 0)
+ 		return err;
+ 
+-	dev->mt76.q_tx[qid] = hwq;
++	q->q = hwq;
+ 
+ 	mt7603_irq_enable(dev, MT_INT_TX_DONE(idx));
+ 
+@@ -191,28 +192,29 @@ int mt7603_dma_init(struct mt7603_dev *dev)
+ 	mt7603_pse_client_reset(dev);
+ 
+ 	for (i = 0; i < ARRAY_SIZE(wmm_queue_map); i++) {
+-		ret = mt7603_init_tx_queue(dev, i, wmm_queue_map[i],
++		ret = mt7603_init_tx_queue(dev, &dev->mt76.q_tx[i],
++					   wmm_queue_map[i],
+ 					   MT7603_TX_RING_SIZE);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	ret = mt7603_init_tx_queue(dev, MT_TXQ_PSD,
++	ret = mt7603_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_PSD],
+ 				   MT_TX_HW_QUEUE_MGMT, MT7603_PSD_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = mt7603_init_tx_queue(dev, MT_TXQ_MCU,
++	ret = mt7603_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_MCU],
+ 				   MT_TX_HW_QUEUE_MCU, MT_MCU_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = mt7603_init_tx_queue(dev, MT_TXQ_BEACON,
++	ret = mt7603_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_BEACON],
+ 				   MT_TX_HW_QUEUE_BCN, MT_MCU_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = mt7603_init_tx_queue(dev, MT_TXQ_CAB,
++	ret = mt7603_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_CAB],
+ 				   MT_TX_HW_QUEUE_BMC, MT_MCU_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+--- a/mt7603/mac.c
++++ b/mt7603/mac.c
+@@ -445,7 +445,7 @@ void mt7603_mac_sta_poll(struct mt7603_dev *dev)
+ 
+ 		sta = container_of((void *)msta, struct ieee80211_sta, drv_priv);
+ 		for (i = 0; i < 4; i++) {
+-			struct mt76_queue *q = dev->mt76.q_tx[i];
++			struct mt76_queue *q = dev->mt76.q_tx[i].q;
+ 			u8 qidx = q->hw_idx;
+ 			u8 tid = ac_to_tid[i];
+ 			u32 txtime = airtime[qidx];
+@@ -896,7 +896,7 @@ mt7603_mac_write_txwi(struct mt7603_dev *dev, __le32 *txwi,
+ 	struct ieee80211_hdr *hdr = (struct ieee80211_hdr *)skb->data;
+ 	struct ieee80211_bar *bar = (struct ieee80211_bar *)skb->data;
+ 	struct ieee80211_vif *vif = info->control.vif;
+-	struct mt76_queue *q = dev->mt76.q_tx[qid];
++	struct mt76_queue *q = dev->mt76.q_tx[qid].q;
+ 	struct mt7603_vif *mvif;
+ 	int wlan_idx;
+ 	int hdr_len = ieee80211_get_hdrlen_from_skb(skb);
+@@ -1514,7 +1514,7 @@ static bool mt7603_tx_hang(struct mt7603_dev *dev)
+ 	int i;
+ 
+ 	for (i = 0; i < 4; i++) {
+-		q = dev->mt76.q_tx[i];
++		q = dev->mt76.q_tx[i].q;
+ 
+ 		if (!q->queued)
+ 			continue;
+--- a/mt7603/main.c
++++ b/mt7603/main.c
+@@ -514,7 +514,7 @@ mt7603_conf_tx(struct ieee80211_hw *hw, struct ieee80211_vif *vif, u16 queue,
+ 	u16 cw_max = (1 << 10) - 1;
+ 	u32 val;
+ 
+-	queue = dev->mt76.q_tx[queue]->hw_idx;
++	queue = dev->mt76.q_tx[queue].q->hw_idx;
+ 
+ 	if (params->cw_min)
+ 		cw_min = params->cw_min;
+--- a/mt7615/debugfs.c
++++ b/mt7615/debugfs.c
+@@ -339,15 +339,15 @@ mt7615_queues_read(struct seq_file *s, void *data)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(queue_map); i++) {
+-		struct mt76_queue *q = dev->mt76.q_tx[queue_map[i].id];
++		struct mt76_sw_queue *q = &dev->mt76.q_tx[queue_map[i].id];
+ 
+-		if (!q)
++		if (!q->q)
+ 			continue;
+ 
+ 		seq_printf(s,
+ 			   "%s:	queued=%d head=%d tail=%d\n",
+-			   queue_map[i].queue, q->queued, q->head,
+-			   q->tail);
++			   queue_map[i].queue, q->q->queued, q->q->head,
++			   q->q->tail);
+ 	}
+ 
+ 	return 0;
+--- a/mt7615/dma.c
++++ b/mt7615/dma.c
+@@ -12,7 +12,8 @@
+ #include "mac.h"
+ 
+ static int
+-mt7615_init_tx_queue(struct mt7615_dev *dev, int qid, int idx, int n_desc)
++mt7615_init_tx_queue(struct mt7615_dev *dev, struct mt76_sw_queue *q,
++		      int idx, int n_desc)
+ {
+ 	struct mt76_queue *hwq;
+ 	int err;
+@@ -25,7 +26,7 @@ mt7615_init_tx_queue(struct mt7615_dev *dev, int qid, int idx, int n_desc)
+ 	if (err < 0)
+ 		return err;
+ 
+-	dev->mt76.q_tx[qid] = hwq;
++	q->q = hwq;
+ 
+ 	return 0;
+ }
+@@ -43,18 +44,19 @@ mt7622_init_tx_queues_multi(struct mt7615_dev *dev)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(wmm_queue_map); i++) {
+-		ret = mt7615_init_tx_queue(dev, i, wmm_queue_map[i],
++		ret = mt7615_init_tx_queue(dev, &dev->mt76.q_tx[i],
++					   wmm_queue_map[i],
+ 					   MT7615_TX_RING_SIZE / 2);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	ret = mt7615_init_tx_queue(dev, MT_TXQ_PSD,
++	ret = mt7615_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_PSD],
+ 				   MT7622_TXQ_MGMT, MT7615_TX_MGMT_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = mt7615_init_tx_queue(dev, MT_TXQ_MCU,
++	ret = mt7615_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_MCU],
+ 				   MT7622_TXQ_MCU, MT7615_TX_MCU_RING_SIZE);
+ 	return ret;
+ }
+@@ -62,9 +64,10 @@ mt7622_init_tx_queues_multi(struct mt7615_dev *dev)
+ static int
+ mt7615_init_tx_queues(struct mt7615_dev *dev)
+ {
++	struct mt76_sw_queue *q;
+ 	int ret, i;
+ 
+-	ret = mt7615_init_tx_queue(dev, MT_TXQ_FWDL,
++	ret = mt7615_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_FWDL],
+ 				   MT7615_TXQ_FWDL,
+ 				   MT7615_TX_FWDL_RING_SIZE);
+ 	if (ret)
+@@ -73,14 +76,18 @@ mt7615_init_tx_queues(struct mt7615_dev *dev)
+ 	if (!is_mt7615(&dev->mt76))
+ 		return mt7622_init_tx_queues_multi(dev);
+ 
+-	ret = mt7615_init_tx_queue(dev, 0, 0, MT7615_TX_RING_SIZE);
++	ret = mt7615_init_tx_queue(dev, &dev->mt76.q_tx[0], 0,
++				   MT7615_TX_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+-	for (i = 1; i < MT_TXQ_MCU; i++)
+-		dev->mt76.q_tx[i] = dev->mt76.q_tx[0];
++	for (i = 1; i < MT_TXQ_MCU; i++) {
++		q = &dev->mt76.q_tx[i];
++		q->q = dev->mt76.q_tx[0].q;
++	}
+ 
+-	ret = mt7615_init_tx_queue(dev, MT_TXQ_MCU, MT7615_TXQ_MCU,
++	ret = mt7615_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_MCU],
++				   MT7615_TXQ_MCU,
+ 				   MT7615_TX_MCU_RING_SIZE);
+ 	return 0;
+ }
+--- a/mt7615/mt7615.h
++++ b/mt7615/mt7615.h
+@@ -542,7 +542,7 @@ static inline u8 mt7615_lmac_mapping(struct mt7615_dev *dev, u8 ac)
+ 
+ static inline u32 mt7615_tx_mcu_int_mask(struct mt7615_dev *dev)
+ {
+-	return MT_INT_TX_DONE(dev->mt76.q_tx[MT_TXQ_MCU]->hw_idx);
++	return MT_INT_TX_DONE(dev->mt76.q_tx[MT_TXQ_MCU].q->hw_idx);
+ }
+ 
+ void mt7615_dma_reset(struct mt7615_dev *dev);
+--- a/mt7615/sdio_mcu.c
++++ b/mt7615/sdio_mcu.c
+@@ -53,7 +53,7 @@ mt7663s_mcu_send_message(struct mt76_dev *mdev, struct sk_buff *skb,
+ 	if (ret)
+ 		goto out;
+ 
+-	mt76_queue_kick(dev, mdev->q_tx[MT_TXQ_MCU]);
++	mt76_queue_kick(dev, mdev->q_tx[MT_TXQ_MCU].q);
+ 	if (wait_resp)
+ 		ret = mt7615_mcu_wait_response(dev, cmd, seq);
+ 
+--- a/mt7615/sdio_txrx.c
++++ b/mt7615/sdio_txrx.c
+@@ -162,7 +162,7 @@ static int mt7663s_tx_update_sched(struct mt76_dev *dev,
+ 
+ static int mt7663s_tx_run_queue(struct mt76_dev *dev, struct mt76_queue *q)
+ {
+-	bool mcu = q == dev->q_tx[MT_TXQ_MCU];
++	bool mcu = q == dev->q_tx[MT_TXQ_MCU].q;
+ 	struct mt76_sdio *sdio = &dev->sdio;
+ 	int nframes = 0;
+ 
+@@ -204,7 +204,7 @@ void mt7663s_tx_work(struct work_struct *work)
+ 	for (i = 0; i < MT_TXQ_MCU_WA; i++) {
+ 		int ret;
+ 
+-		ret = mt7663s_tx_run_queue(dev, dev->q_tx[i]);
++		ret = mt7663s_tx_run_queue(dev, dev->q_tx[i].q);
+ 		if (ret < 0)
+ 			break;
+ 
+--- a/mt76x02_mmio.c
++++ b/mt76x02_mmio.c
+@@ -14,7 +14,7 @@
+ static void mt76x02_pre_tbtt_tasklet(unsigned long arg)
+ {
+ 	struct mt76x02_dev *dev = (struct mt76x02_dev *)arg;
+-	struct mt76_queue *q = dev->mt76.q_tx[MT_TXQ_PSD];
++	struct mt76_queue *q = dev->mt76.q_tx[MT_TXQ_PSD].q;
+ 	struct beacon_bc_data data = {};
+ 	struct sk_buff *skb;
+ 	int i;
+@@ -103,7 +103,8 @@ void mt76x02e_init_beacon_config(struct mt76x02_dev *dev)
+ EXPORT_SYMBOL_GPL(mt76x02e_init_beacon_config);
+ 
+ static int
+-mt76x02_init_tx_queue(struct mt76x02_dev *dev, int qid, int idx, int n_desc)
++mt76x02_init_tx_queue(struct mt76x02_dev *dev, struct mt76_sw_queue *q,
++		      int idx, int n_desc)
+ {
+ 	struct mt76_queue *hwq;
+ 	int err;
+@@ -116,7 +117,7 @@ mt76x02_init_tx_queue(struct mt76x02_dev *dev, int qid, int idx, int n_desc)
+ 	if (err < 0)
+ 		return err;
+ 
+-	dev->mt76.q_tx[qid] = hwq;
++	q->q = hwq;
+ 
+ 	mt76x02_irq_enable(dev, MT_INT_TX_DONE(idx));
+ 
+@@ -207,18 +208,19 @@ int mt76x02_dma_init(struct mt76x02_dev *dev)
+ 	mt76_wr(dev, MT_WPDMA_RST_IDX, ~0);
+ 
+ 	for (i = 0; i < IEEE80211_NUM_ACS; i++) {
+-		ret = mt76x02_init_tx_queue(dev, i, mt76_ac_to_hwq(i),
++		ret = mt76x02_init_tx_queue(dev, &dev->mt76.q_tx[i],
++					    mt76_ac_to_hwq(i),
+ 					    MT76x02_TX_RING_SIZE);
+ 		if (ret)
+ 			return ret;
+ 	}
+ 
+-	ret = mt76x02_init_tx_queue(dev, MT_TXQ_PSD,
++	ret = mt76x02_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_PSD],
+ 				    MT_TX_HW_QUEUE_MGMT, MT76x02_PSD_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+-	ret = mt76x02_init_tx_queue(dev, MT_TXQ_MCU,
++	ret = mt76x02_init_tx_queue(dev, &dev->mt76.q_tx[MT_TXQ_MCU],
+ 				    MT_TX_HW_QUEUE_MCU, MT_MCU_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+@@ -290,7 +292,7 @@ irqreturn_t mt76x02_irq_handler(int irq, void *dev_instance)
+ 		if (dev->mt76.csa_complete)
+ 			mt76_csa_finish(&dev->mt76);
+ 		else
+-			mt76_queue_kick(dev, dev->mt76.q_tx[MT_TXQ_PSD]);
++			mt76_queue_kick(dev, dev->mt76.q_tx[MT_TXQ_PSD].q);
+ 	}
+ 
+ 	if (intr & MT_INT_TX_STAT)
+@@ -362,7 +364,7 @@ static bool mt76x02_tx_hang(struct mt76x02_dev *dev)
+ 	int i;
+ 
+ 	for (i = 0; i < 4; i++) {
+-		q = dev->mt76.q_tx[i];
++		q = dev->mt76.q_tx[i].q;
+ 
+ 		if (!q->queued)
+ 			continue;
+--- a/mt76x02_usb_core.c
++++ b/mt76x02_usb_core.c
+@@ -66,7 +66,7 @@ int mt76x02u_tx_prepare_skb(struct mt76_dev *mdev, void *data,
+ 			    struct mt76_tx_info *tx_info)
+ {
+ 	struct mt76x02_dev *dev = container_of(mdev, struct mt76x02_dev, mt76);
+-	int pid, len = tx_info->skb->len, ep = q2ep(mdev->q_tx[qid]->hw_idx);
++	int pid, len = tx_info->skb->len, ep = q2ep(mdev->q_tx[qid].q->hw_idx);
+ 	struct mt76x02_txwi *txwi;
+ 	bool ampdu = IEEE80211_SKB_CB(tx_info->skb)->flags & IEEE80211_TX_CTL_AMPDU;
+ 	enum mt76_qsel qsel;
+--- a/mt76x02_util.c
++++ b/mt76x02_util.c
+@@ -490,7 +490,7 @@ int mt76x02_conf_tx(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 	u8 cw_min = 5, cw_max = 10, qid;
+ 	u32 val;
+ 
+-	qid = dev->mt76.q_tx[queue]->hw_idx;
++	qid = dev->mt76.q_tx[queue].q->hw_idx;
+ 
+ 	if (params->cw_min)
+ 		cw_min = fls(params->cw_min);
+--- a/mt7915/debugfs.c
++++ b/mt7915/debugfs.c
+@@ -292,15 +292,15 @@ mt7915_queues_read(struct seq_file *s, void *data)
+ 	int i;
+ 
+ 	for (i = 0; i < ARRAY_SIZE(queue_map); i++) {
+-		struct mt76_queue *q = dev->mt76.q_tx[queue_map[i].id];
++		struct mt76_sw_queue *q = &dev->mt76.q_tx[queue_map[i].id];
+ 
+-		if (!q)
++		if (!q->q)
+ 			continue;
+ 
+ 		seq_printf(s,
+ 			   "%s:	queued=%d head=%d tail=%d\n",
+-			   queue_map[i].queue, q->queued, q->head,
+-			   q->tail);
++			   queue_map[i].queue, q->q->queued, q->q->head,
++			   q->q->tail);
+ 	}
+ 
+ 	return 0;
+--- a/mt7915/dma.c
++++ b/mt7915/dma.c
+@@ -8,6 +8,7 @@
+ static int
+ mt7915_init_tx_queues(struct mt7915_dev *dev, int n_desc)
+ {
++	struct mt76_sw_queue *q;
+ 	struct mt76_queue *hwq;
+ 	int err, i;
+ 
+@@ -20,14 +21,17 @@ mt7915_init_tx_queues(struct mt7915_dev *dev, int n_desc)
+ 	if (err < 0)
+ 		return err;
+ 
+-	for (i = 0; i < MT_TXQ_MCU; i++)
+-		dev->mt76.q_tx[i] = hwq;
++	for (i = 0; i < MT_TXQ_MCU; i++) {
++		q = &dev->mt76.q_tx[i];
++		q->q = hwq;
++	}
+ 
+ 	return 0;
+ }
+ 
+ static int
+-mt7915_init_mcu_queue(struct mt7915_dev *dev, int qid, int idx, int n_desc)
++mt7915_init_mcu_queue(struct mt7915_dev *dev, struct mt76_sw_queue *q,
++		      int idx, int n_desc)
+ {
+ 	struct mt76_queue *hwq;
+ 	int err;
+@@ -40,7 +44,7 @@ mt7915_init_mcu_queue(struct mt7915_dev *dev, int qid, int idx, int n_desc)
+ 	if (err < 0)
+ 		return err;
+ 
+-	dev->mt76.q_tx[qid] = hwq;
++	q->q = hwq;
+ 
+ 	return 0;
+ }
+@@ -262,19 +266,22 @@ int mt7915_dma_init(struct mt7915_dev *dev)
+ 		return ret;
+ 
+ 	/* command to WM */
+-	ret = mt7915_init_mcu_queue(dev, MT_TXQ_MCU, MT7915_TXQ_MCU_WM,
++	ret = mt7915_init_mcu_queue(dev, &dev->mt76.q_tx[MT_TXQ_MCU],
++				    MT7915_TXQ_MCU_WM,
+ 				    MT7915_TX_MCU_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+ 	/* command to WA */
+-	ret = mt7915_init_mcu_queue(dev, MT_TXQ_MCU_WA, MT7915_TXQ_MCU_WA,
++	ret = mt7915_init_mcu_queue(dev, &dev->mt76.q_tx[MT_TXQ_MCU_WA],
++				    MT7915_TXQ_MCU_WA,
+ 				    MT7915_TX_MCU_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+ 
+ 	/* firmware download */
+-	ret = mt7915_init_mcu_queue(dev, MT_TXQ_FWDL, MT7915_TXQ_FWDL,
++	ret = mt7915_init_mcu_queue(dev, &dev->mt76.q_tx[MT_TXQ_FWDL],
++				    MT7915_TXQ_FWDL,
+ 				    MT7915_TX_FWDL_RING_SIZE);
+ 	if (ret)
+ 		return ret;
+--- a/sdio.c
++++ b/sdio.c
+@@ -48,7 +48,7 @@ static int mt76s_alloc_tx(struct mt76_dev *dev)
+ 
+ 		spin_lock_init(&q->lock);
+ 		q->hw_idx = i;
+-		dev->q_tx[i] = q;
++		dev->q_tx[i].q = q;
+ 
+ 		q->entry = devm_kcalloc(dev->dev,
+ 					MT_NUM_TX_ENTRIES, sizeof(*q->entry),
+@@ -133,8 +133,9 @@ mt76s_process_rx_queue(struct mt76_dev *dev, struct mt76_queue *q)
+ 
+ static void mt76s_process_tx_queue(struct mt76_dev *dev, enum mt76_txq_id qid)
+ {
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_sw_queue *sq = &dev->q_tx[qid];
+ 	struct mt76_queue_entry entry;
++	struct mt76_queue *q = sq->q;
+ 	bool wake;
+ 
+ 	while (q->queued > 0) {
+@@ -199,7 +200,7 @@ mt76s_tx_queue_skb(struct mt76_dev *dev, enum mt76_txq_id qid,
+ 		   struct sk_buff *skb, struct mt76_wcid *wcid,
+ 		   struct ieee80211_sta *sta)
+ {
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_queue *q = dev->q_tx[qid].q;
+ 	struct mt76_tx_info tx_info = {
+ 		.skb = skb,
+ 	};
+@@ -226,7 +227,7 @@ static int
+ mt76s_tx_queue_skb_raw(struct mt76_dev *dev, enum mt76_txq_id qid,
+ 		       struct sk_buff *skb, u32 tx_info)
+ {
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_queue *q = dev->q_tx[qid].q;
+ 	int ret = -ENOSPC, len = skb->len;
+ 
+ 	if (q->queued == q->ndesc)
+--- a/testmode.c
++++ b/testmode.c
+@@ -29,7 +29,7 @@ void mt76_testmode_tx_pending(struct mt76_dev *dev)
+ 		return;
+ 
+ 	qid = skb_get_queue_mapping(skb);
+-	q = dev->q_tx[qid];
++	q = dev->q_tx[qid].q;
+ 
+ 	spin_lock_bh(&q->lock);
+ 
+--- a/tx.c
++++ b/tx.c
+@@ -301,7 +301,7 @@ mt76_tx(struct mt76_phy *phy, struct ieee80211_sta *sta,
+ 	if (ext_phy)
+ 		info->hw_queue |= MT_TX_HW_QUEUE_EXT_PHY;
+ 
+-	q = dev->q_tx[qid];
++	q = dev->q_tx[qid].q;
+ 
+ 	spin_lock_bh(&q->lock);
+ 	dev->queue_ops->tx_queue_skb(dev, qid, skb, wcid, sta);
+@@ -370,7 +370,7 @@ mt76_release_buffered_frames(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
+ 	struct mt76_phy *phy = hw->priv;
+ 	struct mt76_dev *dev = phy->dev;
+ 	struct sk_buff *last_skb = NULL;
+-	struct mt76_queue *hwq = dev->q_tx[MT_TXQ_PSD];
++	struct mt76_queue *hwq = dev->q_tx[MT_TXQ_PSD].q;
+ 	int i;
+ 
+ 	spin_lock_bh(&hwq->lock);
+@@ -407,13 +407,14 @@ mt76_release_buffered_frames(struct ieee80211_hw *hw, struct ieee80211_sta *sta,
+ EXPORT_SYMBOL_GPL(mt76_release_buffered_frames);
+ 
+ static int
+-mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
++mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_sw_queue *sq,
+ 		    struct mt76_txq *mtxq)
+ {
+ 	struct mt76_dev *dev = phy->dev;
+ 	struct ieee80211_txq *txq = mtxq_to_txq(mtxq);
+ 	enum mt76_txq_id qid = mt76_txq_get_qid(txq);
+ 	struct mt76_wcid *wcid = mtxq->wcid;
++	struct mt76_queue *hwq = sq->q;
+ 	struct ieee80211_tx_info *info;
+ 	struct sk_buff *skb;
+ 	int n_frames = 1, limit;
+@@ -483,7 +484,7 @@ mt76_txq_send_burst(struct mt76_phy *phy, struct mt76_queue *q,
+ 		sq->swq_queued++;
+ 	}
+ 
+-	dev->queue_ops->kick(dev, q);
++	dev->queue_ops->kick(dev, hwq);
+ 
+ 	return n_frames;
+ }
+@@ -492,13 +493,14 @@ static int
+ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
+ {
+ 	struct mt76_dev *dev = phy->dev;
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_sw_queue *sq = &dev->q_tx[qid];
++	struct mt76_queue *hwq = sq->q;
+ 	struct ieee80211_txq *txq;
+ 	struct mt76_txq *mtxq;
+ 	struct mt76_wcid *wcid;
+ 	int ret = 0;
+ 
+-	spin_lock_bh(&q->lock);
++	spin_lock_bh(&hwq->lock);
+ 	while (1) {
+ 		if (sq->swq_queued >= 4)
+ 			break;
+@@ -526,16 +528,16 @@ mt76_txq_schedule_list(struct mt76_phy *phy, enum mt76_txq_id qid)
+ 			u8 tid = txq->tid;
+ 
+ 			mtxq->send_bar = false;
+-			spin_unlock_bh(&q->lock);
++			spin_unlock_bh(&hwq->lock);
+ 			ieee80211_send_bar(vif, sta->addr, tid, agg_ssn);
+-			spin_lock_bh(&q->lock);
++			spin_lock_bh(&hwq->lock);
+ 		}
+ 
+-		ret += mt76_txq_send_burst(phy, q, mtxq);
++		ret += mt76_txq_send_burst(phy, sq, mtxq);
+ 		ieee80211_return_txq(phy->hw, txq,
+ 				     !skb_queue_empty(&mtxq->retry_q));
+ 	}
+-	spin_unlock_bh(&q->lock);
++	spin_unlock_bh(&hwq->lock);
+ 
+ 	return ret;
+ }
+@@ -601,7 +603,7 @@ void mt76_stop_tx_queues(struct mt76_dev *dev, struct ieee80211_sta *sta,
+ 			continue;
+ 
+ 		mtxq = (struct mt76_txq *)txq->drv_priv;
+-		hwq = mtxq->q;
++		hwq = mtxq->swq->q;
+ 
+ 		spin_lock_bh(&hwq->lock);
+ 		mtxq->send_bar = mtxq->aggr && send_bar;
+@@ -646,7 +648,7 @@ void mt76_txq_init(struct mt76_dev *dev, struct ieee80211_txq *txq)
+ 
+ 	skb_queue_head_init(&mtxq->retry_q);
+ 
+-	mtxq->q = dev->q_tx[mt76_txq_get_qid(txq)];
++	mtxq->swq = &dev->q_tx[mt76_txq_get_qid(txq)];
+ }
+ EXPORT_SYMBOL_GPL(mt76_txq_init);
+ 
+--- a/usb.c
++++ b/usb.c
+@@ -796,12 +796,14 @@ static void mt76u_tx_tasklet(unsigned long data)
+ {
+ 	struct mt76_dev *dev = (struct mt76_dev *)data;
+ 	struct mt76_queue_entry entry;
++	struct mt76_sw_queue *sq;
+ 	struct mt76_queue *q;
+ 	bool wake;
+ 	int i;
+ 
+ 	for (i = 0; i < IEEE80211_NUM_ACS; i++) {
+-		q = dev->q_tx[i];
++		sq = &dev->q_tx[i];
++		q = sq->q;
+ 
+ 		while (q->queued > 0) {
+ 			if (!q->entry[q->tail].done)
+@@ -892,7 +894,7 @@ mt76u_tx_queue_skb(struct mt76_dev *dev, enum mt76_txq_id qid,
+ 		   struct sk_buff *skb, struct mt76_wcid *wcid,
+ 		   struct ieee80211_sta *sta)
+ {
+-	struct mt76_queue *q = dev->q_tx[qid];
++	struct mt76_queue *q = dev->q_tx[qid].q;
+ 	struct mt76_tx_info tx_info = {
+ 		.skb = skb,
+ 	};
+@@ -971,7 +973,7 @@ static int mt76u_alloc_tx(struct mt76_dev *dev)
+ 
+ 	for (i = 0; i <= MT_TXQ_PSD; i++) {
+ 		if (i >= IEEE80211_NUM_ACS) {
+-			dev->q_tx[i] = dev->q_tx[0];
++			dev->q_tx[i].q = dev->q_tx[0].q;
+ 			continue;
+ 		}
+ 
+@@ -981,7 +983,7 @@ static int mt76u_alloc_tx(struct mt76_dev *dev)
+ 
+ 		spin_lock_init(&q->lock);
+ 		q->hw_idx = mt76u_ac_to_hwq(dev, i);
+-		dev->q_tx[i] = q;
++		dev->q_tx[i].q = q;
+ 
+ 		q->entry = devm_kcalloc(dev->dev,
+ 					MT_NUM_TX_ENTRIES, sizeof(*q->entry),
+@@ -1008,7 +1010,7 @@ static void mt76u_free_tx(struct mt76_dev *dev)
+ 		struct mt76_queue *q;
+ 		int j;
+ 
+-		q = dev->q_tx[i];
++		q = dev->q_tx[i].q;
+ 		if (!q)
+ 			continue;
+ 
+@@ -1031,7 +1033,7 @@ void mt76u_stop_tx(struct mt76_dev *dev)
+ 		dev_err(dev->dev, "timed out waiting for pending tx\n");
+ 
+ 		for (i = 0; i < IEEE80211_NUM_ACS; i++) {
+-			q = dev->q_tx[i];
++			q = dev->q_tx[i].q;
+ 			if (!q)
+ 				continue;
+ 
+@@ -1045,7 +1047,7 @@ void mt76u_stop_tx(struct mt76_dev *dev)
+ 		 * will fail to submit urb, cleanup those skb's manually.
+ 		 */
+ 		for (i = 0; i < IEEE80211_NUM_ACS; i++) {
+-			q = dev->q_tx[i];
++			q = dev->q_tx[i].q;
+ 			if (!q)
+ 				continue;
+ 
