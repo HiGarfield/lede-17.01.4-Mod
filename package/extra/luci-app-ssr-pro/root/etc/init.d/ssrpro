@@ -245,7 +245,7 @@ stop_pdnsd()
 		while iptables -t nat -D OUTPUT -p tcp --dport 53 -j pdnsd_output 2>/dev/null; do :; done
 		iptables -t nat -X pdnsd_output
 	fi
-	kill $(cat /var/run/pdnsd.pid) >/dev/null 2>&1 || killall -9 pdnsd >/dev/null 2>&1 
+	kill -9 $(cat /var/run/pdnsd.pid) >/dev/null 2>&1 || killall -9 pdnsd >/dev/null 2>&1 
 	rm -rf /var/pdnsd
 	rm -f /var/etc/pdnsd.conf
 }
