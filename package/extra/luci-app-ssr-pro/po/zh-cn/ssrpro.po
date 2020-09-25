@@ -32,7 +32,6 @@ msgid "GFW-List URL"
 msgstr "GFW-List下载地址"
 
 msgid "The URL to download GFW-List: default https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"
-msgid "The URL to download GFW-List"
 msgstr "下载GFW-List的地址：留空则默认为 https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"
 
 msgid "Auto Update GFW-List"
