@@ -38,7 +38,7 @@ gfwlist_url.placeholder = "https://raw.githubusercontent.com/gfwlist/gfwlist/mas
 gfwlist_url.optional = true
 
 cronup = s:taboption("basic", Flag, "cron_mode", translate("Auto Update GFW-List"),
-	translate(string.format(translate("GFW-List Lines： <strong><font color=\"blue\">%s</font></strong> Lines"), ND)))
+	translate(string.format(translate("GFW-List Lines: <strong><font color=\"blue\">%s</font></strong> Lines"), ND)))
 cronup.default = 0
 cronup.rmempty = false
 
