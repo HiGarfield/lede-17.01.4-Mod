@@ -57,15 +57,13 @@ safe_dns = s:taboption("basic",Value, "safe_dns", translate("Safe DNS"),
 	translate("8.8.4.4 is recommended"))
 safe_dns.datatype = "ip4addr"
 safe_dns.placeholder = "8.8.4.4"
-safe_dns.optional = true
-safe_dns:depends("safe_dns_tcp", "1")
+safe_dns.optional = false
 
 safe_dns_port = s:taboption("basic",Value, "safe_dns_port", translate("Safe DNS Port"),
 	translate("Foreign DNS on UDP port 53 might be polluted"))
 safe_dns_port.datatype = "range(1,65535)"
 safe_dns_port.placeholder = "53"
 safe_dns_port.optional = true
-safe_dns_port:depends("safe_dns_tcp", "1")
 
 s:tab("main",  translate("Server Setting"))
 
