@@ -6,15 +6,18 @@ START=99
 STOP=10
 
 EXTRA_COMMANDS="reload_rule"
-
 SS_REDIR_PORT=7070
 SS_REDIR_PIDFILE=/var/run/ssr-redir-go.pid 
-PDNSD_LOCAL_PORT=7453
 SSRCONF=/var/etc/shadowsocksr.json
 CRON_FILE=/etc/crontabs/root
 CONFIG=ssrpro
 KEEP_GFWLIST=Y
 vt_np_ipset="china"
+DNSFORWARDER_LOCAL_PORT=7453
+DNSFORWARDER_PATH=/var/dnsfwd-ssrpro
+DNSFORWARDER_BIN=dnsfwd-ssrpro
+DNSFORWARDER=${DNSFORWARDER_PATH}/${DNSFORWARDER_BIN}
+DNSFORWARDER_CONF=${DNSFORWARDER_PATH}/dnsfwd-ssrpro.conf
 
 get_config()
 {
@@ -57,9 +60,7 @@ start()
 {   
 	config_load ssrpro
 	config_foreach get_config ssrpro
-	
-	[ -f /etc/init.d/pdnsd ] && /etc/init.d/pdnsd disable 2>/dev/null
-	
+
 	if [ "$vt_enabled" = 0 ]; then
 		echo "WARNING: Shadowsocksr is disabled."
 		exit 0
@@ -70,6 +71,10 @@ start()
 		exit 0
 	fi
 	
+	[ -f /etc/init.d/dnsforwarder ] && {
+		/etc/init.d/dnsforwarder stop 2>/dev/null
+	}
+		
 	local vt_gfwlist=`__gfwlist_by_mode $vt_proxy_mode`
 
 	# -----------------------------------------------------------------
@@ -102,8 +107,8 @@ EOF
 	###### Anti-pollution configuration ######
 	if [ -n "$vt_safe_dns" ]; then
 		if [ "$vt_safe_dns_tcp" = 1 ]; then
-			start_pdnsd "$vt_safe_dns"
-			awk -vs="127.0.0.1#$PDNSD_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
+			start_dnsforwarder "$vt_safe_dns" "$vt_safe_dns_port"
+			awk -vs="127.0.0.1#$DNSFORWARDER_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
 				/etc/gfwlist/$vt_gfwlist > /var/etc/dnsmasq-go.d/01-pollution.conf
 		else
 			awk -vs="$vt_safe_dns#$vt_safe_dns_port" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
@@ -145,12 +150,12 @@ stop()
 		/etc/init.d/dnsmasq restart
 	fi
 
-	stop_pdnsd
+	stop_dnsforwarder
 
-	# --STOP IPv4 firewall---------------------------------------------------------------
+	# --STOP IPv4 firewall---------------------------------
 	del_rule
   
-	# -----------------------------------------------------------------
+	# -----------------------------------------------------
 	if [ -f $SS_REDIR_PIDFILE ]; then
 		kill -9 `cat $SS_REDIR_PIDFILE`
 		rm -f $SS_REDIR_PIDFILE
@@ -170,10 +175,10 @@ reload_rule()
 	KEEP_GFWLIST=Y
 	del_rule
 	add_rule
-	if [ "$vt_safe_dns_tcp" -eq 1 ]; then
-    stop_pdnsd
-    start_pdnsd
-	fi
+	[ "$vt_safe_dns_tcp" -eq 1 ] && {
+		stop_dnsforwarder
+		start_dnsforwarder "$vt_safe_dns" "$vt_safe_dns_port"
+	}
 }
 
 restart()
@@ -183,78 +188,61 @@ restart()
 	start
 }
 
-
-# $1: upstream DNS server
-start_pdnsd()
+# $1: upstream DNS server ip addr
+# $2: upstream DNS server port
+start_dnsforwarder()
 {
-	local safe_dns="$1"
+	local safe_dns_ip_addr="$1"
+	local safe_dns_port="$2"
 
-	local tcp_dns_list="208.67.222.222,208.67.220.220"
+	local safe_dns=''
+	[ -n "$safe_dns_ip_addr" ] && {
+		safe_dns="$safe_dns_ip_addr"
+		[ -n "$safe_dns_port" ] && safe_dns="${safe_dns}:${safe_dns_port}"
+	}
+
+	local tcp_dns_list="208.67.222.222,208.67.220.220,8.8.8.8"
 	[ -n "$safe_dns" ] && tcp_dns_list="$safe_dns,$tcp_dns_list"
 
-	kill -9 $(cat /var/run/pdnsd.pid) >/dev/null 2>&1 
-	
-	mkdir -p /var/etc /var/pdnsd
-	if ! test -f "/var/pdnsd/pdnsd.cache"; then
-    echo -ne "pd13\000\000\000\000" >/var/pdnsd/pdnsd.cache
-    chown -R nobody.nogroup /var/pdnsd
-  fi
-	
-	cat > /var/etc/pdnsd.conf <<EOF
-global {
-	perm_cache=1024;
-	cache_dir="/var/pdnsd";
-	pid_file = /var/run/pdnsd.pid;
-	run_as="nobody";
-	server_ip = 127.0.0.1;
-	server_port = $PDNSD_LOCAL_PORT;
-	status_ctl = on;
-	query_method = tcp_only;
-	min_ttl=1h;
-	max_ttl=1w;
-	timeout=10;
-	neg_domain_pol=on;
-	proc_limit=40;
-	procq_limit=60;
-	par_queries=1;
-}
-server {
-	label= "fwxxx";
-	ip = $tcp_dns_list;
-	port = 53;
-	timeout=6;
-	uptest=none;
-	interval=10m;
-	purge_cache=off;
-}
+	killall -9 $DNSFORWARDER_BIN >/dev/null 2>&1
+	mkdir -p $DNSFORWARDER_PATH
+	rm -rf $DNSFORWARDER_PATH/*
+	ln -s /usr/sbin/dnsforwarder $DNSFORWARDER
+	cat > $DNSFORWARDER_CONF <<EOF
+LogOn false
+UDPLocal 127.0.0.1:$DNSFORWARDER_LOCAL_PORT
+TCPGroup $tcp_dns_list * no
+Hosts
+UseCache true
+CacheSize 262144
+MemoryCache true
+IgnoreTTL false
 EOF
-
-	/usr/sbin/pdnsd -c /var/etc/pdnsd.conf -d
+	$DNSFORWARDER -f $DNSFORWARDER_CONF -d
 
 	# Access TCP DNS server through Shadowsocksr tunnel
-	if iptables -t nat -N pdnsd_output; then
-		iptables -t nat -A pdnsd_output -m set --match-set $vt_np_ipset dst -j RETURN
-		iptables -t nat -A pdnsd_output -p tcp -j REDIRECT --to $SS_REDIR_PORT
+	if iptables -t nat -N dnsforwarder_output; then
+		iptables -t nat -A dnsforwarder_output -m set --match-set $vt_np_ipset dst -j RETURN
+		iptables -t nat -A dnsforwarder_output -p tcp -j REDIRECT --to $SS_REDIR_PORT
 	fi
-	iptables -t nat -I OUTPUT -p tcp --dport 53 -j pdnsd_output
+	iptables -t nat -I OUTPUT -p tcp --dport 53 -j dnsforwarder_output
 }
 
-stop_pdnsd()
+stop_dnsforwarder()
 {
-	if iptables -t nat -F pdnsd_output 2>/dev/null; then
-		while iptables -t nat -D OUTPUT -p tcp --dport 53 -j pdnsd_output 2>/dev/null; do :; done
-		iptables -t nat -X pdnsd_output
+	if iptables -t nat -F dnsforwarder_output 2>/dev/null; then
+		while iptables -t nat -D OUTPUT -p tcp --dport 53 -j dnsforwarder_output 2>/dev/null; do :; done
+		iptables -t nat -X dnsforwarder_output
 	fi
-	kill -9 $(cat /var/run/pdnsd.pid) >/dev/null 2>&1 || killall -9 pdnsd >/dev/null 2>&1 
-	rm -rf /var/pdnsd
-	rm -f /var/etc/pdnsd.conf
+	killall -9 $DNSFORWARDER_BIN >/dev/null 2>&1
+	rm -rf $DNSFORWARDER_PATH
 }
 
 add_cron()
 {
 	sed -i '/up-gfwlist.sh/d' $CRON_FILE
 	sed -i '/shadowsocksr_watchdog.log/d' $CRON_FILE
-	if [ $cron_mode -eq 1 ]; then
+	if [ "$cron_mode" -eq 1 ]; then
 		echo '0 4 * * * /etc/shadowsocksr/up-gfwlist.sh > /tmp/gfwupdate.log 2>&1' >> $CRON_FILE	
 	fi
 	echo '*/30 * * * * /etc/shadowsocksr/ssr-watchdog >> /tmp/shadowsocksr_watchdog.log 2>&1' >> $CRON_FILE
@@ -268,8 +256,6 @@ del_cron()
 	sed -i '/shadowsocksr_watchdog.log/d' $CRON_FILE
 	/etc/init.d/cron restart
 }
-
-
 
 uci_get_by_name() {
 	local ret=$(uci get $CONFIG.$1.$2 2>/dev/null)
@@ -379,4 +365,3 @@ del_rule()
 	# -----------------------------------------------------------------
 	[ "$KEEP_GFWLIST" = Y ] || ipset destroy "$vt_gfwlist" 2>/dev/null
 }
-
