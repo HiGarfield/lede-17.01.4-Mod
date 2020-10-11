@@ -616,6 +616,7 @@ dnsmasq_start()
 	config_list_foreach "$cfg" "interface" append_interface
 	config_list_foreach "$cfg" "notinterface" append_notinterface
 	config_list_foreach "$cfg" "addnhosts" append_addnhosts
+	append_addnhosts "/tmp/dnsmasq-lede.router"
 	config_list_foreach "$cfg" "bogusnxdomain" append_bogusnxdomain
 	append_parm "$cfg" "leasefile" "--dhcp-leasefile" "/tmp/dhcp.leases"
 	append_parm "$cfg" "resolvfile" "--resolv-file" "/tmp/resolv.conf.auto"

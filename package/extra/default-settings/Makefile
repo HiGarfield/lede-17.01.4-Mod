@@ -21,7 +21,7 @@ define Package/default-settings
   CATEGORY:=LuCI
   TITLE:=LuCI support for Default Settings
   PKGARCH:=all
-  DEPENDS:=+luci-base +@LUCI_LANG_en +@LUCI_LANG_zh-cn +jsonfilter +netifd
+  DEPENDS:=+luci-base +@LUCI_LANG_en +@LUCI_LANG_zh-cn
 endef
 
 define Package/default-settings/description
@@ -44,8 +44,6 @@ define Package/default-settings/install
 	$(INSTALL_DATA) $(PKG_BUILD_DIR)/*.lmo $(1)/usr/lib/lua/luci/i18n/
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) files/zzzzzz_default-settings $(1)/etc/uci-defaults/
-	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_BIN) files/99-dnsmasq-lede.router $(1)/etc/hotplug.d/iface/
 endef
 
 $(eval $(call BuildPackage,default-settings))
