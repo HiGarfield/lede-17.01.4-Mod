@@ -52,13 +52,6 @@ echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53"
 sed -i '/^\s*$/d' /etc/firewall.user
 echo "" >> /etc/firewall.user
 
-addnhosts=$(uci -q get dhcp.@dnsmasq[0].addnhosts)
-[ -z "$(echo $addnhosts | grep '/tmp/dnsmasq-lede.router')" ] && {
-	uci add_list dhcp.@dnsmasq[0].addnhosts="/tmp/dnsmasq-lede.router"
-	uci commit dhcp
-}
-
-
 #####################防止LAN与WAN网段重合#########################
 
 . /lib/functions/network.sh

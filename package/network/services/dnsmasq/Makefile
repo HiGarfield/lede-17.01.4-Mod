@@ -38,6 +38,7 @@ define Package/dnsmasq/Default
   TITLE:=DNS and DHCP server
   URL:=http://www.thekelleys.org.uk/dnsmasq/
   USERID:=dnsmasq=453:dnsmasq=453
+  DEPENDS:=+jsonfilter +netifd
 endef
 
 define Package/dnsmasq
@@ -152,6 +153,8 @@ define Package/dnsmasq/install
 	$(INSTALL_BIN) ./files/dnsmasq.init $(1)/etc/init.d/dnsmasq
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/ntp
 	$(INSTALL_DATA) ./files/dnsmasqsec.hotplug $(1)/etc/hotplug.d/ntp/25-dnsmasqsec
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
+	$(INSTALL_BIN) files/99-dnsmasq-lede.router $(1)/etc/hotplug.d/iface/
 endef
 
 Package/dnsmasq-dhcpv6/install = $(Package/dnsmasq/install)
