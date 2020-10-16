@@ -161,7 +161,7 @@ v13:
  		.patch_load_addr = QCA9888_HW_2_0_PATCH_LOAD_ADDR,
  		.uart_pin = 7,
  		.cc_wraparound_type = ATH10K_HW_CC_WRAP_SHIFTED_EACH,
-@@ -3182,6 +3188,10 @@ int ath10k_core_start(struct ath10k *ar, enum ath10k_firmware_mode mode,
+@@ -3223,6 +3229,10 @@ int ath10k_core_start(struct ath10k *ar, enum ath10k_firmware_mode mode,
  			ath10k_wmi_check_apply_board_power_ctl_table(ar);
  	}
  
@@ -172,7 +172,7 @@ v13:
  	return 0;
  
  err_hif_stop:
-@@ -3436,9 +3446,18 @@ static void ath10k_core_register_work(struct work_struct *work)
+@@ -3477,9 +3487,18 @@ static void ath10k_core_register_work(struct work_struct *work)
  		goto err_spectral_destroy;
  	}
  
@@ -191,7 +191,7 @@ v13:
  err_spectral_destroy:
  	ath10k_spectral_destroy(ar);
  err_debug_destroy:
-@@ -3496,6 +3515,8 @@ void ath10k_core_unregister(struct ath10k *ar)
+@@ -3537,6 +3556,8 @@ void ath10k_core_unregister(struct ath10k *ar)
  	if (!test_bit(ATH10K_FLAG_CORE_REGISTERED, &ar->dev_flags))
  		return;
  
@@ -210,7 +210,7 @@ v13:
  
  #include "htt.h"
  #include "htc.h"
-@@ -1139,7 +1140,6 @@ struct ath10k {
+@@ -1141,7 +1142,6 @@ struct ath10k {
  	u32 low_5ghz_chan;
  	u32 high_5ghz_chan;
  	bool ani_enabled;
@@ -218,7 +218,7 @@ v13:
  	bool p2p;
  	bool ct_all_pkts_htt; /* CT firmware only: native-wifi for all pkts */
  
-@@ -1397,6 +1397,13 @@ struct ath10k {
+@@ -1399,6 +1399,13 @@ struct ath10k {
  		bool utf_monitor;
  	} testmode;
  
