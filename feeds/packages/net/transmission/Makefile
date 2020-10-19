@@ -138,9 +138,6 @@ CONFIGURE_ARGS += \
 
 ifeq ($(BUILD_VARIANT),mbedtls)
   CONFIGURE_ARGS += --with-crypto=polarssl
-  CONFIGURE_VARS += \
-	MBEDTLS_CFLAGS="-I$(STAGING_DIR)/usr/include/mbedtls" \
-	MBEDTLS_LIBS="-lmbedtls -lmbedcrypto"
 else
   CONFIGURE_ARGS += --with-crypto=openssl
 endif
