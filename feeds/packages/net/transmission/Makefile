@@ -27,6 +27,7 @@ PKG_BUILD_PARALLEL:=1
 PKG_USE_MIPS16:=0
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/nls.mk
 
 define Package/transmission/template
   SUBMENU:=BitTorrent
@@ -34,7 +35,7 @@ define Package/transmission/template
   CATEGORY:=Network
   TITLE:=BitTorrent client
   URL:=http://www.transmissionbt.com
-  DEPENDS:=+ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib
+  DEPENDS:=+ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib $(ICONV_DEPENDS)
 endef
 
 define Package/transmission-daemon/Default
@@ -123,7 +124,7 @@ endef
 Package/transmission-daemon-mbedtls/conffiles = $(Package/transmission-daemon-openssl/conffiles)
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections -Wl,--as-needed
+TARGET_LDFLAGS += -Wl,--gc-sections -Wl,--as-needed -liconv
 
 CONFIGURE_ARGS += \
 	--enable-cli \
