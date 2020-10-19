@@ -327,7 +327,7 @@ mac80211_hostapd_setup_bss() {
 	hostapd_cfg=
 	append hostapd_cfg "$type=$ifname" "$N"
 
-	hostapd_set_bss_options hostapd_cfg "$vif" || return 1
+	hostapd_set_bss_options hostapd_cfg "$phy" "$vif" || return 1
 	json_get_vars wds dtim_period max_listen_int start_disabled
 
 	set_default wds 0
