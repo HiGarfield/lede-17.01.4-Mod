@@ -36,6 +36,7 @@
 #include <linux/if_bridge.h>
 #include <linux/hashtable.h>
 #include <net/pkt_sched.h>
+#include <linux/prefetch.h>
 
 #include <sfe_backport.h>
 #include <sfe.h>
@@ -801,6 +802,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 	struct nf_conntrack_tuple orig_tuple;
 	struct nf_conntrack_tuple reply_tuple;
 	struct sfe_connection *conn;
+	struct sk_buff *tmp_skb = NULL;
 
 	/*
 	 * Don't process broadcast or multicast packets.
@@ -1082,13 +1084,28 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 	}
 	dev_put(dev);
 
-	if (!fast_classifier_find_dev_and_mac_addr(NULL, &sic.dest_ip, &dev, sic.dest_mac, is_v4)) {
+	if (unlikely(!is_v4))
+		tmp_skb = skb;
+	if (!fast_classifier_find_dev_and_mac_addr(tmp_skb, &sic.dest_ip, &dev, sic.dest_mac, is_v4)) {
 		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_NO_DEST_DEV);
 		goto done1;
 	}
 	dev_put(dev);
 
-	if (!fast_classifier_find_dev_and_mac_addr(skb, &sic.dest_ip_xlate, &dest_dev_tmp, sic.dest_mac_xlate, is_v4)) {
+	/*
+	 * This is a hack to work-around the issue where dest_ip & dest_ip_xlate differs, i.e. reverse NAT, which
+	 * interferes with UDP port forwarding in DD-WRT.  Not sure why TCP is OK, since both UDP and TCP lookup
+	 * destination interface are the same.  For now, we fall back to the original behaviour of the destination
+	 * interface lookup if we detect that we're handling post-routed reverse NAT traffic.
+	 *
+	 * TODO: to improve the way destination interface is looked up.
+	 */
+	if (likely(sfe_addr_equal(&sic.dest_ip_xlate, &sic.dest_ip, is_v4)))
+		tmp_skb = skb;
+	else
+		tmp_skb = NULL;
+
+	if (!fast_classifier_find_dev_and_mac_addr(tmp_skb, &sic.dest_ip_xlate, &dest_dev_tmp, sic.dest_mac_xlate, is_v4)) {
 		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_NO_DEST_XLATE_DEV);
 		goto done1;
 	}
@@ -1717,7 +1734,7 @@ static int __init fast_classifier_init(void)
 	int result = -1;
 	size_t i, j;
 
-	printk(KERN_ALERT "fast-classifier (PBR safe v2.1b): starting up\n");
+	printk(KERN_ALERT "fast-classifier (PBR safe v2.1.6b): starting up\n");
 	DEBUG_INFO("SFE FC init\n");
 
 	hash_init(fc_conn_ht);
@@ -1807,7 +1824,7 @@ static int __init fast_classifier_init(void)
 	}
 #endif
 
-	printk(KERN_ALERT "fast-classifier (PBR safe v2.1b): registered\n");
+	printk(KERN_ALERT "fast-classifier (PBR safe v2.1.6b): registered\n");
 
 	spin_lock_init(&sc->lock);
 
@@ -1861,7 +1878,7 @@ static void __exit fast_classifier_exit(void)
 	int result = -1;
 
 	DEBUG_INFO("SFE CM exit\n");
-	printk(KERN_ALERT "fast-classifier (PBR safe v2.1b): shutting down\n");
+	printk(KERN_ALERT "fast-classifier (PBR safe v2.1.6b): shutting down\n");
 
 	/*
 	 * Unregister our sync callback.
