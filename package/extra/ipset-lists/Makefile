@@ -22,6 +22,7 @@ endef
 
 define Package/ipset-lists/conffiles
 /etc/gfwlist/china-banned
+/etc/gfwlist/unblock-youku
 endef
 
 define Build/Prepare
