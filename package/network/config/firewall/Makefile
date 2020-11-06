@@ -12,10 +12,10 @@ PKG_NAME:=firewall
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL=$(PROJECT_GIT)/project/firewall3.git
-PKG_SOURCE_DATE:=2020-09-05
-PKG_SOURCE_VERSION:=8c2f9fad9ca644af911e0d4113a890c3c84aa738
-PKG_MIRROR_HASH:=424a7906ed8957de3e85046248608dec7146078946161a517f8a5af9f536bad1
+PKG_SOURCE_URL=$(LEDE_GIT)/project/firewall3.git
+PKG_SOURCE_DATE:=2017-05-27
+PKG_SOURCE_VERSION:=a4d98aea373e04f3fdc3c492c1688ba52ce490a9
+PKG_MIRROR_HASH:=55402b1e6bb471f6aed599c61c1c63b58212f5789f094d78247646fc0a7cf435
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=ISC
 
@@ -50,13 +50,11 @@ define Package/firewall/install
 	$(INSTALL_DIR) $(1)/etc/init.d
 	$(INSTALL_BIN) ./files/firewall.init $(1)/etc/init.d/firewall
 	$(INSTALL_DIR) $(1)/etc/hotplug.d/iface
-	$(INSTALL_CONF) ./files/firewall.hotplug $(1)/etc/hotplug.d/iface/20-firewall
+	$(INSTALL_DATA) ./files/firewall.hotplug $(1)/etc/hotplug.d/iface/20-firewall
 	$(INSTALL_DIR) $(1)/etc/config/
-	$(INSTALL_CONF) ./files/firewall.config $(1)/etc/config/firewall
+	$(INSTALL_DATA) ./files/firewall.config $(1)/etc/config/firewall
 	$(INSTALL_DIR) $(1)/etc/
-	$(INSTALL_CONF) ./files/firewall.user $(1)/etc/firewall.user
-	$(INSTALL_DIR) $(1)/usr/share/fw3
-	$(INSTALL_CONF) $(PKG_BUILD_DIR)/helpers.conf $(1)/usr/share/fw3
+	$(INSTALL_DATA) ./files/firewall.user $(1)/etc/firewall.user
 endef
 
 $(eval $(call BuildPackage,firewall))
