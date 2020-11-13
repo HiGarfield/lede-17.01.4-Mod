@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="dnsforwarder6" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Option virtualFolders="Others/;" />
+		<Build>
+			<Target title="Debug">
+				<Option output="/tmp/bin/Debug/dnsforwarder" prefix_auto="1" extension_auto="1" />
+				<Option object_output="/tmp/obj/Debug/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Option parameters="-CONTEXT 12345,34256" />
+				<Compiler>
+					<Add option="-g" />
+				</Compiler>
+			</Target>
+			<Target title="Release">
+				<Option output="./bin/Release/dnsforwarder" prefix_auto="1" extension_auto="1" />
+				<Option object_output="./obj/Release/" />
+				<Option type="1" />
+				<Option compiler="gcc" />
+				<Compiler>
+					<Add option="-fexpensive-optimizations" />
+					<Add option="-O3" />
+				</Compiler>
+				<Linker>
+					<Add option="-s" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-Wall" />
+			<Add option="-DHAVE_PTHREAD_SPIN_INIT" />
+			<Add option="-DHAVE_PTHREAD_RWLOCK_INIT" />
+			<Add option="-DDOWNLOAD_LIBCURL" />
+			<Add option="-DHAVE_SYS_SYSCALL_H" />
+			<Add option="-DHAVE_SETENV" />
+			<Add option="-DHAVE_WORDEXP" />
+		</Compiler>
+		<Linker>
+			<Add option="-lcurl -lssl -lcrypto -pthread" />
+		</Linker>
+		<Unit filename="../StatisticTemplate.html" />
+		<Unit filename="../addresslist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../addresslist.h" />
+		<Unit filename="../array.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../array.h" />
+		<Unit filename="../bst.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../bst.h" />
+		<Unit filename="../cacheht.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../cacheht.h" />
+		<Unit filename="../cachettlcrtl.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../cachettlcrtl.h" />
+		<Unit filename="../common.h" />
+		<Unit filename="../config.h" />
+		<Unit filename="../default.config" />
+		<Unit filename="../dnscache.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../dnscache.h" />
+		<Unit filename="../dnsgenerator.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../dnsgenerator.h" />
+		<Unit filename="../dnsparser.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../dnsparser.h" />
+		<Unit filename="../dnsrelated.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../dnsrelated.h" />
+		<Unit filename="../domainstatistic.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../domainstatistic.h" />
+		<Unit filename="../downloader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../downloader.h" />
+		<Unit filename="../dynamichosts.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../dynamichosts.h" />
+		<Unit filename="../filter.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../filter.h" />
+		<Unit filename="../goodiplist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../goodiplist.h" />
+		<Unit filename="../hcontext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../hcontext.h" />
+		<Unit filename="../hosts.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../hosts.h" />
+		<Unit filename="../hostscontainer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../hostscontainer.h" />
+		<Unit filename="../hostsutils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../hostsutils.h" />
+		<Unit filename="../iheader.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../iheader.h" />
+		<Unit filename="../ipchunk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ipchunk.h" />
+		<Unit filename="../ipmisc.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ipmisc.h" />
+		<Unit filename="../linkedqueue.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../linkedqueue.h" />
+		<Unit filename="../logs.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../logs.h" />
+		<Unit filename="../main.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../mcontext.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../mcontext.h" />
+		<Unit filename="../mmgr.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../mmgr.h" />
+		<Unit filename="../oo.h" />
+		<Unit filename="../pipes.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../pipes.h" />
+		<Unit filename="../ptimer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../ptimer.h" />
+		<Unit filename="../querydnslistentcp.c">
+			<Option compilerVar="CC" />
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="../querydnslistentcp.h" />
+		<Unit filename="../readconfig.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../readconfig.h" />
+		<Unit filename="../readline.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../readline.h" />
+		<Unit filename="../request_response.h" />
+		<Unit filename="../rwlock.h" />
+		<Unit filename="../simpleht.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../simpleht.h" />
+		<Unit filename="../socketpool.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../socketpool.h" />
+		<Unit filename="../socketpuller.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../socketpuller.h" />
+		<Unit filename="../stablebuffer.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../stablebuffer.h" />
+		<Unit filename="../statichosts.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../statichosts.h" />
+		<Unit filename="../stringchunk.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../stringchunk.h" />
+		<Unit filename="../stringlist.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../stringlist.h" />
+		<Unit filename="../tcpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../tcpm.h" />
+		<Unit filename="../timedtask.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../timedtask.h" />
+		<Unit filename="../tlsm.c">
+			<Option compilerVar="CC" />
+			<Option compile="0" />
+			<Option link="0" />
+		</Unit>
+		<Unit filename="../tlsm.h" />
+		<Unit filename="../tlsserver.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../tlsserver.h" />
+		<Unit filename="../udpfrontend.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../udpfrontend.h" />
+		<Unit filename="../udpm.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../udpm.h" />
+		<Unit filename="../utils.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../utils.h" />
+		<Unit filename="../winmsgque.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="../winmsgque.h" />
+		<Extensions>
+			<code_completion />
+			<debugger />
+			<envvars />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

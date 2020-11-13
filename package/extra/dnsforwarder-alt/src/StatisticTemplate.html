@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+
+<html>
+	<head>
+			<!-- INSERT HERE -->
+			<!-- FORMAT:
+			<script type="text/javascript">
+				var StartUpTime = %d;
+				var LastStatistic = %d;
+				var InfoArray = [
+						{	Domain		:	"www.google.com",
+							Total		:	2,
+							RaF			:	1,
+							Hosts		:	1,
+							Cache		:	1,
+							UDP			:	1,
+							TCP			:	1,
+							BlockedMsg	:	1
+						},
+						{	Domain		:	"www.google.com.hk",
+							Total		:	1,
+							RaF			:	2,
+							Hosts		:	2,
+							Cache		:	2,
+							UDP			:	2,
+							TCP			:	2,
+							BlockedMsg	:	5
+						}
+				];
+				var Sum = { Total		:	2,
+							RaF			:	1,
+							Hosts		:	1,
+							Cache		:	1,
+							UDP			:	1,
+							TCP			:	1,
+							BlockedMsg	:	1
+							};
+			</script>
+			-->
+
+			<script type="text/javascript">
+				var ST = new Date(StartUpTime * 1000);
+				var LT = new Date(LastStatistic * 1000);
+			</script>
+			<title>Domain Statistic</title>
+			<base target="_blank" />
+
+			<style type="text/css">
+			body {
+				margin-right: 0px;
+				margin-left: 0px;
+			}
+
+			.clearboth {
+				float: left;
+				clear: both;
+				width: 100%;
+			}
+
+			.mainmargin {
+				margin-left: 10px;
+			}
+			
+			.topmargin {
+				margin-top: 10px;
+			}
+
+			h1 {
+				display: block;
+				color: #4078C0;
+			}
+
+			.top_menu li {
+				float: left;
+				color: #777777;
+				display: block;
+				width: 100px;
+				padding: 10px 0 10px 0;
+				text-align: center;
+				vertical-align: middle;
+				cursor: pointer;
+			}
+
+			.top_menu li:hover:not(.active) {
+				color: #333333;
+			}
+
+			.top_menu li.active {
+				background-color: #E7E7E7;
+				color: #555555;
+			}
+
+			.top_menu ul {
+				overflow: hidden;
+				list-style-type: none;
+				margin: 10px 0 10px 0;
+				padding: 0;
+				background-color: #F8F8F8;
+				width: 100%;
+			}
+			
+			table {
+				border-collapse: collapse;
+				border: 1px solid #E7E7E7;
+				margin-bottom: 10px;
+			}
+			
+			.displaynone{
+				display: none;
+			}
+
+			th {
+				padding: 5px;
+				font-weight: bold;
+			}
+
+			th a {
+				color: #4078C0;
+			}
+
+			tr {
+				border-bottom: 1px solid #E7E7E7;
+			}
+
+			td {
+				padding: 5px;
+			}
+
+			</style>
+
+	</head>
+	<body>
+		<h1 class="mainmargin clearboth">Domain Statistics</h1>
+
+		<div class="top_menu clearboth">
+			<ul>
+				<li data-model="Overview" class="menu_item active">Overview</li>
+				<li data-model="3-level" class="menu_item">3-level</li>
+				<li data-model="Details" class="menu_item">Details</li>
+			</ul>
+			<script type="text/javascript">
+				function MenuSwitching()
+				{
+					var model = this.getAttribute("data-model");
+					
+					var li_a = document.getElementsByClassName("menu_item");
+					for( var i = 0; i < li_a.length; ++i )
+					{
+						li_a[i].classList.remove("active");
+					}
+					
+					this.classList.add("active");
+					
+					var allframes = document.getElementsByClassName("mainframe");
+					for( var i = 0; i < allframes.length; ++i )
+					{
+						if( allframes[i].getAttribute("data-model") != model )
+						{
+							allframes[i].classList.add("displaynone");
+						} else {
+							allframes[i].classList.remove("displaynone");
+						}
+					}
+					
+					
+				}
+
+				var li_a = document.getElementsByClassName("menu_item");
+				for( var i = 0; i < li_a.length; ++i )
+				{
+					li_a[i].addEventListener("click", MenuSwitching);
+				}
+
+			</script>
+		</div>
+		
+		<div data-model="Overview" class="mainframe mainmargin clearboth">
+			<p class="mainmargin clearboth" style="margin: 0px;">
+				Program startup time : <script type="text/javascript">document.write(ST.toString());</script><br />
+				Last statistic : <script type="text/javascript">document.write(LT.toString());</script><br />
+				Elapsed time : <script type="text/javascript">document.write((LastStatistic - StartUpTime) + "s");</script><br />
+				<br />
+				Requests per minute : <script type="text/javascript">document.write((Sum.Total / (LastStatistic - StartUpTime)) * 60);</script><br />
+				<script type="text/javascript">
+					if( (Sum.UDP + Sum.TCP + Sum.Cache) > 0 )
+					{
+						document.write("Cache utilization : " + ((Sum.Cache / (Sum.UDP + Sum.TCP + Sum.Cache)) * 100) + "%<br />");
+					}
+				</script>
+			</p>
+		</div>
+		
+		<div data-model="3-level" class="mainframe mainmargin clearboth displaynone">
+			<script type="text/javascript">
+				function FindDotPosition(domain, n)
+				{
+					domain = "." + domain;
+					
+					var p = 0;
+					
+					while( (n--) > 0 )
+					{
+						p = domain.lastIndexOf(".");
+						
+						if( p < 0 )
+						{
+							return -1;
+						}
+						
+						domain = domain.substr(0, p);
+					}
+					
+					return p;
+				}
+			
+				function GetLevel1OfADomian(domain)
+				{
+					return domain.substr(FindDotPosition(domain, 1));
+				}
+				
+				function GetLevel2OfADomian(domain)
+				{
+					var p = FindDotPosition(domain, 2);
+					if( p < 0 )
+					{
+						return undefined;
+					} else {
+						return domain.substr(p);
+					}
+				}
+				
+				function GetLevel3OfADomian(domain)
+				{
+					var p = FindDotPosition(domain, 3);
+					if( p < 0 )
+					{
+						return undefined;
+					} else {
+						return domain.substr(p);
+					}
+				}
+
+			</script>
+			<table>
+				<tr>
+					<th>Top Level Domain</th>
+					<th>Count</th>
+				</tr>
+				<tbody>
+					<script type="text/javascript">
+						var l1 = [];
+						
+						for( var i = 0; i < InfoArray.length; ++i )
+						{
+							var d = GetLevel1OfADomian(InfoArray[i].Domain);
+							
+							if( d in l1 )
+							{
+								l1[d] += InfoArray[i].Total;
+							} else {
+								l1[d] = InfoArray[i].Total;
+							}
+						}
+						
+						for( var k in l1 )
+						{
+							var tmphtml = "";
+
+							tmphtml += "<tr>";
+							tmphtml += ("<td>" + k + "</td>");
+							tmphtml += ("<td>" + l1[k] + "</td>");
+							tmphtml += "</tr>";
+							
+							document.write(tmphtml);
+						}
+						
+						
+					</script>
+				</tbody>
+
+			</table>
+			
+			<table>
+				<tr>
+					<th>Second Level Domain</th>
+					<th>Count</th>
+				</tr>
+				<tbody>
+					<script type="text/javascript">
+						var l1 = [];
+						
+						for( var i = 0; i < InfoArray.length; ++i )
+						{
+							var d = GetLevel2OfADomian(InfoArray[i].Domain);
+							
+							if( d == undefined )
+							{
+								continue;
+							}
+							
+							if( d in l1 )
+							{
+								l1[d] += InfoArray[i].Total;
+							} else {
+								l1[d] = InfoArray[i].Total;
+							}
+						}
+						
+						for( var k in l1 )
+						{
+							var tmphtml = "";
+
+							tmphtml += "<tr>";
+							tmphtml += ("<td>" + k + "</td>");
+							tmphtml += ("<td>" + l1[k] + "</td>");
+							tmphtml += "</tr>";
+							
+							document.write(tmphtml);
+						}
+
+					</script>
+				</tbody>
+
+			</table>
+
+			<table>
+				<tr>
+					<th>Third Level Domain</th>
+					<th>Count</th>
+				</tr>
+				<tbody>
+					<script type="text/javascript">
+						var l1 = [];
+						
+						for( var i = 0; i < InfoArray.length; ++i )
+						{
+							var d = GetLevel3OfADomian(InfoArray[i].Domain);
+							
+							if( d == undefined )
+							{
+								continue;
+							}
+							
+							if( d in l1 )
+							{
+								l1[d] += InfoArray[i].Total;
+							} else {
+								l1[d] = InfoArray[i].Total;
+							}
+						}
+						
+						for( var k in l1 )
+						{
+							var tmphtml = "";
+
+							tmphtml += "<tr>";
+							tmphtml += ("<td>" + k + "</td>");
+							tmphtml += ("<td>" + l1[k] + "</td>");
+							tmphtml += "</tr>";
+							
+							document.write(tmphtml);
+						}
+
+					</script>
+				</tbody>
+
+			</table>
+		</div>
+
+		<div data-model="Details" class="mainframe mainmargin clearboth displaynone">
+			<script type="text/javascript">
+				function GetParameter(name)
+				{
+					var Pattern = new RegExp("[\\?&]" + name + "=[a-z0-9]+");
+					var PatternE = Pattern.exec(window.location.href);
+
+					if( PatternE != null )
+					{
+						return PatternE.toString().split("=")[1];
+					} else {
+						return "total";
+					}
+				}
+
+				function InfoSortDomain(i1, i2)
+				{
+					return i1.Domain.localeCompare(i2.Domain);
+				}
+				function InfoSortTotal(i1, i2)
+				{
+					return i2.Total - i1.Total;
+				}
+				function InfoSortRaF(i1, i2)
+				{
+					return i2.RaF - i1.RaF;
+				}
+				function InfoSortHosts(i1, i2)
+				{
+					return i2.Hosts - i1.Hosts;
+				}
+				function InfoSortCache(i1, i2)
+				{
+					return i2.Cache - i1.Cache;
+				}
+				function InfoSortUDP(i1, i2)
+				{
+					return i2.UDP - i1.UDP;
+				}
+				function InfoSortTCP(i1, i2)
+				{
+					return i2.TCP - i1.TCP;
+				}
+				function InfoSortBlockedMsg(i1, i2)
+				{
+					return i2.BlockedMsg - i1.BlockedMsg;
+				}
+
+				function ReSort(sortfunc)
+				{
+					InfoArray.sort(sortfunc);
+
+					var tb = document.getElementById("details_tbody");
+					
+					var tmphtml = "";
+					
+					for( var i = 0; i < InfoArray.length; ++i )
+					{
+						tmphtml += "<tr>";
+						tmphtml += ("<td><a href=http://" + InfoArray[i].Domain + ">" + InfoArray[i].Domain + "</a></td>");
+						tmphtml += ("<td>" + InfoArray[i].Total + "</td>");
+						tmphtml += ("<td>" + InfoArray[i].RaF + "</td>");
+						tmphtml += ("<td>" + InfoArray[i].Hosts + "</td>");
+						tmphtml += ("<td>" + InfoArray[i].Cache + "</td>");
+						tmphtml += ("<td>" + InfoArray[i].UDP + "</td>");
+						tmphtml += ("<td>" + InfoArray[i].TCP + "</td>");
+						tmphtml += ("<td>" + InfoArray[i].BlockedMsg + "</td>");
+						tmphtml += "</tr>";
+					}
+					tb.innerHTML = tmphtml;
+				}
+			</script>
+			
+			<table>
+				<tr>
+					<th><a href="javascript:ReSort(InfoSortDomain);" target="_self">Domain</a></th>
+					<th><a href="javascript:ReSort(InfoSortTotal);" target="_self">Total</a></th>
+					<th><a href="javascript:ReSort(InfoSortRaF);" target="_self">Refused&amp;Failed</a></th>
+					<th><a href="javascript:ReSort(InfoSortHosts);" target="_self">Hosts</a></th>
+					<th><a href="javascript:ReSort(InfoSortCache);" target="_self">Cache</a></th>
+					<th><a href="javascript:ReSort(InfoSortUDP);" target="_self">UDP</a></th>
+					<th><a href="javascript:ReSort(InfoSortTCP);" target="_self">TCP</a></th>
+					<th><a href="javascript:ReSort(InfoSortBlockedMsg);" target="_self">BlockedMsg</a></th>
+				</tr>
+				<tbody id="details_tbody">
+					<script type="text/javascript">
+						ReSort(InfoSortTotal);
+					</script>
+				</tbody>
+
+				<tr>
+					<td>Sum : <script type="text/javascript">document.write(InfoArray.length);</script></td>	<!-- Domain -->
+					<td><script type="text/javascript">document.write(Sum.Total);</script></td>	<!-- Total -->
+					<td><script type="text/javascript">document.write(Sum.RaF);</script></td>	<!-- Refused&Failed -->
+					<td><script type="text/javascript">document.write(Sum.Hosts);</script></td>	<!-- Hosts -->
+					<td><script type="text/javascript">document.write(Sum.Cache);</script></td>	<!-- Cache -->
+					<td><script type="text/javascript">document.write(Sum.UDP);</script></td>	<!-- UDP -->
+					<td><script type="text/javascript">document.write(Sum.TCP);</script></td>	<!-- TCP -->
+					<td><script type="text/javascript">document.write(Sum.BlockedMsg);</script></td>	<!-- BlockedMsg -->
+				</tr>
+
+			</table>
+		</div>
+	</body>
+</html>
