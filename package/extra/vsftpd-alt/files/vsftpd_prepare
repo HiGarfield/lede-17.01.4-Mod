@@ -254,11 +254,14 @@ fi
 
 output_const "seccomp_sandbox" NO
 
-#访问过程中允许客户端IP地址变化
+# 访问过程中允许客户端IP地址变化
 output_const "pasv_promiscuous" YES
 
-#所有用户均不能切换到上级目录
+# 所有用户均不能切换到上级目录
 output_const "chroot_list_enable" NO
 output_const "chroot_local_user" YES
+
+# 使用路由器的本地时间
+output_const "use_localtime" YES
 
 exit 0
