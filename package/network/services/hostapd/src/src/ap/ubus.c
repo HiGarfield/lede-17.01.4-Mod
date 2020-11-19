@@ -939,7 +939,7 @@ hostapd_wnm_disassoc_imminent(struct ubus_context *ctx, struct ubus_object *obj,
 	if (nr)
 		req_mode |= WNM_BSS_TM_REQ_PREF_CAND_LIST_INCLUDED;
 
-	if (wnm_send_bss_tm_req(hapd, sta, req_mode, duration, 0, NULL,
+	if (wnm_send_bss_tm_req(hapd, sta, req_mode, duration, duration, NULL,
 				NULL, nr, nr_len, NULL, 0))
 		return UBUS_STATUS_UNKNOWN_ERROR;
 
