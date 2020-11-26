@@ -500,6 +500,9 @@ hostapd_set_bss_options() {
 		set_default rrm_beacon_report 1
 		append bss_conf "rrm_neighbor_report=$rrm_neighbor_report" "$N"
 		append bss_conf "rrm_beacon_report=$rrm_beacon_report" "$N"
+	else
+		set_default rrm_neighbor_report 0
+		set_default rrm_beacon_report 0
 	fi
 
 	if [ "$wpa" -ge "1" ]; then
