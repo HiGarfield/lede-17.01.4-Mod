@@ -27,3 +27,7 @@
 	use sendfile = yes
 	writeable = yes
 	bind interfaces only = yes
+	create mode = 0644
+	force create mode = 0644
+	directory mode = 0755
+	force directory mode = 0755 
