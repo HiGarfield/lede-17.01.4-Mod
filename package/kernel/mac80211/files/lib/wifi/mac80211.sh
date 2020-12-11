@@ -84,7 +84,7 @@ detect_mac80211() {
 
 		iw phy "$dev" info | grep -q 'Capabilities:' && htmode="HT40"
 
-		iw phy "$dev" info | grep -Eq '5180 MHz|5745 MHz' && {
+		iw phy "$dev" info | grep '\* 5[0-9][0-9][0-9] MHz \[' && {
 			mode_band="a"
 			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
 			wifi_5ghz="_5G"
