@@ -37,6 +37,7 @@ lang/dkjson
 lang/erlang
 lang/et_xmlfile
 lang/flup
+lang/golang/golang
 lang/gunicorn
 lang/jamvm
 lang/jdcal
@@ -546,6 +547,7 @@ net/tinc
 net/tinyproxy
 net/tor
 net/transmission
+net/transmission-web-control
 net/travelmate
 net/u2pnpd
 net/uanytun
