@@ -218,7 +218,7 @@ CacheSize 262144
 MemoryCache true
 IgnoreTTL false
 EOF
-	$DNSFORWARDER -f $DNSFORWARDER_CONF -d
+	$DNSFORWARDER -d -f $DNSFORWARDER_CONF >/dev/null 2>&1
 
 	# Access TCP DNS server through Shadowsocksr tunnel
 	if iptables -t nat -N dnsforwarder_output; then
