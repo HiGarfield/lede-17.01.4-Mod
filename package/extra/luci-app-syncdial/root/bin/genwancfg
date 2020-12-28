@@ -52,6 +52,8 @@ macvlan_dev_add() {
 #添加PPPoE接口
 #$1:接口名称 $2:设备名称 $3:账户 $4:密码 $5:网关跃点
 pppoe_if_add() {
+	#gen vwan macaddr
+	local NEW_MACADDR=$(hexdump -n 6 -ve '1/1 ":%02x"' /dev/urandom | awk -v r="$(hexdump -n 1 -ve '1/1 "%d"' /dev/urandom)" '{split("2,6,a,e",a,","); printf "%s%s%s",substr($0,2,1),a[r%4+1],substr($0,4);exit}')
 	#gen wan if
 	uci set network.${1}=interface
 	uci set network.${1}.ifname=${2}
@@ -59,6 +61,7 @@ pppoe_if_add() {
 	uci set network.${1}.username=${3}
 	uci set network.${1}.password=${4}
 	uci set network.${1}.metric=${5}
+	uci set network.${1}.macaddr=$NEW_MACADDR
 	#gen firewall
 	fw_str="${fw_str} ${1}"
 }
