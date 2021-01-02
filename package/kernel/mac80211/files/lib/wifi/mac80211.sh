@@ -77,7 +77,7 @@ detect_mac80211() {
 		[ "$found" -gt 0 ] && continue
 
 		mode_band="g"
-		channel="auto"
+		channel="11"
 		htmode=""
 		ht_capab=""
 		wifi_5ghz=""
@@ -86,6 +86,7 @@ detect_mac80211() {
 
 		iw phy "$dev" info | grep '\* 5[0-9][0-9][0-9] MHz \[' && {
 			mode_band="a"
+			channel=$(iw phy "$dev" info |  grep '\* 5[0-9][0-9][0-9] MHz \[' | grep '(disabled)' -v -m 1 | sed 's/[^[]*\[\|\].*//g')
 			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
 			wifi_5ghz="_5G"
 		}
