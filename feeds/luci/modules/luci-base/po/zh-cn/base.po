@@ -3970,3 +3970,9 @@ msgstr "在 PPP 链路上启用 IPv6 协商"
 
 #~ msgid "VLAN Interface"
 #~ msgstr "VLAN接口"
+
+msgid "Disable IPv6 DNS forwards"
+msgstr "禁止解析 IPv6 DNS 记录"
+
+msgid "Filter IPv6(AAAA) DNS query name resolve"
+msgstr "过滤掉 IPv6(AAAA) ，只返回 IPv4 DNS 域名记录"

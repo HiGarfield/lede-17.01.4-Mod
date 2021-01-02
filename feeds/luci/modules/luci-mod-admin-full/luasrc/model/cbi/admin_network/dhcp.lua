@@ -58,6 +58,11 @@ s:taboption("files", Flag, "nohosts",
 s:taboption("files", DynamicList, "addnhosts",
 	translate("Additional Hosts files")).optional = true
 
+aaaa = s:taboption("advanced", Flag, "filter_aaaa",
+	translate("Disable IPv6 DNS forwards"),
+	translate("Filter IPv6(AAAA) DNS query name resolve"))
+aaaa.optional = true
+
 qu = s:taboption("advanced", Flag, "quietdhcp",
 	translate("Suppress logging"),
 	translate("Suppress logging of the routine operation of these protocols"))
