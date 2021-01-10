@@ -8,7 +8,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=smartdns
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://www.github.com/pymumu/smartdns.git
-PKG_SOURCE_VERSION:=42b3e98b2a3ca90ea548f8cb5ed19a3da6011b74
+PKG_SOURCE_VERSION:=ac0ab0c916197f4daf674272a4d0b89cb8b0f7aa
 PKG_MIRROR_HASH:=skip
 PKG_RELEASE:=1
 
@@ -23,7 +23,7 @@ include $(INCLUDE_DIR)/package.mk
 MAKE_PATH:=src
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS +=  -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
 
 define Package/smartdns
   SECTION:=net
