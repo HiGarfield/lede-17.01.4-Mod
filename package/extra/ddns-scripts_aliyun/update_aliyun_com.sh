@@ -17,6 +17,7 @@
 [ -z "$password" ] && write_log 14 "配置错误！保存阿里云API访问密钥的'密码'不能为空"
 
 # 检查外部调用工具
+WGET_SSL='wget'
 [ -n "$WGET_SSL" ] || write_log 13 "使用阿里云API需要 GNU Wget 支持，请先安装"
 command -v sed >/dev/null 2>&1 || write_log 13 "使用阿里云API需要 sed 支持，请先安装"
 command -v openssl >/dev/null 2>&1 || write_log 13 "使用阿里云API需要 openssl-util 支持，请先安装"
@@ -149,7 +150,7 @@ build_Request() {
 	__URLARGS=
 	for string in $args; do
 		case "${string%%=*}" in
-			Format|Version|AccessKeyId|SignatureMethod|Timestamp|SignatureVersion|SignatureNonce|Signature) ;; # 过滤公共参数
+			Format|TTL|Version|AccessKeyId|SignatureMethod|Timestamp|SignatureVersion|SignatureNonce|Signature) ;; # 过滤公共参数
 			*) __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}");;
 		esac
 	done
@@ -157,6 +158,7 @@ build_Request() {
 
 	# 附加公共参数
 	string="Format=JSON"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
+	string="TTL=600";__URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
 	string="Version=2015-01-09"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
 	string="AccessKeyId=$username"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
 	string="SignatureMethod=HMAC-SHA1"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
@@ -212,26 +214,39 @@ enable_domain() {
 
 # 获取子域名解析记录列表
 describe_domain() {
-	local value type; local ret=0
+	local count value; local ret=0
 	aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=${__HOST}.${__DOMAIN}" || write_log 14 "服务器通信失败"
+	write_log 7 "获取到解析记录: $(cat "$DATFILE" 2> /dev/null)" 
 	json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
-	json_get_var value "TotalCount"
-	if [ $value -eq 0 ]; then
+	json_get_var count "TotalCount"
+	if [ $count -eq 0 ]; then
 		write_log 7 "解析记录不存在"
 		ret=1
 	else
-		json_select "DomainRecords" >/dev/null 2>&1
-		json_select "Record" >/dev/null 2>&1
-		json_select 1 >/dev/null 2>&1
-		json_get_var value "Locked"
-		[ $value -ne 0 ] && write_log 14 "解析记录被锁定"
-		json_get_var __RECID "RecordId"
-		write_log 7 "获得解析记录ID: ${__RECID}"
-		json_get_var value "Status"
-		[ "$value" != "ENABLE" ] && ret=$(( $ret | 2 )) && write_log 7 "解析记录被禁用"
-		json_get_var type "Type"
-		json_get_var value "Value"
-		[ "$type" != "${__TYPE}" -o "$value" != "${__IP}" ] && ret=$(( $ret | 4 )) && write_log 7 "地址或类型需要修改"
+		local i=1;
+		while [ $i -le $count ]; do
+			json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
+			json_select "DomainRecords" >/dev/null 2>&1
+			json_select "Record" >/dev/null 2>&1
+			json_select $i >/dev/null 2>&1
+			i=$(( $i + 1 ))
+			json_get_var value "Type"
+			if [ "$value" != "${__TYPE}" ]; then
+				write_log 7 "当前解析类型: ${__TYPE}, 获得不匹配类型: $value"
+				ret=1; continue
+			else
+				ret=0
+				json_get_var __RECID "RecordId"
+				write_log 7 "获得解析记录ID: ${__RECID}, 类型: $value"
+				json_get_var value "Locked"
+				[ $value -ne 0 ] && write_log 14 "解析记录被锁定"
+				json_get_var value "Status"
+				[ "$value" != "ENABLE" ] && ret=$(( $ret | 2 )) && write_log 7 "解析记录被禁用"
+				json_get_var value "Value"
+				[ "$value" != "${__IP}" ] && ret=$(( $ret | 4 )) && write_log 7 "地址需要修改"
+				break
+			fi
+		done
 	fi
 	return $ret
 }
