@@ -36,6 +36,14 @@ apply_defaults() {
 			echo 0 > "$iface"
 		done
 	fi
+
+	# first set default, then all interfaces to avoid races with appearing interfaces
+	if [ -d /proc/sys/net/ipv6/conf ]; then
+		echo 0 > /proc/sys/net/ipv6/conf/default/accept_ra
+		for iface in /proc/sys/net/ipv6/conf/*/accept_ra; do
+			echo 0 > "$iface"
+		done
+	fi
 }
 
 start() {
