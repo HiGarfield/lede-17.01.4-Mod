@@ -4,7 +4,7 @@
 mp = Map("pptpd", "PPTP Server","")
 
 s = mp:section(NamedSection, "pptpd", "service", translate("PPTP Service"))
-s.anonymouse = true
+s.anonymous = true
 --s.addremove = true
 
 enabled = s:option(Flag, "enabled", translate("Enable"))
@@ -26,7 +26,7 @@ logging.default = 0
 logging.rmempty = false
 
 logins = mp:section(NamedSection, "login", "login", translate("PPTP Logins"))
-logins.anonymouse = true
+logins.anonymous = true
 
 username = logins:option(Value, "username", translate("User name"))
 username.datatype = "string"
