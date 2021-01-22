@@ -1,10 +1,10 @@
 
 config service 'pptpd'
 	option enabled '0'
-	option remoteip '192.168.0.20-30'
-	option remotedns '192.168.0.1'
+	option remoteip '192.168.1.241-250'
+	option remotedns '192.168.1.1'
 	option logwtmp '0'
-	option localip '192.168.0.1'
+	option localip '192.168.1.1'
 
 config login 'login'
 	option username ''
