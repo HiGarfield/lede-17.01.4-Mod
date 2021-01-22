@@ -6,7 +6,30 @@ uci -q batch <<-EOF >/dev/null
 	set firewall.pptpd.type=script
 	set firewall.pptpd.path=/etc/pptpd.include
 	set firewall.pptpd.reload=1
+
+	delete firewall.pptp
+	set firewall.pptp=rule
+	set firewall.pptp.name="pptp"
+	set firewall.pptp.target="ACCEPT"
+	set firewall.pptp.src="wan"
+	set firewall.pptp.proto="tcp"
+	set firewall.pptp.dest_port="1723"
+
+	delete firewall.gre
+	set firewall.gre=rule
+	set firewall.gre.name="gre"
+	set firewall.gre.target="ACCEPT"
+	set firewall.gre.src="wan"
+	set firewall.gre.proto="47"
+
 	commit firewall
+EOF
+
+uci -q batch <<-EOF >/dev/null
+	delete ucitrack.@pptpd[-1]
+	add ucitrack pptpd
+	set ucitrack.@pptpd[-1].init=pptpd
+	commit ucitrack
 EOF
 
 /etc/init.d/pptpd enable && /etc/init.d/pptpd restart
