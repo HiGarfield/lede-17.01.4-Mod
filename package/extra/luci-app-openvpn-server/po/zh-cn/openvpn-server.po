@@ -52,7 +52,7 @@ msgstr "运行日志"
 msgid "Login log"
 msgstr "登陆日志"
 
-msgid "user password verify"
+msgid "User password verify"
 msgstr "帐号密码验证"
 
 msgid "Default: /etc/openvpn/server/checkpsw.sh via-env, leave it empty to disable"
@@ -93,3 +93,28 @@ msgstr "认证脚本"
 
 msgid "Use the UserName provided by the client as the Common Name"
 msgstr "使用客户提供的UserName作为Common Name"
+
+msgid "Generate OpenVPN Cert"
+msgstr "生成OpenVPN证书"
+
+msgid "Click this button to regenerate the OpenVPN cert. Generating an OpenVPN cert can take a long time. Please be patient, the OpenVPN server will be restarted automatically after the cert is generated successfully, please do not click this button twice."
+msgstr "点击此按钮可重新生成OpenVPN证书。生成OpenVPN证书会占用很长时间。请耐心等待，证书生成成功后会自动重启OpenVPN服务器，请勿二次点击本按钮。"
+
+
+msgid "Protocol"
+msgstr "协议"
+
+msgid "Compress data with lzo"
+msgstr "使用lzo压缩数据"
+
+msgid "Multiple clients share certificates and keys"
+msgstr "多客户端共用证书和秘钥"
+
+msgid "Clients are mutually accessible"
+msgstr "客户端间互相可访问"
+
+msgid "Client cert not required"
+msgstr "客户端无需证书"
+
+msgid "Username as common name"
+msgstr "用户名作为通用名"
