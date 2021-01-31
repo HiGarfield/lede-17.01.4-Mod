@@ -48,3 +48,13 @@ msgstr "唤醒主机"
 
 msgid "WoL program"
 msgstr "网络唤醒程序"
+
+msgid "Hosts"
+msgstr "主机"
+
+msgid "MAC address"
+msgstr "MAC地址"
+
+msgid "Hostname"
+msgstr "主机名"
+
