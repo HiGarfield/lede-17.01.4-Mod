@@ -28,6 +28,7 @@ logging.rmempty = false
 logins = mp:section(TypedSection, "login", translate("PPTP Logins"))
 logins.anonymous = true
 logins.addremove = true
+logins.template = "cbi/tblsection"
 
 username = logins:option(Value, "username", translate("User name"))
 username.datatype = "string"
