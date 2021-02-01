@@ -10,6 +10,7 @@ m = Map("hd-idle", translate("HDD Idle"),
 s = m:section(TypedSection, "hd-idle", translate("Settings"))
 s.anonymous = true
 s.addremove = true
+s.template = "cbi/tblsection"
 
 s:option(Flag, "enabled", translate("Enable"))
 
