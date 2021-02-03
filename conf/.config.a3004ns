@@ -3021,7 +3021,6 @@ CONFIG_PACKAGE_kmod-mt76-core=y
 CONFIG_PACKAGE_kmod-mt7603=y
 # CONFIG_PACKAGE_kmod-mt7615e is not set
 CONFIG_PACKAGE_kmod-mt76x02-common=y
-# CONFIG_PACKAGE_kmod-mt76x02-usb is not set
 # CONFIG_PACKAGE_kmod-mt76x0e is not set
 # CONFIG_PACKAGE_kmod-mt76x0u is not set
 CONFIG_PACKAGE_kmod-mt76x2=y
