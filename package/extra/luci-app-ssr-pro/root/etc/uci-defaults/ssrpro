@@ -1,7 +1,7 @@
 #!/bin/sh
 
 uci -q batch <<-EOF >/dev/null
-  delete ucitrack.@ssrpro[-1]
+	delete ucitrack.@ssrpro[-1]
 	add ucitrack ssrpro
 	set ucitrack.@ssrpro[-1].init=ssrpro
 	commit ucitrack
