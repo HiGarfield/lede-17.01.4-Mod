@@ -22,8 +22,8 @@ add_ipt_rule() {
 	if [ -z "$ipt_cmd" ]; then
 		command -v iptables >/dev/null 2>&1 || return 1
 		ipt_cmd='iptables'
-		[ -n "$(iptables -h 2> /dev/null | grep -e '--wait')" ] && ipt_cmd="$ipt_cmd --wait"
-		echo "# firewall include file" > "/var/etc/$NAME.include"
+		[ -n "$(iptables -h 2>/dev/null | grep -e '--wait')" ] && ipt_cmd="$ipt_cmd --wait"
+		echo "# firewall include file" >"/var/etc/$NAME.include"
 	else
 		echo "$ipt_cmd" | grep -q -e '--wait'
 		[ $? -ne 0 ] && sleep 2
@@ -39,38 +39,38 @@ flush_ipt_rules() {
 
 export_ipt_rules() {
 	[ -f "/var/etc/$NAME.include" ] || return
-	cat <<-CAT >> "/var/etc/$NAME.include"
-	iptables-save -c | grep -v "${NAME}DwrW" | iptables-restore -c
-	iptables-restore -n <<-EOF
-	$(iptables-save -t filter | grep -E "${NAME}DwrW|^\*|^COMMIT" | sed 's/^-A /-I /')
-	EOF
-CAT
+	cat <<-CAT >>"/var/etc/$NAME.include"
+		iptables-save -c | grep -v "${NAME}DwrW" | iptables-restore -c
+		iptables-restore -n <<-EOF
+		$(iptables-save -t filter | grep -E "${NAME}DwrW|^\*|^COMMIT" | sed 's/^-A /-I /')
+		EOF
+	CAT
 }
 
 create_config() {
 	local config_file="$1"
-	echo "# auto-generated config file from /etc/config/udp2raw" > $config_file
+	echo "# auto-generated config file from /etc/config/udp2raw" >$config_file
 
-	echo "-c" >> $config_file
-	echo "-l ${listen_addr}:${listen_port}" >> $config_file && _log "info" "listening on: ${listen_addr}:${listen_port}"
-	echo "-r ${server_addr}:${server_port}" >> $config_file
+	echo "-c" >>$config_file
+	echo "-l ${listen_addr}:${listen_port}" >>$config_file && _log "info" "listening on: ${listen_addr}:${listen_port}"
+	echo "-r ${server_addr}:${server_port}" >>$config_file
 
-	[ -n "$raw_mode" ] && echo "--raw-mode ${raw_mode}" >> $config_file && _log "info" "raw-mode: ${raw_mode}"
-	[ -n "$key" ] && echo "--key ${key}" >> $config_file
-	[ -n "$cipher_mode" ] && echo "--cipher-mode ${cipher_mode}" >> $config_file
-	[ -n "$auth_mode" ] && echo "--auth-mode ${auth_mode}" >> $config_file
+	[ -n "$raw_mode" ] && echo "--raw-mode ${raw_mode}" >>$config_file && _log "info" "raw-mode: ${raw_mode}"
+	[ -n "$key" ] && echo "--key ${key}" >>$config_file
+	[ -n "$cipher_mode" ] && echo "--cipher-mode ${cipher_mode}" >>$config_file
+	[ -n "$auth_mode" ] && echo "--auth-mode ${auth_mode}" >>$config_file
 
-	[ $auto_rule -eq 1 -a $keep_rule -eq 1 ] && echo "--auto-rule" >> $config_file
-	[ $auto_rule -eq 1 -a $keep_rule -eq 1 ] && echo "--keep-rule" >> $config_file
+	[ $auto_rule -eq 1 -a $keep_rule -eq 1 ] && echo "--auto-rule" >>$config_file
+	[ $auto_rule -eq 1 -a $keep_rule -eq 1 ] && echo "--keep-rule" >>$config_file
 
-	[ -n "$seq_mode" ] && echo "--seq-mode ${seq_mode}" >> $config_file
-	[ -n "$lower_level" ] && echo "--lower-level ${lower_level}" >> $config_file
-	[ -n "$source_ip" ] && echo "--source-ip ${source_ip}" >> $config_file
-	[ -n "$source_port" ] && echo "--source-port ${source_port}" >> $config_file
-	echo "--retry-on-error" >> $config_file
+	[ -n "$seq_mode" ] && echo "--seq-mode ${seq_mode}" >>$config_file
+	[ -n "$lower_level" ] && echo "--lower-level ${lower_level}" >>$config_file
+	[ -n "$source_ip" ] && echo "--source-ip ${source_ip}" >>$config_file
+	[ -n "$source_port" ] && echo "--source-port ${source_port}" >>$config_file
+	echo "--retry-on-error" >>$config_file
 
-	[ -n "$log_level" ] && echo "--log-level ${log_level}" >> $config_file
-	echo "--disable-color" >> $config_file
+	[ -n "$log_level" ] && echo "--log-level ${log_level}" >>$config_file
+	echo "--disable-color" >>$config_file
 }
 
 validate_config_section() {
@@ -83,13 +83,13 @@ validate_server_section() {
 	uci_validate_section "$NAME" servers "$1" \
 		'server_addr:host' \
 		'server_port:port:8080' \
-		'listen_addr:ipaddr:127.0.0.1' \
+		'listen_addr:ipaddr:0.0.0.0' \
 		'listen_port:port:2080' \
 		'raw_mode:or("faketcp", "udp", "icmp", "easy-faketcp"):faketcp' \
 		'key:string' \
 		'cipher_mode:or("aes128cbc", "xor", "none"):aes128cbc' \
 		'auth_mode:or("md5", "crc32", "simple", "none"):md5' \
-		'auto_rule:bool:1' \
+		'auto_rule:bool:0' \
 		'keep_rule:bool:0' \
 		'seq_mode:range(0,4)' \
 		'lower_level:string' \
@@ -109,7 +109,7 @@ start_instance() {
 	fi
 
 	/sbin/validate_data "ipaddr" "$server_addr" >/dev/null 2>&1
-	[ $? -ne 0 ] && server_addr=$(nslookup "$server_addr" | \
+	[ $? -ne 0 ] && server_addr=$(nslookup "$server_addr" |
 		sed -n 's/^Address[[:space:]]*[0-9]*:[[:space:]]*\(\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}\)$/\1/p')
 	if [ -z "$server_addr" ]; then
 		_log "err" "Server address validation failed."
@@ -121,7 +121,10 @@ start_instance() {
 	create_config "$config_file" || return 1
 
 	if [ $auto_rule -eq 1 -a $keep_rule -ne 1 ]; then
-		add_ipt_rule || { _log "err" "added iptables rule failed."; return 1; }
+		add_ipt_rule || {
+			_log "err" "added iptables rule failed."
+			return 1
+		}
 	fi
 
 	procd_open_instance
@@ -139,7 +142,7 @@ service_triggers() {
 }
 
 start_service() {
-	if ! validate_config_section "general" ; then
+	if ! validate_config_section "general"; then
 		_log "err" "Config validate failed."
 		return 1
 	fi
