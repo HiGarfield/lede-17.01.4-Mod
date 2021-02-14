@@ -1,0 +1,173 @@
+From 01969fc5304a738718c00b6153d672ce4f085747 Mon Sep 17 00:00:00 2001
+From: Ali MJ Al-Nasrawy <alimjalnasrawy@gmail.com>
+Date: Wed, 17 Jun 2020 09:51:04 +0300
+Subject: [PATCH 10/12] flush OS write buffers before saving control file
+
+This ensures that pieces are physically written to disk before
+marking them as finished in the control file.
+
+This should prevent data loss and corruption when resuming downloads
+after a system crash.
+
+Signed-off-by: Ali MJ Al-Nasrawy <alimjalnasrawy@gmail.com>
+---
+ src/AbstractDiskWriter.cc        | 12 ++++++++++++
+ src/AbstractDiskWriter.h         |  2 ++
+ src/AbstractSingleDiskAdaptor.cc |  5 +++++
+ src/AbstractSingleDiskAdaptor.h  |  2 ++
+ src/DiskAdaptor.h                |  3 +++
+ src/DiskWriter.h                 |  3 +++
+ src/MultiDiskAdaptor.cc          | 11 +++++++++++
+ src/MultiDiskAdaptor.h           |  2 ++
+ src/RequestGroup.cc              |  2 ++
+ 9 files changed, 42 insertions(+)
+
+diff --git a/src/AbstractDiskWriter.cc b/src/AbstractDiskWriter.cc
+index ff4f8856..f21c5261 100644
+--- a/src/AbstractDiskWriter.cc
++++ b/src/AbstractDiskWriter.cc
+@@ -590,4 +590,16 @@ void AbstractDiskWriter::dropCache(int64_t len, int64_t offset)
+ #endif // HAVE_POSIX_FADVISE
+ }
+ 
++void AbstractDiskWriter::flushOSBuffers()
++{
++  if (fd_ == A2_BAD_FD) {
++    return;
++  }
++#ifdef __MINGW32__
++  FlushFileBuffers(fd_);
++#else // !__MINGW32__
++  fsync(fd_);
++#endif // __MINGW32__
++}
++
+ } // namespace aria2
+diff --git a/src/AbstractDiskWriter.h b/src/AbstractDiskWriter.h
+index 9e5c4799..96518a68 100644
+--- a/src/AbstractDiskWriter.h
++++ b/src/AbstractDiskWriter.h
+@@ -100,6 +100,8 @@ public:
+   virtual void enableMmap() CXX11_OVERRIDE;
+ 
+   virtual void dropCache(int64_t len, int64_t offset) CXX11_OVERRIDE;
++
++  virtual void flushOSBuffers() CXX11_OVERRIDE;
+ };
+ 
+ } // namespace aria2
+diff --git a/src/AbstractSingleDiskAdaptor.cc b/src/AbstractSingleDiskAdaptor.cc
+index 54ec783e..6e6b70e6 100644
+--- a/src/AbstractSingleDiskAdaptor.cc
++++ b/src/AbstractSingleDiskAdaptor.cc
+@@ -103,6 +103,11 @@ void AbstractSingleDiskAdaptor::writeCache(const WrDiskCacheEntry* entry)
+   }
+ }
+ 
++void AbstractSingleDiskAdaptor::flushOSBuffers()
++{
++  diskWriter_->flushOSBuffers();
++}
++
+ bool AbstractSingleDiskAdaptor::fileExists()
+ {
+   return File(getFilePath()).exists();
+diff --git a/src/AbstractSingleDiskAdaptor.h b/src/AbstractSingleDiskAdaptor.h
+index 8d17686c..36899e10 100644
+--- a/src/AbstractSingleDiskAdaptor.h
++++ b/src/AbstractSingleDiskAdaptor.h
+@@ -72,6 +72,8 @@ public:
+ 
+   virtual void writeCache(const WrDiskCacheEntry* entry) CXX11_OVERRIDE;
+ 
++  virtual void flushOSBuffers() CXX11_OVERRIDE;
++
+   virtual bool fileExists() CXX11_OVERRIDE;
+ 
+   virtual int64_t size() CXX11_OVERRIDE;
+diff --git a/src/DiskAdaptor.h b/src/DiskAdaptor.h
+index 2643a65d..9287b3ec 100644
+--- a/src/DiskAdaptor.h
++++ b/src/DiskAdaptor.h
+@@ -114,6 +114,9 @@ public:
+   // Writes cached data to the underlying disk.
+   virtual void writeCache(const WrDiskCacheEntry* entry) = 0;
+ 
++  // Force physical write of data from OS buffer cache.
++  virtual void flushOSBuffers() {};
++
+   void setFileAllocationMethod(FileAllocationMethod method)
+   {
+     fileAllocationMethod_ = method;
+diff --git a/src/DiskWriter.h b/src/DiskWriter.h
+index 960e346c..03a4147b 100644
+--- a/src/DiskWriter.h
++++ b/src/DiskWriter.h
+@@ -85,6 +85,9 @@ public:
+ 
+   // Drops cache in range [offset, offset + len)
+   virtual void dropCache(int64_t len, int64_t offset) {}
++
++  // Force physical write of data from OS buffer cache.
++  virtual void flushOSBuffers() {}
+ };
+ 
+ } // namespace aria2
+diff --git a/src/MultiDiskAdaptor.cc b/src/MultiDiskAdaptor.cc
+index d4f419cf..14321aab 100644
+--- a/src/MultiDiskAdaptor.cc
++++ b/src/MultiDiskAdaptor.cc
+@@ -419,6 +419,17 @@ void MultiDiskAdaptor::writeCache(const WrDiskCacheEntry* entry)
+   }
+ }
+ 
++void MultiDiskAdaptor::flushOSBuffers()
++{
++  for (auto& dwent : openedDiskWriterEntries_) {
++    auto& dw = dwent->getDiskWriter();
++    if (!dw) {
++      continue;
++    }
++    dw->flushOSBuffers();
++  }
++}
++
+ bool MultiDiskAdaptor::fileExists()
+ {
+   return std::find_if(std::begin(getFileEntries()), std::end(getFileEntries()),
+diff --git a/src/MultiDiskAdaptor.h b/src/MultiDiskAdaptor.h
+index 9959888a..7f8ccef4 100644
+--- a/src/MultiDiskAdaptor.h
++++ b/src/MultiDiskAdaptor.h
+@@ -135,6 +135,8 @@ public:
+ 
+   virtual void writeCache(const WrDiskCacheEntry* entry) CXX11_OVERRIDE;
+ 
++  virtual void flushOSBuffers() CXX11_OVERRIDE;
++
+   virtual bool fileExists() CXX11_OVERRIDE;
+ 
+   virtual int64_t size() CXX11_OVERRIDE;
+diff --git a/src/RequestGroup.cc b/src/RequestGroup.cc
+index a008642d..fd6801fc 100644
+--- a/src/RequestGroup.cc
++++ b/src/RequestGroup.cc
+@@ -211,6 +211,7 @@ void RequestGroup::closeFile()
+ {
+   if (pieceStorage_) {
+     pieceStorage_->flushWrDiskCacheEntry(true);
++    pieceStorage_->getDiskAdaptor()->flushOSBuffers();
+     pieceStorage_->getDiskAdaptor()->closeFile();
+   }
+ }
+@@ -1292,6 +1293,7 @@ void RequestGroup::saveControlFile() const
+   if (saveControlFile_) {
+     if (pieceStorage_) {
+       pieceStorage_->flushWrDiskCacheEntry(false);
++      pieceStorage_->getDiskAdaptor()->flushOSBuffers();
+     }
+     progressInfoFile_->save();
+   }
+-- 
+2.17.1
+
