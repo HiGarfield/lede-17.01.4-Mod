@@ -1,0 +1,35 @@
+From 2d0171e95636eead0c7d26d8bef99f451ab3e20d Mon Sep 17 00:00:00 2001
+From: Natanael Copa <ncopa@alpinelinux.org>
+Date: Fri, 7 Aug 2020 15:59:49 +0200
+Subject: [PATCH 11/12] Fix segfault when time_t is 64bit on 32bit arch (#1666)
+
+On some platforms, like with musl libc, time_t may be 64 bit even on
+32bit platforms. Fix segfault by convert time_t to 64 bit and use 64bit
+format modifier instead of assume time_t is %ld
+---
+ src/ServerStat.cc | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
+
+diff --git a/src/ServerStat.cc b/src/ServerStat.cc
+index d35407dc..eb2e17ee 100644
+--- a/src/ServerStat.cc
++++ b/src/ServerStat.cc
+@@ -183,11 +183,12 @@ bool ServerStat::operator==(const ServerStat& serverStat) const
+ std::string ServerStat::toString() const
+ {
+   return fmt("host=%s, protocol=%s, dl_speed=%d, sc_avg_speed=%d,"
+-             " mc_avg_speed=%d, last_updated=%ld, counter=%d, status=%s",
++             " mc_avg_speed=%d, last_updated=%" PRId64
++             ", counter=%d, status=%s",
+              getHostname().c_str(), getProtocol().c_str(), getDownloadSpeed(),
+              getSingleConnectionAvgSpeed(), getMultiConnectionAvgSpeed(),
+-             getLastUpdated().getTimeFromEpoch(), getCounter(),
+-             STATUS_STRING[getStatus()]);
++             static_cast<int64_t>(getLastUpdated().getTimeFromEpoch()),
++             getCounter(), STATUS_STRING[getStatus()]);
+ }
+ 
+ } // namespace aria2
+-- 
+2.17.1
+

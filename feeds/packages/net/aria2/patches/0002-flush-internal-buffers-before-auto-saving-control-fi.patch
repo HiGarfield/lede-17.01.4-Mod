@@ -1,0 +1,126 @@
+From 870e2a6014462c55cc252140f5e215374881c6e9 Mon Sep 17 00:00:00 2001
+From: Ali MJ Al-Nasrawy <alimjalnasrawy@gmail.com>
+Date: Wed, 17 Jun 2020 00:08:55 +0300
+Subject: [PATCH 09/12] flush internal buffers before auto-saving control file
+
+Otherwise, some pieces may be marked as finished in the control file
+though they have not yet been written to the storage file.
+
+This should prevent data loss and corruption when resuming downloads
+after an app crash.
+
+Signed-off-by: Ali MJ Al-Nasrawy <alimjalnasrawy@gmail.com>
+---
+ src/DefaultPieceStorage.cc      | 6 ++++--
+ src/DefaultPieceStorage.h       | 2 +-
+ src/PieceStorage.h              | 5 +++--
+ src/RequestGroup.cc             | 5 ++++-
+ src/UnknownLengthPieceStorage.h | 2 +-
+ test/MockPieceStorage.h         | 2 +-
+ 6 files changed, 14 insertions(+), 8 deletions(-)
+
+diff --git a/src/DefaultPieceStorage.cc b/src/DefaultPieceStorage.cc
+index ceff957b..e08b1b18 100644
+--- a/src/DefaultPieceStorage.cc
++++ b/src/DefaultPieceStorage.cc
+@@ -685,7 +685,7 @@ std::shared_ptr<DiskAdaptor> DefaultPieceStorage::getDiskAdaptor()
+ 
+ WrDiskCache* DefaultPieceStorage::getWrDiskCache() { return wrDiskCache_; }
+ 
+-void DefaultPieceStorage::flushWrDiskCacheEntry()
++void DefaultPieceStorage::flushWrDiskCacheEntry(bool releaseEntries)
+ {
+   if (!wrDiskCache_) {
+     return;
+@@ -697,7 +697,9 @@ void DefaultPieceStorage::flushWrDiskCacheEntry()
+     auto ce = piece->getWrDiskCacheEntry();
+     if (ce) {
+       piece->flushWrCache(wrDiskCache_);
+-      piece->releaseWrCache(wrDiskCache_);
++      if (releaseEntries) {
++        piece->releaseWrCache(wrDiskCache_);
++      }
+     }
+   }
+ }
+diff --git a/src/DefaultPieceStorage.h b/src/DefaultPieceStorage.h
+index e41736ab..4d2cdbe0 100644
+--- a/src/DefaultPieceStorage.h
++++ b/src/DefaultPieceStorage.h
+@@ -234,7 +234,7 @@ public:
+ 
+   virtual WrDiskCache* getWrDiskCache() CXX11_OVERRIDE;
+ 
+-  virtual void flushWrDiskCacheEntry() CXX11_OVERRIDE;
++  virtual void flushWrDiskCacheEntry(bool releaseEntries) CXX11_OVERRIDE;
+ 
+   virtual int32_t getPieceLength(size_t index) CXX11_OVERRIDE;
+ 
+diff --git a/src/PieceStorage.h b/src/PieceStorage.h
+index c6ea6750..a987fb24 100644
+--- a/src/PieceStorage.h
++++ b/src/PieceStorage.h
+@@ -226,8 +226,9 @@ public:
+ 
+   virtual WrDiskCache* getWrDiskCache() = 0;
+ 
+-  // Flushes write disk cache for in-flight piece and evicts them.
+-  virtual void flushWrDiskCacheEntry() = 0;
++  // Flushes write disk cache for in-flight piece
++  // and optionally releases the associated cache entries.
++  virtual void flushWrDiskCacheEntry(bool releaseEntries) = 0;
+ 
+   virtual int32_t getPieceLength(size_t index) = 0;
+ 
+diff --git a/src/RequestGroup.cc b/src/RequestGroup.cc
+index c05a8189..a008642d 100644
+--- a/src/RequestGroup.cc
++++ b/src/RequestGroup.cc
+@@ -210,7 +210,7 @@ std::pair<error_code::Value, std::string> RequestGroup::downloadResult() const
+ void RequestGroup::closeFile()
+ {
+   if (pieceStorage_) {
+-    pieceStorage_->flushWrDiskCacheEntry();
++    pieceStorage_->flushWrDiskCacheEntry(true);
+     pieceStorage_->getDiskAdaptor()->closeFile();
+   }
+ }
+@@ -1290,6 +1290,9 @@ bool RequestGroup::doesUploadSpeedExceed()
+ void RequestGroup::saveControlFile() const
+ {
+   if (saveControlFile_) {
++    if (pieceStorage_) {
++      pieceStorage_->flushWrDiskCacheEntry(false);
++    }
+     progressInfoFile_->save();
+   }
+ }
+diff --git a/src/UnknownLengthPieceStorage.h b/src/UnknownLengthPieceStorage.h
+index 2b05918c..8c3dac89 100644
+--- a/src/UnknownLengthPieceStorage.h
++++ b/src/UnknownLengthPieceStorage.h
+@@ -216,7 +216,7 @@ public:
+ 
+   virtual WrDiskCache* getWrDiskCache() CXX11_OVERRIDE { return nullptr; }
+ 
+-  virtual void flushWrDiskCacheEntry() CXX11_OVERRIDE {}
++  virtual void flushWrDiskCacheEntry(bool releaseEntries) CXX11_OVERRIDE {}
+ 
+   virtual int32_t getPieceLength(size_t index) CXX11_OVERRIDE;
+ 
+diff --git a/test/MockPieceStorage.h b/test/MockPieceStorage.h
+index 379f9743..a9a9f93f 100644
+--- a/test/MockPieceStorage.h
++++ b/test/MockPieceStorage.h
+@@ -228,7 +228,7 @@ public:
+ 
+   virtual WrDiskCache* getWrDiskCache() CXX11_OVERRIDE { return 0; }
+ 
+-  virtual void flushWrDiskCacheEntry() CXX11_OVERRIDE {}
++  virtual void flushWrDiskCacheEntry(bool releaseEntries) CXX11_OVERRIDE {}
+ 
+   void setDiskAdaptor(const std::shared_ptr<DiskAdaptor>& adaptor)
+   {
+-- 
+2.17.1
+

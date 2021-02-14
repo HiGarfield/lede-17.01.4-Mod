@@ -1,0 +1,30 @@
+From 6ebdddb9f159e87923736f25900897b3602305f9 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Sat, 12 Oct 2019 10:30:18 +0900
+Subject: [PATCH 08/12] Reset sessionDownloadLength and sessionUploadLength on
+ download start
+
+This commit resets sessionDownloadLength and sessionUploadLength when
+a download restarted (including unpause RPC method).
+
+Fixes #1486
+---
+ src/NetStat.cc | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/src/NetStat.cc b/src/NetStat.cc
+index 3edb238e..58e7a183 100644
+--- a/src/NetStat.cc
++++ b/src/NetStat.cc
+@@ -110,6 +110,8 @@ void NetStat::reset()
+   uploadSpeed_.reset();
+   downloadStartTime_ = global::wallclock();
+   status_ = IDLE;
++  sessionDownloadLength_ = 0;
++  sessionUploadLength_ = 0;
+ }
+ 
+ void NetStat::downloadStart()
+-- 
+2.17.1
+

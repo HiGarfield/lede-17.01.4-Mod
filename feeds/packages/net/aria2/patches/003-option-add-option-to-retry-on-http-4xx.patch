@@ -174,7 +174,7 @@ diff --git a/src/prefs.cc b/src/prefs.cc
 index 937e927..33eff91 100644
 --- a/src/prefs.cc
 +++ b/src/prefs.cc
-@@ -327,6 +327,14 @@ PrefPtr PREF_ENABLE_ASYNC_DNS6 = makePref("enable-async-dns6");
+@@ -326,6 +326,14 @@ PrefPtr PREF_ENABLE_ASYNC_DNS6 = makePref("enable-async-dns6");
  PrefPtr PREF_MAX_DOWNLOAD_RESULT = makePref("max-download-result");
  // value: 1*digit
  PrefPtr PREF_RETRY_WAIT = makePref("retry-wait");
@@ -193,7 +193,7 @@ diff --git a/src/prefs.h b/src/prefs.h
 index e1f8397..019e774 100644
 --- a/src/prefs.h
 +++ b/src/prefs.h
-@@ -280,6 +280,14 @@ extern PrefPtr PREF_ENABLE_ASYNC_DNS6;
+@@ -279,6 +279,14 @@ extern PrefPtr PREF_ENABLE_ASYNC_DNS6;
  extern PrefPtr PREF_MAX_DOWNLOAD_RESULT;
  // value: 1*digit
  extern PrefPtr PREF_RETRY_WAIT;
