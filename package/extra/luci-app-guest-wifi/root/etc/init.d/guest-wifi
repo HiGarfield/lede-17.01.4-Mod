@@ -1,18 +1,14 @@
 #!/bin/sh /etc/rc.common
-
 . /lib/functions/network.sh
 
 START=50
 
-HISTORY_DIR="/etc/config/guestwifi"
-[ -d "$HISTORY_DIR" ] || mkdir -p "$HISTORY_DIR"
+interface_name="guest"
 
 enabled=$(uci -q get guest-wifi.@guest-wifi[0].enable)
 [ -z "$enabled" ] && enabled=0
 wifi_name=$(uci -q get guest-wifi.@guest-wifi[0].wifi_name)
 [ -z "$wifi_name" ] && wifi_name="Guest-WiFi"
-interface_name=$(uci -q get guest-wifi.@guest-wifi[0].interface_name)
-[ -z "$interface_name" ] && interface_name="guest"
 encryption=$(uci -q get guest-wifi.@guest-wifi[0].encryption)
 [ -z "$encryption" ] && encryption="psk2"
 passwd=$(uci -q get guest-wifi.@guest-wifi[0].passwd)
@@ -32,178 +28,155 @@ device=$(uci -q get guest-wifi.@guest-wifi[0].device)
 create=$(uci -q get guest-wifi.@guest-wifi[0].create)
 [ -z "$create" ] && create=0
 
+del_guest_wifi_cfg() {
+	uci -q batch <<-EOF >/dev/null
+		delete network.${interface_name}
+		commit network
+		delete wireless.${interface_name}
+		commit wireless
+		delete dhcp.${interface_name}
+		commit dhcp
+		delete firewall.${interface_name}_zone
+		delete firewall.${interface_name}_fwd
+		delete firewall.${interface_name}_dns_rule
+		delete firewall.${interface_name}_dhcp_rule
+		delete firewall.${interface_name}_hide_rule
+		commit firewall
+		set guest-wifi.@guest-wifi[0].create='0'
+		commit guest-wifi
+	EOF
+}
+
+boot() {
+	exit 0
+}
+
 start() {
+	mkdir -p /var/lock
+	lock /var/lock/guest-wifi.lock
 	[ $enabled = 1 ] && {
-		[ -z `uci -q get network.lan.ipaddr` ] && exit
+		uci -q get network.lan.ipaddr >/dev/null || exit
 		[ $create = 1 ] && {
-			[ -f ${HISTORY_DIR}/guest_del ] || echo "#!/bin/sh" > ${HISTORY_DIR}/guest_del
-			chmod 0755 ${HISTORY_DIR}/guest_del
+			del_guest_wifi_cfg
 			add_interface
 			add_ssid
 			mod_dhcp
 			mod_fw
 			/etc/init.d/network restart
-			uci set guest-wifi.@guest-wifi[0].create='0'
-			uci commit guest-wifi
 		}
-		[ "$(uci -q get wireless.$interface_name.disabled)" = "1" ] && {
-			uci del wireless.$interface_name.disabled
-			uci commit wireless			
-		}
-		wifi reload
-	}
-}
-
-
-stop() {
-	[ $enabled = 0 ] && {
-		[ $create = 1 ] && {
-			${HISTORY_DIR}/guest_del
-			rule_c=`uci show firewall |grep "\.name=\'Hide My LAN for $wifi_name\'$" |  grep -o "^firewall\..*\[[0-9]*[0-9]\]\.name=" | grep -o "\[[0-9]*[0-9]\]" | grep -o "[0-9]*[0-9]"`
-			uci del firewall.@rule[$rule_c]
-			uci commit firewall
-			rule_b=`uci show firewall |grep "\.name=\'Allow DHCP request for $wifi_name\'$" |  grep -o "^firewall\..*\[[0-9]*[0-9]\]\.name=" | grep -o "\[[0-9]*[0-9]\]" | grep -o "[0-9]*[0-9]"`
-			uci del firewall.@rule[$rule_b]
-			uci commit firewall
-			rule_a=`uci show firewall |grep "\.name=\'Allow DNS Queries for $wifi_name\'$" |  grep -o "^firewall\..*\[[0-9]*[0-9]\]\.name=" | grep -o "\[[0-9]*[0-9]\]" | grep -o "[0-9]*[0-9]"`
-			uci del firewall.@rule[$rule_a]
-			uci commit firewall
-			${HISTORY_DIR}/guest_del
-			rm -rf ${HISTORY_DIR}/guest_del
-			/etc/init.d/network restart
-			uci set guest-wifi.@guest-wifi[0].create='0'
-			uci commit guest-wifi
-		}
-		[ "$(uci -q get wireless.$interface_name.disabled)" != "1" ] && {
-			uci set wireless.$interface_name.disabled='1'
+		[ "$(uci -q get wireless.${interface_name}.disabled)" = "1" ] && {
+			uci del wireless.${interface_name}.disabled
 			uci commit wireless
 		}
 		wifi reload
 	}
+	lock -u /var/lock/guest-wifi.lock
+}
+
+stop() {
+	mkdir -p /var/lock
+	lock /var/lock/guest-wifi.lock
+	[ $enabled = 0 ] && {
+		if [ $create = 1 ]; then
+			del_guest_wifi_cfg
+			/etc/init.d/network restart
+		else
+			[ "$(uci -q get wireless.${interface_name}.disabled)" != "1" ] && {
+				uci set wireless.${interface_name}.disabled='1'
+				uci commit wireless
+			}
+		fi
+		wifi reload
+	}
+	lock -u /var/lock/guest-wifi.lock
 }
 
 restart() {
 	stop
 	sleep 2
-	start		
+	start
 }
 
 add_interface() {
-	name=`uci show network.$interface_name.ipaddr |grep "=\'$interface_ip\'$"`
-	[ $? = 1 ] && {
-		uci set network.$interface_name=interface
-		uci set network.$interface_name.proto='static'
-		uci set network.$interface_name.ipaddr="$interface_ip"
-		uci set network.$interface_name.netmask='255.255.255.0'
-		echo "uci del network.$interface_name" >> ${HISTORY_DIR}/guest_del
-		echo "uci commit network" >> ${HISTORY_DIR}/guest_del
-		uci commit network
-	}
+	uci -q batch <<-EOF >/dev/null
+		set network.${interface_name}=interface
+		set network.${interface_name}.proto='static'
+		set network.${interface_name}.ipaddr="$interface_ip"
+		set network.${interface_name}.netmask='255.255.255.0'
+		commit network
+	EOF
 }
 
 add_ssid() {
-	check_name=`uci show wireless | grep "\.ssid=\'$wifi_name\'$"`
-	[ $? = 1 ] && {
-		uci set wireless.$interface_name=wifi-iface
-		uci set wireless.$interface_name.device="$device"
-		uci set wireless.$interface_name.mode='ap'
-		uci set wireless.$interface_name.network="$interface_name"
-		uci set wireless.$interface_name.ssid="$wifi_name"
-		uci set wireless.$interface_name.encryption="$encryption"
-		uci set wireless.$interface_name.isolate="$isolate"
-		[ "$encryption" != "none" ] &&	uci set wireless.$interface_name.key="$passwd"
-		echo "uci del wireless.$interface_name" >> ${HISTORY_DIR}/guest_del
-		echo "uci commit wireless" >> ${HISTORY_DIR}/guest_del
-		uci commit wireless
-	}
+	local encryption_setting=''
+	[ "$encryption" != "none" ] &&
+		encryption_setting="set wireless.${interface_name}.key=\"$passwd\""
+
+	uci -q batch <<-EOF >/dev/null
+		set wireless.${interface_name}=wifi-iface
+		set wireless.${interface_name}.device="$device"
+		set wireless.${interface_name}.mode='ap'
+		set wireless.${interface_name}.network="${interface_name}"
+		set wireless.${interface_name}.ssid="$wifi_name"
+		set wireless.${interface_name}.encryption="$encryption"
+		set wireless.${interface_name}.isolate="$isolate"
+		$encryption_setting
+		commit wireless
+	EOF
 }
 
 mod_dhcp() {
-	check_dhcp=`uci show dhcp.$interface_name |grep "^dhcp\.$interface_name=dhcp$"`
-	[ $? = 1 ] && {
-		uci set dhcp.$interface_name=dhcp
-		uci set dhcp.$interface_name.interface="$interface_name"
-		uci set dhcp.$interface_name.start="$start"
-		uci set dhcp.$interface_name.limit="$limit"
-		uci set dhcp.$interface_name.leasetime="$leasetime"
-		echo "uci del dhcp.$interface_name" >> ${HISTORY_DIR}/guest_del
-		echo "uci commit dhcp" >> ${HISTORY_DIR}/guest_del
-		uci commit dhcp
-	}
+	uci -q batch <<-EOF >/dev/null
+		set dhcp.${interface_name}=dhcp
+		set dhcp.${interface_name}.interface="${interface_name}"
+		set dhcp.${interface_name}.start="$start"
+		set dhcp.${interface_name}.limit="$limit"
+		set dhcp.${interface_name}.leasetime="$leasetime"
+		commit dhcp
+	EOF
 }
 
 mod_fw() {
-	num_a=`uci show firewall |grep -c "=zone$"`
-	num_b=`uci show firewall |grep -c "=forwarding$"`
+	local lan_subnet
+	network_flush_cache
+	network_get_subnets lan_subnet 'lan'
 
-	check_zone=`uci show firewall |grep "\.name=\'$interface_name\'$"`
-	[ $? = 1 ] && {
-		uci add firewall zone
-		echo "uci del firewall.@zone[$num_a]" >> ${HISTORY_DIR}/guest_del
-		echo "uci commit firewall" >> ${HISTORY_DIR}/guest_del
-		uci set firewall.@zone[$num_a]=zone
-		uci set firewall.@zone[$num_a].name="$interface_name"
-		uci set firewall.@zone[$num_a].network="$interface_name"
-		uci set firewall.@zone[$num_a].forward='REJECT'
-		uci set firewall.@zone[$num_a].output='ACCEPT'
-		uci set firewall.@zone[$num_a].input='REJECT'
-		uci commit firewall
-	}
+	uci -q batch <<-EOF >/dev/null
+		set firewall.${interface_name}_zone=zone
+		set firewall.${interface_name}_zone.name="${interface_name}"
+		set firewall.${interface_name}_zone.network="${interface_name}"
+		set firewall.${interface_name}_zone.forward='REJECT'
+		set firewall.${interface_name}_zone.output='ACCEPT'
+		set firewall.${interface_name}_zone.input='REJECT'
 
-	check_forward=`uci show firewall |grep "forwarding\[[0-9]*[0-9]\]\.src=\'$interface_name\'$"`
-	[ $? = 1 ] && {
-		uci add firewall forwarding
-		echo "uci del firewall.@forwarding[$num_b]" >> ${HISTORY_DIR}/guest_del
-		echo "uci commit firewall" >> ${HISTORY_DIR}/guest_del
-		uci set firewall.@forwarding[$num_b]=forwarding
-		uci set firewall.@forwarding[$num_b].src="$interface_name"
-		uci set firewall.@forwarding[$num_b].dest='wan'
-		uci commit firewall
-	}
+		set firewall.${interface_name}_fwd=forwarding
+		set firewall.${interface_name}_fwd.src="${interface_name}"
+		set firewall.${interface_name}_fwd.dest='wan'
 
-	check_DNS=`uci show firewall |grep "\.name=\'Allow DNS Queries for $wifi_name\'$"`
-	[ $? = 1 ] && {
-		num_c=`uci show firewall |grep -c "=rule$"`
-		uci add firewall rule
-		uci set firewall.@rule[$num_c]=rule
-		uci set firewall.@rule[$num_c].name="Allow DNS Queries for $wifi_name"
-		uci set firewall.@rule[$num_c].src="$interface_name"
-		uci set firewall.@rule[$num_c].dest_port='53'
-		uci set firewall.@rule[$num_c].proto='tcpudp'
-		uci set firewall.@rule[$num_c].target='ACCEPT'
-		uci commit firewall
-		unset num_c
-	}
+		set firewall.${interface_name}_dns_rule=rule
+		set firewall.${interface_name}_dns_rule.name="Allow DNS Queries for $wifi_name"
+		set firewall.${interface_name}_dns_rule.src="${interface_name}"
+		set firewall.${interface_name}_dns_rule.dest_port='53'
+		set firewall.${interface_name}_dns_rule.proto='tcpudp'
+		set firewall.${interface_name}_dns_rule.target='ACCEPT'
 
-	check_DHCP=`uci show firewall |grep "\.name=\'Allow DHCP request for $wifi_name\'$"`
-	[ $? = 1 ] && {
-		num_c=`uci show firewall |grep -c "=rule$"`
-		uci add firewall rule
-		uci set firewall.@rule[$num_c]=rule
-		uci set firewall.@rule[$num_c].name="Allow DHCP request for $wifi_name"
-		uci set firewall.@rule[$num_c].src="$interface_name"
-		uci set firewall.@rule[$num_c].src_port='67-68'
-		uci set firewall.@rule[$num_c].dest_port='67-68'
-		uci set firewall.@rule[$num_c].proto='udp'
-		uci set firewall.@rule[$num_c].target='ACCEPT'
-		uci commit firewall
-		unset num_c
-	}
+		set firewall.${interface_name}_dhcp_rule=rule
+		set firewall.${interface_name}_dhcp_rule.name="Allow DHCP request for $wifi_name"
+		set firewall.${interface_name}_dhcp_rule.src="${interface_name}"
+		set firewall.${interface_name}_dhcp_rule.src_port='67-68'
+		set firewall.${interface_name}_dhcp_rule.dest_port='67-68'
+		set firewall.${interface_name}_dhcp_rule.proto='udp'
+		set firewall.${interface_name}_dhcp_rule.target='ACCEPT'
 
-	check_HIDE=`uci show firewall |grep "\.name=\'Hide My LAN for $wifi_name\'$"`
-	[ $? = 1 ] && {
-		num_c=`uci show firewall |grep -c "=rule$"`
-		uci add firewall rule
-		uci set firewall.@rule[$num_c]=rule
-		uci set firewall.@rule[$num_c].enabled='1'
-		uci set firewall.@rule[$num_c].name="Hide My LAN for $wifi_name"
-		uci set firewall.@rule[$num_c].proto='all'
-		uci set firewall.@rule[$num_c].src="$interface_name"
-		network_flush_cache
-		network_get_subnets lan_subnet 'lan'
-		uci set firewall.@rule[$num_c].dest_ip="$lan_subnet"
-		uci set firewall.@rule[$num_c].target='REJECT'
-		uci commit firewall
-		unset num_c
-	}
+		set firewall.${interface_name}_hide_rule=rule
+		set firewall.${interface_name}_hide_rule.enabled='1'
+		set firewall.${interface_name}_hide_rule.name="Hide My LAN for $wifi_name"
+		set firewall.${interface_name}_hide_rule.proto='all'
+		set firewall.${interface_name}_hide_rule.src="${interface_name}"
+
+		set firewall.${interface_name}_hide_rule.dest_ip="$lan_subnet"
+		set firewall.${interface_name}_hide_rule.target='REJECT'
+
+		commit firewall
+	EOF
 }
