@@ -2,7 +2,6 @@
 config guest-wifi
 	option enable '0'
 	option wifi_name 'Guest-WiFi'
-	option interface_name 'guest'
 	option encryption 'psk2'
 	option passwd 'guestnetwork'
 	option interface_ip '192.168.4.1'
