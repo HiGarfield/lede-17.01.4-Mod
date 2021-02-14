@@ -1,21 +1,27 @@
 #!/bin/sh
 
-cat > /etc/sysctl.d/99-tuning.conf <<EOF
-net.ipv4.tcp_fastopen = 3
+cat >/etc/sysctl.d/99-tuning.conf <<-EOF
+	net.ipv4.tcp_fastopen = 3
 EOF
 
 mem="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
-if [ "$mem" -gt 65536 ] && [ -n "$(opkg list-installed | grep '^transmission-daemon')" ] ; then
-cat >> /etc/sysctl.d/99-tuning.conf <<EOF
-net.core.rmem_max = 4194304
-net.core.wmem_max = 1048576
-net.ipv4.tcp_adv_win_scale = 4
-EOF
+if [ "$mem" -gt 65536 ]; then
+	rmem=$((mem * 48))
+	wmem=$((mem * 48))
+
+	cat >>/etc/sysctl.d/99-tuning.conf <<-EOF
+		net.core.rmem_max = $rmem
+		net.core.rmem_default = $rmem
+		net.core.wmem_max = $wmem
+		net.core.wmem_default = $wmem
+		net.core.netdev_max_backlog = 2048
+		net.ipv4.tcp_adv_win_scale = 4
+	EOF
 fi
 
 /etc/init.d/sysctl restart
 
-[ ! -f '/etc/crontabs/root' ] && echo "" > '/etc/crontabs/root'
+[ ! -f '/etc/crontabs/root' ] && echo "" >'/etc/crontabs/root'
 /etc/init.d/cron enable
 /etc/init.d/cron restart
 
@@ -35,26 +41,24 @@ sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
 
-
 uci -q batch <<-EOF >/dev/null
 	set luci.main.mediaurlbase=/luci-static/material
 	commit luci
 EOF
 
+sed -i '/log-facility=/d' /etc/dnsmasq.conf
+echo "log-facility=/dev/null" >>/etc/dnsmasq.conf
 
-sed -i '/log-facility/d' /etc/dnsmasq.conf
-echo "log-facility=/dev/null" >> /etc/dnsmasq.conf
-
-sed -i '/REDIRECT --to-ports 53/d' /etc/firewall.user
-echo "" >> /etc/firewall.user
-echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
-echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53" >> /etc/firewall.user
+sed -i '/REDIRECT --to-ports 53$/d' /etc/firewall.user
+{
+	echo ""
+	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53"
+	echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53"
+} >>/etc/firewall.user
 sed -i '/^\s*$/d' /etc/firewall.user
-echo "" >> /etc/firewall.user
+echo "" >>/etc/firewall.user
 
 #####################防止LAN与WAN网段重合#########################
-
-. /lib/functions/network.sh
 
 lan_ip=$(uci -q get network.lan.ipaddr)
 
@@ -62,36 +66,38 @@ lan_ip=$(uci -q get network.lan.ipaddr)
 	/etc/init.d/network restart
 
 	for i in $(seq 1 10); do
-		sleep 2
 		wan_up=$(ifstatus wan | jsonfilter -e '@["up"]')
 		wan_ip=$(ifstatus wan | jsonfilter -e '@["ipv4-address"][0].address')
 		lan_up=$(ifstatus lan | jsonfilter -e '@["up"]')
 		[ "$wan_up" = "true" ] && [ "$lan_up" = "true" ] && [ -n "$wan_ip" ] && break
+		sleep 2
 	done
 
 	[ "$wan_up" = "true" ] && [ "$lan_up" = "true" ] && [ -n "$wan_ip" ] && {
-		wan_ip1=$(echo $wan_ip | cut -d '.' -f1)
-		wan_ip2=$(echo $wan_ip | cut -d '.' -f2)
-		wan_ip3=$(echo $wan_ip | cut -d '.' -f3)
+		wan_ip1=$(echo "$wan_ip" | cut -d '.' -f1)
+		wan_ip2=$(echo "$wan_ip" | cut -d '.' -f2)
+		wan_ip3=$(echo "$wan_ip" | cut -d '.' -f3)
 
-		lan_ip1=$(echo $lan_ip | cut -d '.' -f1)
-		lan_ip2=$(echo $lan_ip | cut -d '.' -f2)
-		lan_ip3=$(echo $lan_ip | cut -d '.' -f3)
-		lan_ip4=$(echo $lan_ip | cut -d '.' -f4)
+		lan_ip1=$(echo "$lan_ip" | cut -d '.' -f1)
+		lan_ip2=$(echo "$lan_ip" | cut -d '.' -f2)
+		lan_ip3=$(echo "$lan_ip" | cut -d '.' -f3)
+		lan_ip4=$(echo "$lan_ip" | cut -d '.' -f4)
 
-		[ $wan_ip1 -eq $lan_ip1 ] && [ $wan_ip2 -eq $lan_ip2 ] && [ $wan_ip3 -eq $lan_ip3 ] && {
-			lan_ip3=$(expr $lan_ip3 + 1)
-			lan_ip3=$(expr $lan_ip3 % 255)
+		[ "$wan_ip1" -eq "$lan_ip1" ] &&
+			[ "$wan_ip2" -eq "$lan_ip2" ] &&
+			[ "$wan_ip3" -eq "$lan_ip3" ] && {
+			lan_ip3=$(((lan_ip3 + 1) % 255))
 			lan_ip=$lan_ip1.$lan_ip2.$lan_ip3.$lan_ip4
-			uci set network.lan.ipaddr=$lan_ip
-			uci commit network.lan.ipaddr
-			# /etc/init.d/network restart
-		}		
+			uci -q batch <<-EOF >/dev/null
+				set network.lan.ipaddr=$lan_ip
+				commit network.lan.ipaddr
+			EOF
+		}
 	}
 }
 #####################防止LAN与WAN网段重合#########################
 
-ula_prefix=2d$(dd if=/dev/urandom bs=1 count=1 2>/dev/null |hexdump -e '1/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null |hexdump -e '2/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null |hexdump -e '2/1 "%02x"')::/48
+ula_prefix=2d$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | hexdump -e '1/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')::/48
 
 uci -q batch <<-EOF >/dev/null
 	set dhcp.lan.ra='server'
