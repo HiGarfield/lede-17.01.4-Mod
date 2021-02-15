@@ -20,16 +20,10 @@ define Package/$(PKG_NAME)/description
 Forwarding queries to customized domains (and their subdomains) to specified servers over a specified protocol (UDP or TCP). non-standard ports are supported.
 endef
 
-
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-	$(CP) ./src/* $(PKG_BUILD_DIR)/
-endef
-
 CONFIGURE_ARGS += --enable-downloader=no
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS +=  -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/sbin
