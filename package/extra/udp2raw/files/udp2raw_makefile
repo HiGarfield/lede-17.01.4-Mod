@@ -7,7 +7,7 @@ EXTRA_FLAGS:= -Os -ffunction-sections -fdata-sections -Wl,--gc-sections,--as-nee
 
 NAME:=udp2raw
 
-COMMON:=main.cpp lib/md5.cpp lib/pbkdf2-sha1.cpp lib/pbkdf2-sha256.cpp encrypt.cpp log.cpp network.cpp common.cpp  connection.cpp misc.cpp fd_manager.cpp client.cpp server.cpp my_ev.cpp 
+COMMON:=main.cpp lib/md5.cpp lib/pbkdf2-sha1.cpp lib/pbkdf2-sha256.cpp encrypt.cpp log.cpp network.cpp common.cpp connection.cpp misc.cpp fd_manager.cpp client.cpp server.cpp my_ev.cpp
 LIBS:= -lrt -lpthread -isystem libev
 SOURCES:= $(COMMON) lib/aes_faster_c/aes.cpp lib/aes_faster_c/wrapper.cpp
 SOURCES_AES_ACC= $(COMMON) $(wildcard lib/aes_acc/aes*.c) lib/aes_acc/asm/$@.S
@@ -25,5 +25,6 @@ cross:git_version
 git_version:
 	echo "const char *gitversion = \"$(PKG_VERSION)\";" > git_version.h
 
+.PHONY:clean
 clean:	
-	rm -f $(NAME)
+	-rm -f $(NAME)
