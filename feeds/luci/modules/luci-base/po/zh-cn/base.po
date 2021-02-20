@@ -150,6 +150,7 @@ msgid ""
 "<br/>Note: you need to manually restart the cron service if the crontab file "
 "was empty before editing."
 msgstr ""
+"<br/>注意：如果 crontab 文件在编辑前为空，则需要手动重新启动 cron 服务。"
 
 msgid "A43C + J43 + A43"
 msgstr "A43C + J43 + A43"
@@ -1443,7 +1444,7 @@ msgid "IPv6 routed prefix"
 msgstr "IPv6 路由前缀"
 
 msgid "IPv6 suffix"
-msgstr ""
+msgstr "IPv6 后缀"
 
 msgid "IPv6-Address"
 msgstr "IPv6-地址"
@@ -1548,7 +1549,7 @@ msgid "Interface"
 msgstr "接口"
 
 msgid "Interface %q device auto-migrated from %q to %q."
-msgstr ""
+msgstr "接口设备 %q 从 %q 自动迁移到了 %q。"
 
 msgid "Interface Configuration"
 msgstr "接口配置"
@@ -2207,6 +2208,9 @@ msgid ""
 "server, use the suffix (like '::1') to form the IPv6 address ('a:b:c:d::1') "
 "for the interface."
 msgstr ""
+"可选，允许的值：'eui64'、'random' 和其他固定值（例如：'::1' 或 '::1:2'）。当"
+"从授权服务器获取到 IPv6 前缀（如 'a:b:c:d::'），使用后缀（如 '::1'）合成 "
+"IPv6 地址（'a:b:c:d::1'）分配给此接口。"
 
 msgid "Optional. Create routes for Allowed IPs for this peer."
 msgstr "可选，为此 Peer 创建允许 IP 的路由。"
@@ -2355,7 +2359,7 @@ msgid "Password successfully changed!"
 msgstr "密码修改成功！"
 
 msgid "Password2"
-msgstr ""
+msgstr "密码 2"
 
 msgid "Path to CA-Certificate"
 msgstr "CA 证书路径"
@@ -3665,6 +3669,9 @@ msgid ""
 "workaround might cause interoperability issues and reduced robustness of key "
 "negotiation especially in environments with heavy traffic load."
 msgstr ""
+"通过禁用用于安装密钥的 EAPOL-Key 帧的重新传输，来增加客户端密钥重安装攻击的复"
+"杂度。此解决方法可能会导致互操作性问题，并降低密钥协商的可靠性，特别是在流量"
+"负载较重的环境中。"
 
 msgid "Write received DNS requests to syslog"
 msgstr "将收到的 DNS 请求写入系统日志"
@@ -3851,8 +3858,12 @@ msgstr "« 后退"
 msgid "Force 40MHz mode"
 msgstr "强制40MHz频宽模式"
 
-msgid "Always use 40MHz channels even if the secondary channel overlaps. Using this option does not comply with IEEE 802.11n-2009!"
-msgstr "强制启用40MHz频宽并忽略辅助信道重叠。此选项可能不兼容某些无线硬件导致无法启用!"
+msgid ""
+"Always use 40MHz channels even if the secondary channel overlaps. Using this "
+"option does not comply with IEEE 802.11n-2009!"
+msgstr ""
+"强制启用40MHz频宽并忽略辅助信道重叠。此选项可能不兼容某些无线硬件导致无法启"
+"用!"
 
 msgid "Disassociate On Low Acknowledgement"
 msgstr "弱信号剔除"
@@ -3875,25 +3886,201 @@ msgstr "投递传输指示信息的间隔"
 msgid "Enable key reinstallation (KRACK) countermeasures"
 msgstr "启用密钥重新安装（KRACK）对策"
 
-msgid ""
-"Complicates key reinstallation attacks on the client side by disabling "
-"retransmission of EAPOL-Key frames that are used to install keys. This "
-"workaround might cause interoperability issues and reduced robustness of key "
-"negotiation especially in environments with heavy traffic load."
-msgstr ""
-"通过禁用用于安装密钥的 EAPOL-Key 帧的重新传输，来增加客户端密钥重安装攻击的复"
-"杂度。此解决方法可能会导致互操作性问题，并降低密钥协商的可靠性，特别是在流量"
-"负载较重的环境中。"
-
 msgid "Isolate Clients"
 msgstr "隔离客户端"
 
 msgid "Obtain IPv6-Address"
 msgstr "获取 IPv6 地址"
 
-msgid "Enable IPv6 negotiation on the PPP link"
-msgstr "在 PPP 链路上启用 IPv6 协商"
+msgid "Disable IPv6 DNS forwards"
+msgstr "禁止解析 IPv6 DNS 记录"
 
+msgid "Filter IPv6(AAAA) DNS query name resolve"
+msgstr "过滤掉 IPv6(AAAA) ，只返回 IPv4 DNS 域名记录"
+
+msgid "%.1f dB"
+msgstr ""
+
+msgid "<abbr title=\"The DHCP Unique Identifier\">DUID</abbr>"
+msgstr ""
+
+msgid "Online Users"
+msgstr "在线用户数"
+
+msgid "Filter IPv6(AAAA) DNS Query Name Resolve"
+msgstr "过滤掉 IPv6(AAAA) ，只返回 IPv4 DNS 域名记录"
+
+msgid "Minimum TTL to send to clients"
+msgstr "客户端缓存的最小 DNS TTL"
+
+msgid "Modify DNS entries minimum TTL (max is 86400, 0 is no modify)"
+msgstr "修改发送到客户端的域名记录的 TTL 时间 (最大 86400, 0 表示不修改)"
+
+msgid "Allow legacy 802.11b rates"
+msgstr "允许传统的 802.11b 速率"
+
+msgid "Check filesystems before mount"
+msgstr "在挂载前检查文件系统"
+
+msgid ""
+"Custom files (certificates, scripts) may remain on the system. To prevent "
+"this, perform a factory-reset first."
+msgstr ""
+"自定义文件（证书、脚本）会保留在系统上。若无需保留，请先执行恢复出厂设置。"
+
+msgid "Downstream SNR offset"
+msgstr "下游 SNR 偏移"
+
+msgid ""
+"Enable <abbr title=\"Internet Group Management Protocol\">IGMP</abbr> "
+"snooping"
+msgstr ""
+"启用 <abbr title=\"Internet Group Management Protocol\">IGMP</abbr> 嗅探"
+
+msgid "Enables IGMP snooping on this bridge"
+msgstr ""
+
+msgid "FT over DS"
+msgstr ""
+
+msgid "FT over the Air"
+msgstr ""
+
+msgid "FT protocol"
+msgstr "FT 协议"
+
+msgid "Forward mesh peer traffic"
+msgstr "转发 mesh 节点数据包"
+
+msgid "Generate PMK locally"
+msgstr "本地生成 PMK"
+
+msgid "If checked, 1DES is enabled"
+msgstr "选中以启用 1DES"
+
+msgid "Mesh Id"
+msgstr "Mesh ID"
+
+msgid "NCM"
+msgstr "NCM"
+
+msgid "Number of cached DNS entries (max is 10000, 0 is no caching)"
+msgstr "缓存的 DNS 条目数量（最大 10000，0 表示不缓存）"
+
+msgid "Size of DNS query cache"
+msgstr "DNS 查询缓存的大小"
+
+msgid "Switch Port Mask"
+msgstr "交换机端口掩码"
+
+msgid ""
+"This is the local endpoint address assigned by the tunnel broker, it usually "
+"ends with <code>...:2/64</code>"
+msgstr "隧道代理分配的本地终端地址，通常以 <code>...:2/64</code> 结尾"
+
+msgid "Use as Docker data (/opt)"
+msgstr "作为 Docker 数据分区使用 (/opt)"
+
+msgid ""
+"Use the <em>Add</em> Button to add a new lease entry. The <em>MAC-Address</"
+"em> identifies the host, the <em>IPv4-Address</em> specifies the fixed "
+"address to use, and the <em>Hostname</em> is assigned as a symbolic name to "
+"the requesting host. The optional <em>Lease time</em> can be used to set non-"
+"standard host-specific lease time, e.g. 12h, 3d or infinite."
+msgstr ""
+"使用“添加”按钮来增加新的租约条目。“IPv4 地址”和“主机名”字段的值将被固定分配"
+"给“MAC 地址”字段标识的主机，“租期”是一个可选字段，可为每个主机单独设定 DHCP "
+"租期的时长，例如：12h、3d、infinite，分别表示 12 小时、3 天、永久。"
+
+msgid ""
+"When using a PSK, the PMK can be generated locally without inter AP "
+"communications"
+msgstr "当使用 PSK 时，PMK 可以在没有 AP 间通信的情况下在本地生成"
+
+msgid "random"
+msgstr ""
+
+msgid "Depends on factory set"
+msgstr "依赖于出厂设置值"
+
+msgid "Choose mtdblock"
+msgstr "选择MTD分区"
+
+msgid "Download mtdblock"
+msgstr "下载MTD分区"
+
+msgid "Save mtdblock"
+msgstr "备份MTD"
+
+msgid "Save mtdblock contents"
+msgstr "备份MTD内容"
+
+msgid ""
+"Click \"Save mtdblock\" to download specified mtdblock file. (NOTE: THIS "
+"FEATURE IS FOR PROFESSIONALS! )"
+msgstr "点击\"备份MTD\"可以下载指定分区数据.(注意！仅提供给专业人士使用！)"
+
+msgid "Use all servers"
+msgstr "使用 all-servers 并发查询"
+
+msgid ""
+"Setting this flag forces dnsmasq to send all queries to all available "
+"servers. The reply from the server which answers first will be returned to "
+"the original requester."
+msgstr "对所有 DNS 服务器发起查询，选择回应最快的一条作为查询结果返回"
+
+msgid "Custom domain"
+msgstr "自定义挟持域名"
+
+msgid "Define a custom domain name and the corresponding PTR record"
+msgstr "自定义域名对应的IP地址（需要客户端DNS指向本路由）"
+
+msgid "Domain name"
+msgstr "域名（不带 HTTP(S)://）"
+
+msgid "Comments"
+msgstr "备注"
+
+msgid ""
+"Enables The 802.11k standard provides information to discover the best "
+"available access point"
+msgstr "启用 802.11k 自动寻找发现最佳可用接入点的信息"
+
+msgid "Enable neighbor report via radio measurements"
+msgstr "启用无线电测量邻居报告"
+
+msgid "Enable beacon report via radio measurements"
+msgstr "启用无线电测量信标报告"
+
+msgid ""
+"Enables 802.11v allows client devices to exchange information about the "
+"network topology,tating overall improvement of the wireless network."
+msgstr ""
+"启用 802.11v 将允许客户端设备交换有关网络拓扑的信息，从而全面改善无线网络漫游"
+
+msgid "extended sleep mode for stations"
+msgstr "扩展无线休眠节能模式"
+
+msgid "BSS Transition Management"
+msgstr "BSS 传输管理"
+
+msgid "UTC time at which the TSF timer is 0"
+msgstr "TSF计时器为0的UTC时间"
+
+msgid "Time advertisement"
+msgstr "广播同步时间"
+
+msgid "time zone"
+msgstr "时区"
+
+msgid "Local time zone as specified in 8.3 of IEEE Std 1003.1-2004"
+msgstr "本地时区采用 IEEE Std 1003.1-2004 的 8.3 格式（例如 UTC8）"
+
+msgid "Enable 256-QAM"
+msgstr "启用 256-QAM"
+
+msgid "802.11n 2.4Ghz Only"
+msgstr "只适合 802.11n 2.4Ghz"
 
 #~ msgid "Firewall Mark"
 #~ msgstr "防火墙标识"
@@ -3959,9 +4146,6 @@ msgstr "在 PPP 链路上启用 IPv6 协商"
 #~ msgid "Join Network: Settings"
 #~ msgstr "加入网络：设置"
 
-#~ msgid "CPU"
-#~ msgstr "CPU"
-
 #~ msgid "Port %d"
 #~ msgstr "端口 %d"
 
@@ -3970,9 +4154,3 @@ msgstr "在 PPP 链路上启用 IPv6 协商"
 
 #~ msgid "VLAN Interface"
 #~ msgstr "VLAN接口"
-
-msgid "Disable IPv6 DNS forwards"
-msgstr "禁止解析 IPv6 DNS 记录"
-
-msgid "Filter IPv6(AAAA) DNS query name resolve"
-msgstr "过滤掉 IPv6(AAAA) ，只返回 IPv4 DNS 域名记录"
