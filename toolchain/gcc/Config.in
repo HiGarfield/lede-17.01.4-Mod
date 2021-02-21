@@ -12,16 +12,8 @@ choice
 		bool "gcc 7.1.x with support of ARC cores"
 		depends on arc
 
-	config GCC_USE_VERSION_5
-		bool "gcc 5.x"
-		depends on !arc
-
 	config GCC_USE_VERSION_7
 		bool "gcc 7.x"
-		depends on !arc
-
-	config GCC_USE_VERSION_8
-		bool "gcc 8.x"
 		depends on !arc
 endchoice
 

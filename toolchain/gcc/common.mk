@@ -28,16 +28,8 @@ GCC_DIR:=$(PKG_NAME)-$(PKG_VERSION)
 PKG_SOURCE_URL:=@GNU/gcc/gcc-$(PKG_VERSION)
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 
-ifeq ($(PKG_VERSION),5.5.0)
-  PKG_HASH:=530cea139d82fe542b358961130c69cfde8b3d14556370b65823d2f91f0ced87
-endif
-
 ifeq ($(PKG_VERSION),7.5.0)
   PKG_HASH:=b81946e7f01f90528a1f7352ab08cc602b9ccc05d4e44da4bd501c5a189ee661
-endif
-
-ifeq ($(PKG_VERSION),8.2.0)
-  PKG_HASH:=196c3c04ba2613f893283977e6011b2345d1cd1af9abeac58e916b1aab3e0080
 endif
 
 ifneq ($(CONFIG_GCC_VERSION_7_1_ARC),)
@@ -126,10 +118,6 @@ GCC_CONFIGURE:= \
 		--disable-decimal-float
 ifneq ($(CONFIG_mips)$(CONFIG_mipsel),)
   GCC_CONFIGURE += --with-mips-plt
-endif
-
-ifndef GCC_VERSION_4_8
-  GCC_CONFIGURE += --with-diagnostics-color=auto-if-env
 endif
 
 ifneq ($(CONFIG_GCC_DEFAULT_PIE),)
