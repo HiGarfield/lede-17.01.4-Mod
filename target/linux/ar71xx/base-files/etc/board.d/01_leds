@@ -610,7 +610,7 @@ tl-wdr3320-v2)
 tl-wdr3500|\
 hq55)
 	ucidef_set_led_usbdev "usb" "USB" "tp-link:green:usb" "1-1"
-	ucidef_set_led_wlan "wlan2g" "WLAN2G" "tp-link:green:wlan2g" "phy0tpt"
+	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
 	;;
 csac)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "csac:green:wlan2g" "phy1tpt"

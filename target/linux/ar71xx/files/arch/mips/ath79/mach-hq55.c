@@ -30,23 +30,19 @@
 #include "machtypes.h"
 
 #define HQ55_GPIO_LED_USB		11
-#define HQ55_GPIO_LED_WLAN2G		13
-#define HQ55_GPIO_LED_SYSTEM		14
-#define HQ55_GPIO_LED_QSS		15
+#define HQ55_GPIO_LED_WLAN		13
 #define HQ55_GPIO_LED_WAN		18
 #define HQ55_GPIO_LED_LAN1		22
 #define HQ55_GPIO_LED_LAN2		21
 #define HQ55_GPIO_LED_LAN3		20
 #define HQ55_GPIO_LED_LAN4		19
 
-#define HQ55_GPIO_BTN_WPS		16
+#define HQ55_GPIO_BTN_RESET		16
 
 #define HQ55_KEYS_POLL_INTERVAL	20	/* msecs */
 #define HQ55_KEYS_DEBOUNCE_INTERVAL	(3 * HQ55_KEYS_POLL_INTERVAL)
 
-#define HQ55_MAC0_OFFSET		0
 #define HQ55_WMAC_CALDATA_OFFSET	0x1000
-
 
 static const char *hq55_part_probes[] = {
 	"tp-link",
@@ -59,34 +55,24 @@ static struct flash_platform_data hq55_flash_data = {
 
 static struct gpio_led hq55_leds_gpio[] __initdata = {
 	{
-		.name		= "tp-link:green:qss",
-		.gpio		= HQ55_GPIO_LED_QSS,
-		.active_low	= 1,
-	},
-	{
-		.name		= "tp-link:green:system",
-		.gpio		= HQ55_GPIO_LED_SYSTEM,
-		.active_low	= 1,
-	},
-	{
 		.name		= "tp-link:green:usb",
 		.gpio		= HQ55_GPIO_LED_USB,
 		.active_low	= 1,
 	},
 	{
-		.name		= "tp-link:green:wlan2g",
-		.gpio		= HQ55_GPIO_LED_WLAN2G,
+		.name		= "tp-link:green:wlan",
+		.gpio		= HQ55_GPIO_LED_WLAN,
 		.active_low	= 1,
 	},
 };
 
 static struct gpio_keys_button hq55_gpio_keys[] __initdata = {
 	{
-		.desc		= "QSS button",
+		.desc		= "Reset button",
 		.type		= EV_KEY,
-		.code		= KEY_WPS_BUTTON,
+		.code		= KEY_RESTART,
 		.debounce_interval = HQ55_KEYS_DEBOUNCE_INTERVAL,
-		.gpio		= HQ55_GPIO_BTN_WPS,
+		.gpio		= HQ55_GPIO_BTN_RESET,
 		.active_low	= 1,
 	},
 };

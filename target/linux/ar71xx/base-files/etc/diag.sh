@@ -334,6 +334,9 @@ get_status_led() {
 	tew-823dru)
 		status_led="trendnet:green:power"
 		;;
+	hq55)
+		status_led="tp-link:green:wlan"
+		;;
 	tl-mr3020)
 		status_led="tp-link:green:wps"
 		;;
@@ -361,7 +364,6 @@ get_status_led() {
 	tl-wa901nd-v4|\
 	tl-wdr3320-v2|\
 	tl-wdr3500|\
-	hq55|\
 	tl-wr1041n-v2|\
 	tl-wr1043nd|\
 	tl-wr1043nd-v2|\
