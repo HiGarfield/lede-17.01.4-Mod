@@ -2,59 +2,55 @@ name: Build LEDE tl-wr1041n-v2
 
 on:
   push:
-    branches: [ master ]
-  pull_request:
-    branches: [ master ]
+    branches: [master]
 
 env:
   TARGET_DEVICE: tl-wr1041n-v2
-  TZ: Asia/Shanghai
 
 jobs:
   build:
     runs-on: ubuntu-18.04
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@master
+      - name: Checkout
+        uses: actions/checkout@master
 
-    - name: Initialization environment
-      env:
-        DEBIAN_FRONTEND: noninteractive
-      run: |
-        sudo swapoff -a
-        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
-        sudo -E apt-get -qq update
-        sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
-        sudo -E apt-get -qq autoremove --purge
-        sudo -E apt-get -qq clean
-        sudo timedatectl set-timezone "$TZ"
+      - name: Initialization environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo swapoff -a
+          sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
+          sudo -E apt-get -qq update
+          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
+          sudo -E apt-get -qq autoremove --purge
+          sudo -E apt-get -qq clean
 
-    - name: Load custom configuration
-      run: |
-        ./clean_all.sh
-        cp -f "conf/.config.$TARGET_DEVICE" .config        
-        make defconfig V=s
+      - name: Load custom configuration
+        run: |
+          ./clean_all.sh
+          cp -f "conf/.config.$TARGET_DEVICE" .config        
+          make defconfig V=s
 
-    - name: Download package
-      id: package
-      run: |
-        make download -j8 || make download -j1 V=s
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
+      - name: Download package
+        id: package
+        run: |
+          make download -j8 || make download -j1 V=s
+          find dl -size -1024c -exec ls -l {} \;
+          find dl -size -1024c -exec rm -f {} \;
 
-    - name: Compile firmware
-      id: compile
-      run: |
-        echo -e "$(($(nproc) + 1)) thread compile"
-        make -j$(($(nproc) + 1)) || make -j1 V=s
-        mkdir out
-        cp -u -f bin/targets/*/*/lede-*-squashfs-sysupgrade.bin out/
-        echo "::set-output name=status::success"
+      - name: Compile firmware
+        id: compile
+        run: |
+          echo -e "$(($(nproc) + 1)) thread compile"
+          make -j$(($(nproc) + 1)) || make -j1 V=s
+          mkdir out
+          cp -u -f bin/targets/*/*/lede-*-squashfs-sysupgrade.bin out/
+          echo "::set-output name=status::success"
 
-    - name: Upload firmware directory
-      uses: actions/upload-artifact@master
-      if: steps.compile.outputs.status == 'success'
-      with:
-        name: lede-tl-wr1041n-v2
-        path: out
+      - name: Upload firmware directory
+        uses: actions/upload-artifact@master
+        if: steps.compile.outputs.status == 'success'
+        with:
+          name: lede-tl-wr1041n-v2
+          path: out
