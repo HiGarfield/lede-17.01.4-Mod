@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 cksumfile="out/targets.sha256sum"
 echo "sha256sum:" >"$cksumfile"
 
