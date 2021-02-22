@@ -1,4 +1,4 @@
-#/bin/bash
+#!/bin/bash
 
 {
 	./clean_all.sh &&
