@@ -23,7 +23,7 @@ luci-app-ddns ddns-scripts_aliyun \
 luci-app-upnp luci-app-wizard \
 luci-app-ssr-pro luci-app-kcptun luci-app-udp2raw \
 luci-app-sfe luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
-wpad dnsmasq-full luci-app-smartdns \
+-wpad-mini -wpad wpad-mesh-openssl dnsmasq-full luci-app-smartdns \
 iptables-mod-fullconenat \
 luci-app-autoreboot luci-app-adbyby-plus \
 luci-app-arpbind luci-app-eqos \
@@ -46,7 +46,7 @@ autosamba luci-app-hd-idle luci-app-aria2 ariang \
 luci-app-transmission
 
 # For router targets
-DEFAULT_PACKAGES.router:=wpad dnsmasq-full odhcpd-ipv6only iptables \
+DEFAULT_PACKAGES.router:=-wpad-mini -wpad wpad-mesh-openssl dnsmasq-full odhcpd-ipv6only iptables \
 ip6tables kmod-ipt-nat6 ppp ppp-mod-pppoe xl2tpd firewall \
 odhcp6c 6in4 6to4 6rd
 DEFAULT_PACKAGES.bootloader:=
