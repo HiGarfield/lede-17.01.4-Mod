@@ -1,0 +1,14 @@
+--- a/package/openwrt/files/etc/init.d/smartdns
++++ b/package/openwrt/files/etc/init.d/smartdns
+@@ -371,6 +371,11 @@ load_service()
+ 	get_tz
+ 	[ -z "$SET_TZ" ] || procd_set_param env TZ="$SET_TZ"
+ 
++	procd_set_param limits nofile="65535 65535"
++	[ -e /proc/sys/kernel/core_pattern ] && {
++		procd_append_param limits core="unlimited"
++	}
++
+ 	procd_set_param command /usr/sbin/smartdns -f -c $SMARTDNS_CONF $args
+ 	[ "$RESPAWN" = "1" ] &&	procd_set_param respawn ${respawn_threshold:-3600} ${respawn_timeout:-5} ${respawn_retry:-5}
+ 	procd_set_param file "$SMARTDNS_CONF"
