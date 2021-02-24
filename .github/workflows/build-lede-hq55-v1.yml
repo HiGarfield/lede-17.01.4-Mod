@@ -6,6 +6,7 @@ on:
 
 env:
   TARGET_DEVICE: hq55-v1
+  TOTAL_KEEP_NUMBER: 20
 
 jobs:
   build:
@@ -22,9 +23,14 @@ jobs:
           sudo swapoff -a
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
           sudo -E apt-get -qq update
-          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler
+          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler zip
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
+
+          LEDE_VERSION="$(cat version)"
+          echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
+          LEDE_OUTPUT_NAME="lede-${LEDE_VERSION}-${TARGET_DEVICE}"
+          echo "LEDE_OUTPUT_NAME=${LEDE_OUTPUT_NAME}" >>$GITHUB_ENV
 
       - name: Load custom configuration
         run: |
@@ -44,13 +50,53 @@ jobs:
         run: |
           echo -e "$(($(nproc) + 1)) thread compile"
           make -j$(($(nproc) + 1)) || make -j1 V=s
-          mkdir out
-          cp -u -f bin/targets/*/*/lede-*-squashfs-sysupgrade.bin out/
+          mkdir -p out
+          rm -rf out/*
+          cp -u -f bin/targets/*/*/${LEDE_OUTPUT_NAME}-*-sysupgrade.bin out/
+          zip -j "${LEDE_OUTPUT_NAME}.zip" out/*.bin
           echo "::set-output name=status::success"
 
       - name: Upload firmware directory
         uses: actions/upload-artifact@master
         if: steps.compile.outputs.status == 'success'
         with:
-          name: lede-hq55-v1
+          name: ${{ env.LEDE_OUTPUT_NAME }}
           path: out
+
+      - name: Create release
+        id: create_release
+        uses: actions/create-release@v1
+        if: steps.compile.outputs.status == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ env.LEDE_OUTPUT_NAME }}
+          release_name: ${{ env.LEDE_OUTPUT_NAME }}
+          draft: false
+          prerelease: false
+
+      - name: Upload release asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        if: steps.compile.outputs.status == 'success'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ env.LEDE_OUTPUT_NAME }}.zip
+          asset_name: ${{ env.LEDE_OUTPUT_NAME }}.zip
+          asset_content_type: application/zip
+
+      - name: Delete workflow runs
+        uses: HiGarfield/delete-workflow-runs@main
+        with:
+          retain_days: 3
+          keep_minimum_runs: ${{ env.TOTAL_KEEP_NUMBER }}
+
+      - name: Remove old releases
+        uses: HiGarfield/delete-older-releases@v0.1.0
+        with:
+          keep_latest: ${{ env.TOTAL_KEEP_NUMBER }}
+          delete_tags: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
