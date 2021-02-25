@@ -128,6 +128,11 @@ start_instance() {
 	fi
 
 	procd_open_instance
+	procd_set_param limits nofile="65535 65535"
+	[ -e /proc/sys/kernel/core_pattern ] && {
+		procd_append_param limits core="unlimited"
+	}
+
 	procd_set_param command /usr/bin/udp2raw
 	procd_append_param command --conf-file "$config_file"
 	procd_set_param respawn
