@@ -26,6 +26,7 @@
 	socket options = TCP_NODELAY IPTOS_LOWDELAY
 	use sendfile = yes
 	writeable = yes
+	large readwrite = yes
 	bind interfaces only = yes
 	create mode = 0644
 	force create mode = 0644
