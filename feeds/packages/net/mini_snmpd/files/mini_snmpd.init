@@ -50,7 +50,7 @@ append_disk() {
 	local disk="$1" disk_count
 	[ -z $disk_count ] && disk_count=0
 	if grep -qF "$disk" /proc/mounts ; then
-		# check the fileystem is mountpoint, and directory search permissions available for statfs()
+		# check the filesystem is mountpoint, and directory search permissions available for statfs()
 		# presence as a directory -d test done is already done by uci_validate_section()
 		[ -x "$disk" ] || {
 			_err "$cfg: mountpoint $disk for snmp monitoring EACCES error. Check permissions, ignoring"
