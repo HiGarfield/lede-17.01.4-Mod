@@ -118,8 +118,8 @@ Description:     Translation for luci-app-meshwizard - English
 
 @@
 
-Package: luci-i18n-meshwizard-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-meshwizard-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-meshwizard
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-meshwizard - pl translation
+Title: luci-app-meshwizard - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-meshwizard - Polski (Polish)
+Description:     Translation for luci-app-meshwizard - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-meshwizard - Tiếng Việt (Vietnames
 
 @@
 
-Package: luci-i18n-meshwizard-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-meshwizard-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-meshwizard
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-meshwizard - he translation
+Title: luci-app-meshwizard - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-meshwizard - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-meshwizard - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-meshwizard - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-meshwizard-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-meshwizard
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-meshwizard - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-meshwizard - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-meshwizard-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-meshwizard - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-meshwizard-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-meshwizard
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-meshwizard - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-meshwizard - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-meshwizard - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-meshwizard-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-meshwizard-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-meshwizard
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-meshwizard - de translation
+Title: luci-app-meshwizard - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-meshwizard - Deutsch (German)
+Description:     Translation for luci-app-meshwizard - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-meshwizard - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-meshwizard-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-meshwizard-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-meshwizard
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-meshwizard - el translation
+Title: luci-app-meshwizard - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-meshwizard - Ελληνικά (Greek)
+Description:     Translation for luci-app-meshwizard - Português do Brasil (Brazialian Portuguese)
 
 @@
 

@@ -1,7 +1,7 @@
 Source-Makefile: feeds/routing/batman-adv/Makefile
 Package: kmod-batman-adv
 Submenu: Network Support
-Version: <LINUX_VERSION>+2016.5-4
+Version: <LINUX_VERSION>+2016.5-16
 Depends: +KMOD_BATMAN_ADV_BLA:kmod-lib-crc16 +kmod-crypto-crc32c +kmod-lib-crc32c +kmod-cfg80211
 Conflicts: 
 Menu-Depends: 

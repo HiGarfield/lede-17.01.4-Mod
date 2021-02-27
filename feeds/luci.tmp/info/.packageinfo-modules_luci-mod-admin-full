@@ -2,7 +2,7 @@ Source-Makefile: feeds/luci/modules/luci-mod-admin-full/Makefile
 Package: luci-mod-admin-full
 Submenu: 2. Modules
 Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci-base +lede-info
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +luci-base +lede-info +force-unmount
 Conflicts: 
 Menu-Depends: 
 Provides: 

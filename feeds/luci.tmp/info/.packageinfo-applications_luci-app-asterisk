@@ -118,8 +118,8 @@ Description:     Translation for luci-app-asterisk - English
 
 @@
 
-Package: luci-i18n-asterisk-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-asterisk-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-asterisk
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-asterisk - pl translation
+Title: luci-app-asterisk - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-asterisk - Polski (Polish)
+Description:     Translation for luci-app-asterisk - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-asterisk - Tiếng Việt (Vietnamese)
 
 @@
 
-Package: luci-i18n-asterisk-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-asterisk-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-asterisk
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-asterisk - he translation
+Title: luci-app-asterisk - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-asterisk - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-asterisk - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-asterisk - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-asterisk-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-asterisk
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-asterisk - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-asterisk - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-asterisk-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-asterisk - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-asterisk-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-asterisk
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-asterisk - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-asterisk - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-asterisk - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-asterisk-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-asterisk-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-asterisk
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-asterisk - de translation
+Title: luci-app-asterisk - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-asterisk - Deutsch (German)
+Description:     Translation for luci-app-asterisk - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-asterisk - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-asterisk-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-asterisk-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-asterisk
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-asterisk - el translation
+Title: luci-app-asterisk - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-asterisk - Ελληνικά (Greek)
+Description:     Translation for luci-app-asterisk - Português do Brasil (Brazialian Portuguese)
 
 @@
 

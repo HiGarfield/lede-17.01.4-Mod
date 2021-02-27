@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/libs/libxml2/Makefile
 Package: libxml2
-Version: 2.9.4-1
+Version: 2.9.4-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib
 Conflicts: 
 Menu-Depends: 

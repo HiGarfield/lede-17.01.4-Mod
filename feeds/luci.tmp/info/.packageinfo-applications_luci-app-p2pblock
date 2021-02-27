@@ -118,8 +118,8 @@ Description:     Translation for luci-app-p2pblock - English
 
 @@
 
-Package: luci-i18n-p2pblock-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-p2pblock-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-p2pblock
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-p2pblock - pl translation
+Title: luci-app-p2pblock - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-p2pblock - Polski (Polish)
+Description:     Translation for luci-app-p2pblock - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-p2pblock - Tiếng Việt (Vietnamese)
 
 @@
 
-Package: luci-i18n-p2pblock-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-p2pblock-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-p2pblock
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-p2pblock - he translation
+Title: luci-app-p2pblock - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-p2pblock - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-p2pblock - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-p2pblock - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-p2pblock-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-p2pblock
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-p2pblock - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-p2pblock - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-p2pblock-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-p2pblock - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-p2pblock-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-p2pblock
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-p2pblock - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-p2pblock - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-p2pblock - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-p2pblock-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-p2pblock-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-p2pblock
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-p2pblock - de translation
+Title: luci-app-p2pblock - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-p2pblock - Deutsch (German)
+Description:     Translation for luci-app-p2pblock - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-p2pblock - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-p2pblock-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-p2pblock-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-p2pblock
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-p2pblock - el translation
+Title: luci-app-p2pblock - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-p2pblock - Ελληνικά (Greek)
+Description:     Translation for luci-app-p2pblock - Português do Brasil (Brazialian Portuguese)
 
 @@
 

@@ -2907,29 +2907,6 @@ Jiri Slachta <jiri@slachta.eu>
 @@
 
 
-Source-Makefile: feeds/telephony/net/asterisk-11.x-chan-dongle/Makefile
-Package: asterisk11-chan-dongle
-Submenu: Telephony
-Version: 1.1r35-6
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +libiconv-full +kmod-usb-acm +kmod-usb-serial +kmod-usb-serial-option +libusb-1.0 +usb-modeswitch
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Section: net
-Category: Network
-Repository: base
-Title: Huawei UMTS 3G dongle support
-Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: asterisk11-chan-dongle-1.1r35.tar.gz
-License: GPL-2.0
-LicenseFiles: COPYRIGHT.txt LICENSE.txt
-Type: ipkg
-Description:  Asterisk channel driver for Huawei UMTS 3G dongle.
-https://code.google.com/p/asterisk-chan-dongle/
-Jiri Slachta <jiri@slachta.eu>
-@@
-
-
 Source-Makefile: feeds/telephony/net/asterisk-13.x/Makefile
 Package: asterisk13
 Menu: 1
@@ -5462,6 +5439,73 @@ LicenseFiles: COPYING LICENSE
 Type: ipkg
 Description: This package provides support for 'voicemail related modules' in Asterisk.
 http://www.asterisk.org/
+Jiri Slachta <jiri@slachta.eu>
+@@
+
+
+Source-Makefile: feeds/telephony/net/asterisk-13.x-chan-lantiq/Makefile
+Package: asterisk13-chan-lantiq
+Submenu: Telephony Lantiq
+Version: 20180215-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +asterisk13 +kmod-ltq-vmmc
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Title: Lantiq channel driver
+Maintainer: Jiri Slachta <jiri@slachta.eu>
+Source: asterisk13-chan-lantiq-20180215.tar.xz
+License: GPL-2.0
+Type: ipkg
+Description: An implementation of a Lantiq TAPI channel driver for Asterisk 13.
+https://github.com/kochstefan/asterisk_channel_lantiq
+Jiri Slachta <jiri@slachta.eu>
+@@
+
+
+Source-Makefile: feeds/telephony/net/asterisk-chan-dongle/Makefile
+Package: asterisk11-chan-dongle
+Submenu: Telephony
+Version: 1.1-20170913-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +USE_UCLIBC:libiconv-full +kmod-usb-acm +kmod-usb-serial +kmod-usb-serial-option +libusb-1.0 +usb-modeswitch asterisk11
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: asterisk11
+Section: net
+Category: Network
+Repository: base
+Title: Huawei UMTS 3G dongle support
+Maintainer: Jiri Slachta <jiri@slachta.eu>
+Source: asterisk-chan-dongle-1.1-20170913.tar.xz
+License: GPL-2.0
+LicenseFiles: COPYRIGHT.txt LICENSE.txt
+Type: ipkg
+Description:  Asterisk channel driver for Huawei UMTS 3G dongle.
+https://github.com/wdoekes/asterisk-chan-dongle
+Jiri Slachta <jiri@slachta.eu>
+@@
+
+Package: asterisk13-chan-dongle
+Submenu: Telephony
+Version: 1.1-20170913-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +USE_UCLIBC:libiconv-full +kmod-usb-acm +kmod-usb-serial +kmod-usb-serial-option +libusb-1.0 +usb-modeswitch asterisk13
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Variant: asterisk13
+Section: net
+Category: Network
+Repository: base
+Title: Huawei UMTS 3G dongle support
+Maintainer: Jiri Slachta <jiri@slachta.eu>
+Source: asterisk-chan-dongle-1.1-20170913.tar.xz
+License: GPL-2.0
+LicenseFiles: COPYRIGHT.txt LICENSE.txt
+Type: ipkg
+Description:  Asterisk channel driver for Huawei UMTS 3G dongle.
+https://github.com/wdoekes/asterisk-chan-dongle
 Jiri Slachta <jiri@slachta.eu>
 @@
 

@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/net/ariang/Makefile
 Package: ariang
 Submenu: Download Manager
-Version: 2019-10-08-d924dcc3670e471469930b6c9435f03427a72351-1
+Version: 1.1.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +uhttpd
 Conflicts: 
 Menu-Depends: 
@@ -11,18 +11,18 @@ Category: Network
 Repository: base
 Title: AriaNg webui for uhttpd webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-2019-10-08-d924dcc3670e471469930b6c9435f03427a72351.tar.xz
+Source: ariang-1.1.7.tar.gz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
 Description: 	AriaNg is a web frontend making aria2 easier to use. AriaNg is written in pure html & javascript, thus it does not need any compilers or runtime environment.
-https://github.com/mayswind/AriaNg
+https://ariang.mayswind.net
 Ansuel Smith <ansuelsmth@gmail.com>
 @@
 
 Package: ariang-nginx
 Submenu: Download Manager
-Version: 2019-10-08-d924dcc3670e471469930b6c9435f03427a72351-1
+Version: 1.1.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +nginx
 Conflicts: 
 Menu-Depends: 
@@ -32,12 +32,12 @@ Category: Network
 Repository: base
 Title: AriaNg webui for nginx webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-2019-10-08-d924dcc3670e471469930b6c9435f03427a72351.tar.xz
+Source: ariang-1.1.7.tar.gz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
 Description: 	AriaNg is a web frontend making aria2 easier to use. AriaNg is written in pure html & javascript, thus it does not need any compilers or runtime environment.
-https://github.com/mayswind/AriaNg
+https://ariang.mayswind.net
 Ansuel Smith <ansuelsmth@gmail.com>
 @@
 

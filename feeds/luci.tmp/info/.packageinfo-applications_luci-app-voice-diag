@@ -118,8 +118,8 @@ Description:     Translation for luci-app-voice-diag - English
 
 @@
 
-Package: luci-i18n-voice-diag-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-voice-diag-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-diag
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-diag - pl translation
+Title: luci-app-voice-diag - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-diag - Polski (Polish)
+Description:     Translation for luci-app-voice-diag - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-voice-diag - Tiếng Việt (Vietnames
 
 @@
 
-Package: luci-i18n-voice-diag-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-voice-diag-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-diag
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-diag - he translation
+Title: luci-app-voice-diag - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-diag - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-voice-diag - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-voice-diag - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-voice-diag-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-diag
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-voice-diag - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-voice-diag - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-voice-diag-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-voice-diag - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-voice-diag-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-diag
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-voice-diag - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-voice-diag - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-voice-diag - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-voice-diag-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-voice-diag-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-diag
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-diag - de translation
+Title: luci-app-voice-diag - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-diag - Deutsch (German)
+Description:     Translation for luci-app-voice-diag - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-voice-diag - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-voice-diag-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-voice-diag-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-diag
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-diag - el translation
+Title: luci-app-voice-diag - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-diag - Ελληνικά (Greek)
+Description:     Translation for luci-app-voice-diag - Português do Brasil (Brazialian Portuguese)
 
 @@
 

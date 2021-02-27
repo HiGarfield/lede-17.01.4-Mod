@@ -4,7 +4,7 @@ Version: 2.0.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libopenssl
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: libwebsockets
 Build-Variant: openssl
 Section: libs
 Category: Libraries
@@ -25,7 +25,7 @@ Version: 2.0.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libcyassl
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: libwebsockets
 Build-Variant: cyassl
 Section: libs
 Category: Libraries
@@ -46,7 +46,7 @@ Version: 2.0.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libopenssl +libuv
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: libwebsockets
 Build-Variant: full
 Section: libs
 Category: Libraries

@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/multimedia/minidlna/Makefile
 Package: minidlna
-Version: 1.1.5-2
+Version: 1.1.5-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +libexif +libjpeg +libsqlite3 +libffmpeg +libid3tag +libflac +libvorbis +libuuid +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 

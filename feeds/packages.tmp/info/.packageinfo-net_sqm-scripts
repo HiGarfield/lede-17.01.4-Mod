@@ -20,7 +20,7 @@ Toke Høiland-Jørgensen <toke@toke.dk>
 Package: luci-app-sqm
 Submenu: 3. Applications
 Version: 1.1.3-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +lua +luci-base +sqm-scripts
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lua luci-base +sqm-scripts
 Conflicts: 
 Menu-Depends: 
 Provides: 

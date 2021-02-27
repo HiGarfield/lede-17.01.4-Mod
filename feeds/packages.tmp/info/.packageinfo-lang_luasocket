@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/lang/luasocket/Makefile
 Package: luasocket
 Submenu: Lua
-Version: 3.0-rc1-20130909-3
+Version: 3.0-rc1-20130909-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +lua
 Conflicts: 
 Menu-Depends: 

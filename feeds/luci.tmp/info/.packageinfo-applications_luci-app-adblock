@@ -18,8 +18,8 @@ Description: LuCI support for Adblock
 
 @@
 
-Package: luci-i18n-adblock-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-adblock-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-adblock
 Conflicts: 
@@ -29,12 +29,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-adblock - pt-br translation
+Title: luci-app-adblock - ru translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-adblock - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-adblock - Русский (Russian)
 
 @@
 
@@ -55,6 +55,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-adblock - 中文 (Chinese)
+
+@@
+
+Package: luci-i18n-adblock-zh-tw
+Default: LUCI_LANG_zh-tw||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-adblock
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-adblock - zh-tw translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-adblock - 臺灣華語 (Taiwanese)
 
 @@
 
@@ -95,6 +115,46 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-adblock - 日本語 (Japanese)
+
+@@
+
+Package: luci-i18n-adblock-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-adblock
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-adblock - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-adblock - Português do Brasil (Brazialian Portuguese)
+
+@@
+
+Package: luci-i18n-adblock-it
+Default: LUCI_LANG_it||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-adblock
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-adblock - it translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-adblock - Italiano (Italian)
 
 @@
 

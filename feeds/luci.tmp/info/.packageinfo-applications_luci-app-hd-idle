@@ -118,8 +118,8 @@ Description:     Translation for luci-app-hd-idle - English
 
 @@
 
-Package: luci-i18n-hd-idle-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-hd-idle-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-hd-idle
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-hd-idle - pl translation
+Title: luci-app-hd-idle - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-hd-idle - Polski (Polish)
+Description:     Translation for luci-app-hd-idle - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-hd-idle - Tiếng Việt (Vietnamese)
 
 @@
 
-Package: luci-i18n-hd-idle-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-hd-idle-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-hd-idle
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-hd-idle - he translation
+Title: luci-app-hd-idle - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-hd-idle - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-hd-idle - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-hd-idle - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-hd-idle-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-hd-idle
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-hd-idle - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-hd-idle - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-hd-idle-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-hd-idle - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-hd-idle-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-hd-idle
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-hd-idle - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-hd-idle - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-hd-idle - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-hd-idle-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-hd-idle-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-hd-idle
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-hd-idle - de translation
+Title: luci-app-hd-idle - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-hd-idle - Deutsch (German)
+Description:     Translation for luci-app-hd-idle - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-hd-idle - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-hd-idle-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-hd-idle-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-hd-idle
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-hd-idle - el translation
+Title: luci-app-hd-idle - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-hd-idle - Ελληνικά (Greek)
+Description:     Translation for luci-app-hd-idle - Português do Brasil (Brazialian Portuguese)
 
 @@
 

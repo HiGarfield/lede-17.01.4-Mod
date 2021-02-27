@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/libs/icu/Makefile
 Package: icu
-Version: 58.2-2
+Version: 58.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libstdcpp +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -12,7 +12,7 @@ Category: Libraries
 Repository: base
 Title: International Components for Unicode
 Maintainer: Hirokazu MORIKAWA <morikw2@gmail.com>
-Source: icu4c-58_2-src.tgz
+Source: icu4c-58_3-src.tgz
 License: ICU-1.8.1+
 LicenseFiles: LICENSE
 Type: ipkg

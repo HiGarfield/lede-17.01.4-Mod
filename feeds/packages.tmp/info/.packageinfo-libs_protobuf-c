@@ -5,6 +5,8 @@ Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread
 Conflicts: 
 Menu-Depends: 
 Provides: 
+Build-Depends: protobuf/host
+Build-Types: host
 Section: libs
 Category: Libraries
 Repository: base

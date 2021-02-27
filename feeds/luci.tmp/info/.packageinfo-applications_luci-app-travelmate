@@ -2,7 +2,7 @@ Source-Makefile: feeds/luci/applications/luci-app-travelmate/Makefile
 Package: luci-app-travelmate
 Submenu: 3. Applications
 Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +travelmate
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +travelmate +luci-lib-jsonc
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -18,8 +18,8 @@ Description: LuCI support for Travelmate
 
 @@
 
-Package: luci-i18n-travelmate-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-travelmate-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-travelmate
 Conflicts: 
@@ -29,12 +29,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-travelmate - pt-br translation
+Title: luci-app-travelmate - ru translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-travelmate - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-travelmate - Русский (Russian)
 
 @@
 
@@ -55,6 +55,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-travelmate - 日本語 (Japanese)
+
+@@
+
+Package: luci-i18n-travelmate-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-travelmate
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-travelmate - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-travelmate - Português do Brasil (Brazialian Portuguese)
 
 @@
 

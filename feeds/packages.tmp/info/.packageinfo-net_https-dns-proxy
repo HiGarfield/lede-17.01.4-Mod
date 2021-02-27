@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/net/https-dns-proxy/Makefile
 Package: https_dns_proxy
-Version: 2017-01-07-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcares +libcurl +libev
+Version: 2018-01-24-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcares +libcurl +libev +ca-bundle
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -10,7 +10,7 @@ Category: Network
 Repository: base
 Title: DNS over HTTPS proxy server
 Maintainer: Aaron Drew <aarond10@gmail.com>
-Source: https_dns_proxy-2017-01-07.tar.xz
+Source: https_dns_proxy-2018-01-24.tar.xz
 License: MIT
 Type: ipkg
 Description: DNS over HTTPS proxy server

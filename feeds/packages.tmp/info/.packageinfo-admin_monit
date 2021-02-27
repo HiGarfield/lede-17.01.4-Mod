@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/admin/monit/Makefile
 Package: monit
-Version: 5.18-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +libopenssl
+Version: 5.24.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib +libopenssl
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -11,19 +11,19 @@ Category: Administration
 Repository: base
 Title: System services monitoring utility (with SSL support)
 Maintainer: Etienne CHAMPETIER <champetier.etienne@gmail.com>
-Source: monit-5.18.tar.gz
+Source: monit-5.24.0.tar.gz
 License: AGPL-3.0
 LicenseFiles: COPYING
 Type: ipkg
 Description: 	An utility for monitoring services on a Unix system
 	This package is built with SSL support.
-http://mmonit.com/monit/
+https://mmonit.com/monit/
 Etienne CHAMPETIER <champetier.etienne@gmail.com>
 @@
 
 Package: monit-nossl
-Version: 5.18-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread
+Version: 5.24.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -33,13 +33,13 @@ Category: Administration
 Repository: base
 Title: System services monitoring utility (without SSL support)
 Maintainer: Etienne CHAMPETIER <champetier.etienne@gmail.com>
-Source: monit-5.18.tar.gz
+Source: monit-5.24.0.tar.gz
 License: AGPL-3.0
 LicenseFiles: COPYING
 Type: ipkg
 Description: 	An utility for monitoring services on a Unix system
 	This package is built without SSL support.
-http://mmonit.com/monit/
+https://mmonit.com/monit/
 Etienne CHAMPETIER <champetier.etienne@gmail.com>
 @@
 

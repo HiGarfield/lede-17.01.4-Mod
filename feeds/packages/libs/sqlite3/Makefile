@@ -1,5 +1,5 @@
 #
-# Copyright (C) 2006-2014 OpenWrt.org
+# Copyright (C) 2006-2018 OpenWrt.org
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sqlite
-PKG_VERSION:=3160000
+PKG_VERSION:=3260000
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-autoconf-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=http://www.sqlite.org/2017/
-PKG_MD5SUM:=5102404047054b2cec2f43463293f94dea39425d42bf386d24596ab4fac7c7ff
+PKG_HASH:=5daa6a3fb7d1e8c767cd59c4ded8da6e4b00c61d3b466d0685e35c4dd6d7bf5d
+PKG_SOURCE_URL:=https://www.sqlite.org/2018/
 
 PKG_LICENSE:=PUBLICDOMAIN
 PKG_LICENSE_FILES:=
@@ -43,7 +43,7 @@ define Package/libsqlite3
   $(call Package/sqlite3/Default)
   SECTION:=libs
   CATEGORY:=Libraries
-  DEPENDS:=+libpthread
+  DEPENDS:=+libpthread +zlib
   TITLE+= (library)
 endef
 
@@ -68,6 +68,9 @@ $(call Package/sqlite3/Default/description)
  formats.
 endef
 
+# On uClibc libm needs to be linked in for ISNAN()
+TARGET_LDFLAGS += $(if $(CONFIG_USE_UCLIBC),-lm)
+
 TARGET_CFLAGS += $(FPIC) \
 	-DSQLITE_ENABLE_UNLOCK_NOTIFY=1 \
 	-DHAVE_ISNAN=1 \
@@ -76,7 +79,8 @@ TARGET_CFLAGS += $(FPIC) \
 CONFIGURE_ARGS += \
 	--enable-shared \
 	--enable-static \
-	--disable-editline
+	--disable-editline \
+	--disable-static-shell
 
 CONFIGURE_VARS += \
 	config_BUILD_CC="$(HOSTCC)" \

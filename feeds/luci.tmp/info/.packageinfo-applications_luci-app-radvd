@@ -118,8 +118,8 @@ Description:     Translation for luci-app-radvd - English
 
 @@
 
-Package: luci-i18n-radvd-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-radvd-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-radvd
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-radvd - pl translation
+Title: luci-app-radvd - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-radvd - Polski (Polish)
+Description:     Translation for luci-app-radvd - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-radvd - Tiếng Việt (Vietnamese)
 
 @@
 
-Package: luci-i18n-radvd-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-radvd-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-radvd
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-radvd - he translation
+Title: luci-app-radvd - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-radvd - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-radvd - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-radvd - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-radvd-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-radvd
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-radvd - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-radvd - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-radvd-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-radvd - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-radvd-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-radvd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-radvd - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-radvd - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-radvd - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-radvd-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-radvd-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-radvd
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-radvd - de translation
+Title: luci-app-radvd - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-radvd - Deutsch (German)
+Description:     Translation for luci-app-radvd - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-radvd - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-radvd-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-radvd-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-radvd
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-radvd - el translation
+Title: luci-app-radvd - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-radvd - Ελληνικά (Greek)
+Description:     Translation for luci-app-radvd - Português do Brasil (Brazialian Portuguese)
 
 @@
 

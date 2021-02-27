@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/libs/libxslt/Makefile
 Package: libxslt
-Version: 1.1.28-2
+Version: 1.1.28-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libxml2
 Conflicts: 
 Menu-Depends: 
@@ -20,7 +20,7 @@ Jiri Slachta <jiri@slachta.eu>
 @@
 
 Package: libexslt
-Version: 1.1.28-2
+Version: 1.1.28-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libxslt
 Conflicts: 
 Menu-Depends: 
@@ -40,7 +40,7 @@ Jiri Slachta <jiri@slachta.eu>
 @@
 
 Package: xsltproc
-Version: 1.1.28-2
+Version: 1.1.28-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libxml2 +libxslt +libexslt
 Conflicts: 
 Menu-Depends: 

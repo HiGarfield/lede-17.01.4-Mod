@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/net/jool/Makefile
 Package: jool
-Version: 2016.12.17-1
+Version: 2016.12.17-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-jool +jool-tools
 Conflicts: 
 Menu-Depends: 
@@ -22,7 +22,7 @@ Dan Luedtke <mail@danrl.com>
 
 Package: kmod-jool
 Submenu: Network Support
-Version: <LINUX_VERSION>+2016.12.17-1
+Version: <LINUX_VERSION>+2016.12.17-3
 Depends: @IPV6 +kmod-crypto-md5 +kmod-nf-conntrack +kmod-nf-conntrack6
 Conflicts: 
 Menu-Depends: 
@@ -43,7 +43,7 @@ Description:     Jool is an Open Source SIIT and NAT64 for Linux.
 @@
 
 Package: jool-tools
-Version: 2016.12.17-1
+Version: 2016.12.17-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl +ethtool
 Conflicts: 
 Menu-Depends: 

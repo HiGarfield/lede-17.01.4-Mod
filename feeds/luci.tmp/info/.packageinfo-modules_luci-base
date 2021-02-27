@@ -34,14 +34,14 @@ Config:
      config LUCI_LANG_pt
 	   tristate "Portuguese (pt)" 
 
-     config LUCI_LANG_ro
-	   tristate "Romanian (ro)" 
+     config LUCI_LANG_ko
+	   tristate "Korean (ko)" 
 
      config LUCI_LANG_en
 	   tristate "English (en)" 
 
-     config LUCI_LANG_pl
-	   tristate "Polish (pl)" 
+     config LUCI_LANG_el
+	   tristate "Greek (el)" 
 
      config LUCI_LANG_sk
 	   tristate "Slovak (sk)" 
@@ -52,26 +52,26 @@ Config:
      config LUCI_LANG_vi
 	   tristate "Vietnamese (vi)" 
 
-     config LUCI_LANG_he
-	   tristate "Hebrew (he)" 
+     config LUCI_LANG_de
+	   tristate "German (de)" 
 
-     config LUCI_LANG_no
-	   tristate "Norwegian (no)" 
-
-     config LUCI_LANG_pt-br
-	   tristate "Brazialian Portuguese (pt-br)" 
+     config LUCI_LANG_ro
+	   tristate "Romanian (ro)" 
 
      config LUCI_LANG_ms
 	   tristate "Malay (ms)" 
 
+     config LUCI_LANG_pl
+	   tristate "Polish (pl)" 
+
      config LUCI_LANG_zh-cn
 	   tristate "Chinese (zh-cn)" 
 
-     config LUCI_LANG_ko
-	   tristate "Korean (ko)" 
+     config LUCI_LANG_no
+	   tristate "Norwegian (no)" 
 
-     config LUCI_LANG_de
-	   tristate "German (de)" 
+     config LUCI_LANG_he
+	   tristate "Hebrew (he)" 
 
      config LUCI_LANG_zh-tw
 	   tristate "Taiwanese (zh-tw)" 
@@ -85,8 +85,8 @@ Config:
      config LUCI_LANG_ja
 	   tristate "Japanese (ja)" 
 
-     config LUCI_LANG_el
-	   tristate "Greek (el)" 
+     config LUCI_LANG_pt-br
+	   tristate "Brazialian Portuguese (pt-br)" 
 
      config LUCI_LANG_ca
 	   tristate "Catalan (ca)" 
@@ -169,8 +169,8 @@ Description:     Translation for luci-base - Português (Portuguese)
 
 @@
 
-Package: luci-i18n-base-ro
-Default: LUCI_LANG_ro||(ALL&&m)
+Package: luci-i18n-base-ko
+Default: LUCI_LANG_ko||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
 Conflicts: 
@@ -181,12 +181,12 @@ Build-Types: host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-base - ro translation
+Title: luci-base - ko translation
 Maintainer: 
 Source: LuaSrcDiet-0.12.1.tar.bz2
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-base - Română (Romanian)
+Description:     Translation for luci-base - 한국어 (Korean)
 
 @@
 
@@ -211,8 +211,8 @@ Description:     Translation for luci-base - English
 
 @@
 
-Package: luci-i18n-base-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-base-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
 Conflicts: 
@@ -223,12 +223,12 @@ Build-Types: host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-base - pl translation
+Title: luci-base - el translation
 Maintainer: 
 Source: LuaSrcDiet-0.12.1.tar.bz2
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-base - Polski (Polish)
+Description:     Translation for luci-base - Ελληνικά (Greek)
 
 @@
 
@@ -295,8 +295,8 @@ Description:     Translation for luci-base - Tiếng Việt (Vietnamese)
 
 @@
 
-Package: luci-i18n-base-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-base-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
 Conflicts: 
@@ -307,17 +307,17 @@ Build-Types: host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-base - he translation
+Title: luci-base - de translation
 Maintainer: 
 Source: LuaSrcDiet-0.12.1.tar.bz2
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-base - עִבְרִית (Hebrew)
+Description:     Translation for luci-base - Deutsch (German)
 
 @@
 
-Package: luci-i18n-base-no
-Default: LUCI_LANG_no||(ALL&&m)
+Package: luci-i18n-base-ro
+Default: LUCI_LANG_ro||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
 Conflicts: 
@@ -328,33 +328,12 @@ Build-Types: host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-base - no translation
+Title: luci-base - ro translation
 Maintainer: 
 Source: LuaSrcDiet-0.12.1.tar.bz2
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-base - Norsk (Norwegian)
-
-@@
-
-Package: luci-i18n-base-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Build-Types: host
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-base - pt-br translation
-Maintainer: 
-Source: LuaSrcDiet-0.12.1.tar.bz2
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-base - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-base - Română (Romanian)
 
 @@
 
@@ -379,6 +358,27 @@ Description:     Translation for luci-base - Bahasa Melayu (Malay)
 
 @@
 
+Package: luci-i18n-base-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Build-Types: host
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-base - pl translation
+Maintainer: 
+Source: LuaSrcDiet-0.12.1.tar.bz2
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-base - Polski (Polish)
+
+@@
+
 Package: luci-i18n-base-zh-cn
 Default: LUCI_LANG_zh-cn||(ALL&&m)
 Version: x-1
@@ -400,8 +400,8 @@ Description:     Translation for luci-base - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-base-ko
-Default: LUCI_LANG_ko||(ALL&&m)
+Package: luci-i18n-base-no
+Default: LUCI_LANG_no||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
 Conflicts: 
@@ -412,17 +412,17 @@ Build-Types: host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-base - ko translation
+Title: luci-base - no translation
 Maintainer: 
 Source: LuaSrcDiet-0.12.1.tar.bz2
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-base - 한국어 (Korean)
+Description:     Translation for luci-base - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-base-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-base-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
 Conflicts: 
@@ -433,12 +433,12 @@ Build-Types: host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-base - de translation
+Title: luci-base - he translation
 Maintainer: 
 Source: LuaSrcDiet-0.12.1.tar.bz2
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-base - Deutsch (German)
+Description:     Translation for luci-base - עִבְרִית (Hebrew)
 
 @@
 
@@ -526,8 +526,8 @@ Description:     Translation for luci-base - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-base-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-base-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-base
 Conflicts: 
@@ -538,12 +538,12 @@ Build-Types: host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-base - el translation
+Title: luci-base - pt-br translation
 Maintainer: 
 Source: LuaSrcDiet-0.12.1.tar.bz2
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-base - Ελληνικά (Greek)
+Description:     Translation for luci-base - Português do Brasil (Brazialian Portuguese)
 
 @@
 
