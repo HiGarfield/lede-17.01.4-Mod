@@ -118,8 +118,8 @@ Description:     Translation for luci-app-watchcat - English
 
 @@
 
-Package: luci-i18n-watchcat-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-watchcat-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-watchcat
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-watchcat - pl translation
+Title: luci-app-watchcat - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-watchcat - Polski (Polish)
+Description:     Translation for luci-app-watchcat - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-watchcat - Tiếng Việt (Vietnamese)
 
 @@
 
-Package: luci-i18n-watchcat-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-watchcat-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-watchcat
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-watchcat - he translation
+Title: luci-app-watchcat - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-watchcat - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-watchcat - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-watchcat - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-watchcat-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-watchcat
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-watchcat - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-watchcat - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-watchcat-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-watchcat - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-watchcat-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-watchcat
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-watchcat - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-watchcat - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-watchcat - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-watchcat-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-watchcat-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-watchcat
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-watchcat - de translation
+Title: luci-app-watchcat - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-watchcat - Deutsch (German)
+Description:     Translation for luci-app-watchcat - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-watchcat - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-watchcat-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-watchcat-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-watchcat
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-watchcat - el translation
+Title: luci-app-watchcat - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-watchcat - Ελληνικά (Greek)
+Description:     Translation for luci-app-watchcat - Português do Brasil (Brazialian Portuguese)
 
 @@
 

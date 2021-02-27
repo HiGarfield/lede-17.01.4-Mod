@@ -49,8 +49,8 @@ Etienne CHAMPETIER <champetier.etienne@gmail.com>
 
 Source-Makefile: feeds/packages/admin/monit/Makefile
 Package: monit
-Version: 5.18-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +libopenssl
+Version: 5.24.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib +libopenssl
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -60,19 +60,19 @@ Category: Administration
 Repository: base
 Title: System services monitoring utility (with SSL support)
 Maintainer: Etienne CHAMPETIER <champetier.etienne@gmail.com>
-Source: monit-5.18.tar.gz
+Source: monit-5.24.0.tar.gz
 License: AGPL-3.0
 LicenseFiles: COPYING
 Type: ipkg
 Description: 	An utility for monitoring services on a Unix system
 	This package is built with SSL support.
-http://mmonit.com/monit/
+https://mmonit.com/monit/
 Etienne CHAMPETIER <champetier.etienne@gmail.com>
 @@
 
 Package: monit-nossl
-Version: 5.18-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread
+Version: 5.24.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -82,13 +82,13 @@ Category: Administration
 Repository: base
 Title: System services monitoring utility (without SSL support)
 Maintainer: Etienne CHAMPETIER <champetier.etienne@gmail.com>
-Source: monit-5.18.tar.gz
+Source: monit-5.24.0.tar.gz
 License: AGPL-3.0
 LicenseFiles: COPYING
 Type: ipkg
 Description: 	An utility for monitoring services on a Unix system
 	This package is built without SSL support.
-http://mmonit.com/monit/
+https://mmonit.com/monit/
 Etienne CHAMPETIER <champetier.etienne@gmail.com>
 @@
 
@@ -828,7 +828,7 @@ Source-Makefile: feeds/packages/kernel/exfat-nofuse/Makefile
 Package: kmod-fs-exfat
 Submenu: Filesystems
 Version: <LINUX_VERSION>+2017-01-03-8d291f525ce6d88fe0d8b11b86fd5c2e900401d3-1
-Depends: +kmod-nls-base @BUILD_PATENTED
+Depends: +kmod-nls-base
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -1509,7 +1509,7 @@ Gergely Kiss <mail.gery@gmail.com>
 Source-Makefile: feeds/packages/lang/golang/golang/Makefile
 Package: golang
 Submenu: Go
-Version: 1.15.3-1
+Version: 1.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64) +golang-src
 Conflicts: 
 Menu-Depends: 
@@ -1521,7 +1521,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (compiler)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.15.3.src.tar.gz
+Source: go1.16.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1560,7 +1560,7 @@ endmenu
 
 Package: golang-doc
 Submenu: Go
-Version: 1.15.3-1
+Version: 1.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1572,7 +1572,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (documentation)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.15.3.src.tar.gz
+Source: go1.16.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1594,7 +1594,7 @@ Jeffery To <jeffery.to@gmail.com>
 
 Package: golang-src
 Submenu: Go
-Version: 1.15.3-1
+Version: 1.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1606,7 +1606,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (source files)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.15.3.src.tar.gz
+Source: go1.16.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1654,26 +1654,28 @@ Gergely Kiss <mail.gery@gmail.com>
 Source-Makefile: feeds/packages/lang/jamvm/Makefile
 Package: jamvm
 Submenu: Java
-Version: 2.0.0-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libpthread +librt +classpath @!avr32
+Version: 2.0.0-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libpthread +librt +CONFIG_powerpc64:libffi @!arc @!aarch64
 Conflicts: 
 Menu-Depends: 
 Provides: 
+Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
 Title: A compact Java Virtual Machine
 Maintainer: Dana H. Myers <k6jq@comcast.net>
 Source: jamvm-2.0.0.tar.gz
-License: GPL-2.0+
+License: GPL-2.0-or-later
+LicenseFiles: COPYING
 Type: ipkg
-Description:  JamVM is a new Java Virtual Machine which conforms to the JVM
- specification version (blue book). In comparison to most other VM's (free
- and commercial) it is extremely small.However, unlike other small VMs
+Description:  JamVM is a Java Virtual Machine which conforms to the JVM
+ specification version 2 (a.k.a, 1.2).  In comparison to most other VM's (free
+ and commercial) it is extremely small.  However, unlike other small VMs
  (e.g. KVM) it is designed to support the full specification, and includes
  support for object finalisation, Soft/Weak/Phantom References, the Java
  Native Interface (JNI) and the Reflection API.
-http://sourceforge.net/projects/jamvm
+http://jamvm.sourceforge.net/
 Dana H. Myers <k6jq@comcast.net>
 @@
 
@@ -2361,7 +2363,7 @@ Liu Peng <pengliu@credosemi.com>
 Source-Makefile: feeds/packages/lang/luasocket/Makefile
 Package: luasocket
 Submenu: Lua
-Version: 3.0-rc1-20130909-3
+Version: 3.0-rc1-20130909-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +lua
 Conflicts: 
 Menu-Depends: 
@@ -7432,7 +7434,7 @@ Gergely Kiss <mail.gery@gmail.com>
 Source-Makefile: feeds/packages/lang/python/Makefile
 Package: python-ctypes
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7445,7 +7447,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 ctypes module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7456,7 +7458,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-pydoc
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7469,7 +7471,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 pydoc module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7480,7 +7482,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-multiprocessing
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7493,7 +7495,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 multiprocessing
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7504,7 +7506,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-codecs
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7517,7 +7519,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 codecs + unicode support
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7528,7 +7530,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-dev
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python +python-lib2to3
 Conflicts: 
 Menu-Depends: 
@@ -7541,7 +7543,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 development files
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7552,7 +7554,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-sqlite3
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libsqlite3
 Conflicts: 
 Menu-Depends: 
@@ -7565,7 +7567,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 sqlite3 module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7576,7 +7578,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-logging
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7589,7 +7591,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 logging module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7600,7 +7602,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-gdbm
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libgdbm
 Conflicts: 
 Menu-Depends: 
@@ -7613,7 +7615,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 gdbm module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7624,7 +7626,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-email
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7637,7 +7639,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 email module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7648,7 +7650,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-distutils
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7661,7 +7663,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 distutils
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7670,33 +7672,9 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python-openssl
-Submenu: Python
-Version: 2.7.13-4
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libopenssl
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: python/host
-Build-Depends/host: bzip2/host expat/host
-Build-Types: host
-Section: lang
-Category: Languages
-Repository: base
-Title: Python 2.7 SSL module
-Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
-License: PSF
-LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
-Type: ipkg
-Description: Python 2.7 SSL module
-https://www.python.org/
-Alexandru Ardelean <ardeleanalex@gmail.com>
-@@
-
 Package: python-xml
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libexpat
 Conflicts: 
 Menu-Depends: 
@@ -7709,7 +7687,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 xml libs
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7720,7 +7698,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-compiler
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7733,7 +7711,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 compiler module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7744,7 +7722,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-db
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libdb47
 Conflicts: 
 Menu-Depends: 
@@ -7757,7 +7735,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 db module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7766,9 +7744,33 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
+Package: python-openssl
+Submenu: Python
+Version: 2.7.14-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libopenssl
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 SSL module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.14.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 SSL module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
 Package: python-decimal
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7781,7 +7783,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 decimal module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7792,7 +7794,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-unittest
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
 Conflicts: 
 Menu-Depends: 
@@ -7805,7 +7807,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 unittest module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7816,7 +7818,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-lib2to3
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python
 Conflicts: 
 Menu-Depends: 
@@ -7829,7 +7831,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 lib2to3 module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7840,7 +7842,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-ncurses
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libncurses
 Conflicts: 
 Menu-Depends: 
@@ -7853,7 +7855,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 ncurses module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7864,7 +7866,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-base
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib
 Conflicts: 
 Menu-Depends: 
@@ -7877,7 +7879,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 interpreter
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7889,7 +7891,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python-light
 Submenu: Python
-Version: 2.7.13-4
+Version: 2.7.14-5
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-base +libffi +libbz2
 Conflicts: 
 Menu-Depends: 
@@ -7902,7 +7904,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 light installation
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -7915,8 +7917,8 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 
 Package: python
 Submenu: Python
-Version: 2.7.13-4
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-ctypes +python-pydoc +python-multiprocessing +python-codecs +python-sqlite3 +python-logging +python-gdbm +python-email +python-distutils +python-openssl +python-xml +python-compiler +python-db +python-decimal +python-unittest +python-ncurses
+Version: 2.7.14-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-ctypes +python-pydoc +python-multiprocessing +python-codecs +python-sqlite3 +python-logging +python-gdbm +python-email +python-distutils +python-xml +python-compiler +python-db +python-openssl +python-decimal +python-unittest +python-ncurses
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -7928,7 +7930,7 @@ Category: Languages
 Repository: base
 Title: Python 2.7 programming language
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.13.tar.xz
+Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
@@ -8897,6 +8899,30 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
+Package: python3-decimal
+Submenu: Python
+Version: 3.6.0-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python3/host
+Build-Depends/host: bzip2/host expat/host libffi/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 3.6 decimal module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-3.6.0.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 3.6 decimal module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
 Package: python3-multiprocessing
 Submenu: Python
 Version: 3.6.0-2
@@ -8969,10 +8995,10 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-gdbm
+Package: python3-xml
 Submenu: Python
 Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +libgdbm
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -8982,13 +9008,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 3.6 gdbm module
+Title: Python 3.6 xml libs
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-3.6.0.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 3.6 gdbm module
+Description: Python 3.6 xml libs
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -9017,10 +9043,10 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-xml
+Package: python3-gdbm
 Submenu: Python
 Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +libgdbm
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -9030,37 +9056,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 3.6 xml libs
+Title: Python 3.6 gdbm module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-3.6.0.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 3.6 xml libs
-https://www.python.org/
-Alexandru Ardelean <ardeleanalex@gmail.com>
-@@
-
-Package: python3-distutils
-Submenu: Python
-Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: python3/host
-Build-Depends/host: bzip2/host expat/host libffi/host
-Build-Types: host
-Section: lang
-Category: Languages
-Repository: base
-Title: Python 3.6 distutils module
-Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-3.6.0.tar.xz
-License: PSF
-LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
-Type: ipkg
-Description: Python 3.6 distutils module
+Description: Python 3.6 gdbm module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -9085,6 +9087,30 @@ License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
 Description: Python 3.6 email module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-distutils
+Submenu: Python
+Version: 3.6.0-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python3/host
+Build-Depends/host: bzip2/host expat/host libffi/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 3.6 distutils module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-3.6.0.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 3.6 distutils module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -9137,30 +9163,6 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-asyncio
-Submenu: Python
-Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: python3/host
-Build-Depends/host: bzip2/host expat/host libffi/host
-Build-Types: host
-Section: lang
-Category: Languages
-Repository: base
-Title: Python 3.6 asyncio module
-Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-3.6.0.tar.xz
-License: PSF
-LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
-Type: ipkg
-Description: Python 3.6 asyncio module
-https://www.python.org/
-Alexandru Ardelean <ardeleanalex@gmail.com>
-@@
-
 Package: python3-lzma
 Submenu: Python
 Version: 3.6.0-2
@@ -9185,7 +9187,7 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-decimal
+Package: python3-asyncio
 Submenu: Python
 Version: 3.6.0-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
@@ -9198,13 +9200,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 3.6 decimal module
+Title: Python 3.6 asyncio module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-3.6.0.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 3.6 decimal module
+Description: Python 3.6 asyncio module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -9263,7 +9265,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 Package: python3
 Submenu: Python
 Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +python3-unittest +python3-ncurses +python3-ctypes +python3-pydoc +python3-logging +python3-multiprocessing +python3-codecs +python3-gdbm +python3-sqlite3 +python3-xml +python3-distutils +python3-email +python3-openssl +python3-dbm +python3-asyncio +python3-lzma +python3-decimal
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +python3-unittest +python3-ncurses +python3-ctypes +python3-pydoc +python3-logging +python3-decimal +python3-multiprocessing +python3-codecs +python3-xml +python3-sqlite3 +python3-gdbm +python3-email +python3-distutils +python3-openssl +python3-dbm +python3-lzma +python3-asyncio
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -9402,7 +9404,7 @@ Gergely Kiss <mail.gery@gmail.com>
 
 Source-Makefile: feeds/packages/lang/ruby/Makefile
 Package: libruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt +libgmp
 Conflicts: 
 Menu-Depends: 
@@ -9414,7 +9416,7 @@ Category: Libraries
 Repository: base
 Title: Ruby scripting language (shared library)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9425,7 +9427,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libruby
 Conflicts: 
 Menu-Depends: 
@@ -9437,7 +9439,7 @@ Category: Languages
 Repository: base
 Title: Ruby scripting language (interpreter)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9462,7 +9464,7 @@ Config:
 
 Package: ruby-bigdecimal
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -9474,7 +9476,7 @@ Category: Languages
 Repository: base
 Title: Ruby Arbitrary-precision decimal floating-point library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9492,7 +9494,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-cgi
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-filelib +ruby-pstore
 Conflicts: 
 Menu-Depends: 
@@ -9504,7 +9506,7 @@ Category: Languages
 Repository: base
 Title: Ruby CGI support toolkit
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9522,7 +9524,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-csv
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-patterns +ruby-datetime +ruby-enc +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -9534,7 +9536,7 @@ Category: Languages
 Repository: base
 Title: Ruby CSV library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9550,7 +9552,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-datetime
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -9562,7 +9564,7 @@ Category: Languages
 Repository: base
 Title: Ruby date library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9580,7 +9582,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-dbm
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +libdb47
 Conflicts: 
 Menu-Depends: 
@@ -9592,7 +9594,7 @@ Category: Languages
 Repository: base
 Title: Ruby support for dbm
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9609,7 +9611,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-debuglib
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-prettyprint
 Conflicts: 
 Menu-Depends: 
@@ -9621,7 +9623,7 @@ Category: Languages
 Repository: base
 Title: Ruby debug library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9642,7 +9644,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-did-you-mean
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -9654,7 +9656,7 @@ Category: Languages
 Repository: base
 Title: Ruby did you mean? experience
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9679,7 +9681,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-digest
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +RUBY_DIGEST_USE_OPENSSL:libopenssl
 Conflicts: 
 Menu-Depends: 
@@ -9691,7 +9693,7 @@ Category: Languages
 Repository: base
 Title: Ruby Digest Library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9724,7 +9726,7 @@ Config:
 
 Package: ruby-drb
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-filelib +ruby-patterns +ruby-socket
 Conflicts: 
 Menu-Depends: 
@@ -9736,7 +9738,7 @@ Category: Languages
 Repository: base
 Title: Ruby distributed object system
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9753,7 +9755,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-enc
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -9765,7 +9767,7 @@ Category: Languages
 Repository: base
 Title: Ruby character re-coding library charset (small subset)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9784,7 +9786,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-enc-extra
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-enc
 Conflicts: 
 Menu-Depends: 
@@ -9796,7 +9798,7 @@ Category: Languages
 Repository: base
 Title: Ruby character re-coding library charset (extra subset)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9819,7 +9821,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-erb
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-cgi
 Conflicts: 
 Menu-Depends: 
@@ -9831,7 +9833,7 @@ Category: Languages
 Repository: base
 Title: Ruby (embedded interpreter)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9848,7 +9850,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-fiddle
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +libffi
 Conflicts: 
 Menu-Depends: 
@@ -9860,7 +9862,7 @@ Category: Languages
 Repository: base
 Title: Ruby libffi wrapper
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9878,7 +9880,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-filelib
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-enc +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -9890,7 +9892,7 @@ Category: Languages
 Repository: base
 Title: Ruby file utils library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9911,7 +9913,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-gdbm
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +libgdbm
 Conflicts: 
 Menu-Depends: 
@@ -9923,7 +9925,7 @@ Category: Languages
 Repository: base
 Title: Ruby support for gdbm
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9939,7 +9941,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-gems
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-net +ruby-rdoc
 Conflicts: 
 Menu-Depends: 
@@ -9951,7 +9953,7 @@ Category: Languages
 Repository: base
 Title: Ruby gems packet management
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9963,7 +9965,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-io-console
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -9975,7 +9977,7 @@ Category: Languages
 Repository: base
 Title: Ruby Console interface
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -9993,7 +9995,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-irb
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-debuglib +ruby-filelib +ruby-math
 Conflicts: 
 Menu-Depends: 
@@ -10005,7 +10007,7 @@ Category: Languages
 Repository: base
 Title: Ruby (interactive shell)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10017,7 +10019,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-json
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-datetime +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -10029,7 +10031,7 @@ Category: Languages
 Repository: base
 Title: Ruby support for JSON
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10055,7 +10057,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-logger
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-multithread
 Conflicts: 
 Menu-Depends: 
@@ -10067,7 +10069,7 @@ Category: Languages
 Repository: base
 Title: Ruby logger and syslog library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10085,7 +10087,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-math
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-patterns +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -10097,7 +10099,7 @@ Category: Languages
 Repository: base
 Title: Ruby math library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10118,7 +10120,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-minitest
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-gems
 Conflicts: 
 Menu-Depends: 
@@ -10130,7 +10132,7 @@ Category: Languages
 Repository: base
 Title: Ruby Gem minitest
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10153,7 +10155,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-misc
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -10165,7 +10167,7 @@ Category: Languages
 Repository: base
 Title: Ruby standard libraries subset (miscellaneous files)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10203,7 +10205,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-mkmf
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-filelib +ruby-optparse +ruby-rbconfig
 Conflicts: 
 Menu-Depends: 
@@ -10215,7 +10217,7 @@ Category: Languages
 Repository: base
 Title: Ruby makefile library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10232,7 +10234,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-multithread
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -10244,7 +10246,7 @@ Category: Languages
 Repository: base
 Title: Ruby multithread library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10266,7 +10268,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-net
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-datetime +ruby-digest +ruby-filelib +ruby-uri
 Conflicts: 
 Menu-Depends: 
@@ -10278,7 +10280,7 @@ Category: Languages
 Repository: base
 Title: Ruby Network Protocols Library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10295,7 +10297,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-net-telnet
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-net
 Conflicts: 
 Menu-Depends: 
@@ -10307,7 +10309,7 @@ Category: Languages
 Repository: base
 Title: Ruby telnet client
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10329,7 +10331,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-nkf
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-enc
 Conflicts: 
 Menu-Depends: 
@@ -10341,7 +10343,7 @@ Category: Languages
 Repository: base
 Title: Ruby Network Kanji Filter
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10358,7 +10360,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-openssl
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-enc +ruby-multithread +libopenssl
 Conflicts: 
 Menu-Depends: 
@@ -10370,7 +10372,7 @@ Category: Languages
 Repository: base
 Title: Ruby support for openssl
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10389,7 +10391,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-optparse
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -10401,7 +10403,7 @@ Category: Languages
 Repository: base
 Title: Ruby command-line option analysis
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10419,7 +10421,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-patterns
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -10431,7 +10433,7 @@ Category: Languages
 Repository: base
 Title: Ruby design patterns implementation
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10450,7 +10452,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-powerassert
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-ripper +ruby-debuglib
 Conflicts: 
 Menu-Depends: 
@@ -10462,7 +10464,7 @@ Category: Languages
 Repository: base
 Title: Ruby Gem power_assert
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10483,7 +10485,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-prettyprint
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -10495,7 +10497,7 @@ Category: Languages
 Repository: base
 Title: Ruby PrettyPrint library
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10512,7 +10514,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-pstore
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-digest +ruby-enc
 Conflicts: 
 Menu-Depends: 
@@ -10524,7 +10526,7 @@ Category: Languages
 Repository: base
 Title: Ruby file based persistence
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10540,7 +10542,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-psych
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-bigdecimal +ruby-datetime +ruby-misc +ruby-enc +libyaml
 Conflicts: 
 Menu-Depends: 
@@ -10552,7 +10554,7 @@ Category: Languages
 Repository: base
 Title: Ruby YAML parser and emitter
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10571,7 +10573,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-racc
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -10583,7 +10585,7 @@ Category: Languages
 Repository: base
 Title: Ruby LALR parser generator
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10600,7 +10602,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-rake
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-filelib +ruby-optparse +ruby-patterns +ruby-rbconfig +ruby-multithread
 Conflicts: 
 Menu-Depends: 
@@ -10612,7 +10614,7 @@ Category: Languages
 Repository: base
 Title: Ruby Rake (make replacement)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10624,7 +10626,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-rbconfig
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -10636,7 +10638,7 @@ Category: Languages
 Repository: base
 Title: Ruby RbConfig
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10654,7 +10656,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-rdoc
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-erb +ruby-irb +ruby-json +ruby-racc +ruby-rake +ruby-yaml +ruby-zlib
 Conflicts: 
 Menu-Depends: 
@@ -10666,7 +10668,7 @@ Category: Languages
 Repository: base
 Title: Ruby documentation generator
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10678,7 +10680,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-readline
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +libncurses +libreadline
 Conflicts: 
 Menu-Depends: 
@@ -10690,7 +10692,7 @@ Category: Languages
 Repository: base
 Title: Ruby support for readline
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10706,7 +10708,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-rexml
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-patterns +ruby-enc +ruby-misc
 Conflicts: 
 Menu-Depends: 
@@ -10718,7 +10720,7 @@ Category: Languages
 Repository: base
 Title: Ruby XML toolkit
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10734,7 +10736,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-rinda
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-drb
 Conflicts: 
 Menu-Depends: 
@@ -10746,7 +10748,7 @@ Category: Languages
 Repository: base
 Title: Ruby Linda paradigm implementation
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10762,7 +10764,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-ripper
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -10774,7 +10776,7 @@ Category: Languages
 Repository: base
 Title: Ruby script parser
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10792,7 +10794,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-rss
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-net +ruby-nkf +ruby-rexml
 Conflicts: 
 Menu-Depends: 
@@ -10804,7 +10806,7 @@ Category: Languages
 Repository: base
 Title: Ruby RSS toolkit
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10821,7 +10823,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-sdbm
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby
 Conflicts: 
 Menu-Depends: 
@@ -10833,7 +10835,7 @@ Category: Languages
 Repository: base
 Title: Ruby simple file-based key-value dbm implementation
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10849,7 +10851,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-shell
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-patterns +ruby-multithread
 Conflicts: 
 Menu-Depends: 
@@ -10861,7 +10863,7 @@ Category: Languages
 Repository: base
 Title: Ruby idiomatic Ruby interface
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10878,7 +10880,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-socket
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-multithread
 Conflicts: 
 Menu-Depends: 
@@ -10890,7 +10892,7 @@ Category: Languages
 Repository: base
 Title: Ruby socket support
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10910,7 +10912,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-testunit
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-csv +ruby-erb +ruby-optparse +ruby-powerassert +ruby-rexml +ruby-yaml
 Conflicts: 
 Menu-Depends: 
@@ -10922,7 +10924,7 @@ Category: Languages
 Repository: base
 Title: Ruby Gem test-unit
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10946,7 +10948,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-unicodenormalize
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-enc +ruby-enc-extra
 Conflicts: 
 Menu-Depends: 
@@ -10958,7 +10960,7 @@ Category: Languages
 Repository: base
 Title: Ruby String additions for Unicode normalization
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -10975,7 +10977,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-uri
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-socket +ruby-enc
 Conflicts: 
 Menu-Depends: 
@@ -10987,7 +10989,7 @@ Category: Languages
 Repository: base
 Title: Ruby library to handle URI
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -11004,7 +11006,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-webrick
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-erb +ruby-net +ruby-patterns +ruby-rbconfig
 Conflicts: 
 Menu-Depends: 
@@ -11016,7 +11018,7 @@ Category: Languages
 Repository: base
 Title: Ruby Web server toolkit
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -11033,7 +11035,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-xmlrpc
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-rexml +ruby-webrick
 Conflicts: 
 Menu-Depends: 
@@ -11045,7 +11047,7 @@ Category: Languages
 Repository: base
 Title: Ruby XML-RPC toolkit
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -11067,7 +11069,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-yaml
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-dbm +ruby-pstore +ruby-psych
 Conflicts: 
 Menu-Depends: 
@@ -11079,7 +11081,7 @@ Category: Languages
 Repository: base
 Title: Ruby YAML toolkit
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -11096,7 +11098,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-zlib
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +zlib
 Conflicts: 
 Menu-Depends: 
@@ -11108,7 +11110,7 @@ Category: Languages
 Repository: base
 Title: Ruby support for zlib
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -11124,7 +11126,7 @@ Luiz Angelo Daros de Luca <luizluca@gmail.com>
 
 Package: ruby-stdlib
 Submenu: Ruby
-Version: 2.4.2-1
+Version: 2.4.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ruby +ruby-bigdecimal +ruby-cgi +ruby-csv +ruby-datetime +ruby-dbm +ruby-debuglib +ruby-did-you-mean +ruby-digest +ruby-drb +ruby-enc +ruby-enc-extra +ruby-erb +ruby-fiddle +ruby-filelib +ruby-gdbm +ruby-gems +ruby-io-console +ruby-irb +ruby-json +ruby-logger +ruby-math +ruby-minitest +ruby-misc +ruby-mkmf +ruby-multithread +ruby-net +ruby-net-telnet +ruby-nkf +ruby-openssl +ruby-optparse +ruby-patterns +ruby-powerassert +ruby-prettyprint +ruby-pstore +ruby-psych +ruby-racc +ruby-rake +ruby-rbconfig +ruby-rdoc +ruby-readline +ruby-rexml +ruby-rinda +ruby-ripper +ruby-rss +ruby-sdbm +ruby-shell +ruby-socket +ruby-testunit +ruby-unicodenormalize +ruby-uri +ruby-webrick +ruby-xmlrpc +ruby-yaml +ruby-zlib
 Conflicts: 
 Menu-Depends: 
@@ -11136,7 +11138,7 @@ Category: Languages
 Repository: base
 Title: Ruby standard libraries (metadata for all stdlib subsets)
 Maintainer: Luiz Angelo Daros de Luca <luizluca@gmail.com>
-Source: ruby-2.4.2.tar.xz
+Source: ruby-2.4.4.tar.xz
 License: BSD-2-Clause
 LicenseFiles: COPYING
 Type: ipkg
@@ -11302,7 +11304,7 @@ Jeffery To <jeffery.to@gmail.com>
 
 Source-Makefile: feeds/packages/libs/alsa-lib/Makefile
 Package: alsa-lib
-Version: 1.1.0-1
+Version: 1.1.0-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @AUDIO_SUPPORT +kmod-sound-core +libpthread +librt
 Conflicts: 
 Menu-Depends: 
@@ -13751,7 +13753,7 @@ Daniel Golle <daniel@makrotopia.org>
 Source-Makefile: feeds/packages/libs/gnutls/Makefile
 Package: certtool
 Submenu: Encryption
-Version: 3.5.13-1
+Version: 3.5.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgnutls
 Conflicts: 
 Menu-Depends: 
@@ -13761,7 +13763,7 @@ Category: Utilities
 Repository: base
 Title: GNU TLS (certool utility)
 Maintainer: Nikos Mavrogiannopoulos <nmav@gnutls.org>
-Source: gnutls-3.5.13.tar.xz
+Source: gnutls-3.5.16.tar.xz
 License: LGPLv2.1+
 Type: ipkg
 Description:  GnuTLS is a secure communications library implementing the SSL, TLS
@@ -13777,7 +13779,7 @@ Nikos Mavrogiannopoulos <nmav@gnutls.org>
 
 Package: gnutls-utils
 Submenu: Encryption
-Version: 3.5.13-1
+Version: 3.5.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgnutls
 Conflicts: 
 Menu-Depends: 
@@ -13787,7 +13789,7 @@ Category: Utilities
 Repository: base
 Title: GNU TLS (utilities)
 Maintainer: Nikos Mavrogiannopoulos <nmav@gnutls.org>
-Source: gnutls-3.5.13.tar.xz
+Source: gnutls-3.5.16.tar.xz
 License: LGPLv2.1+
 Type: ipkg
 Description:  GnuTLS is a secure communications library implementing the SSL, TLS
@@ -13804,7 +13806,7 @@ Nikos Mavrogiannopoulos <nmav@gnutls.org>
 
 Package: libgnutls
 Submenu: SSL
-Version: 3.5.13-1
+Version: 3.5.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnettle +!LIBNETTLE_MINI:libgmp +GNUTLS_EXT_LIBTASN1:libtasn1 +GNUTLS_PKCS11:p11-kit +GNUTLS_CRYPTODEV:kmod-cryptodev
 Conflicts: 
 Menu-Depends: 
@@ -13814,7 +13816,7 @@ Category: Libraries
 Repository: base
 Title: GNU TLS (library)
 Maintainer: Nikos Mavrogiannopoulos <nmav@gnutls.org>
-Source: gnutls-3.5.13.tar.xz
+Source: gnutls-3.5.16.tar.xz
 License: LGPLv2.1+
 Type: ipkg
 Description:  GnuTLS is a secure communications library implementing the SSL, TLS
@@ -13953,7 +13955,7 @@ Johannes Morgenroth <jm@m-network.de>
 
 Source-Makefile: feeds/packages/libs/icu/Makefile
 Package: icu
-Version: 58.2-2
+Version: 58.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libstdcpp +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -13965,7 +13967,7 @@ Category: Libraries
 Repository: base
 Title: International Components for Unicode
 Maintainer: Hirokazu MORIKAWA <morikw2@gmail.com>
-Source: icu4c-58_2-src.tgz
+Source: icu4c-58_3-src.tgz
 License: ICU-1.8.1+
 LicenseFiles: LICENSE
 Type: ipkg
@@ -15498,12 +15500,12 @@ Jo-Philipp Wich <jo@mein.io>
 
 Source-Makefile: feeds/packages/libs/libgee/Makefile
 Package: libgee
-Version: 0.18.0-1
+Version: 0.18.0-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +glib2
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Build-Depends: vala/host !BUILD_NLS:libiconv !BUILD_NLS:libintl
 Section: libs
 Category: Libraries
 Repository: base
@@ -15521,7 +15523,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Source-Makefile: feeds/packages/libs/libgpg-error/Makefile
 Package: libgpg-error
-Version: 1.12-1
+Version: 1.12-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -16695,7 +16697,7 @@ Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +glib2
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Build-Depends: intltool/host !BUILD_NLS:libiconv !BUILD_NLS:libintl
 Section: libs
 Category: Libraries
 Repository: base
@@ -16737,7 +16739,7 @@ Ted Hess <thess@kitschensync.net>, Mike Brady <mikebrady@eircom.net>
 
 Source-Makefile: feeds/packages/libs/libssh2/Makefile
 Package: libssh2
-Version: 1.7.0-1
+Version: 1.8.1-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +zlib
 Conflicts: 
 Menu-Depends: 
@@ -16747,12 +16749,12 @@ Category: Libraries
 Repository: base
 Title: SSH2 library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: libssh2-1.7.0.tar.gz
+Source: libssh2-1.8.1.tar.gz
 License: BSD
 LicenseFiles: COPYING
 Type: ipkg
 Description:  libssh2 is a client-side C library implementing the SSH2 protocol.
-http://www.libssh2.org/
+https://www.libssh2.org/
 Jiri Slachta <jiri@slachta.eu>
 @@
 
@@ -19082,7 +19084,7 @@ John Crispin <blogic@openwrt.org>
 Source-Makefile: feeds/packages/libs/libupnp/Makefile
 Package: libupnp
 Menu: 1
-Version: 1.6.19-2
+Version: 1.8.6-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -19092,7 +19094,9 @@ Category: Libraries
 Repository: base
 Title: UPnP SDK library
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: libupnp-1.6.19.tar.bz2
+Source: libupnp-1.8.6.tar.bz2
+License: BSD-3-Clause
+LicenseFiles: COPYING
 Type: ipkg
 Description: The portable SDK for UPnP Devices (libupnp) provides developers with an API and
 open source code for building control points, devices, and bridges that are
@@ -19103,7 +19107,7 @@ Ted Hess <thess@kitschensync.net>
 @@
 
 Package: libupnp-sample
-Version: 1.6.19-2
+Version: 1.8.6-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread libupnp
 Conflicts: 
 Menu-Depends: 
@@ -19113,7 +19117,9 @@ Category: Libraries
 Repository: base
 Title: UPnP sample applications
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: libupnp-1.6.19.tar.bz2
+Source: libupnp-1.8.6.tar.bz2
+License: BSD-3-Clause
+LicenseFiles: COPYING
 Type: ipkg
 Description: TVcontrolpoint & tvdevice sample applications run inside /etc/upnp-tvdevice/
 http://pupnp.sourceforge.net/
@@ -19411,7 +19417,7 @@ Version: 2.0.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libopenssl
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: libwebsockets
 Build-Variant: openssl
 Section: libs
 Category: Libraries
@@ -19432,7 +19438,7 @@ Version: 2.0.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libcyassl
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: libwebsockets
 Build-Variant: cyassl
 Section: libs
 Category: Libraries
@@ -19453,7 +19459,7 @@ Version: 2.0.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libopenssl +libuv
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: libwebsockets
 Build-Variant: full
 Section: libs
 Category: Libraries
@@ -19547,7 +19553,7 @@ http://xerces.apache.org/
 
 Source-Makefile: feeds/packages/libs/libxml2/Makefile
 Package: libxml2
-Version: 2.9.4-1
+Version: 2.9.4-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib
 Conflicts: 
 Menu-Depends: 
@@ -19570,7 +19576,7 @@ Michael Heimpold <mhei@heimpold.de>
 
 Source-Makefile: feeds/packages/libs/libxslt/Makefile
 Package: libxslt
-Version: 1.1.28-2
+Version: 1.1.28-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libxml2
 Conflicts: 
 Menu-Depends: 
@@ -19590,7 +19596,7 @@ Jiri Slachta <jiri@slachta.eu>
 @@
 
 Package: libexslt
-Version: 1.1.28-2
+Version: 1.1.28-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libxslt
 Conflicts: 
 Menu-Depends: 
@@ -19610,7 +19616,7 @@ Jiri Slachta <jiri@slachta.eu>
 @@
 
 Package: xsltproc
-Version: 1.1.28-2
+Version: 1.1.28-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libxml2 +libxslt +libexslt
 Conflicts: 
 Menu-Depends: 
@@ -19910,7 +19916,7 @@ Ted Hess <thess@kitchensync.net> Ian Leonard <antonlacon@gmail.com>
 
 Source-Makefile: feeds/packages/libs/p11-kit/Makefile
 Package: p11-kit
-Version: 0.23.1-1
+Version: 0.23.1-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtasn1 +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -20019,7 +20025,7 @@ Jean-Michel Julien <jean-michel.julien@trilliantinc.com>
 Source-Makefile: feeds/packages/libs/postgresql/Makefile
 Package: libpq
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libreadline +libpthread +libncursesw
 Conflicts: 
 Menu-Depends: 
@@ -20031,7 +20037,7 @@ Category: Libraries
 Repository: base
 Title: PostgreSQL client library
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: PostgreSQL client library.
@@ -20041,7 +20047,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: pgsql-cli
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpq +librt
 Conflicts: 
 Menu-Depends: 
@@ -20053,7 +20059,7 @@ Category: Utilities
 Repository: base
 Title: Command Line Interface (CLI) to PostgreSQL databases
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: Command Line Interface (CLI) to PostgreSQL databases.
@@ -20063,7 +20069,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: pgsql-cli-extra
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpq +librt
 Conflicts: 
 Menu-Depends: 
@@ -20075,7 +20081,7 @@ Category: Utilities
 Repository: base
 Title: Command Line extras for PostgreSQL databases
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: Command Line extras for PostgreSQL databases.
@@ -20085,7 +20091,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: pgsql-server
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpq +librt +pgsql-cli
 Conflicts: 
 Menu-Depends: 
@@ -20098,7 +20104,7 @@ Repository: base
 Title: PostgreSQL databases Server
 Maintainer: Daniel Golle <daniel@makrotopia.org>
 Require-User: postgres=5432:postgres=5432
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: PostgreSQL databases Server.
@@ -20140,6 +20146,8 @@ Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread
 Conflicts: 
 Menu-Depends: 
 Provides: 
+Build-Depends: protobuf/host
+Build-Types: host
 Section: libs
 Category: Libraries
 Repository: base
@@ -20349,8 +20357,8 @@ Peter Wagner <tripolar@gmx.at>
 Source-Makefile: feeds/packages/libs/sqlite3/Makefile
 Package: libsqlite3
 Submenu: database
-Version: 3160000-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread
+Version: 3260000-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +zlib
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -20360,7 +20368,7 @@ Category: Libraries
 Repository: base
 Title: SQLite (v3.x) database engine (library)
 Maintainer: Etienne CHAMPETIER <champetier.etienne@gmail.com>
-Source: sqlite-autoconf-3160000.tar.gz
+Source: sqlite-autoconf-3260000.tar.gz
 License: PUBLICDOMAIN
 Type: ipkg
 Description:  SQLite is a small C library that implements a self-contained, embeddable,
@@ -20373,7 +20381,7 @@ Etienne CHAMPETIER <champetier.etienne@gmail.com>
 
 Package: sqlite3-cli
 Submenu: database
-Version: 3160000-1
+Version: 3260000-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libsqlite3 +libncurses +libreadline
 Conflicts: 
 Menu-Depends: 
@@ -20384,7 +20392,7 @@ Category: Utilities
 Repository: base
 Title: SQLite (v3.x) database engine (cli)
 Maintainer: Etienne CHAMPETIER <champetier.etienne@gmail.com>
-Source: sqlite-autoconf-3160000.tar.gz
+Source: sqlite-autoconf-3260000.tar.gz
 License: PUBLICDOMAIN
 Type: ipkg
 Description:  SQLite is a small C library that implements a self-contained, embeddable,
@@ -20446,7 +20454,7 @@ Dmitry V. Zimin <pfzim@mail.ru>
 
 Source-Makefile: feeds/packages/libs/tiff/Makefile
 Package: libtiff
-Version: 4.0.6-2
+Version: 4.0.10-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libjpeg
 Conflicts: 
 Menu-Depends: 
@@ -20456,17 +20464,17 @@ Category: Libraries
 Repository: base
 Title: TIFF library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: tiff-4.0.6.tar.gz
+Source: tiff-4.0.10.tar.gz
 License: BSD
 LicenseFiles: COPYRIGHT
 Type: ipkg
 Description: TIFF library
-http://www.remotesensing.org/libtiff/
+http://simplesystems.org/libtiff/
 Jiri Slachta <jiri@slachta.eu>
 @@
 
 Package: libtiffxx
-Version: 4.0.6-2
+Version: 4.0.10-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtiff +USE_UCLIBCXX:uclibcxx +USE_LIBSTDCXX:libstdcpp
 Conflicts: 
 Menu-Depends: 
@@ -20476,18 +20484,18 @@ Category: Libraries
 Repository: base
 Title: TIFF library(c++ bindings)
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: tiff-4.0.6.tar.gz
+Source: tiff-4.0.10.tar.gz
 License: BSD
 LicenseFiles: COPYRIGHT
 Type: ipkg
 Description: TIFF library(c++ bindings)
-http://www.remotesensing.org/libtiff/
+http://simplesystems.org/libtiff/
 Jiri Slachta <jiri@slachta.eu>
 @@
 
 Package: tiff-utils
 Submenu: Image Manipulation
-Version: 4.0.6-2
+Version: 4.0.10-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtiff
 Conflicts: 
 Menu-Depends: 
@@ -20497,12 +20505,12 @@ Category: Utilities
 Repository: base
 Title: TIFF utilities
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: tiff-4.0.6.tar.gz
+Source: tiff-4.0.10.tar.gz
 License: BSD
 LicenseFiles: COPYRIGHT
 Type: ipkg
 Description: TIFF utilities
-http://www.remotesensing.org/libtiff/
+http://simplesystems.org/libtiff/
 Jiri Slachta <jiri@slachta.eu>
 @@
 
@@ -25670,7 +25678,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Source-Makefile: feeds/packages/multimedia/minidlna/Makefile
 Package: minidlna
-Version: 1.1.5-2
+Version: 1.1.5-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +libexif +libjpeg +libsqlite3 +libffmpeg +libid3tag +libflac +libvorbis +libuuid +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -25887,20 +25895,20 @@ Toke Høiland-Jørgensen <toke@toke.dk>
 
 Source-Makefile: feeds/packages/net/adblock/Makefile
 Package: adblock
-Version: 2.6.2-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Version: 3.4.3-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +jshn +jsonfilter
 Conflicts: 
 Menu-Depends: 
 Provides: 
 Section: net
 Category: Network
 Repository: base
-Title: Powerful adblock script to block ad/abuse domains
+Title: Powerful adblock script to block ad/abuse domains by using DNS
 Maintainer: Dirk Brenken <dev@brenken.org>
 Source: 
 License: GPL-3.0+
 Type: ipkg
-Description: Powerful adblock script to block ad/abuse domains via dnsmasq or unbound dns backend.
+Description: Powerful adblock script to block ad/abuse domains via dnsmasq, unbound, named, kresd or dnscrypt-proxy.
 The script supports many domain blacklist sites plus manual black- and whitelist overrides.
 Please see https://github.com/openwrt/packages/blob/master/net/adblock/files/README.md for further information.
 
@@ -26195,7 +26203,7 @@ Config:
 Source-Makefile: feeds/packages/net/ariang/Makefile
 Package: ariang
 Submenu: Download Manager
-Version: 2019-10-08-d924dcc3670e471469930b6c9435f03427a72351-1
+Version: 1.1.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +uhttpd
 Conflicts: 
 Menu-Depends: 
@@ -26205,18 +26213,18 @@ Category: Network
 Repository: base
 Title: AriaNg webui for uhttpd webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-2019-10-08-d924dcc3670e471469930b6c9435f03427a72351.tar.xz
+Source: ariang-1.1.7.tar.gz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
 Description: 	AriaNg is a web frontend making aria2 easier to use. AriaNg is written in pure html & javascript, thus it does not need any compilers or runtime environment.
-https://github.com/mayswind/AriaNg
+https://ariang.mayswind.net
 Ansuel Smith <ansuelsmth@gmail.com>
 @@
 
 Package: ariang-nginx
 Submenu: Download Manager
-Version: 2019-10-08-d924dcc3670e471469930b6c9435f03427a72351-1
+Version: 1.1.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +nginx
 Conflicts: 
 Menu-Depends: 
@@ -26226,12 +26234,12 @@ Category: Network
 Repository: base
 Title: AriaNg webui for nginx webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-2019-10-08-d924dcc3670e471469930b6c9435f03427a72351.tar.xz
+Source: ariang-1.1.7.tar.gz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
 Description: 	AriaNg is a web frontend making aria2 easier to use. AriaNg is written in pure html & javascript, thus it does not need any compilers or runtime environment.
-https://github.com/mayswind/AriaNg
+https://ariang.mayswind.net
 Ansuel Smith <ansuelsmth@gmail.com>
 @@
 
@@ -27393,7 +27401,7 @@ Daniel Gimpelevich <daniel@gimpelevich.san-francisco.ca.us>
 Source-Makefile: feeds/packages/net/fastd/Makefile
 Package: fastd
 Submenu: VPN
-Version: 18-2
+Version: 18-2.1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-tun +librt +libpthread +libuecc +FASTD_WITH_STATUS_SOCKET:libjson-c +FASTD_WITH_CAPABILITIES:libcap
 Conflicts: 
 Menu-Depends: 
@@ -27409,7 +27417,7 @@ License: BSD-2-Clause
 LicenseFiles: COPYRIGHT
 Type: ipkg
 Description:  Fast and secure tunneling daemon, which is optimized on small code size and few dependencies
-https://projects.universe-factory.net/projects/fastd
+https://github.com/NeoRaider/fastd/
 Matthias Schiffer <mschiffer@universe-factory.net>
 @@
 Config:
@@ -29943,8 +29951,8 @@ Tijs Van Buggenhout <tvbuggen@netzerk.be>
 
 Source-Makefile: feeds/packages/net/https-dns-proxy/Makefile
 Package: https_dns_proxy
-Version: 2017-01-07-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcares +libcurl +libev
+Version: 2018-01-24-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcares +libcurl +libev +ca-bundle
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -29953,7 +29961,7 @@ Category: Network
 Repository: base
 Title: DNS over HTTPS proxy server
 Maintainer: Aaron Drew <aarond10@gmail.com>
-Source: https_dns_proxy-2017-01-07.tar.xz
+Source: https_dns_proxy-2018-01-24.tar.xz
 License: MIT
 Type: ipkg
 Description: DNS over HTTPS proxy server
@@ -30554,7 +30562,7 @@ Antony Antony <antony@phenome.org>
 
 Source-Makefile: feeds/packages/net/jool/Makefile
 Package: jool
-Version: 2016.12.17-1
+Version: 2016.12.17-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-jool +jool-tools
 Conflicts: 
 Menu-Depends: 
@@ -30576,7 +30584,7 @@ Dan Luedtke <mail@danrl.com>
 
 Package: kmod-jool
 Submenu: Network Support
-Version: <LINUX_VERSION>+2016.12.17-1
+Version: <LINUX_VERSION>+2016.12.17-3
 Depends: @IPV6 +kmod-crypto-md5 +kmod-nf-conntrack +kmod-nf-conntrack6
 Conflicts: 
 Menu-Depends: 
@@ -30597,7 +30605,7 @@ Description:     Jool is an Open Source SIIT and NAT64 for Linux.
 @@
 
 Package: jool-tools
-Version: 2016.12.17-1
+Version: 2016.12.17-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl +ethtool
 Conflicts: 
 Menu-Depends: 
@@ -31179,7 +31187,7 @@ Source-Makefile: feeds/packages/net/lighttpd/Makefile
 Package: lighttpd
 Menu: 1
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +LIGHTTPD_SSL:libopenssl +libpcre +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -31189,7 +31197,7 @@ Category: Network
 Repository: base
 Title: A flexible and lightweight web server
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31210,7 +31218,7 @@ config LIGHTTPD_SSL
 
 Package: lighttpd-mod-redirect
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +PACKAGE_lighttpd-mod-redirect:libpcre
 Conflicts: 
 Menu-Depends: 
@@ -31220,7 +31228,7 @@ Category: Network
 Repository: base
 Title: URL redirection module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31231,7 +31239,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-auth
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31241,7 +31249,7 @@ Category: Network
 Repository: base
 Title: Authentication module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31252,7 +31260,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-authn_file
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31262,7 +31270,7 @@ Category: Network
 Repository: base
 Title: File-based authentication module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31273,7 +31281,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-access
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31283,7 +31291,7 @@ Category: Network
 Repository: base
 Title: Access restrictions module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31294,7 +31302,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-accesslog
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31304,7 +31312,7 @@ Category: Network
 Repository: base
 Title: Access logging module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31315,7 +31323,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-alias
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31325,7 +31333,7 @@ Category: Network
 Repository: base
 Title: Directory alias module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31336,7 +31344,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-cgi
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31346,7 +31354,7 @@ Category: Network
 Repository: base
 Title: CGI module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31357,7 +31365,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-cml
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +liblua
 Conflicts: 
 Menu-Depends: 
@@ -31367,7 +31375,7 @@ Category: Network
 Repository: base
 Title: Cache Meta Language module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31378,7 +31386,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-compress
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +PACKAGE_lighttpd-mod-compress:zlib
 Conflicts: 
 Menu-Depends: 
@@ -31388,7 +31396,7 @@ Category: Network
 Repository: base
 Title: Compress output module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31399,7 +31407,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-evasive
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31409,7 +31417,7 @@ Category: Network
 Repository: base
 Title: Evasive module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31420,7 +31428,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-evhost
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31430,7 +31438,7 @@ Category: Network
 Repository: base
 Title: Exnhanced Virtual-Hosting module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31441,7 +31449,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-expire
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31451,7 +31459,7 @@ Category: Network
 Repository: base
 Title: Expire module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31462,7 +31470,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-extforward
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31472,7 +31480,7 @@ Category: Network
 Repository: base
 Title: Extract client module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31483,7 +31491,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-fastcgi
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31493,7 +31501,7 @@ Category: Network
 Repository: base
 Title: FastCGI module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31504,7 +31512,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-flv_streaming
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31514,7 +31522,7 @@ Category: Network
 Repository: base
 Title: FLV streaming module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31525,7 +31533,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-magnet
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +liblua
 Conflicts: 
 Menu-Depends: 
@@ -31535,7 +31543,7 @@ Category: Network
 Repository: base
 Title: Magnet module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31546,7 +31554,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-mysql_vhost
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +PACKAGE_lighttpd-mod-mysql_vhost:libmysqlclient
 Conflicts: 
 Menu-Depends: 
@@ -31556,7 +31564,7 @@ Category: Network
 Repository: base
 Title: Mysql virtual hosting module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31567,7 +31575,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-proxy
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31577,7 +31585,7 @@ Category: Network
 Repository: base
 Title: Proxy module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31588,7 +31596,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-rewrite
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +PACKAGE_lighttpd-mod-rewrite:libpcre
 Conflicts: 
 Menu-Depends: 
@@ -31598,7 +31606,7 @@ Category: Network
 Repository: base
 Title: URL rewriting module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31609,7 +31617,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-rrdtool
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31619,7 +31627,7 @@ Category: Network
 Repository: base
 Title: RRDtool module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31630,7 +31638,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-scgi
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31640,7 +31648,7 @@ Category: Network
 Repository: base
 Title: SCGI module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31651,7 +31659,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-secdownload
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31661,7 +31669,7 @@ Category: Network
 Repository: base
 Title: Secure and fast download module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31672,7 +31680,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-setenv
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31682,7 +31690,7 @@ Category: Network
 Repository: base
 Title: Environment variable setting module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31693,7 +31701,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-simple_vhost
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31703,7 +31711,7 @@ Category: Network
 Repository: base
 Title: Simple virtual hosting module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31714,7 +31722,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-ssi
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +libpcre
 Conflicts: 
 Menu-Depends: 
@@ -31724,7 +31732,7 @@ Category: Network
 Repository: base
 Title: SSI module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31735,7 +31743,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-status
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31745,7 +31753,7 @@ Category: Network
 Repository: base
 Title: Server status display module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31756,7 +31764,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-userdir
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31766,7 +31774,7 @@ Category: Network
 Repository: base
 Title: User directory module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31777,7 +31785,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-usertrack
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
 Conflicts: 
 Menu-Depends: 
@@ -31787,7 +31795,7 @@ Category: Network
 Repository: base
 Title: User tracking module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
@@ -31798,7 +31806,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Package: lighttpd-mod-webdav
 Submenu: Web Servers/Proxies
-Version: 1.4.45-3
+Version: 1.4.48-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd +PACKAGE_lighttpd-mod-webdav:libsqlite3 +PACKAGE_lighttpd-mod-webdav:libuuid +PACKAGE_lighttpd-mod-webdav:libxml2
 Conflicts: 
 Menu-Depends: 
@@ -31808,11 +31816,32 @@ Category: Network
 Repository: base
 Title: WebDAV module
 Maintainer: W. Michael Petullo <mike@flyn.org>
-Source: lighttpd-1.4.45.tar.xz
+Source: lighttpd-1.4.48.tar.xz
 License: BSD-3c
 LicenseFiles: COPYING
 Type: ipkg
 Description: WebDAV module
+http://www.lighttpd.net/
+W. Michael Petullo <mike@flyn.org>
+@@
+
+Package: lighttpd-mod-wstunnel
+Submenu: Web Servers/Proxies
+Version: 1.4.48-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lighttpd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: Websocket tunneling module
+Maintainer: W. Michael Petullo <mike@flyn.org>
+Source: lighttpd-1.4.48.tar.xz
+License: BSD-3c
+LicenseFiles: COPYING
+Type: ipkg
+Description: Websocket tunneling module
 http://www.lighttpd.net/
 W. Michael Petullo <mike@flyn.org>
 @@
@@ -32281,7 +32310,7 @@ Luke McKee <hojuruku@gmail.com>
 Source-Makefile: feeds/packages/net/miniupnpc/Makefile
 Package: miniupnpc
 Submenu: Firewall
-Version: 2.1.20190824-1
+Version: 2.0.20170509-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libminiupnpc
 Conflicts: 
 Menu-Depends: 
@@ -32291,17 +32320,15 @@ Category: Network
 Repository: base
 Title: Lightweight UPnP client
 Maintainer: Steven Barth <cyrus@openwrt.org>
-Source: miniupnpc-2.1.20190824.tar.gz
-License: BSD-3-Clause
-LicenseFiles: LICENSE
+Source: miniupnpc-2.0.20170509.tar.gz
 Type: ipkg
 Description: Lightweight UPnP client
-https://miniupnp.tuxfamily.org
+http://miniupnp.tuxfamily.org/
 Steven Barth <cyrus@openwrt.org>
 @@
 
 Package: libminiupnpc
-Version: 2.1.20190824-1
+Version: 2.0.20170509-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -32311,19 +32338,17 @@ Category: Libraries
 Repository: base
 Title: Lightweight UPnP library
 Maintainer: Steven Barth <cyrus@openwrt.org>
-Source: miniupnpc-2.1.20190824.tar.gz
-License: BSD-3-Clause
-LicenseFiles: LICENSE
+Source: miniupnpc-2.0.20170509.tar.gz
 Type: ipkg
 Description: Lightweight UPnP library
-https://miniupnp.tuxfamily.org
+http://miniupnp.tuxfamily.org/
 Steven Barth <cyrus@openwrt.org>
 @@
 
 
 Source-Makefile: feeds/packages/net/mosquitto/Makefile
 Package: mosquitto-ssl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid +libopenssl +MOSQUITTO_LWS:libwebsockets-openssl
 Conflicts: 
 Menu-Depends: 
@@ -32335,7 +32360,7 @@ Repository: base
 Title: mosquitto - an MQTT message broker (with SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -32353,7 +32378,7 @@ Config:
 @@
 
 Package: mosquitto-nossl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid
 Conflicts: 
 Menu-Depends: 
@@ -32365,7 +32390,7 @@ Repository: base
 Title: mosquitto - an MQTT message broker (without SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -32380,7 +32405,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: libmosquitto-ssl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt +libcares +libopenssl
 Conflicts: 
 Menu-Depends: 
@@ -32392,7 +32417,7 @@ Repository: base
 Title: mosquitto - client library (With SSL Support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -32408,7 +32433,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: libmosquitto-nossl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt +libcares
 Conflicts: 
 Menu-Depends: 
@@ -32420,7 +32445,7 @@ Repository: base
 Title: mosquitto - client library (Without SSL Support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -32436,7 +32461,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: libmosquittopp
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libmosquitto-ssl +libstdcpp
 Conflicts: 
 Menu-Depends: 
@@ -32446,7 +32471,7 @@ Category: Libraries
 Repository: base
 Title: mosquitto - client c++ library
 Maintainer: 
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -32455,7 +32480,7 @@ Description:  C++ Library wrapper for libmosquitto.
 @@
 
 Package: mosquitto-client-ssl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid +libcares +libmosquitto-ssl
 Conflicts: 
 Menu-Depends: 
@@ -32467,7 +32492,7 @@ Repository: base
 Title: mosquitto - client tools (With SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -32479,7 +32504,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: mosquitto-client-nossl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid +libcares +libmosquitto-nossl
 Conflicts: 
 Menu-Depends: 
@@ -32491,7 +32516,7 @@ Repository: base
 Title: mosquitto - client tools (Without SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -32996,7 +33021,7 @@ Claudio Leite <leitec@staticky.com>
 
 Source-Makefile: feeds/packages/net/nlbwmon/Makefile
 Package: nlbwmon
-Version: 2017-08-02-32fc0925cbc30a4a8f71392e976aa94b586c4086-1
+Version: 2019-06-06-4574e6e80e3a5ab8de65886baa0d563dfee589ff-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libubox +libnl-tiny +zlib +kmod-nf-conntrack-netlink
 Conflicts: 
 Menu-Depends: 
@@ -33006,7 +33031,7 @@ Category: Network
 Repository: base
 Title: LEDE Traffic Usage Monitor
 Maintainer: Jo-Philipp Wich <jo@mein.io>
-Source: nlbwmon-2017-08-02-32fc0925cbc30a4a8f71392e976aa94b586c4086.tar.xz
+Source: nlbwmon-2019-06-06-4574e6e80e3a5ab8de65886baa0d563dfee589ff.tar.xz
 License: ISC
 LicenseFiles: COPYING
 Type: ipkg
@@ -36145,7 +36170,7 @@ Config:
 
 Source-Makefile: feeds/packages/net/socat/Makefile
 Package: socat
-Version: 1.7.3.1-1
+Version: 1.7.3.1-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt +SOCAT_SSL:libopenssl
 Conflicts: 
 Menu-Depends: 
@@ -36187,6 +36212,7 @@ Conflicts:
 Menu-Depends: 
 Provides: 
 Build-Depends: softethervpn/host !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Build-Depends/host: readline/host
 Build-Types: host
 Section: net
 Category: Network
@@ -36274,7 +36300,7 @@ Toke Høiland-Jørgensen <toke@toke.dk>
 Package: luci-app-sqm
 Submenu: 3. Applications
 Version: 1.1.3-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +lua +luci-base +sqm-scripts
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lua luci-base +sqm-scripts
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -38447,7 +38473,7 @@ Maxim Storchak <m.storchak@gmail.com>
 Source-Makefile: feeds/packages/net/tinc/Makefile
 Package: tinc
 Submenu: VPN
-Version: 1.0.30-1
+Version: 1.0.35-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +liblzo +libopenssl +kmod-tun +zlib
 Conflicts: 
 Menu-Depends: 
@@ -38457,7 +38483,7 @@ Category: Network
 Repository: base
 Title: VPN tunneling daemon
 Maintainer: Saverio Proto <zioproto@gmail.com>
-Source: tinc-1.0.30.tar.gz
+Source: tinc-1.0.35.tar.gz
 Type: ipkg
 Description:   tinc is a Virtual Private Network (VPN) daemon that uses tunnelling and
   encryption to create a secure private network between hosts on the Internet.
@@ -38590,21 +38616,21 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 
 Source-Makefile: feeds/packages/net/transmission/Makefile
-Package: transmission-daemon-openssl
+Package: transmission-daemon
 Submenu: BitTorrent
-Version: 2.94-7
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +libopenssl
+Version: 3.00-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Variant: openssl
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
 Section: net
 Category: Network
 Repository: base
-Title: BitTorrent client (with OpenSSL)
+Title: BitTorrent client
 Maintainer: Rosen Penev <rosenp@gmail.com>
 Require-User: transmission=224:transmission=224
-Source: transmission-2.94.tar.xz
+Source: transmission-3.00.tar.xz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -38616,46 +38642,20 @@ http://www.transmissionbt.com
 Rosen Penev <rosenp@gmail.com>
 @@
 
-Package: transmission-daemon-mbedtls
+Package: transmission-cli
 Submenu: BitTorrent
-Version: 2.94-7
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +libmbedtls
+Version: 3.00-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Variant: mbedtls
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
 Section: net
 Category: Network
 Repository: base
-Title: BitTorrent client (with mbed TLS)
+Title: BitTorrent client (utilities)
 Maintainer: Rosen Penev <rosenp@gmail.com>
-Require-User: transmission=224:transmission=224
-Source: transmission-2.94.tar.xz
-License: GPL-2.0+
-LicenseFiles: COPYING
-Type: ipkg
-Description:  Transmission is a simple BitTorrent client.
- It features a very simple, intuitive interface
- on top on an efficient, cross-platform back-end.
- This package contains the daemon itself.
-http://www.transmissionbt.com
-Rosen Penev <rosenp@gmail.com>
-@@
-
-Package: transmission-cli-openssl
-Submenu: BitTorrent
-Version: 2.94-7
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +libopenssl
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Variant: openssl
-Section: net
-Category: Network
-Repository: base
-Title: BitTorrent client (with OpenSSL)
-Maintainer: Rosen Penev <rosenp@gmail.com>
-Source: transmission-2.94.tar.xz
+Source: transmission-3.00.tar.xz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -38664,64 +38664,20 @@ http://www.transmissionbt.com
 Rosen Penev <rosenp@gmail.com>
 @@
 
-Package: transmission-cli-mbedtls
+Package: transmission-remote
 Submenu: BitTorrent
-Version: 2.94-7
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +libmbedtls
+Version: 3.00-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Variant: mbedtls
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
 Section: net
 Category: Network
 Repository: base
-Title: BitTorrent client (with mbed TLS)
+Title: BitTorrent client (remote)
 Maintainer: Rosen Penev <rosenp@gmail.com>
-Source: transmission-2.94.tar.xz
-License: GPL-2.0+
-LicenseFiles: COPYING
-Type: ipkg
-Description:  CLI utilities for transmission.
-http://www.transmissionbt.com
-Rosen Penev <rosenp@gmail.com>
-@@
-
-Package: transmission-remote-openssl
-Submenu: BitTorrent
-Version: 2.94-7
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +libopenssl
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Variant: openssl
-Section: net
-Category: Network
-Repository: base
-Title: BitTorrent client (with OpenSSL)
-Maintainer: Rosen Penev <rosenp@gmail.com>
-Source: transmission-2.94.tar.xz
-License: GPL-2.0+
-LicenseFiles: COPYING
-Type: ipkg
-Description:  CLI remote interface for transmission.
-http://www.transmissionbt.com
-Rosen Penev <rosenp@gmail.com>
-@@
-
-Package: transmission-remote-mbedtls
-Submenu: BitTorrent
-Version: 2.94-7
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ca-bundle +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +libmbedtls
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Variant: mbedtls
-Section: net
-Category: Network
-Repository: base
-Title: BitTorrent client (with mbed TLS)
-Maintainer: Rosen Penev <rosenp@gmail.com>
-Source: transmission-2.94.tar.xz
+Source: transmission-3.00.tar.xz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -38732,17 +38688,18 @@ Rosen Penev <rosenp@gmail.com>
 
 Package: transmission-web
 Submenu: BitTorrent
-Version: 2.94-7
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(PACKAGE_transmission-daemon-openssl||PACKAGE_transmission-daemon-mbedtls)
+Version: 3.00-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +transmission-daemon
 Conflicts: 
 Menu-Depends: 
 Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
 Section: net
 Category: Network
 Repository: base
 Title: BitTorrent client (webinterface)
 Maintainer: Rosen Penev <rosenp@gmail.com>
-Source: transmission-2.94.tar.xz
+Source: transmission-3.00.tar.xz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -38755,7 +38712,7 @@ Rosen Penev <rosenp@gmail.com>
 Source-Makefile: feeds/packages/net/transmission-web-control/Makefile
 Package: transmission-web-control
 Submenu: BitTorrent
-Version: 2019-07-24-c27e3ba9f08148f79fb4121d8a1f5906640ff8d6-2
+Version: 2021-02-02-4e0c781669af2f27d959dce80cb4956303375568-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +transmission-daemon
 Conflicts: transmission-web
 Menu-Depends: 
@@ -38765,7 +38722,7 @@ Category: Network
 Repository: base
 Title: Transmission Web Control
 Maintainer: Richard Yu <yurichard3839@gmail.com>
-Source: transmission-web-control-2019-07-24-c27e3ba9f08148f79fb4121d8a1f5906640ff8d6.tar.xz
+Source: transmission-web-control-2021-02-02-4e0c781669af2f27d959dce80cb4956303375568.tar.xz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -38777,8 +38734,8 @@ Richard Yu <yurichard3839@gmail.com>
 
 Source-Makefile: feeds/packages/net/travelmate/Makefile
 Package: travelmate
-Version: 0.3.2-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Version: 1.0.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +iwinfo +jshn +jsonfilter
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -38983,7 +38940,7 @@ https://github.com/pcherenkov/udpxy
 Source-Makefile: feeds/packages/net/ulogd/Makefile
 Package: ulogd
 Menu: 1
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libmnl +libnfnetlink +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -39004,7 +38961,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-dbi
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libdbi
 Conflicts: 
 Menu-Depends: 
@@ -39025,7 +38982,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-json
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +jansson
 Conflicts: 
 Menu-Depends: 
@@ -39046,7 +39003,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-mysql
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libmysqlclient
 Conflicts: 
 Menu-Depends: 
@@ -39067,7 +39024,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-nfacct
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-acct
 Conflicts: 
 Menu-Depends: 
@@ -39088,7 +39045,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-nfct
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-conntrack
 Conflicts: 
 Menu-Depends: 
@@ -39109,7 +39066,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-nflog
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-log
 Conflicts: 
 Menu-Depends: 
@@ -39130,7 +39087,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-pcap
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libpcap
 Conflicts: 
 Menu-Depends: 
@@ -39151,7 +39108,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-pgsql
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libpq
 Conflicts: 
 Menu-Depends: 
@@ -39172,7 +39129,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-sqlite
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libsqlite3
 Conflicts: 
 Menu-Depends: 
@@ -39193,7 +39150,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-syslog
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd
 Conflicts: 
 Menu-Depends: 
@@ -39214,7 +39171,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-xml
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd +libnetfilter-acct +libnetfilter-conntrack +libnetfilter-log
 Conflicts: 
 Menu-Depends: 
@@ -39235,7 +39192,7 @@ Nicolas Thill <nico@openwrt.org>
 @@
 
 Package: ulogd-mod-extra
-Version: 2.0.5-1
+Version: 2.0.5-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread ulogd
 Conflicts: 
 Menu-Depends: 
@@ -39305,140 +39262,134 @@ Martin Johansson <martin@fatbob.nu>
 Source-Makefile: feeds/packages/net/unbound/Makefile
 Package: unbound
 Submenu: IP Addresses and Names
-Version: 1.6.5-1
+Version: 1.6.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libunbound
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libexpat
 Section: net
 Category: Network
 Repository: base
 Title: Validating Recursive DNS Server (daemon)
-Maintainer: Eric Luehrsen <ericluehrsen@hotmail.com>
+Maintainer: Eric Luehrsen <ericluehrsen@gmail.com>
 Require-User: unbound=553:unbound=553
-Source: unbound-1.6.5.tar.gz
+Source: unbound-1.6.8.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description:   This package contains the Unbound daemon.
 http://www.unbound.net/
-Eric Luehrsen <ericluehrsen@hotmail.com>
+Eric Luehrsen <ericluehrsen@gmail.com>
 @@
 
 Package: unbound-anchor
 Submenu: IP Addresses and Names
-Version: 1.6.5-1
+Version: 1.6.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +unbound +libexpat
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libexpat
 Section: net
 Category: Network
 Repository: base
 Title: Validating Recursive DNS Server (DSKEY utility)
-Maintainer: Eric Luehrsen <ericluehrsen@hotmail.com>
-Source: unbound-1.6.5.tar.gz
+Maintainer: Eric Luehrsen <ericluehrsen@gmail.com>
+Source: unbound-1.6.8.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description:   This package contains the Unbound anchor utility.
 http://www.unbound.net/
-Eric Luehrsen <ericluehrsen@hotmail.com>
+Eric Luehrsen <ericluehrsen@gmail.com>
 @@
 
 Package: unbound-control
 Submenu: IP Addresses and Names
-Version: 1.6.5-1
+Version: 1.6.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +unbound
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libexpat
 Section: net
 Category: Network
 Repository: base
 Title: Validating Recursive DNS Server (control utility)
-Maintainer: Eric Luehrsen <ericluehrsen@hotmail.com>
-Source: unbound-1.6.5.tar.gz
+Maintainer: Eric Luehrsen <ericluehrsen@gmail.com>
+Source: unbound-1.6.8.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description:   This package contains the Unbound control utility.
 http://www.unbound.net/
-Eric Luehrsen <ericluehrsen@hotmail.com>
+Eric Luehrsen <ericluehrsen@gmail.com>
 @@
 
 Package: unbound-control-setup
 Submenu: IP Addresses and Names
-Version: 1.6.5-1
+Version: 1.6.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +unbound-control +openssl-util
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libexpat
 Section: net
 Category: Network
 Repository: base
 Title: Validating Recursive DNS Server (control setup)
-Maintainer: Eric Luehrsen <ericluehrsen@hotmail.com>
-Source: unbound-1.6.5.tar.gz
+Maintainer: Eric Luehrsen <ericluehrsen@gmail.com>
+Source: unbound-1.6.8.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description:   This package contains the Unbound control setup utility.
 http://www.unbound.net/
-Eric Luehrsen <ericluehrsen@hotmail.com>
+Eric Luehrsen <ericluehrsen@gmail.com>
 @@
 
 Package: unbound-host
 Submenu: IP Addresses and Names
-Version: 1.6.5-1
+Version: 1.6.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libunbound
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libexpat
 Section: net
 Category: Network
 Repository: base
 Title: Validating Recursive DNS Server (lookup utility)
-Maintainer: Eric Luehrsen <ericluehrsen@hotmail.com>
-Source: unbound-1.6.5.tar.gz
+Maintainer: Eric Luehrsen <ericluehrsen@gmail.com>
+Source: unbound-1.6.8.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description:   This package contains the Unbound DNS lookup utility.
 http://www.unbound.net/
-Eric Luehrsen <ericluehrsen@hotmail.com>
+Eric Luehrsen <ericluehrsen@gmail.com>
 @@
 
 Package: libunbound
-Version: 1.6.5-1
+Version: 1.6.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libpthread
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libexpat
 Section: libs
 Category: Libraries
 Repository: base
 Title: Validating Recursive DNS Server (library)
-Maintainer: Eric Luehrsen <ericluehrsen@hotmail.com>
-Source: unbound-1.6.5.tar.gz
+Maintainer: Eric Luehrsen <ericluehrsen@gmail.com>
+Source: unbound-1.6.8.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description:   This package contains the Unbound shared library.
 http://www.unbound.net/
-Eric Luehrsen <ericluehrsen@hotmail.com>
+Eric Luehrsen <ericluehrsen@gmail.com>
 @@
 
 
 Source-Makefile: feeds/packages/net/usbip/Makefile
 Package: usbip
-Version: 5
+Version: 6
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @USB_SUPPORT +libwrap +kmod-usbip +eudev
 Conflicts: 
 Menu-Depends: 
@@ -39457,7 +39408,7 @@ Nuno Goncalves <nunojpg@gmail.com>
 @@
 
 Package: usbip-client
-Version: 5
+Version: 6
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @USB_SUPPORT usbip +kmod-usbip-client
 Conflicts: 
 Menu-Depends: 
@@ -39476,7 +39427,7 @@ Nuno Goncalves <nunojpg@gmail.com>
 @@
 
 Package: usbip-server
-Version: 5
+Version: 6
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @USB_SUPPORT usbip +kmod-usbip-server
 Conflicts: 
 Menu-Depends: 
@@ -39592,7 +39543,7 @@ Jo-Philipp Wich <jo@mein.io>
 Source-Makefile: feeds/packages/net/vpnc/Makefile
 Package: vpnc
 Submenu: VPN
-Version: 0.5.3.r550-5
+Version: 0.5.3.r550-7
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgpg-error +libgcrypt +kmod-tun +VPNC_OPENSSL:libopenssl +VPNC_GNUTLS:libgnutls +vpnc-scripts +resolveip
 Conflicts: 
 Menu-Depends: 
@@ -39736,7 +39687,7 @@ Hsing-Wang Liao <kuoruan@gmail.com>
 Source-Makefile: feeds/packages/net/wget/Makefile
 Package: wget
 Submenu: File Transfer
-Version: 1.18-2
+Version: 1.19.2-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpcre +zlib +libopenssl +librt
 Conflicts: 
 Menu-Depends: 
@@ -39746,8 +39697,8 @@ Section: net
 Category: Network
 Repository: base
 Title: Non-interactive network downloader (with SSL support)
-Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: wget-1.18.tar.xz
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: wget-1.19.2.tar.gz
 License: GPL-3.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -39759,12 +39710,12 @@ Description:  Wget is a network utility to retrieve files from the Web using htt
  archives and home pages or to travel the Web like a WWW robot.
  This package is built with SSL support.
 http://www.gnu.org/software/wget/index.html
-Maxim Storchak <m.storchak@gmail.com>
+Peter Wagner <tripolar@gmx.at>
 @@
 
 Package: wget-nossl
 Submenu: File Transfer
-Version: 1.18-2
+Version: 1.19.2-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpcre +zlib
 Conflicts: 
 Menu-Depends: 
@@ -39774,8 +39725,8 @@ Section: net
 Category: Network
 Repository: base
 Title: Non-interactive network downloader (without SSL support)
-Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: wget-1.18.tar.xz
+Maintainer: Peter Wagner <tripolar@gmx.at>
+Source: wget-1.19.2.tar.gz
 License: GPL-3.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -39787,7 +39738,7 @@ Description:  Wget is a network utility to retrieve files from the Web using htt
  archives and home pages or to travel the Web like a WWW robot.
  This package is built without SSL support.
 http://www.gnu.org/software/wget/index.html
-Maxim Storchak <m.storchak@gmail.com>
+Peter Wagner <tripolar@gmx.at>
 @@
 
 
@@ -42201,6 +42152,45 @@ Description:  At and batch read shell commands from standard input storing them 
  be scheduled for execution in the future.
 http://packages.debian.org/stable/at
 Phil Eichinger <phil@zankapfel.net>
+@@
+
+
+Source-Makefile: feeds/packages/utils/attendedsysupgrade-common/Makefile
+Package: attendedsysupgrade-common
+Version: 0.1-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +rpcd +rpcd-mod-rpcsys
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Base system
+Repository: base
+Title: Common files neede by attendedsysupgrade packages
+Maintainer: Paul Spooren <paul@spooren.de>
+Source: 
+License: GPL-2.0
+Type: ipkg
+Description: 	Common needed files for attendedsysupgrade tool
+
+	Manages dependencies and brings settings used by clients.
+
+	UCI options:
+
+	attendedsysupgrade.server.url
+	URL of compatible upgrade server [1]
+
+	attendedsysupgrade.client.upgrade_packages
+	Client should request image also if no new release but new packages upgrade are available.
+
+	attendedsysupgrade.client.advanced_mode
+	Offer advanced options like editing packages before request and show additional information.
+
+	attendedsysupgrade.client.auto_search
+	Tells the client to automattically search for upgrades
+	This can be done when opening luci or login in to console - depends on client.
+
+	[1]: https://github.com/aparcar/gsoc17-attended-sysupgrade
+Paul Spooren <paul@spooren.de>
 @@
 
 
@@ -46883,7 +46873,7 @@ http://fontconfig.org/
 
 Source-Makefile: feeds/packages/utils/gammu/Makefile
 Package: gammu
-Version: 1.37.4-1
+Version: 1.37.4-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +libcurl +glib2 +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full +PACKAGE_python:python +PACKAGE_bluez-libs:bluez-libs +PACKAGE_libmysqlclient:libmysqlclient +PACKAGE_unixodbc:unixodbc +PACKAGE_libpq:libpq +PACKAGE_libusb-1.0:libusb-1.0
 Conflicts: 
 Menu-Depends: 
@@ -56824,6 +56814,25 @@ License: GPL-3.0
 Type: ipkg
 Description: 	Tools for the Tracer MPPT solar charge controller.
 Daniel Golle <daniel@makrotopia.org>
+@@
+
+
+Source-Makefile: feeds/packages/utils/tree/Makefile
+Package: tree
+Version: 1.7.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgcc
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: List contents of directories in a tree-like format
+Maintainer: Banglang Huang <banglang.huang@foxmail.com>
+Source: tree-1.7.0.tgz
+Type: ipkg
+Description: List contents of directories in a tree-like format
+Banglang Huang <banglang.huang@foxmail.com>
 @@
 
 

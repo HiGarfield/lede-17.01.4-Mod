@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/net/usbip/Makefile
 Package: usbip
-Version: 5
+Version: 6
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @USB_SUPPORT +libwrap +kmod-usbip +eudev
 Conflicts: 
 Menu-Depends: 
@@ -19,7 +19,7 @@ Nuno Goncalves <nunojpg@gmail.com>
 @@
 
 Package: usbip-client
-Version: 5
+Version: 6
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @USB_SUPPORT usbip +kmod-usbip-client
 Conflicts: 
 Menu-Depends: 
@@ -38,7 +38,7 @@ Nuno Goncalves <nunojpg@gmail.com>
 @@
 
 Package: usbip-server
-Version: 5
+Version: 6
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @USB_SUPPORT usbip +kmod-usbip-server
 Conflicts: 
 Menu-Depends: 

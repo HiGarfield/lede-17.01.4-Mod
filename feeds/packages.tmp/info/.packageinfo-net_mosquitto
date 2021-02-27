@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/net/mosquitto/Makefile
 Package: mosquitto-ssl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid +libopenssl +MOSQUITTO_LWS:libwebsockets-openssl
 Conflicts: 
 Menu-Depends: 
@@ -12,7 +12,7 @@ Repository: base
 Title: mosquitto - an MQTT message broker (with SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -30,7 +30,7 @@ Config:
 @@
 
 Package: mosquitto-nossl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid
 Conflicts: 
 Menu-Depends: 
@@ -42,7 +42,7 @@ Repository: base
 Title: mosquitto - an MQTT message broker (without SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -57,7 +57,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: libmosquitto-ssl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt +libcares +libopenssl
 Conflicts: 
 Menu-Depends: 
@@ -69,7 +69,7 @@ Repository: base
 Title: mosquitto - client library (With SSL Support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -85,7 +85,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: libmosquitto-nossl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread +librt +libcares
 Conflicts: 
 Menu-Depends: 
@@ -97,7 +97,7 @@ Repository: base
 Title: mosquitto - client library (Without SSL Support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -113,7 +113,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: libmosquittopp
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libmosquitto-ssl +libstdcpp
 Conflicts: 
 Menu-Depends: 
@@ -123,7 +123,7 @@ Category: Libraries
 Repository: base
 Title: mosquitto - client c++ library
 Maintainer: 
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -132,7 +132,7 @@ Description:  C++ Library wrapper for libmosquitto.
 @@
 
 Package: mosquitto-client-ssl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid +libcares +libmosquitto-ssl
 Conflicts: 
 Menu-Depends: 
@@ -144,7 +144,7 @@ Repository: base
 Title: mosquitto - client tools (With SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg
@@ -156,7 +156,7 @@ Karl Palsson <karlp@etactica.com>
 @@
 
 Package: mosquitto-client-nossl
-Version: 1.4.14-1
+Version: 1.4.15-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +librt +libuuid +libcares +libmosquitto-nossl
 Conflicts: 
 Menu-Depends: 
@@ -168,7 +168,7 @@ Repository: base
 Title: mosquitto - client tools (Without SSL support)
 Maintainer: Karl Palsson <karlp@etactica.com>
 Require-User: mosquitto=200:mosquitto=200
-Source: mosquitto-1.4.14.tar.gz
+Source: mosquitto-1.4.15.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE.txt
 Type: ipkg

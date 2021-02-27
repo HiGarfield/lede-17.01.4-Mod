@@ -118,8 +118,8 @@ Description:     Translation for luci-app-voice-core - English
 
 @@
 
-Package: luci-i18n-voice-core-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-voice-core-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-core
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-core - pl translation
+Title: luci-app-voice-core - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-core - Polski (Polish)
+Description:     Translation for luci-app-voice-core - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-voice-core - Tiếng Việt (Vietnames
 
 @@
 
-Package: luci-i18n-voice-core-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-voice-core-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-core
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-core - he translation
+Title: luci-app-voice-core - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-core - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-voice-core - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-voice-core - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-voice-core-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-core
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-voice-core - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-voice-core - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-voice-core-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-voice-core - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-voice-core-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-core
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-voice-core - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-voice-core - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-voice-core - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-voice-core-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-voice-core-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-core
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-core - de translation
+Title: luci-app-voice-core - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-core - Deutsch (German)
+Description:     Translation for luci-app-voice-core - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-voice-core - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-voice-core-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-voice-core-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-voice-core
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-voice-core - el translation
+Title: luci-app-voice-core - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-voice-core - Ελληνικά (Greek)
+Description:     Translation for luci-app-voice-core - Português do Brasil (Brazialian Portuguese)
 
 @@
 

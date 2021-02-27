@@ -7,6 +7,7 @@ Conflicts:
 Menu-Depends: 
 Provides: 
 Build-Depends: softethervpn/host !BUILD_NLS:libiconv !BUILD_NLS:libintl
+Build-Depends/host: readline/host
 Build-Types: host
 Section: net
 Category: Network

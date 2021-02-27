@@ -143,6 +143,30 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
+Package: python3-decimal
+Submenu: Python
+Version: 3.6.0-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python3/host
+Build-Depends/host: bzip2/host expat/host libffi/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 3.6 decimal module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-3.6.0.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 3.6 decimal module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
 Package: python3-multiprocessing
 Submenu: Python
 Version: 3.6.0-2
@@ -215,10 +239,10 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-gdbm
+Package: python3-xml
 Submenu: Python
 Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +libgdbm
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -228,13 +252,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 3.6 gdbm module
+Title: Python 3.6 xml libs
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-3.6.0.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 3.6 gdbm module
+Description: Python 3.6 xml libs
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -263,10 +287,10 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-xml
+Package: python3-gdbm
 Submenu: Python
 Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +libgdbm
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -276,37 +300,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 3.6 xml libs
+Title: Python 3.6 gdbm module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-3.6.0.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 3.6 xml libs
-https://www.python.org/
-Alexandru Ardelean <ardeleanalex@gmail.com>
-@@
-
-Package: python3-distutils
-Submenu: Python
-Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: python3/host
-Build-Depends/host: bzip2/host expat/host libffi/host
-Build-Types: host
-Section: lang
-Category: Languages
-Repository: base
-Title: Python 3.6 distutils module
-Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-3.6.0.tar.xz
-License: PSF
-LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
-Type: ipkg
-Description: Python 3.6 distutils module
+Description: Python 3.6 gdbm module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -331,6 +331,30 @@ License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
 Description: Python 3.6 email module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-distutils
+Submenu: Python
+Version: 3.6.0-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python3/host
+Build-Depends/host: bzip2/host expat/host libffi/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 3.6 distutils module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-3.6.0.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 3.6 distutils module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -383,30 +407,6 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-asyncio
-Submenu: Python
-Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: python3/host
-Build-Depends/host: bzip2/host expat/host libffi/host
-Build-Types: host
-Section: lang
-Category: Languages
-Repository: base
-Title: Python 3.6 asyncio module
-Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-3.6.0.tar.xz
-License: PSF
-LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
-Type: ipkg
-Description: Python 3.6 asyncio module
-https://www.python.org/
-Alexandru Ardelean <ardeleanalex@gmail.com>
-@@
-
 Package: python3-lzma
 Submenu: Python
 Version: 3.6.0-2
@@ -431,7 +431,7 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-decimal
+Package: python3-asyncio
 Submenu: Python
 Version: 3.6.0-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
@@ -444,13 +444,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 3.6 decimal module
+Title: Python 3.6 asyncio module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-3.6.0.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 3.6 decimal module
+Description: Python 3.6 asyncio module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -509,7 +509,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 Package: python3
 Submenu: Python
 Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +python3-unittest +python3-ncurses +python3-ctypes +python3-pydoc +python3-logging +python3-multiprocessing +python3-codecs +python3-gdbm +python3-sqlite3 +python3-xml +python3-distutils +python3-email +python3-openssl +python3-dbm +python3-asyncio +python3-lzma +python3-decimal
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +python3-unittest +python3-ncurses +python3-ctypes +python3-pydoc +python3-logging +python3-decimal +python3-multiprocessing +python3-codecs +python3-xml +python3-sqlite3 +python3-gdbm +python3-email +python3-distutils +python3-openssl +python3-dbm +python3-lzma +python3-asyncio
 Conflicts: 
 Menu-Depends: 
 Provides: 

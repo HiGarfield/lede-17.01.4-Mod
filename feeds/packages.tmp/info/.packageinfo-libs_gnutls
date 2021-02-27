@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/libs/gnutls/Makefile
 Package: certtool
 Submenu: Encryption
-Version: 3.5.13-1
+Version: 3.5.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgnutls
 Conflicts: 
 Menu-Depends: 
@@ -11,7 +11,7 @@ Category: Utilities
 Repository: base
 Title: GNU TLS (certool utility)
 Maintainer: Nikos Mavrogiannopoulos <nmav@gnutls.org>
-Source: gnutls-3.5.13.tar.xz
+Source: gnutls-3.5.16.tar.xz
 License: LGPLv2.1+
 Type: ipkg
 Description:  GnuTLS is a secure communications library implementing the SSL, TLS
@@ -27,7 +27,7 @@ Nikos Mavrogiannopoulos <nmav@gnutls.org>
 
 Package: gnutls-utils
 Submenu: Encryption
-Version: 3.5.13-1
+Version: 3.5.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgnutls
 Conflicts: 
 Menu-Depends: 
@@ -37,7 +37,7 @@ Category: Utilities
 Repository: base
 Title: GNU TLS (utilities)
 Maintainer: Nikos Mavrogiannopoulos <nmav@gnutls.org>
-Source: gnutls-3.5.13.tar.xz
+Source: gnutls-3.5.16.tar.xz
 License: LGPLv2.1+
 Type: ipkg
 Description:  GnuTLS is a secure communications library implementing the SSL, TLS
@@ -54,7 +54,7 @@ Nikos Mavrogiannopoulos <nmav@gnutls.org>
 
 Package: libgnutls
 Submenu: SSL
-Version: 3.5.13-1
+Version: 3.5.16-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnettle +!LIBNETTLE_MINI:libgmp +GNUTLS_EXT_LIBTASN1:libtasn1 +GNUTLS_PKCS11:p11-kit +GNUTLS_CRYPTODEV:kmod-cryptodev
 Conflicts: 
 Menu-Depends: 
@@ -64,7 +64,7 @@ Category: Libraries
 Repository: base
 Title: GNU TLS (library)
 Maintainer: Nikos Mavrogiannopoulos <nmav@gnutls.org>
-Source: gnutls-3.5.13.tar.xz
+Source: gnutls-3.5.16.tar.xz
 License: LGPLv2.1+
 Type: ipkg
 Description:  GnuTLS is a secure communications library implementing the SSL, TLS

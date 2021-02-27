@@ -118,8 +118,8 @@ Description:     Translation for luci-app-freifunk-policyrouting - English
 
 @@
 
-Package: luci-i18n-freifunk-policyrouting-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-freifunk-policyrouting-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-freifunk-policyrouting
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-freifunk-policyrouting - pl translation
+Title: luci-app-freifunk-policyrouting - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-freifunk-policyrouting - Polski (Polish)
+Description:     Translation for luci-app-freifunk-policyrouting - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-freifunk-policyrouting - Tiếng Việ
 
 @@
 
-Package: luci-i18n-freifunk-policyrouting-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-freifunk-policyrouting-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-freifunk-policyrouting
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-freifunk-policyrouting - he translation
+Title: luci-app-freifunk-policyrouting - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-freifunk-policyrouting - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-freifunk-policyrouting - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-freifunk-policyrouting - Norsk (Norweg
 
 @@
 
-Package: luci-i18n-freifunk-policyrouting-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-freifunk-policyrouting
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-freifunk-policyrouting - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-freifunk-policyrouting - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-freifunk-policyrouting-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-freifunk-policyrouting - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-freifunk-policyrouting-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-freifunk-policyrouting
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-freifunk-policyrouting - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-freifunk-policyrouting - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-freifunk-policyrouting - 中文 (Chine
 
 @@
 
-Package: luci-i18n-freifunk-policyrouting-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-freifunk-policyrouting-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-freifunk-policyrouting
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-freifunk-policyrouting - de translation
+Title: luci-app-freifunk-policyrouting - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-freifunk-policyrouting - Deutsch (German)
+Description:     Translation for luci-app-freifunk-policyrouting - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-freifunk-policyrouting - 日本語 (Ja
 
 @@
 
-Package: luci-i18n-freifunk-policyrouting-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-freifunk-policyrouting-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-freifunk-policyrouting
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-freifunk-policyrouting - el translation
+Title: luci-app-freifunk-policyrouting - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-freifunk-policyrouting - Ελληνικά (Greek)
+Description:     Translation for luci-app-freifunk-policyrouting - Português do Brasil (Brazialian Portuguese)
 
 @@
 

@@ -118,8 +118,8 @@ Description:     Translation for luci-app-olsr - English
 
 @@
 
-Package: luci-i18n-olsr-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-olsr-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-olsr
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-olsr - pl translation
+Title: luci-app-olsr - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-olsr - Polski (Polish)
+Description:     Translation for luci-app-olsr - Ελληνικά (Greek)
 
 @@
 
@@ -198,8 +198,8 @@ Description:     Translation for luci-app-olsr - Tiếng Việt (Vietnamese)
 
 @@
 
-Package: luci-i18n-olsr-he
-Default: LUCI_LANG_he||(ALL&&m)
+Package: luci-i18n-olsr-de
+Default: LUCI_LANG_de||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-olsr
 Conflicts: 
@@ -209,12 +209,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-olsr - he translation
+Title: luci-app-olsr - de translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-olsr - עִבְרִית (Hebrew)
+Description:     Translation for luci-app-olsr - Deutsch (German)
 
 @@
 
@@ -238,26 +238,6 @@ Description:     Translation for luci-app-olsr - Norsk (Norwegian)
 
 @@
 
-Package: luci-i18n-olsr-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-olsr
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-olsr - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-olsr - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-olsr-ms
 Default: LUCI_LANG_ms||(ALL&&m)
 Version: x-1
@@ -275,6 +255,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-olsr - Bahasa Melayu (Malay)
+
+@@
+
+Package: luci-i18n-olsr-pl
+Default: LUCI_LANG_pl||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-olsr
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-olsr - pl translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-olsr - Polski (Polish)
 
 @@
 
@@ -298,8 +298,8 @@ Description:     Translation for luci-app-olsr - 中文 (Chinese)
 
 @@
 
-Package: luci-i18n-olsr-de
-Default: LUCI_LANG_de||(ALL&&m)
+Package: luci-i18n-olsr-he
+Default: LUCI_LANG_he||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-olsr
 Conflicts: 
@@ -309,12 +309,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-olsr - de translation
+Title: luci-app-olsr - he translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-olsr - Deutsch (German)
+Description:     Translation for luci-app-olsr - עִבְרִית (Hebrew)
 
 @@
 
@@ -398,8 +398,8 @@ Description:     Translation for luci-app-olsr - 日本語 (Japanese)
 
 @@
 
-Package: luci-i18n-olsr-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-olsr-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-olsr
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-olsr - el translation
+Title: luci-app-olsr - pt-br translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-olsr - Ελληνικά (Greek)
+Description:     Translation for luci-app-olsr - Português do Brasil (Brazialian Portuguese)
 
 @@
 

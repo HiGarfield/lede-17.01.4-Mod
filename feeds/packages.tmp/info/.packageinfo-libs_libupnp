@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/libs/libupnp/Makefile
 Package: libupnp
 Menu: 1
-Version: 1.6.19-2
+Version: 1.8.6-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -11,7 +11,9 @@ Category: Libraries
 Repository: base
 Title: UPnP SDK library
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: libupnp-1.6.19.tar.bz2
+Source: libupnp-1.8.6.tar.bz2
+License: BSD-3-Clause
+LicenseFiles: COPYING
 Type: ipkg
 Description: The portable SDK for UPnP Devices (libupnp) provides developers with an API and
 open source code for building control points, devices, and bridges that are
@@ -22,7 +24,7 @@ Ted Hess <thess@kitschensync.net>
 @@
 
 Package: libupnp-sample
-Version: 1.6.19-2
+Version: 1.8.6-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread libupnp
 Conflicts: 
 Menu-Depends: 
@@ -32,7 +34,9 @@ Category: Libraries
 Repository: base
 Title: UPnP sample applications
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: libupnp-1.6.19.tar.bz2
+Source: libupnp-1.8.6.tar.bz2
+License: BSD-3-Clause
+LicenseFiles: COPYING
 Type: ipkg
 Description: TVcontrolpoint & tvdevice sample applications run inside /etc/upnp-tvdevice/
 http://pupnp.sourceforge.net/

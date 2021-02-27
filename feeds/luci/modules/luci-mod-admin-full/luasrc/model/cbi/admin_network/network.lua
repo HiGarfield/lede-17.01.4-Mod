@@ -46,6 +46,12 @@ if fs.access("/etc/init.d/dsl_control") then
 	line_mode:value("adsl", translate("ADSL"))
 	line_mode:value("vdsl", translate("VDSL"))
 
+	ds_snr = dsl:option(ListValue, "ds_snr_offset", translate("Downstream SNR offset"))
+	ds_snr.default = "0"
+	for i = -100, 100, 5 do
+		ds_snr:value(i, translatef("%.1f dB", i / 10))
+	end
+
 	firmware = dsl:option(Value, "firmware", translate("Firmware File"))
 
 	m.pageaction = true

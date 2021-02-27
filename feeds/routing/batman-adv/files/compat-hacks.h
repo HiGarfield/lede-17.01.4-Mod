@@ -192,6 +192,35 @@ static inline int batadv_nla_put_u64_64bit(struct sk_buff *skb, int attrtype,
 
 #endif /* < KERNEL_VERSION(4, 7, 0) */
 
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0)
+
+static inline void *batadv_skb_put(struct sk_buff *skb, unsigned int len)
+{
+	return (void *)skb_put(skb, len);
+}
+#define skb_put batadv_skb_put
+
+static inline void *skb_put_zero(struct sk_buff *skb, unsigned int len)
+{
+	void *tmp = skb_put(skb, len);
+
+	memset(tmp, 0, len);
+
+	return tmp;
+}
+
+static inline void *skb_put_data(struct sk_buff *skb, const void *data,
+				 unsigned int len)
+{
+	void *tmp = skb_put(skb, len);
+
+	memcpy(tmp, data, len);
+
+	return tmp;
+}
+
+#endif /* < KERNEL_VERSION(4, 13, 0) */
+
 
 #if LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)
 
@@ -204,3 +233,22 @@ static inline int batadv_nla_put_u64_64bit(struct sk_buff *skb, int attrtype,
 #define __ro_after_init
 
 #endif /* < KERNEL_VERSION(4, 10, 0) */
+
+
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4, 18, 0)
+
+#include <net/cfg80211.h>
+
+/* cfg80211 fix: https://patchwork.kernel.org/patch/10449857/ */
+static inline int batadv_cfg80211_get_station(struct net_device *dev,
+					      const u8 *mac_addr,
+					      struct station_info *sinfo)
+{
+	memset(sinfo, 0, sizeof(*sinfo));
+	return cfg80211_get_station(dev, mac_addr, sinfo);
+}
+
+#define cfg80211_get_station(dev, mac_addr, sinfo) \
+	batadv_cfg80211_get_station(dev, mac_addr, sinfo)
+
+#endif /* < KERNEL_VERSION(4, 18, 0) */

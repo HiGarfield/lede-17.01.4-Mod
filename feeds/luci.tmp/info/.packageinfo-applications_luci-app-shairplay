@@ -18,26 +18,6 @@ Description: LuCI Support for Shairplay
 
 @@
 
-Package: luci-i18n-shairplay-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-shairplay
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-shairplay - pt-br translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-shairplay - Português do Brasil (Brazialian Portuguese)
-
-@@
-
 Package: luci-i18n-shairplay-ja
 Default: LUCI_LANG_ja||(ALL&&m)
 Version: x-1
@@ -55,6 +35,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-shairplay - 日本語 (Japanese)
+
+@@
+
+Package: luci-i18n-shairplay-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-shairplay
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-shairplay - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-shairplay - Português do Brasil (Brazialian Portuguese)
 
 @@
 

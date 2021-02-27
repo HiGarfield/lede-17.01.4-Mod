@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/libs/p11-kit/Makefile
 Package: p11-kit
-Version: 0.23.1-1
+Version: 0.23.1-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtasn1 +libpthread
 Conflicts: 
 Menu-Depends: 

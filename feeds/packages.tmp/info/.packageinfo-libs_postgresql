@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/libs/postgresql/Makefile
 Package: libpq
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libreadline +libpthread +libncursesw
 Conflicts: 
 Menu-Depends: 
@@ -13,7 +13,7 @@ Category: Libraries
 Repository: base
 Title: PostgreSQL client library
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: PostgreSQL client library.
@@ -23,7 +23,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: pgsql-cli
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpq +librt
 Conflicts: 
 Menu-Depends: 
@@ -35,7 +35,7 @@ Category: Utilities
 Repository: base
 Title: Command Line Interface (CLI) to PostgreSQL databases
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: Command Line Interface (CLI) to PostgreSQL databases.
@@ -45,7 +45,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: pgsql-cli-extra
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpq +librt
 Conflicts: 
 Menu-Depends: 
@@ -57,7 +57,7 @@ Category: Utilities
 Repository: base
 Title: Command Line extras for PostgreSQL databases
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: Command Line extras for PostgreSQL databases.
@@ -67,7 +67,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: pgsql-server
 Submenu: database
-Version: 9.5.4-4
+Version: 9.5.14-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpq +librt +pgsql-cli
 Conflicts: 
 Menu-Depends: 
@@ -80,7 +80,7 @@ Repository: base
 Title: PostgreSQL databases Server
 Maintainer: Daniel Golle <daniel@makrotopia.org>
 Require-User: postgres=5432:postgres=5432
-Source: postgresql-9.5.4.tar.bz2
+Source: postgresql-9.5.14.tar.bz2
 License: PostgreSQL
 Type: ipkg
 Description: PostgreSQL databases Server.
