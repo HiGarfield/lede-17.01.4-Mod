@@ -221,7 +221,7 @@
  * @par
  * \b Note: When validating the attributes using nlmsg_validate() or
  * nlmsg_parse() it will only affect the top level attributes. Each
- * level of nested attributes must be validated seperately using
+ * level of nested attributes must be validated separately using
  * nla_parse_nested() or nla_validate().
  * @par
  * @code

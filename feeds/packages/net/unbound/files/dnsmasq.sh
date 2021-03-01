@@ -149,7 +149,7 @@ dnsmasq_forward_zone() {
     for fwd_domain in $UNBOUND_TXT_FWD_ZONE ; do
       {
         # This is derived of dnsmasq_local_zone/arpa
-        # but forward: clauses need to be seperate
+        # but forward: clauses need to be separate
         echo "forward-zone:"
         echo "  name: \"$fwd_domain.\""
 
@@ -174,7 +174,7 @@ dnsmasq_link() {
   config_foreach dnsmasq_local_zone dnsmasq
   # Zone for DHCP / SLAAC-PING ARPA
   config_foreach dnsmasq_local_arpa dhcp
-  # Now create ALL seperate forward: clauses
+  # Now create ALL separate forward: clauses
   dnsmasq_forward_zone
 }
 
