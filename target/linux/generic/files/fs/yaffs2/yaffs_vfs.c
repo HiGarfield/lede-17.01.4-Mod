@@ -2664,7 +2664,7 @@ static int yaffs_parse_options(struct yaffs_options *options,
 	int p;
 	int error = 0;
 
-	/* Parse through the options which is a comma seperated list */
+	/* Parse through the options which is a comma separated list */
 
 	while (options_str && *options_str && !error) {
 		memset(cur_opt, 0, MAX_OPT_LEN + 1);
