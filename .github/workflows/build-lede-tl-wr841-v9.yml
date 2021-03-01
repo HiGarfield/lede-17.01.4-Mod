@@ -87,12 +87,6 @@ jobs:
           asset_name: ${{ env.LEDE_OUTPUT_NAME }}.zip
           asset_content_type: application/zip
 
-      - name: Delete workflow runs
-        uses: HiGarfield/delete-workflow-runs@main
-        with:
-          retain_days: 3
-          keep_minimum_runs: ${{ env.TOTAL_KEEP_NUMBER }}
-
       - name: Remove old releases
         uses: HiGarfield/delete-older-releases@v0.1.0
         with:
