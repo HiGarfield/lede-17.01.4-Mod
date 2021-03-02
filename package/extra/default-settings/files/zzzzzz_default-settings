@@ -4,7 +4,7 @@ cat >/etc/sysctl.d/99-tuning.conf <<-EOF
 	net.ipv4.tcp_fastopen = 3
 EOF
 
-mem="$(awk '/^MemTotal:/ {print $2}' /proc/meminfo)"
+mem="$(awk '/^MemTotal:/{print $2}' /proc/meminfo)"
 if [ "$mem" -gt 65536 ]; then
 	rmem=$((mem * 48))
 	wmem=$((mem * 48))
@@ -49,7 +49,7 @@ EOF
 sed -i '/log-facility=/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >>/etc/dnsmasq.conf
 
-sed -i '/REDIRECT --to-ports 53$/d' /etc/firewall.user
+sed -i '/REDIRECT\s\s*--to-ports\s\s*53\s*$/d' /etc/firewall.user
 {
 	echo ""
 	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53"
@@ -59,21 +59,27 @@ sed -i '/^\s*$/d' /etc/firewall.user
 echo "" >>/etc/firewall.user
 
 #####################防止LAN与WAN网段重合#########################
-
 lan_ip=$(uci -q get network.lan.ipaddr)
 
-[ -n "$lan_ip" ] && {
-	/etc/init.d/network restart
+if [ -n "$lan_ip" ]; then
+	wan_proto="$(uci -q get network.wan.proto)"
+	need_detect=1
+	if [ "$wan_proto" = "dhcp" ]; then
+		/etc/init.d/network restart
+		for i in $(seq 1 15); do
+			sleep 1
+			wan_up=$(ifstatus wan | jsonfilter -e '@["up"]')
+			[ x"$wan_up" = x"true" ] || continue
+			wan_ip=$(ifstatus wan | jsonfilter -e '@["ipv4-address"][0].address')
+			[ -n "$wan_ip" ] && break
+		done
+	elif [ "$wan_proto" = "static" ]; then
+		wan_ip="$(uci -q get network.wan.ipaddr)"
+	else
+		need_detect=0
+	fi
 
-	for i in $(seq 1 10); do
-		wan_up=$(ifstatus wan | jsonfilter -e '@["up"]')
-		wan_ip=$(ifstatus wan | jsonfilter -e '@["ipv4-address"][0].address')
-		lan_up=$(ifstatus lan | jsonfilter -e '@["up"]')
-		[ "$wan_up" = "true" ] && [ "$lan_up" = "true" ] && [ -n "$wan_ip" ] && break
-		sleep 2
-	done
-
-	[ "$wan_up" = "true" ] && [ "$lan_up" = "true" ] && [ -n "$wan_ip" ] && {
+	if [ "$need_detect" -eq 1 ] && [ -n "$wan_ip" ]; then
 		wan_ip1=$(echo "$wan_ip" | cut -d '.' -f1)
 		wan_ip2=$(echo "$wan_ip" | cut -d '.' -f2)
 		wan_ip3=$(echo "$wan_ip" | cut -d '.' -f3)
@@ -83,21 +89,20 @@ lan_ip=$(uci -q get network.lan.ipaddr)
 		lan_ip3=$(echo "$lan_ip" | cut -d '.' -f3)
 		lan_ip4=$(echo "$lan_ip" | cut -d '.' -f4)
 
-		[ "$wan_ip1" -eq "$lan_ip1" ] &&
-			[ "$wan_ip2" -eq "$lan_ip2" ] &&
-			[ "$wan_ip3" -eq "$lan_ip3" ] && {
+		if [ "$wan_ip1.$wan_ip2.$wan_ip3" = "$lan_ip1.$lan_ip2.$lan_ip3" ]; then
 			lan_ip3=$(((lan_ip3 + 1) % 255))
-			lan_ip=$lan_ip1.$lan_ip2.$lan_ip3.$lan_ip4
+			lan_ip="$lan_ip1.$lan_ip2.$lan_ip3.$lan_ip4"
 			uci -q batch <<-EOF >/dev/null
 				set network.lan.ipaddr=$lan_ip
 				commit network.lan.ipaddr
 			EOF
-		}
-	}
-}
-#####################防止LAN与WAN网段重合#########################
+		fi
+	fi
+fi
+##################### 防止LAN与WAN网段重合 结束 #########################
 
-ula_prefix=2d$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | hexdump -e '1/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')::/48
+# ula_prefix=2d$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | hexdump -e '1/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')::/48
+ula_prefix=''
 
 uci -q batch <<-EOF >/dev/null
 	set dhcp.lan.ra='server'
