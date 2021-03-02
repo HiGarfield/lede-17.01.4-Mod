@@ -213,7 +213,7 @@ static void fe_clean_rx(struct fe_priv *priv)
 		for (i = 0; i < ring->rx_ring_size; i++)
 			if (ring->rx_data[i]) {
 				if (ring->rx_dma && ring->rx_dma[i].rxd1)
-					dma_unmap_single(priv->device,
+					dma_unmap_single(priv->dev,
 							 ring->rx_dma[i].rxd1,
 							 ring->rx_buf_size,
 							 DMA_FROM_DEVICE);
@@ -225,7 +225,7 @@ static void fe_clean_rx(struct fe_priv *priv)
 	}
 
 	if (ring->rx_dma) {
-		dma_free_coherent(priv->device,
+		dma_free_coherent(priv->dev,
 				  ring->rx_ring_size * sizeof(*ring->rx_dma),
 				  ring->rx_dma,
 				  ring->rx_phys);
@@ -258,7 +258,7 @@ static int fe_alloc_rx(struct fe_priv *priv)
 			goto no_rx_mem;
 	}
 
-	ring->rx_dma = dma_alloc_coherent(priv->device,
+	ring->rx_dma = dma_alloc_coherent(priv->dev,
 			ring->rx_ring_size * sizeof(*ring->rx_dma),
 			&ring->rx_phys,
 			GFP_ATOMIC | __GFP_ZERO);
@@ -270,11 +270,11 @@ static int fe_alloc_rx(struct fe_priv *priv)
 	else
 		pad = NET_IP_ALIGN;
 	for (i = 0; i < ring->rx_ring_size; i++) {
-		dma_addr_t dma_addr = dma_map_single(priv->device,
+		dma_addr_t dma_addr = dma_map_single(priv->dev,
 				ring->rx_data[i] + NET_SKB_PAD + pad,
 				ring->rx_buf_size,
 				DMA_FROM_DEVICE);
-		if (unlikely(dma_mapping_error(priv->device, dma_addr)))
+		if (unlikely(dma_mapping_error(priv->dev, dma_addr)))
 			goto no_rx_mem;
 		ring->rx_dma[i].rxd1 = (unsigned int)dma_addr;
 
@@ -328,7 +328,7 @@ static void fe_txd_unmap(struct device *dev, struct fe_tx_buf *tx_buf)
 static void fe_clean_tx(struct fe_priv *priv)
 {
 	int i;
-	struct device *dev = priv->device;
+	struct device *dev = priv->dev;
 	struct fe_tx_ring *ring = &priv->tx_ring;
 
 	if (ring->tx_buf) {
@@ -364,7 +364,7 @@ static int fe_alloc_tx(struct fe_priv *priv)
 	if (!ring->tx_buf)
 		goto no_tx_mem;
 
-	ring->tx_dma = dma_alloc_coherent(priv->device,
+	ring->tx_dma = dma_alloc_coherent(priv->dev,
 			ring->tx_ring_size * sizeof(*ring->tx_dma),
 			&ring->tx_phys,
 			GFP_ATOMIC | __GFP_ZERO);
@@ -610,9 +610,9 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 		}
 	}
 
-	mapped_addr = dma_map_single(priv->device, skb->data,
+	mapped_addr = dma_map_single(priv->dev, skb->data,
 				     skb_headlen(skb), DMA_TO_DEVICE);
-	if (unlikely(dma_mapping_error(priv->device, mapped_addr)))
+	if (unlikely(dma_mapping_error(priv->dev, mapped_addr)))
 		goto err_out;
 	txd.txd1 = mapped_addr;
 	txd.txd2 = TX_DMA_PLEN0(skb_headlen(skb));
@@ -711,7 +711,7 @@ err_dma:
 		tx_buf = &ring->tx_buf[j];
 
 		/* unmap dma */
-		fe_txd_unmap(priv->device, tx_buf);
+		fe_txd_unmap(priv->dev, tx_buf);
 
 		ptxd->txd2 = TX_DMA_DESP2_DEF;
 		j = NEXT_TX_DESP_IDX(j);
@@ -854,11 +854,11 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 			stats->rx_dropped++;
 			goto release_desc;
 		}
-		dma_addr = dma_map_single(priv->device,
+		dma_addr = dma_map_single(priv->dev,
 					  new_data + NET_SKB_PAD + pad,
 					  ring->rx_buf_size,
 					  DMA_FROM_DEVICE);
-		if (unlikely(dma_mapping_error(priv->device, dma_addr))) {
+		if (unlikely(dma_mapping_error(priv->dev, dma_addr))) {
 			skb_free_frag(new_data);
 			goto release_desc;
 		}
@@ -871,7 +871,7 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 		}
 		skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
 
-		dma_unmap_single(priv->device, trxd.rxd1,
+		dma_unmap_single(priv->dev, trxd.rxd1,
 				 ring->rx_buf_size, DMA_FROM_DEVICE);
 		pktlen = RX_DMA_GET_PLEN0(trxd.rxd2);
 		skb->dev = netdev;
@@ -942,7 +942,7 @@ static int fe_poll_tx(struct fe_priv *priv, int budget, u32 tx_intr,
 			done++;
 			budget--;
 		}
-		fe_txd_unmap(priv->device, tx_buf);
+		fe_txd_unmap(priv->dev, tx_buf);
 		idx = NEXT_TX_DESP_IDX(idx);
 	}
 	ring->tx_free_idx = idx;
@@ -1171,8 +1171,8 @@ static int fe_hw_init(struct net_device *dev)
 	struct fe_priv *priv = netdev_priv(dev);
 	int i, err;
 
-	err = devm_request_irq(priv->device, dev->irq, fe_handle_irq, 0,
-			       dev_name(priv->device), dev);
+	err = devm_request_irq(priv->dev, dev->irq, fe_handle_irq, 0,
+			       dev_name(priv->dev), dev);
 	if (err)
 		return err;
 
@@ -1268,14 +1268,14 @@ static int __init fe_init(struct net_device *dev)
 			return -ENODEV;
 		}
 
-	mac_addr = of_get_mac_address(priv->device->of_node);
+	mac_addr = of_get_mac_address(priv->dev->of_node);
 	if (mac_addr)
 		ether_addr_copy(dev->dev_addr, mac_addr);
 
 	/* If the mac address is invalid, use random mac address  */
 	if (!is_valid_ether_addr(dev->dev_addr)) {
 		random_ether_addr(dev->dev_addr);
-		dev_err(priv->device, "generated random MAC address %pM\n",
+		dev_err(priv->dev, "generated random MAC address %pM\n",
 			dev->dev_addr);
 	}
 
@@ -1284,7 +1284,7 @@ static int __init fe_init(struct net_device *dev)
 		return err;
 
 	if (priv->soc->port_init)
-		for_each_child_of_node(priv->device->of_node, port)
+		for_each_child_of_node(priv->dev->of_node, port)
 			if (of_device_is_compatible(port, "mediatek,eth-port") &&
 			    of_device_is_available(port))
 				priv->soc->port_init(priv, port);
@@ -1559,7 +1559,7 @@ static int fe_probe(struct platform_device *pdev)
 	}
 
 	priv->netdev = netdev;
-	priv->device = &pdev->dev;
+	priv->dev = &pdev->dev;
 	priv->soc = soc;
 	priv->msg_enable = netif_msg_init(fe_msg_level, FE_DEFAULT_MSG_ENABLE);
 	priv->rx_ring.frag_size = fe_max_frag_size(ETH_DATA_LEN);
