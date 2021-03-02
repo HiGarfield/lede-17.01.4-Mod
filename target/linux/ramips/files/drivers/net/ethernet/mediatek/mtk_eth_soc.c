@@ -882,6 +882,11 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 			skb_checksum_none_assert(skb);
 		skb->protocol = eth_type_trans(skb, netdev);
 
+		if (netdev->features & NETIF_F_HW_VLAN_CTAG_RX &&
+		    RX_DMA_VID(trxd.rxd3))
+			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
+					       RX_DMA_VID(trxd.rxd3));
+
 		stats->rx_packets++;
 		stats->rx_bytes += pktlen;
 
@@ -1517,7 +1522,9 @@ static int fe_probe(struct platform_device *pdev)
 
 	if (soc->init_data)
 		soc->init_data(soc, netdev);
-	netdev->vlan_features = netdev->hw_features & ~NETIF_F_HW_VLAN_CTAG_TX;
+	netdev->vlan_features = netdev->hw_features &
+				~(NETIF_F_HW_VLAN_CTAG_TX |
+				  NETIF_F_HW_VLAN_CTAG_RX);
 	netdev->features |= netdev->hw_features;
 
 	/* fake rx vlan filter func. to support tx vlan offload func */
