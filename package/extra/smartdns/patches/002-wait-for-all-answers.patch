@@ -1,0 +1,20 @@
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -1606,7 +1606,7 @@ static int _dns_server_process_answer(struct dns_request *request, char *domain,
+ 					 "%d, minimum: %d",
+ 					 domain, request->qtype, request->soa.mname, request->soa.rname, request->soa.serial,
+ 					 request->soa.refresh, request->soa.retry, request->soa.expire, request->soa.minimum);
+-				if (atomic_inc_return(&request->soa_num) >= (dns_server_num() / 2)) {
++				if (atomic_inc_return(&request->soa_num) >= dns_server_num()) {
+ 					_dns_server_request_complete(request);
+ 				}
+ 			} break;
+@@ -1784,7 +1784,7 @@ static int _dns_server_get_answer(struct dns_request *request, struct dns_packet
+ 					 "%d, minimum: %d",
+ 					 request->domain, request->qtype, request->soa.mname, request->soa.rname, request->soa.serial,
+ 					 request->soa.refresh, request->soa.retry, request->soa.expire, request->soa.minimum);
+-				if (atomic_inc_return(&request->soa_num) >= (dns_server_num() / 2)) {
++				if (atomic_inc_return(&request->soa_num) >= dns_server_num()) {
+ 					_dns_server_request_complete(request);
+ 				}
+ 			} break;
