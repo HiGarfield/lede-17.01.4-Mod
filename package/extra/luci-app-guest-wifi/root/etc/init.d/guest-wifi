@@ -47,56 +47,6 @@ del_guest_wifi_cfg() {
 	EOF
 }
 
-boot() {
-	exit 0
-}
-
-start() {
-	mkdir -p /var/lock
-	lock /var/lock/guest-wifi.lock
-	[ $enabled = 1 ] && {
-		uci -q get network.lan.ipaddr >/dev/null || exit
-		[ $create = 1 ] && {
-			del_guest_wifi_cfg
-			add_interface
-			add_ssid
-			mod_dhcp
-			mod_fw
-			/etc/init.d/network restart
-		}
-		[ "$(uci -q get wireless.${interface_name}.disabled)" = "1" ] && {
-			uci del wireless.${interface_name}.disabled
-			uci commit wireless
-		}
-		wifi reload
-	}
-	lock -u /var/lock/guest-wifi.lock
-}
-
-stop() {
-	mkdir -p /var/lock
-	lock /var/lock/guest-wifi.lock
-	[ $enabled = 0 ] && {
-		if [ $create = 1 ]; then
-			del_guest_wifi_cfg
-			/etc/init.d/network restart
-		else
-			[ "$(uci -q get wireless.${interface_name}.disabled)" != "1" ] && {
-				uci set wireless.${interface_name}.disabled='1'
-				uci commit wireless
-			}
-		fi
-		wifi reload
-	}
-	lock -u /var/lock/guest-wifi.lock
-}
-
-restart() {
-	stop
-	sleep 2
-	start
-}
-
 add_interface() {
 	uci -q batch <<-EOF >/dev/null
 		set network.${interface_name}=interface
@@ -179,4 +129,48 @@ mod_fw() {
 
 		commit firewall
 	EOF
+}
+
+boot() {
+	exit 0
+}
+
+start() {
+	mkdir -p /var/lock
+	lock /var/lock/guest-wifi.lock
+	if [ $enabled = 0 ]; then
+		if [ $create = 1 ]; then
+			del_guest_wifi_cfg
+			/etc/init.d/network restart
+		else
+			[ "$(uci -q get wireless.${interface_name}.disabled)" != "1" ] && {
+				uci set wireless.${interface_name}.disabled='1'
+				uci commit wireless
+			}
+		fi
+	elif [ $enabled = 1 ]; then
+		uci -q get network.lan.ipaddr >/dev/null || exit
+		[ $create = 1 ] && {
+			del_guest_wifi_cfg
+			add_interface
+			add_ssid
+			mod_dhcp
+			mod_fw
+			/etc/init.d/network restart
+		}
+		[ "$(uci -q get wireless.${interface_name}.disabled)" = "1" ] && {
+			uci del wireless.${interface_name}.disabled
+			uci commit wireless
+		}
+	fi
+	wifi reload
+	lock -u /var/lock/guest-wifi.lock
+}
+
+stop() {
+	exit 0
+}
+
+restart() {
+	start
 }
