@@ -543,12 +543,16 @@ static void fast_classifier_send_genl_msg(int msg, struct fast_classifier_tuple 
 		return;
 	}
 
-	genlmsg_end(skb, msg_head);
+#if (LINUX_VERSION_CODE <= KERNEL_VERSION(3, 19 , 0))
+	rc = genlmsg_end(skb, msg_head);
 	if (rc < 0) {
 		genlmsg_cancel(skb, msg_head);
 		nlmsg_free(skb);
 		return;
 	}
+#else
+	genlmsg_end(skb, msg_head);
+#endif
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 13, 0))
 	rc = genlmsg_multicast(&fast_classifier_gnl_family, skb, 0, 0, GFP_ATOMIC);
