@@ -4,20 +4,29 @@
 START=00
 
 boot() {
-	start && exit 0
+	XBOOT=1 start
 }
 
-start(){
+start() {
+	[ "x$XBOOT" = "x1" ] || exit 0
 	local LEDE_INFO_DIR="/var/lede_info"
 	mkdir -p "$LEDE_INFO_DIR"
-	local cpu_model=`awk -F ': ' '/^system type|^Hardware/{print $2;exit}' "/proc/cpuinfo"`
-	[ -n "$cpu_model" ] &&  echo "$cpu_model" > "$LEDE_INFO_DIR/cpu_model"
-	local cpu_clock=`dmesg | awk -F 'CPU:|MHz' '/Clocks:/{print $2+0;exit}'`
-	[ -n "$cpu_clock" ] && echo "$cpu_clock" > "$LEDE_INFO_DIR/cpu_clock"
-	local ram_size=`dmesg | awk -F 'Memory: |K/|K available' '/Memory:.*available/{print $3/1024;exit}'`
-	[ -n "$ram_size" ] && echo "$ram_size" > "$LEDE_INFO_DIR/ram_size"
-	local ram_clock=`dmesg | awk -F 'DDR:|MHz' '/Clocks:/{print $3+0;exit}'`
-	[ -n "$ram_clock" ] && echo "$ram_clock" > "$LEDE_INFO_DIR/ram_clock"
-	local flash_size=`dmesg | awk -F '\\\\(| Kbytes' '/\\([0-9][0-9]* Kbytes\\)/{print $2/1024;exit}'`
-	[ -n "$flash_size" ] && echo "$flash_size" > "$LEDE_INFO_DIR/flash_size"
+	local cpu_model=$(awk -F ': ' '/^system type|^Hardware/{print $2;exit}' "/proc/cpuinfo")
+	[ -n "$cpu_model" ] && echo "$cpu_model" >"$LEDE_INFO_DIR/cpu_model"
+	local cpu_clock=$(dmesg | awk -F 'CPU:|MHz' '/Clocks:/{print $2+0;exit}')
+	[ -n "$cpu_clock" ] && echo "$cpu_clock" >"$LEDE_INFO_DIR/cpu_clock"
+	local ram_size=$(dmesg | awk -F 'Memory: |K/|K available' '/Memory:.*available/{print $3/1024;exit}')
+	[ -n "$ram_size" ] && echo "$ram_size" >"$LEDE_INFO_DIR/ram_size"
+	local ram_clock=$(dmesg | awk -F 'DDR:|MHz' '/Clocks:/{print $3+0;exit}')
+	[ -n "$ram_clock" ] && echo "$ram_clock" >"$LEDE_INFO_DIR/ram_clock"
+	local flash_size=$(dmesg | awk -F '\\(| Kbytes' '/\([0-9][0-9]* Kbytes\)/{print $2/1024;exit}')
+	[ -n "$flash_size" ] && echo "$flash_size" >"$LEDE_INFO_DIR/flash_size"
+}
+
+stop() {
+	exit 0
+}
+
+restart() {
+	exit 0
 }
