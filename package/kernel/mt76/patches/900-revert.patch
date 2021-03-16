@@ -1,6 +1,6 @@
 --- a/dma.c
 +++ b/dma.c
-@@ -564,8 +564,10 @@ mt76_dma_rx_poll(struct napi_struct *napi, int budget)
+@@ -566,8 +566,10 @@ mt76_dma_rx_poll(struct napi_struct *napi, int budget)
  	rcu_read_unlock();
  	local_bh_enable();
  
