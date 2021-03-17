@@ -1,16 +1,18 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=mt76
-PKG_RELEASE=2
+PKG_VERSION:=2020-08-22
+PKG_RELEASE:=3
 
 PKG_LICENSE:=GPLv2
 PKG_LICENSE_FILES:=
 
 PKG_SOURCE_URL:=https://github.com/openwrt/mt76
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2020-04-27
-PKG_SOURCE_VERSION:=5f3ccc7226272198c21ec934d9072a56b0953f47
-PKG_MIRROR_HASH:=6f1a7b7d7b9f4db79d72405baeafa318769eeab270fea4479756f91ac5a2494d
+PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_VERSION:=b54157df7c272df0186cad4efc4edf976da5f96f
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION)-$(PKG_SOURCE_VERSION).tar.xz
+PKG_MD5SUM:=18fc1a998902f13a2ccf989d4c5a2eed
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 PKG_BUILD_PARALLEL:=1
@@ -50,10 +52,6 @@ define KernelPackage/mt76-core
   HIDDEN:=1
   FILES:=\
 	$(PKG_BUILD_DIR)/mt76.ko
-  AUTOLOAD:=$(call AutoProbe, \
-	mac80211 \
-	mt76 \
-  )
 endef
 
 define KernelPackage/mt76-usb
@@ -142,14 +140,37 @@ define KernelPackage/mt7603
   AUTOLOAD:=$(call AutoProbe,mt7603e)
 endef
 
+define KernelPackage/mt7615-common
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT7615 wireless driver common code
+  HIDDEN:=1
+  DEPENDS+=@PCI_SUPPORT +kmod-mt76-core
+  FILES:= $(PKG_BUILD_DIR)/mt7615/mt7615-common.ko
+endef
+
 define KernelPackage/mt7615e
   $(KernelPackage/mt76-default)
-  TITLE:=MediaTek MT7615 wireless driver
-  DEPENDS+=@PCI_SUPPORT +kmod-mt76-core
+  TITLE:=MediaTek MT7615e wireless driver
+  DEPENDS+=@PCI_SUPPORT +kmod-mt7615-common
   FILES:=\
-	$(PKG_BUILD_DIR)/mt7615/mt7615-common.ko \
 	$(PKG_BUILD_DIR)/mt7615/mt7615e.ko
   AUTOLOAD:=$(call AutoProbe,mt7615e)
+endef
+
+define KernelPackage/mt7663-firmware-ap
+  $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT7663e firmware (optimized for AP)
+  DEPENDS+=+kmod-mt7615e
+  FILES:=\
+	$(PKG_BUILD_DIR)/mt7615/mt7615e.ko
+endef
+
+define KernelPackage/mt7663-firmware-sta
+ $(KernelPackage/mt76-default)
+  TITLE:=MediaTek MT7663e firmware (client mode offload)
+  DEPENDS+=+kmod-mt7615e
+  FILES:=\
+	$(PKG_BUILD_DIR)/mt7615/mt7615e.ko
 endef
 
 NOSTDINC_FLAGS = \
@@ -195,8 +216,10 @@ endif
 ifdef CONFIG_PACKAGE_kmod-mt7603
   PKG_MAKE_FLAGS += CONFIG_MT7603E=m
 endif
-ifdef CONFIG_PACKAGE_kmod-mt7615e
+ifdef CONFIG_PACKAGE_kmod-mt7615-common
   PKG_MAKE_FLAGS += CONFIG_MT7615_COMMON=m
+endif
+ifdef CONFIG_PACKAGE_kmod-mt7615e
   PKG_MAKE_FLAGS += CONFIG_MT7615E=m
   ifdef CONFIG_TARGET_mediatek_mt7622
     PKG_MAKE_FLAGS += CONFIG_MT7622_WMAC=y
@@ -247,7 +270,7 @@ endef
 
 define KernelPackage/mt7603/install
 	$(INSTALL_DIR) $(1)/lib/firmware
-	cp $(if $(CONFIG_TARGET_ramips_mt76x8), \
+	cp $(if $(CONFIG_TARGET_ramips_mt7628)$(CONFIG_TARGET_ramips_mt7688), \
 		$(PKG_BUILD_DIR)/firmware/mt7628_e1.bin \
 		$(PKG_BUILD_DIR)/firmware/mt7628_e2.bin \
 		,\
@@ -269,6 +292,22 @@ define KernelPackage/mt7615e/install
 		$(1)/lib/firmware/mediatek
 endef
 
+define KernelPackage/mt7663-firmware-ap/install
+	$(INSTALL_DIR) $(1)/lib/firmware/mediatek
+	cp \
+		$(PKG_BUILD_DIR)/firmware/mt7663_n9_rebb.bin \
+		$(PKG_BUILD_DIR)/firmware/mt7663pr2h_rebb.bin \
+		$(1)/lib/firmware/mediatek
+endef
+
+define KernelPackage/mt7663-firmware-sta/install
+	$(INSTALL_DIR) $(1)/lib/firmware/mediatek
+	cp \
+		$(PKG_BUILD_DIR)/firmware/mt7663_n9_v3.bin \
+		$(PKG_BUILD_DIR)/firmware/mt7663pr2h.bin \
+		$(1)/lib/firmware/mediatek
+endef
+
 $(eval $(call KernelPackage,mt76-core))
 $(eval $(call KernelPackage,mt76-usb))
 $(eval $(call KernelPackage,mt76x02-usb))
@@ -280,5 +319,8 @@ $(eval $(call KernelPackage,mt76x2-common))
 $(eval $(call KernelPackage,mt76x2u))
 $(eval $(call KernelPackage,mt76x2))
 $(eval $(call KernelPackage,mt7603))
+$(eval $(call KernelPackage,mt7615-common))
 $(eval $(call KernelPackage,mt7615e))
+$(eval $(call KernelPackage,mt7663-firmware-ap))
+$(eval $(call KernelPackage,mt7663-firmware-sta))
 $(eval $(call KernelPackage,mt76))

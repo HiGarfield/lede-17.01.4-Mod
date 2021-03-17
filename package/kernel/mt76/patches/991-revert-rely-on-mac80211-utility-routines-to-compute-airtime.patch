@@ -1,6 +1,6 @@
 --- a/Makefile
 +++ b/Makefile
-@@ -7,7 +7,7 @@ obj-$(CONFIG_MT76x02_USB) += mt76x02-usb.o
+@@ -8,7 +8,7 @@ obj-$(CONFIG_MT76x02_USB) += mt76x02-usb.o
  
  mt76-y := \
  	mmio.o util.o trace.o dma.o mac80211.o debugfs.o eeprom.o \
@@ -8,7 +8,7 @@
 +	tx.o agg-rx.o mcu.o airtime.o
  
  mt76-$(CONFIG_PCI) += pci.o
- 
+ mt76-$(CONFIG_NL80211_TESTMODE) += testmode.o
 --- /dev/null
 +++ b/airtime.c
 @@ -0,0 +1,326 @@
@@ -340,7 +340,7 @@
 +EXPORT_SYMBOL_GPL(mt76_calc_tx_airtime);
 --- a/mac80211.c
 +++ b/mac80211.c
-@@ -748,18 +748,10 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
+@@ -783,18 +783,10 @@ mt76_airtime_report(struct mt76_dev *dev, struct mt76_rx_status *status,
  		    int len)
  {
  	struct mt76_wcid *wcid = status->wcid;
@@ -362,9 +362,9 @@
  	spin_unlock(&dev->cc_lock);
 --- a/mt76.h
 +++ b/mt76.h
-@@ -845,6 +845,9 @@ void mt76_sw_scan(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
- void mt76_sw_scan_complete(struct ieee80211_hw *hw,
- 			   struct ieee80211_vif *vif);
+@@ -1000,6 +1000,9 @@ static inline void mt76_testmode_reset(struct mt76_dev *dev, bool disable)
+ }
+ 
  
 +u32 mt76_calc_tx_airtime(struct mt76_dev *dev, struct ieee80211_tx_info *info,
 +			 int len);
@@ -372,18 +372,18 @@
  /* internal */
  static inline struct ieee80211_hw *
  mt76_tx_status_get_hw(struct mt76_dev *dev, struct sk_buff *skb)
-@@ -868,6 +871,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
+@@ -1023,6 +1026,8 @@ void mt76_rx_complete(struct mt76_dev *dev, struct sk_buff_head *frames,
  void mt76_rx_poll_complete(struct mt76_dev *dev, enum mt76_rxq_id q,
  			   struct napi_struct *napi);
  void mt76_rx_aggr_reorder(struct sk_buff *skb, struct sk_buff_head *frames);
 +u32 mt76_calc_rx_airtime(struct mt76_dev *dev, struct mt76_rx_status *status,
 +			 int len);
+ void mt76_testmode_tx_pending(struct mt76_dev *dev);
  
  /* usb */
- static inline bool mt76u_urb_error(struct urb *urb)
 --- a/mt76x02_mac.c
 +++ b/mt76x02_mac.c
-@@ -634,7 +634,7 @@ void mt76x02_send_tx_status(struct mt76x02_dev *dev,
+@@ -636,7 +636,7 @@ void mt76x02_send_tx_status(struct mt76x02_dev *dev,
  	if (!len)
  		goto out;
  

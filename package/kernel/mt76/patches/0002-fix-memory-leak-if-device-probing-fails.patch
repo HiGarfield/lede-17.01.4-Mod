@@ -1,6 +1,6 @@
 --- a/mt7603/pci.c
 +++ b/mt7603/pci.c
-@@ -55,7 +55,8 @@ mt76pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+@@ -57,7 +57,8 @@ mt76pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
  
  	return 0;
  error:
@@ -12,7 +12,7 @@
  
 --- a/mt7615/mmio.c
 +++ b/mt7615/mmio.c
-@@ -192,7 +192,8 @@ int mt7615_mmio_probe(struct device *pdev, void __iomem *mem_base,
+@@ -240,7 +240,8 @@ int mt7615_mmio_probe(struct device *pdev, void __iomem *mem_base,
  
  	return 0;
  error:
@@ -24,7 +24,7 @@
  
 --- a/mt76x0/pci.c
 +++ b/mt76x0/pci.c
-@@ -192,7 +192,8 @@ mt76x0e_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+@@ -194,7 +194,8 @@ mt76x0e_probe(struct pci_dev *pdev, const struct pci_device_id *id)
  	return 0;
  
  error:
@@ -36,7 +36,7 @@
  
 --- a/mt76x2/pci.c
 +++ b/mt76x2/pci.c
-@@ -88,7 +88,8 @@ mt76pci_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+@@ -90,7 +90,8 @@ mt76x2e_probe(struct pci_dev *pdev, const struct pci_device_id *id)
  	return 0;
  
  error:

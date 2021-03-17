@@ -1,6 +1,6 @@
 --- a/mac80211.c
 +++ b/mac80211.c
-@@ -383,9 +383,9 @@ mt76_unregister_phy(struct mt76_phy *phy)
+@@ -397,9 +397,9 @@ mt76_unregister_phy(struct mt76_phy *phy)
  {
  	struct mt76_dev *dev = phy->dev;
  

@@ -1,6 +1,6 @@
 --- a/mt76x02_util.c
 +++ b/mt76x02_util.c
-@@ -444,6 +444,10 @@ int mt76x02_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
+@@ -448,6 +448,10 @@ int mt76x02_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
  	    !(key->flags & IEEE80211_KEY_FLAG_PAIRWISE))
  		return -EOPNOTSUPP;
  
