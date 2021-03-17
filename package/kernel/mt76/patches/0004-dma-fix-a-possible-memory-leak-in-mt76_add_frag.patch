@@ -1,6 +1,6 @@
 --- a/dma.c
 +++ b/dma.c
-@@ -465,15 +465,17 @@ static void
+@@ -477,15 +477,17 @@ static void
  mt76_add_fragment(struct mt76_dev *dev, struct mt76_queue *q, void *data,
  		  int len, bool more)
  {

@@ -1,0 +1,111 @@
+--- a/mt7615/mac.c
++++ b/mt7615/mac.c
+@@ -966,6 +966,7 @@ void mt7615_mac_set_rates(struct mt7615_phy *phy, struct mt7615_sta *sta,
+ 	struct mt7615_dev *dev = phy->dev;
+ 	struct mt7615_rate_desc rd;
+ 	u32 w5, w27, addr;
++	u16 idx = sta->vif->omac_idx;
+ 
+ 	if (!mt76_is_mmio(&dev->mt76)) {
+ 		mt7615_mac_queue_rate_update(phy, sta, probe_rate, rates);
+@@ -1017,7 +1018,10 @@ void mt7615_mac_set_rates(struct mt7615_phy *phy, struct mt7615_sta *sta,
+ 
+ 	mt76_wr(dev, addr + 27 * 4, w27);
+ 
+-	mt76_set(dev, MT_LPON_T0CR, MT_LPON_T0CR_MODE); /* TSF read */
++	idx = idx > HW_BSSID_MAX ? HW_BSSID_0 : idx;
++	addr = idx > 1 ? MT_LPON_TCR2(idx): MT_LPON_TCR0(idx);
++
++	mt76_set(dev, addr, MT_LPON_TCR_MODE); /* TSF read */
+ 	sta->rate_set_tsf = mt76_rr(dev, MT_LPON_UTTR0) & ~BIT(0);
+ 	sta->rate_set_tsf |= rd.rateset;
+ 
+--- a/mt7615/main.c
++++ b/mt7615/main.c
+@@ -885,15 +885,21 @@ mt7615_get_stats(struct ieee80211_hw *hw,
+ static u64
+ mt7615_get_tsf(struct ieee80211_hw *hw, struct ieee80211_vif *vif)
+ {
++	struct mt7615_vif *mvif = (struct mt7615_vif *)vif->drv_priv;
+ 	struct mt7615_dev *dev = mt7615_hw_dev(hw);
+ 	union {
+ 		u64 t64;
+ 		u32 t32[2];
+ 	} tsf;
++	u16 idx = mvif->omac_idx;
++	u32 reg;
++
++	idx = idx > HW_BSSID_MAX ? HW_BSSID_0 : idx;
++	reg = idx > 1 ? MT_LPON_TCR2(idx): MT_LPON_TCR0(idx);
+ 
+ 	mt7615_mutex_acquire(dev);
+ 
+-	mt76_set(dev, MT_LPON_T0CR, MT_LPON_T0CR_MODE); /* TSF read */
++	mt76_set(dev, reg, MT_LPON_TCR_MODE); /* TSF read */
+ 	tsf.t32[0] = mt76_rr(dev, MT_LPON_UTTR0);
+ 	tsf.t32[1] = mt76_rr(dev, MT_LPON_UTTR1);
+ 
+@@ -906,18 +912,24 @@ static void
+ mt7615_set_tsf(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 	       u64 timestamp)
+ {
++	struct mt7615_vif *mvif = (struct mt7615_vif *)vif->drv_priv;
+ 	struct mt7615_dev *dev = mt7615_hw_dev(hw);
+ 	union {
+ 		u64 t64;
+ 		u32 t32[2];
+ 	} tsf = { .t64 = timestamp, };
++	u16 idx = mvif->omac_idx;
++	u32 reg;
++
++	idx = idx > HW_BSSID_MAX ? HW_BSSID_0 : idx;
++	reg = idx > 1 ? MT_LPON_TCR2(idx): MT_LPON_TCR0(idx);
+ 
+ 	mt7615_mutex_acquire(dev);
+ 
+ 	mt76_wr(dev, MT_LPON_UTTR0, tsf.t32[0]);
+ 	mt76_wr(dev, MT_LPON_UTTR1, tsf.t32[1]);
+ 	/* TSF software overwrite */
+-	mt76_set(dev, MT_LPON_T0CR, MT_LPON_T0CR_WRITE);
++	mt76_set(dev, reg, MT_LPON_TCR_WRITE);
+ 
+ 	mt7615_mutex_release(dev);
+ }
+--- a/mt7615/regs.h
++++ b/mt7615/regs.h
+@@ -436,9 +436,10 @@ enum mt7615_reg_base {
+ 
+ #define MT_LPON(_n)			((dev)->reg_map[MT_LPON_BASE] + (_n))
+ 
+-#define MT_LPON_T0CR			MT_LPON(0x010)
+-#define MT_LPON_T0CR_MODE		GENMASK(1, 0)
+-#define MT_LPON_T0CR_WRITE		BIT(0)
++#define MT_LPON_TCR0(_n)		MT_LPON(0x010 + ((_n) * 4))
++#define MT_LPON_TCR2(_n)		MT_LPON(0x0f8 + ((_n) - 2) * 4)
++#define MT_LPON_TCR_MODE		GENMASK(1, 0)
++#define MT_LPON_TCR_WRITE		BIT(0)
+ 
+ #define MT_LPON_UTTR0			MT_LPON(0x018)
+ #define MT_LPON_UTTR1			MT_LPON(0x01c)
+--- a/mt7615/usb_sdio.c
++++ b/mt7615/usb_sdio.c
+@@ -68,6 +68,7 @@ mt7663_usb_sdio_set_rates(struct mt7615_dev *dev,
+ 	struct mt7615_rate_desc *rate = &wd->rate;
+ 	struct mt7615_sta *sta = wd->sta;
+ 	u32 w5, w27, addr, val;
++	u16 idx = sta->vif->omac_idx;
+ 
+ 	lockdep_assert_held(&dev->mt76.mutex);
+ 
+@@ -119,7 +120,10 @@ mt7663_usb_sdio_set_rates(struct mt7615_dev *dev,
+ 
+ 	sta->rate_probe = sta->rateset[rate->rateset].probe_rate.idx != -1;
+ 
+-	mt76_set(dev, MT_LPON_T0CR, MT_LPON_T0CR_MODE); /* TSF read */
++	idx = idx > HW_BSSID_MAX ? HW_BSSID_0 : idx;
++	addr = idx > 1 ? MT_LPON_TCR2(idx): MT_LPON_TCR0(idx);
++
++	mt76_set(dev, addr, MT_LPON_TCR_MODE); /* TSF read */
+ 	val = mt76_rr(dev, MT_LPON_UTTR0);
+ 	sta->rate_set_tsf = (val & ~BIT(0)) | rate->rateset;
+ 

@@ -1,6 +1,6 @@
 --- a/mt7603/mac.c
 +++ b/mt7603/mac.c
-@@ -1630,9 +1630,13 @@ mt7603_edcca_check(struct mt7603_dev *dev)
+@@ -1633,9 +1633,13 @@ mt7603_edcca_check(struct mt7603_dev *dev)
  	if (rssi0 > 128)
  		rssi0 -= 256;
  
