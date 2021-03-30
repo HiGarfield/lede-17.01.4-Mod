@@ -4,7 +4,7 @@ Subject: mtd: add apply-4byte-shutdown to dts for shutdown hack
 This patch comes from manfeel and improves by lunatickochiya
 usage:we can define apply-4byte-shutdown; under m25p80 to use manfeel's hack and drop this line to disable hack.
 
-example:			m25p80@0 {
+example:	m25p80@0 {
 				#address-cells = <1>;
 				#size-cells = <1>;
 				compatible = "jedec,spi-nor";
