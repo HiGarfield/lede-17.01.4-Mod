@@ -117,7 +117,8 @@ get_status_led() {
 	d240|\
 	dap-1350|\
 	na930|\
-	ghl-r-001|\
+	ghl-r-001-e|\
+	ghl-r-001-f|\
 	pbr-m1|\
 	rt-n13u|\
 	rt-n14u|\
