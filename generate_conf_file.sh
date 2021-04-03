@@ -56,7 +56,8 @@ process_devices() {
 }
 
 ###################################################
-rm -f conf/.config.*
+rm -rf conf/
+mkdir -p conf/
 ###################################################
 
 ### ar71xx 74kc without USB
@@ -107,12 +108,13 @@ devices=(
 	"ramips_mt7621_DEVICE_wr1200js"
 	"ramips_mt7621_DEVICE_newifi-d2"
 	"ramips_mt7621_DEVICE_a3004ns"
-	"ramips_mt7621_DEVICE_ghl-r-001"
+	"ramips_mt7621_DEVICE_ghl-r-001-e"
+	"ramips_mt7621_DEVICE_ghl-r-001-f"
 )
 process_devices $devices "1004kc"
 
-# ### 7620 with USB
-# devices=(
-# 	"ramips_mt7620_DEVICE_y1s"
-# )
-# process_devices $devices
+### 7620 with USB
+devices=(
+	"ramips_mt7620_DEVICE_y1s"
+)
+process_devices $devices
