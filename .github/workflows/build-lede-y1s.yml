@@ -1,11 +1,11 @@
-name: Build LEDE ghl-r-001
+name: Build LEDE y1s
 
 on:
   push:
     branches: [master]
 
 env:
-  TARGET_DEVICE: ghl-r-001
+  TARGET_DEVICE: y1s
   TOTAL_KEEP_NUMBER: 20
 
 jobs:
