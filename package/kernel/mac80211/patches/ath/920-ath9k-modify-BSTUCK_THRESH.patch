@@ -1,0 +1,24 @@
+--- a/drivers/net/wireless/ath/ath9k/ath9k.h
++++ b/drivers/net/wireless/ath/ath9k/ath9k.h
+@@ -693,7 +693,7 @@ void ath9k_set_txpower(struct ath_softc *sc, struct ieee80211_vif *vif);
+  * number of BSSIDs) if a given beacon does not go out even after waiting this
+  * number of beacon intervals, the game's up.
+  */
+-#define BSTUCK_THRESH           	9
++#define BSTUCK_THRESH           	50
+ #define	ATH_BCBUF               	8
+ #define ATH_DEFAULT_BINTVAL     	100 /* TU */
+ #define ATH_DEFAULT_BMISS_LIMIT 	10
+diff --git a/drivers/net/wireless/ath/ath9k/htc.h b/drivers/net/wireless/ath/ath9k/htc.h
+index ffa4674..3096538 100644
+--- a/drivers/net/wireless/ath/ath9k/htc.h
++++ b/drivers/net/wireless/ath/ath9k/htc.h
+@@ -392,7 +392,7 @@ static inline void ath9k_htc_err_stat_rx(struct ath9k_htc_priv *priv,
+ #define ATH_LED_PIN_9271            15
+ #define ATH_LED_PIN_7010            12
+ 
+-#define BSTUCK_THRESHOLD 10
++#define BSTUCK_THRESHOLD 50
+ 
+ /*
+  * Adjust these when the max. no of beaconing interfaces is
