@@ -1,0 +1,52 @@
+diff --git a/mt7603/mac.c b/mt7603/mac.c
+index 800093a..223959d 100644
+--- a/mt7603/mac.c
++++ b/mt7603/mac.c
+@@ -1444,6 +1444,8 @@ static void mt7603_mac_watchdog_reset(struct mt7603_dev *dev)
+ 		mt76_queue_rx_reset(dev, i);
+ 	}
+ 
++	mt76_tx_status_check(&dev->mt76, NULL, true);
++
+ 	mt7603_dma_sched_reset(dev);
+ 
+ 	mt7603_mac_dma_start(dev);
+diff --git a/mt7615/mac.c b/mt7615/mac.c
+index 4eef04a..10df969 100644
+--- a/mt7615/mac.c
++++ b/mt7615/mac.c
+@@ -2087,6 +2087,8 @@ void mt7615_dma_reset(struct mt7615_dev *dev)
+ 		mt76_queue_rx_reset(dev, i);
+ 	}
+ 
++	mt76_tx_status_check(&dev->mt76, NULL, true);
++
+ 	mt76_set(dev, MT_WPDMA_GLO_CFG,
+ 		 MT_WPDMA_GLO_CFG_RX_DMA_EN | MT_WPDMA_GLO_CFG_TX_DMA_EN |
+ 		 MT_WPDMA_GLO_CFG_TX_WRITEBACK_DONE);
+diff --git a/mt76x02_mmio.c b/mt76x02_mmio.c
+index 3aacf61..981583d 100644
+--- a/mt76x02_mmio.c
++++ b/mt76x02_mmio.c
+@@ -490,6 +490,8 @@ static void mt76x02_watchdog_reset(struct mt76x02_dev *dev)
+ 		mt76_queue_rx_reset(dev, i);
+ 	}
+ 
++	mt76_tx_status_check(&dev->mt76, NULL, true);
++
+ 	mt76x02_mac_start(dev);
+ 
+ 	if (dev->ed_monitor)
+diff --git a/mt7915/mac.c b/mt7915/mac.c
+index 88b5ce2..da57c50 100644
+--- a/mt7915/mac.c
++++ b/mt7915/mac.c
+@@ -1169,6 +1169,8 @@ mt7915_dma_reset(struct mt7915_dev *dev)
+ 		mt76_queue_rx_reset(dev, i);
+ 	}
+ 
++	mt76_tx_status_check(&dev->mt76, NULL, true);
++
+ 	/* re-init prefetch settings after reset */
+ 	mt7915_dma_prefetch(dev);
+ 
