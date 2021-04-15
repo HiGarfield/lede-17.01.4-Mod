@@ -20,7 +20,7 @@ iptables-mod-nat-extra kmod-nf-nathelper \
 kmod-nf-nathelper-extra \
 default-settings ipset-lists luci \
 luci-app-ddns ddns-scripts_aliyun \
-luci-app-upnp luci-app-wizard \
+luci-app-upnp luci-app-wizard luci-app-sqm \
 luci-app-ssr-pro luci-app-kcptun luci-app-udp2raw \
 luci-app-sfe luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
 -wpad-mini -wpad wpad-mesh-openssl dnsmasq-full luci-app-smartdns \
