@@ -29,6 +29,30 @@ option_disabled() {
 	[ $result -eq 0 ]
 }
 
+match_dir() {
+    local base_dir="$1"
+    local sub_dir="$2"
+    while [ -n "$sub_dir" ] && [ "$sub_dir" != "/" ]; do
+        if [ "${sub_dir%/}" = "${base_dir%/}" ]; then
+            return 0
+        fi
+        sub_dir="$(dirname $sub_dir)"
+    done
+    return 1
+}
+
+dir_mounted() {
+    local my_dir_name="$1"
+    local mounted_dir_name
+    local IFS=$'\n'
+    for mounted_dir_name in $(awk '/^\/dev\/sd[a-z][0-9]+( |\t)+.*$/{print $1,$2,$4}' /proc/mounts | grep -w 'rw' | awk '{print $2}'); do
+        if match_dir "$mounted_dir_name" "$my_dir_name"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 aria2_start() {
 	local s="$1"
 	local user
@@ -43,8 +67,12 @@ aria2_start() {
 	}
 
 	[ -d "$dir" ] || {
-		logger -t ARIA2C "Please create download dir: $dir"
-		return 1
+		if dir_mounted "$dir"; then
+			mkdir -p "$dir"
+		else
+			logger -t ARIA2C "Please create download dir: $dir"
+			return 1
+		fi
 	}
 
 	config_get config_dir "$s" 'config_dir' '/var/etc/aria2'
