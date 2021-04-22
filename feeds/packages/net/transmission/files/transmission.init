@@ -46,6 +46,30 @@ opt_incomplete_dir_enabled() {
 	[ $opt_incomplete_dir_enabled -gt 0 ]
 }
 
+match_dir() {
+    local base_dir="$1"
+    local sub_dir="$2"
+    while [ -n "$sub_dir" ] && [ "$sub_dir" != "/" ]; do
+        if [ "${sub_dir%/}" = "${base_dir%/}" ]; then
+            return 0
+        fi
+        sub_dir="$(dirname $sub_dir)"
+    done
+    return 1
+}
+
+dir_mounted() {
+    local my_dir_name="$1"
+    local mounted_dir_name
+    local IFS=$'\n'
+    for mounted_dir_name in $(awk '/^\/dev\/sd[a-z][0-9]+( |\t)+.*$/{print $1,$2,$4}' /proc/mounts | grep -w 'rw' | awk '{print $2}'); do
+        if match_dir "$mounted_dir_name" "$my_dir_name"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
 transmission() {
 	local cfg="$1"
 	local USE
@@ -66,8 +90,12 @@ transmission() {
 	}
 
 	[ -d "$download_dir" ] || {
-		logger -t transmission "Please create download dir: $download_dir"
-		return 1
+		if dir_mounted "$download_dir"; then
+			mkdir -p "$download_dir"
+		else
+			logger -t transmission "Please create download dir: $download_dir"
+			return 1
+		fi
 	}
 
 	opt_incomplete_dir_enabled "$section" && {
@@ -80,8 +108,12 @@ transmission() {
 		}
 
 		[ -d "$incomplete_dir" ] || {
-			logger -t transmission "Please create incomplete dir: $incomplete_dir"
-			return 1
+			if dir_mounted "$incomplete_dir"; then
+				mkdir -p "$incomplete_dir"
+			else
+				logger -t transmission "Please create incomplete dir: $incomplete_dir"
+				return 1
+			fi
 		}
 	}
 
