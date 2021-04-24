@@ -23,7 +23,7 @@ jobs:
           sudo swapoff -a
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
           sudo -E apt-get -qq update
-          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler zip
+          sudo -E apt-get -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs gcc-multilib g++-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler coreutils
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
 
@@ -31,6 +31,7 @@ jobs:
           echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
           LEDE_OUTPUT_NAME="lede-${LEDE_VERSION}-${TARGET_DEVICE}"
           echo "LEDE_OUTPUT_NAME=${LEDE_OUTPUT_NAME}" >>$GITHUB_ENV
+          echo "FIRMWARE=out" >> $GITHUB_ENV
 
       - name: Load custom configuration
         run: |
@@ -50,10 +51,11 @@ jobs:
         run: |
           echo -e "$(($(nproc) + 1)) thread compile"
           make -j$(($(nproc) + 1)) || make -j1 V=s
-          mkdir -p out
-          rm -rf out/*
-          cp -u -f bin/targets/*/*/${LEDE_OUTPUT_NAME}-*-sysupgrade.bin out/
-          zip -j "${LEDE_OUTPUT_NAME}.zip" out/*.bin
+          rm -rf ${FIRMWARE}
+          mkdir -p ${FIRMWARE}
+          cp -u -f bin/targets/*/*/${LEDE_OUTPUT_NAME}-*-sysupgrade.bin ${FIRMWARE}/
+          cd ${FIRMWARE}/
+          for f in *.bin; do mv "$f" "$(echo "$f" | sed -e 's/-squashfs//g' -e 's/-sysupgrade//g')"; done
           echo "::set-output name=status::success"
 
       - name: Upload firmware directory
@@ -61,31 +63,51 @@ jobs:
         if: steps.compile.outputs.status == 'success'
         with:
           name: ${{ env.LEDE_OUTPUT_NAME }}
-          path: out
+          path: ${{ env.FIRMWARE }}
 
-      - name: Create release
-        id: create_release
-        uses: actions/create-release@v1
+      - name: Upload firmware to cowtransfer
+        id: cowtransfer
         if: steps.compile.outputs.status == 'success'
+        run: |
+          curl -fsSL git.io/file-transfer | sh
+          ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
+          echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
+          echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
+
+      - name: Upload firmware to WeTransfer
+        id: wetransfer
+        if: steps.compile.outputs.status == 'success'
+        run: |
+          curl -fsSL git.io/file-transfer | sh
+          ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
+          echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
+          echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
+
+      - name: Generate release tag
+        id: tag
+        run: |
+          echo "::set-output name=release_tag::${LEDE_OUTPUT_NAME}"
+          work_dir="$PWD"
+          touch "$work_dir/release.txt"
+          echo "🔗 [奶牛快传下载（1天内有效）](${{ steps.cowtransfer.outputs.url }})" >> "$work_dir/release.txt"
+          echo "🔗 [WeTransfer下载（7天内有效）](${{ steps.wetransfer.outputs.url }})" >> "$work_dir/release.txt"          
+          cd "${FIRMWARE}"
+          echo "" >> "$work_dir/release.txt"
+          echo "文件MD5校验：" >> "$work_dir/release.txt"
+          md5sum *.bin | awk '{print $2,$1}' >> "$work_dir/release.txt"
+          echo "" >> "$work_dir/release.txt"
+          echo "若以上链接过期失效，请在以下Assets中下载文件。" >> "$work_dir/release.txt"
+          echo "::set-output name=status::success"
+
+      - name: Upload firmware to release
+        uses: softprops/action-gh-release@v1
+        if: steps.tag.outputs.status == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ env.LEDE_OUTPUT_NAME }}
-          release_name: ${{ env.LEDE_OUTPUT_NAME }}
-          draft: false
-          prerelease: false
-
-      - name: Upload release asset
-        id: upload-release-asset
-        uses: actions/upload-release-asset@v1
-        if: steps.compile.outputs.status == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.LEDE_OUTPUT_NAME }}.zip
-          asset_name: ${{ env.LEDE_OUTPUT_NAME }}.zip
-          asset_content_type: application/zip
+          tag_name: ${{ steps.tag.outputs.release_tag }}
+          body_path: release.txt
+          files: ${{ env.FIRMWARE }}/*
 
       - name: Remove old releases
         uses: HiGarfield/delete-older-releases@v0.1.0
