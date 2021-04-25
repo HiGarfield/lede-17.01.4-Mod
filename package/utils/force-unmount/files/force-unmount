@@ -1,22 +1,18 @@
 #!/bin/sh
-
 . /usr/share/libubox/jshn.sh
 
 # compare_pid process_id pid
-# 当process_id与pid相等，或process_id是pid子进程时返回1，否则返回0
+# 当process_id与pid相等，或process_id是pid子进程时返回0，否则返回1
 compare_pid() {
 	local process_id=$1
 	local pid=$2
 	local p
-	if [ -z "$pid" ] || [ -z "$process_id" ]; then
-		return 0
-	fi
-	[ "$process_id" -eq "$pid" ] && return 1
+	[ -n "$pid" ] && [ -n "$process_id" ] || return 1
+	[ "$process_id" -eq "$pid" ] && return 0
 	for p in $(busybox pgrep -P "$pid"); do
-		compare_pid "$process_id" "$p"
-		[ "$?" -eq 1 ] && return 1
+		compare_pid "$process_id" "$p" && return 0
 	done
-	return 0
+	return 1
 }
 
 # stop_occupying_service mount_point
@@ -43,10 +39,8 @@ stop_occupying_service() {
 							json_select $instance
 							json_get_var pid pid
 							json_get_var running running
-							if [ -n "$running" ] && [ "$running" -eq 1 ]; then
-								compare_pid "$process_id" "$pid"
-								[ $? -eq 1 ] && kill_flag=1
-							fi
+							[ -n "$running" ] && [ "$running" -eq 1 ] &&
+								compare_pid "$process_id" "$pid" && kill_flag=1
 							json_select ..
 						fi
 					done
@@ -54,7 +48,7 @@ stop_occupying_service() {
 				fi
 				json_select ..
 			fi
-			[ "$kill_flag" -eq 1 ] && {
+			[ $kill_flag -eq 1 ] && {
 				logger -t force-unmount "Stopping service: ${service}."
 				/etc/init.d/$service stop
 			}
@@ -75,28 +69,25 @@ kill_occupying_process() {
 
 MAX_TRY=5
 
-[ $# -ne 1 ] && exit 1
+[ "$#" -eq 1 ] || exit 1
 mountpoint="$1"
 
 if awk '{print $2}' /proc/mounts | grep -q "$mountpoint"; then
-	success=0
 	for try_count in $(seq $MAX_TRY); do
-		logger -t force-unmount "Unmount $mountpoint: try count $try_count."
+		logger -t force-unmount "Unmount ${mountpoint}: try count ${try_count}."
 		stop_occupying_service "$mountpoint"
 		kill_occupying_process "$mountpoint"
-		umount "$mountpoint" && {
-			success=1
-			break
+		sync
+		umount "$mountpoint"
+		exit_code="$?"
+		[ "$exit_code" -eq 0 ] && {
+			logger -t force-unmount "Unmount ${mountpoint} successfully."
+			exit 0
 		}
 	done
-
-	if [ $success -eq 1 ]; then
-		logger -t force-unmount "Unmount $mountpoint successfully."
-	else
-		logger -t force-unmount "Cannot unmount $mountpoint."
-	fi
+	logger -t force-unmount "Cannot unmount ${mountpoint}."
+	exit "$exit_code"
 else
-	logger -t force-unmount "$mountpoint is not mounted."
+	logger -t force-unmount "${mountpoint} is not mounted."
+	exit 0
 fi
-
-exit 0
