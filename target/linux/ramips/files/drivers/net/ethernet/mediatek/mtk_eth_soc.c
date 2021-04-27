@@ -1021,16 +1021,7 @@ static int fe_poll(struct napi_struct *napi, int budget)
 	}
 
 	if (!tx_again && (rx_done < budget)) {
-		bool napi_complete_done_status;
-
-		napi_complete_done_status=!unlikely(test_bit(NAPI_STATE_NPSVC, &napi->state));
-
-		if (napi_complete_done_status)
-		{
-			napi_complete_done(napi, rx_done);
-		}
-		
-		if (likely(napi_complete_done_status && !test_bit(__FE_DOWN, &priv->state))) {
+		if (likely(napi_complete_done(napi, rx_done) && !test_bit(__FE_DOWN, &priv->state))) {
 			fe_int_enable(tx_intr | rx_intr);
 		}
 	} else {
