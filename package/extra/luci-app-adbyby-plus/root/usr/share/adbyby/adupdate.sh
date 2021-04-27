@@ -1,69 +1,30 @@
 #!/bin/sh
-dnsmasq=$1
-download(){
-	rm -f /usr/share/adbyby/data/*.bak
-	rm -f /tmp/lazy.txt /tmp/video.txt
 
-	wget-ssl -t 2 -T 3 --no-check-certificate -O /tmp/lazy.txt https://raw.githubusercontent.com/adbyby/xwhyc-rules/master/lazy.txt
-	if [ "$?" == "0" ]; then
-		echo "download adbyby general rules from github success!"
-	else
-		echo "download adbyby general rules from other server!"
-		wget-ssl --no-check-certificate -t 1 -T 10 -O /tmp/lazy.txt https://opt.cn2qq.com/opt-file/lazy.txt
-		[ "$?" == "0" ] && echo "download general rules success!" || echo "download general rules failed!"
-	fi
-	wget-ssl -t 2 -T 3 --no-check-certificate -O /tmp/video.txt https://raw.githubusercontent.com/adbyby/xwhyc-rules/master/video.txt
-	if [ "$?" == "0" ]; then
-		echo "download adbyby video rules from github success!"
-	else
-		echo "download adbyby video rules from other server!"
-		wget-ssl --no-check-certificate -t 1 -T 10 -O /tmp/video.txt https://opt.cn2qq.com/opt-file/video.txt
-		[ "$?" == "0" ] && echo "download video rules success!" || echo "download general rules failed!"
-	fi
-}
+rm -f /usr/share/adbyby/data/*.bak
 
-checkfile(){
-	[ -s "/tmp/lazy.txt" ] && ( ! cmp -s /tmp/lazy.txt /usr/share/adbyby/data/lazy.txt ) && Status=1
-	[ -s "/tmp/video.txt" ] && ( ! cmp -s /tmp/video.txt /usr/share/adbyby/data/video.txt ) && Status=1
-	#[ -s "/tmp/user.action" ] && ( ! cmp -s /tmp/user.action /usr/share/adbyby/user.action ) && Status=1
-}
+touch /tmp/local-md5.json && md5sum /usr/share/adbyby/data/lazy.txt /usr/share/adbyby/data/video.txt > /tmp/local-md5.json
+touch /tmp/md5.json && wget-ssl --no-check-certificate -t 1 -T 10 -O /tmp/md5.json https://adbyby.coding.net/p/xwhyc-rules/d/xwhyc-rules/git/raw/master/md5.json
 
-judgment(){
-	if [ "$dnsmasq" == "restartdnsmasq" -a "$Status" == "1" ];then
-		echo "adbyby rules and adblockplus rules need update!"
-		/etc/init.d/adbyby up_stop
-	elif [ "$dnsmasq" == "restartdnsmasq" -a "$Status" != "1" ];then
-		echo "adbyby rules no change!"
-		echo "adblock rules rules need update!"
-		cp -f /usr/share/adbyby/dnsmasq.adblock /var/etc/dnsmasq-adbyby.d/04-dnsmasq.adblock
-		echo "restart dnsmasq"
-		/etc/init.d/dnsmasq restart >/dev/null 2>&1
-		rm -f /tmp/lazy.txt /tmp/video.txt /tmp/user.action
-		exit 0
-	elif [ "$dnsmasq" != "restartdnsmasq" -a "$Status" == "1" ];then
-		echo "adbyby rules need update!"
-		/etc/init.d/adbyby up_stop
-	else
-		echo "all rules no change!"
-		rm -f /tmp/lazy.txt /tmp/video.txt /tmp/user.action
-		exit 0
-	fi
-}
+lazy_local=$(grep 'lazy' /tmp/local-md5.json | awk -F' ' '{print $1}')
+video_local=$(grep 'video' /tmp/local-md5.json | awk -F' ' '{print $1}')  
+lazy_online=$(sed  's/":"/\n/g' /tmp/md5.json  |  sed  's/","/\n/g' | sed -n '2p')
+video_online=$(sed  's/":"/\n/g' /tmp/md5.json  |  sed  's/","/\n/g' | sed -n '4p')
 
-movefile(){
-	echo "update rules"
-	mv /tmp/lazy.txt /usr/share/adbyby/data/lazy.txt
-	mv /tmp/video.txt /usr/share/adbyby/data/video.txt
-	#mv /tmp/user.action /usr/share/adbyby/user.action
-}
+if [ "$lazy_online"x != "$lazy_local"x -o "$video_online"x != "$video_local"x ]; then
+    echo "MD5 not match! Need update!"
+    touch /tmp/lazy.txt && wget-ssl --no-check-certificate -t 1 -T 10 -O /tmp/lazy.txt https://adbyby.coding.net/p/xwhyc-rules/d/xwhyc-rules/git/raw/master/lazy.txt
+    touch /tmp/video.txt && wget-ssl --no-check-certificate -t 1 -T 10 -O /tmp/video.txt https://adbyby.coding.net/p/xwhyc-rules/d/xwhyc-rules/git/raw/master/video.txt
+    touch /tmp/local-md5.json && md5sum /tmp/lazy.txt /tmp/video.txt > /tmp/local-md5.json
+    lazy_local=$(grep 'lazy' /tmp/local-md5.json | awk -F' ' '{print $1}')
+    video_local=$(grep 'video' /tmp/local-md5.json | awk -F' ' '{print $1}')
+    if [ "$lazy_online"x == "$lazy_local"x -a "$video_online"x == "$video_local"x ]; then
+      echo "New rules MD5 match!"
+      mv /tmp/lazy.txt /usr/share/adbyby/data/lazy.txt
+      mv /tmp/video.txt /usr/share/adbyby/data/video.txt
+      echo $(date +"%Y-%m-%d %H:%M:%S") > /tmp/adbyby.updated
+     fi
+else
+     echo "MD5 match! No need to update!"
+fi
 
-end(){
-	rm -f /tmp/lazy.txt /tmp/video.txt /tmp/user.action
-	/etc/init.d/adbyby start
-}
-
-download
-checkfile
-judgment
-movefile
-end
+rm -f /tmp/lazy.txt /tmp/video.txt /tmp/local-md5.json /tmp/md5.json
