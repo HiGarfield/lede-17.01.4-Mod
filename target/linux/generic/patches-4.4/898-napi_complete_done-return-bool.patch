@@ -1,0 +1,49 @@
+--- a/include/linux/netdevice.h
++++ b/include/linux/netdevice.h
+@@ -448,15 +448,16 @@ static inline bool napi_reschedule(struct napi_struct *napi)
+ }
+ 
+ void __napi_complete(struct napi_struct *n);
+-void napi_complete_done(struct napi_struct *n, int work_done);
++bool napi_complete_done(struct napi_struct *n, int work_done);
+ /**
+  *	napi_complete - NAPI processing complete
+  *	@n: napi context
+  *
+  * Mark NAPI processing as complete.
+  * Consider using napi_complete_done() instead.
++ * Return false if device should avoid rearming interrupts.
+  */
+-static inline void napi_complete(struct napi_struct *n)
++static inline bool napi_complete(struct napi_struct *n)
+ {
+ 	return napi_complete_done(n, 0);
+ }
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -4773,7 +4773,7 @@ void __napi_complete(struct napi_struct *n)
+ }
+ EXPORT_SYMBOL(__napi_complete);
+ 
+-void napi_complete_done(struct napi_struct *n, int work_done)
++bool napi_complete_done(struct napi_struct *n, int work_done)
+ {
+ 	unsigned long flags;
+ 
+@@ -4782,7 +4782,7 @@ void napi_complete_done(struct napi_struct *n, int work_done)
+ 	 * just in case its running on a different cpu
+ 	 */
+ 	if (unlikely(test_bit(NAPI_STATE_NPSVC, &n->state)))
+-		return;
++		return false;
+ 
+ 	if (n->gro_list) {
+ 		unsigned long timeout = 0;
+@@ -4804,6 +4804,7 @@ void napi_complete_done(struct napi_struct *n, int work_done)
+ 		__napi_complete(n);
+ 		local_irq_restore(flags);
+ 	}
++	return true;
+ }
+ EXPORT_SYMBOL(napi_complete_done);
+ 
