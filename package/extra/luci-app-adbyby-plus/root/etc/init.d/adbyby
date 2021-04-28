@@ -33,15 +33,16 @@ get_config()
 	config_get_bool cron_mode $1 cron_mode 1
 	config_get wan_mode $1 wan_mode 1
 	config_get_bool block_ios $1 block_ios 0
-	config_get_bool mem_mode $1 mem_mode 1
 	config_get_bool block_cnshort $1 block_cnshort 0
 }
 
 add_rules()
 {
-	rm -f $DATA_PATH/user.bin
-	grep -v ^! $PROG_PATH/rules.txt > $DATA_PATH/user.txt
-	cp $PROG_PATH/rules.txt $DATA_PATH/rules.txt
+	[ -f $DATA_PATH/user.bin ] && rm -f $DATA_PATH/user.bin
+	mkdir -p /tmp/adbyby/temp/
+	grep -v ^! $PROG_PATH/rules.txt > /tmp/adbyby/temp/user.txt
+	cmp /tmp/adbyby/temp/user.txt $DATA_PATH/user.txt || cp -f /tmp/adbyby/temp/user.txt $DATA_PATH/user.txt
+	cmp $PROG_PATH/rules.txt $DATA_PATH/rules.txt || cp -f $PROG_PATH/rules.txt $DATA_PATH/rules.txt
 }
 
 
@@ -106,7 +107,7 @@ ip_rule()
 
 add_dns()
 {
-		mkdir -p /var/etc/dnsmasq-adbyby.d
+	mkdir -p /var/etc/dnsmasq-adbyby.d
     mkdir -p /tmp/dnsmasq.d
 
     awk '!/^$/&&!/^#/{printf("ipset=/%s/'"adbyby_esc"'\n",$0)}' $PROG_PATH/adesc.conf > /var/etc/dnsmasq-adbyby.d/06-dnsmasq.esc
@@ -115,13 +116,13 @@ add_dns()
     echo 'conf-dir=/var/etc/dnsmasq-adbyby.d' > /tmp/dnsmasq.d/dnsmasq-adbyby.conf
     
 	local var=1
-		if [ $wan_mode -eq 1 ]; then
+	if [ $wan_mode -eq 1 ]; then
 		awk '!/^$/&&!/^#/{printf("ipset=/%s/'"adbyby_wan"'\n",$0)}' $PROG_PATH/adhost.conf > $WAN_FILE
 		if ls /var/etc/dnsmasq-adbyby.d/* >/dev/null 2>&1; then
-      mkdir -p /tmp/dnsmasq.d
-      cp /usr/share/adbyby/dnsmasq.adblock /var/etc/dnsmasq-adbyby.d/04-dnsmasq.adblock
-      cp /usr/share/adbyby/dnsmasq.ads /var/etc/dnsmasq-adbyby.d/05-dnsmasq.ads
-	  fi
+			mkdir -p /tmp/dnsmasq.d
+			cp /usr/share/adbyby/dnsmasq.adblock /var/etc/dnsmasq-adbyby.d/04-dnsmasq.adblock
+			cp /usr/share/adbyby/dnsmasq.ads /var/etc/dnsmasq-adbyby.d/05-dnsmasq.ads
+		fi
 	fi
 	
 	mkdir -p /tmp/adbyby/rules/data /tmp/adbyby/rules/host
