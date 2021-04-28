@@ -68,6 +68,7 @@ jobs:
       - name: Upload firmware to cowtransfer
         id: cowtransfer
         if: steps.compile.outputs.status == 'success'
+        continue-on-error: true
         run: |
           curl -fsSL git.io/file-transfer | sh
           ./transfer cow --block 2621440 -s -p 64 --no-progress ${FIRMWARE} 2>&1 | tee cowtransfer.log
@@ -77,6 +78,7 @@ jobs:
       - name: Upload firmware to WeTransfer
         id: wetransfer
         if: steps.compile.outputs.status == 'success'
+        continue-on-error: true
         run: |
           curl -fsSL git.io/file-transfer | sh
           ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
@@ -100,7 +102,7 @@ jobs:
           echo "::set-output name=status::success"
 
       - name: Upload firmware to release
-        uses: softprops/action-gh-release@v1
+        uses: HiGarfield/action-gh-release@v1
         if: steps.tag.outputs.status == 'success'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -111,6 +113,7 @@ jobs:
 
       - name: Remove old releases
         uses: HiGarfield/delete-older-releases@v0.1.0
+        continue-on-error: true
         with:
           keep_latest: ${{ env.TOTAL_KEEP_NUMBER }}
           delete_tags: true
