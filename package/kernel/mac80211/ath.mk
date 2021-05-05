@@ -9,7 +9,6 @@ PKG_CONFIG_DEPENDS += \
 	CONFIG_PACKAGE_ATH_DYNACK \
 	CONFIG_ATH9K_SUPPORT_PCOEM \
 	CONFIG_ATH9K_TX99 \
-	CONFIG_ATH10K_THERMAL \
 	CONFIG_ATH_USER_REGD
 
 ifdef CONFIG_PACKAGE_MAC80211_DEBUGFS
@@ -45,7 +44,6 @@ config-$(CONFIG_ATH_USER_REGD) += ATH_USER_REGD
 config-$(CONFIG_ATH9K_SUPPORT_PCOEM) += ATH9K_PCOEM
 config-$(CONFIG_ATH9K_TX99) += ATH9K_TX99
 config-$(CONFIG_ATH9K_UBNTHSR) += ATH9K_UBNTHSR
-config-$(CONFIG_ATH10K_THERMAL) += ATH10K_THERMAL
 
 config-$(call config_package,ath9k-htc) += ATH9K_HTC
 config-$(call config_package,ath10k) += ATH10K ATH10K_PCI
@@ -238,8 +236,7 @@ define KernelPackage/ath10k
   $(call KernelPackage/mac80211/Default)
   TITLE:=Atheros 802.11ac wireless cards support
   URL:=https://wireless.wiki.kernel.org/en/users/drivers/ath10k
-  DEPENDS+= @PCI_SUPPORT +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11AC_SUPPORT +@DRIVER_11W_SUPPORT \
-	+ATH10K_THERMAL:kmod-hwmon-core +ATH10K_THERMAL:kmod-thermal
+  DEPENDS+= @PCI_SUPPORT +kmod-ath +@DRIVER_11N_SUPPORT +@DRIVER_11AC_SUPPORT +@DRIVER_11W_SUPPORT
   FILES:= \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_core.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_pci.ko
@@ -250,14 +247,6 @@ define KernelPackage/ath10k/description
 This module adds support for wireless adapters based on
 Atheros IEEE 802.11ac family of chipsets. For now only
 PCI is supported.
-endef
-
-define KernelPackage/ath10k/config
-
-       config ATH10K_THERMAL
-               bool "Enable thermal sensors and throttling support"
-               depends on PACKAGE_kmod-ath10k
-
 endef
 
 define KernelPackage/carl9170
