@@ -364,7 +364,7 @@ CONFIG_DEFAULT_6in4=y
 CONFIG_DEFAULT_6rd=y
 CONFIG_DEFAULT_6to4=y
 CONFIG_DEFAULT_ariang=y
-CONFIG_DEFAULT_ath10k-firmware-qca9888-ct-full-htt=y
+CONFIG_DEFAULT_ath10k-firmware-qca9888=y
 CONFIG_DEFAULT_automount=y
 CONFIG_DEFAULT_autosamba=y
 CONFIG_DEFAULT_base-files=y
@@ -385,7 +385,7 @@ CONFIG_DEFAULT_iptables=y
 CONFIG_DEFAULT_iptables-mod-fullconenat=y
 CONFIG_DEFAULT_iptables-mod-nat-extra=y
 CONFIG_DEFAULT_iwinfo=y
-CONFIG_DEFAULT_kmod-ath10k-ct=y
+CONFIG_DEFAULT_kmod-ath10k=y
 CONFIG_DEFAULT_kmod-ath9k=y
 CONFIG_DEFAULT_kmod-gpio-button-hotplug=y
 CONFIG_DEFAULT_kmod-ipt-nat6=y
@@ -2660,9 +2660,9 @@ CONFIG_PACKAGE_autosamba=y
 # CONFIG_PACKAGE_ath10k-firmware-qca9887 is not set
 # CONFIG_PACKAGE_ath10k-firmware-qca9887-ct is not set
 # CONFIG_PACKAGE_ath10k-firmware-qca9887-ct-full-htt is not set
-# CONFIG_PACKAGE_ath10k-firmware-qca9888 is not set
+CONFIG_PACKAGE_ath10k-firmware-qca9888=y
 # CONFIG_PACKAGE_ath10k-firmware-qca9888-ct is not set
-CONFIG_PACKAGE_ath10k-firmware-qca9888-ct-full-htt=y
+# CONFIG_PACKAGE_ath10k-firmware-qca9888-ct-full-htt is not set
 # CONFIG_PACKAGE_ath10k-firmware-qca9888-ct-htt is not set
 # CONFIG_PACKAGE_ath10k-firmware-qca988x is not set
 # CONFIG_PACKAGE_ath10k-firmware-qca988x-ct is not set
@@ -2849,29 +2849,7 @@ CONFIG_PACKAGE_kmod-fuse=y
 #
 # Hardware Monitoring Support
 #
-CONFIG_PACKAGE_kmod-hwmon-core=y
-# CONFIG_PACKAGE_kmod-hwmon-adt7410 is not set
-# CONFIG_PACKAGE_kmod-hwmon-adt7475 is not set
-# CONFIG_PACKAGE_kmod-hwmon-gpiofan is not set
-# CONFIG_PACKAGE_kmod-hwmon-ina209 is not set
-# CONFIG_PACKAGE_kmod-hwmon-ina2xx is not set
-# CONFIG_PACKAGE_kmod-hwmon-it87 is not set
-# CONFIG_PACKAGE_kmod-hwmon-lm63 is not set
-# CONFIG_PACKAGE_kmod-hwmon-lm75 is not set
-# CONFIG_PACKAGE_kmod-hwmon-lm77 is not set
-# CONFIG_PACKAGE_kmod-hwmon-lm85 is not set
-# CONFIG_PACKAGE_kmod-hwmon-lm90 is not set
-# CONFIG_PACKAGE_kmod-hwmon-lm92 is not set
-# CONFIG_PACKAGE_kmod-hwmon-lm95241 is not set
-# CONFIG_PACKAGE_kmod-hwmon-ltc4151 is not set
-# CONFIG_PACKAGE_kmod-hwmon-pwmfan is not set
-# CONFIG_PACKAGE_kmod-hwmon-sch5627 is not set
-# CONFIG_PACKAGE_kmod-hwmon-sht21 is not set
-# CONFIG_PACKAGE_kmod-hwmon-tmp102 is not set
-# CONFIG_PACKAGE_kmod-hwmon-tmp103 is not set
-# CONFIG_PACKAGE_kmod-hwmon-tmp421 is not set
-# CONFIG_PACKAGE_kmod-hwmon-vid is not set
-# CONFIG_PACKAGE_kmod-hwmon-w83793 is not set
+# CONFIG_PACKAGE_kmod-hwmon-core is not set
 
 #
 # I2C support
@@ -3266,8 +3244,8 @@ CONFIG_ATH_USER_REGD=y
 # CONFIG_PACKAGE_ATH_DEBUG is not set
 CONFIG_PACKAGE_ATH_DFS=y
 # CONFIG_PACKAGE_ATH_DYNACK is not set
-# CONFIG_PACKAGE_kmod-ath10k is not set
-CONFIG_PACKAGE_kmod-ath10k-ct=y
+CONFIG_PACKAGE_kmod-ath10k=y
+# CONFIG_PACKAGE_kmod-ath10k-ct is not set
 # CONFIG_PACKAGE_kmod-ath10k-ct-smallbuffers is not set
 # CONFIG_PACKAGE_kmod-ath5k is not set
 # CONFIG_PACKAGE_kmod-ath6kl-sdio is not set
@@ -4322,6 +4300,7 @@ CONFIG_PACKAGE_luci-lib-nixio=y
 # CONFIG_PACKAGE_remote-update is not set
 CONFIG_PACKAGE_default-settings=y
 CONFIG_PACKAGE_luci-i18n-accesscontrol-zh-cn=y
+CONFIG_PACKAGE_luci-i18n-adbyby-plus-zh-cn=y
 # CONFIG_PACKAGE_luci-i18n-aria2-pt-br is not set
 CONFIG_PACKAGE_luci-i18n-aria2-zh-cn=y
 CONFIG_PACKAGE_luci-i18n-arpbind-zh-cn=y
