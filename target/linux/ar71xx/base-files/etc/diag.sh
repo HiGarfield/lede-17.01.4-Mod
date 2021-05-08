@@ -352,6 +352,9 @@ get_status_led() {
 	csac)
 		status_led="csac:green:system"
 		;;
+	archer-c5|\
+	archer-c7|\
+	tl-wdr4900-v2|\
 	tl-mr3220|\
 	tl-mr3220-v2|\
 	tl-mr3420|\
@@ -385,9 +388,6 @@ get_status_led() {
 	tl-wr941nd-v5)
 		status_led="tp-link:green:system"
 		;;
-	archer-c5|\
-	archer-c7|\
-	tl-wdr4900-v2|\
 	tl-mr10u|\
 	tl-mr12u|\
 	tl-mr13u|\
