@@ -85,6 +85,16 @@ jobs:
           echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
           echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
 
+      - name: Upload firmware to anonymousfiles
+        id: anonymousfiles
+        if: steps.compile.outputs.status == 'success'
+        continue-on-error: true
+        run: |
+          upfile="${FIRMWARE}/${LEDE_OUTPUT_NAME}.bin"
+          for i in $(seq 1 5); do downurl=$(curl -F file=@${upfile} -F expires=6m https://api.anonymousfiles.io/ 2>/dev/null | tee | tr '\"' '\n' | grep "https"); [ -n ${downurl} ] && break; done
+          echo "::warning file=anonymousfiles.io::Download Link: ${downurl}"
+          echo "::set-output name=url::${downurl}"
+
       - name: Generate release tag
         id: tag
         run: |
@@ -92,7 +102,8 @@ jobs:
           work_dir="$PWD"
           touch "$work_dir/release.txt"
           echo "🔗 [奶牛快传下载（1天内有效）](${{ steps.cowtransfer.outputs.url }})" >> "$work_dir/release.txt"
-          echo "🔗 [WeTransfer下载（7天内有效）](${{ steps.wetransfer.outputs.url }})" >> "$work_dir/release.txt"          
+          echo "🔗 [WeTransfer下载（7天内有效）](${{ steps.wetransfer.outputs.url }})" >> "$work_dir/release.txt"
+          echo "🔗 [AnonymousFiles下载（6个月内有效）](${{ steps.anonymousfiles.outputs.url }})" >> "$work_dir/release.txt"
           cd "${FIRMWARE}"
           echo "" >> "$work_dir/release.txt"
           echo "文件MD5校验：" >> "$work_dir/release.txt"
