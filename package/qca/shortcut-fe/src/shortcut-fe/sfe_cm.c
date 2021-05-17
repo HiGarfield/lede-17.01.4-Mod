@@ -135,6 +135,14 @@ static int sfe_cm_recv(struct sk_buff *skb)
 	prefetch(skb->data + 32);
 	barrier();
 
+	/*
+	 * Send packet to network stack without processing if VLAN TAG is present
+	 * Untagging VLAN packet is impossible here as it is private for the context
+	 * This will avoid untagging after v4-v6 recv functions execute, saving MIPS
+	 */
+	if (skb_vlan_tag_present(skb))
+		return 0;
+
 	dev = skb->dev;
 
 #ifdef CONFIG_NET_CLS_ACT
