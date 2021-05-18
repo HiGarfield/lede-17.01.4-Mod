@@ -26,13 +26,17 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
 
-          LEDE_VERSION="$(cat version)"
+          WORKING_DIR="$GITHUB_WORKSPACE"
+          echo "WORKING_DIR=${WORKING_DIR}" >>$GITHUB_ENV          
+          cd "${WORKING_DIR}"
+          LEDE_VERSION="$(cat "${WORKING_DIR}/version")"
           echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
           LEDE_OUTPUT_NAME="lede-${LEDE_VERSION}-dl"
           echo "LEDE_OUTPUT_NAME=${LEDE_OUTPUT_NAME}" >>$GITHUB_ENV
 
       - name: Download
         id: download
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           ./download_all.sh
           zip -j "${LEDE_OUTPUT_NAME}.zip" dl/*
@@ -43,14 +47,14 @@ jobs:
         if: steps.download.outputs.status == 'success'
         with:
           name: ${{ env.LEDE_OUTPUT_NAME }}
-          path: dl
+          path: ${{ env.WORKING_DIR }}/dl
 
       - name: Create release
         id: create_release
         uses: actions/create-release@v1
         if: steps.download.outputs.status == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
         with:
           tag_name: ${{ env.LEDE_OUTPUT_NAME }}
           release_name: ${{ env.LEDE_OUTPUT_NAME }}
@@ -62,10 +66,10 @@ jobs:
         uses: actions/upload-release-asset@v1
         if: steps.download.outputs.status == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ env.LEDE_OUTPUT_NAME }}.zip
+          asset_path: ${{ env.WORKING_DIR }}/${{ env.LEDE_OUTPUT_NAME }}.zip
           asset_name: ${{ env.LEDE_OUTPUT_NAME }}.zip
           asset_content_type: application/zip
 
@@ -76,4 +80,4 @@ jobs:
           keep_latest: ${{ env.TOTAL_KEEP_NUMBER }}
           delete_tags: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
