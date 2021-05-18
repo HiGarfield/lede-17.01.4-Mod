@@ -2444,7 +2444,8 @@ int sfe_ipv6_create_rule(struct sfe_connection_create *sic)
 		return -ENOMEM;
 	}
 
-	original_cm = (struct sfe_ipv6_connection_match *)kmalloc(sizeof(struct sfe_ipv6_connection_match), GFP_ATOMIC);
+	original_cm = kzalloc(sizeof(struct sfe_ipv6_connection_match),
+					GFP_ATOMIC);
 	if (unlikely(!original_cm)) {
 		spin_unlock_bh(&si->lock);
 		kfree(c);
