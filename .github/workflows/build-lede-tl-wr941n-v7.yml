@@ -27,13 +27,17 @@ jobs:
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
 
-          LEDE_VERSION="$(cat version)"
+          WORKING_DIR="$GITHUB_WORKSPACE"
+          echo "WORKING_DIR=${WORKING_DIR}" >>$GITHUB_ENV
+          cd "${WORKING_DIR}"
+          LEDE_VERSION="$(cat "${WORKING_DIR}/version")"
           echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
           LEDE_OUTPUT_NAME="lede-${LEDE_VERSION}-${TARGET_DEVICE}"
           echo "LEDE_OUTPUT_NAME=${LEDE_OUTPUT_NAME}" >>$GITHUB_ENV
-          echo "FIRMWARE=out" >> $GITHUB_ENV
+          echo "FIRMWARE=${WORKING_DIR}/out" >> $GITHUB_ENV
 
       - name: Load custom configuration
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           ./clean_all.sh
           cp -f "conf/.config.$TARGET_DEVICE" .config        
@@ -41,6 +45,7 @@ jobs:
 
       - name: Download package
         id: package
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           make download -j8 || make download -j1 V=s
           find dl -size -1024c -exec ls -l {} \;
@@ -48,6 +53,7 @@ jobs:
 
       - name: Compile firmware
         id: compile
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           echo -e "$(($(nproc) + 1)) thread compile"
           make -j$(($(nproc) + 1)) || make -j1 V=s
@@ -60,7 +66,7 @@ jobs:
 
       - name: Upload firmware directory
         uses: actions/upload-artifact@master
-        if: steps.compile.outputs.status == 'success'
+        if: steps.compile.outputs.status == 'success'        
         with:
           name: ${{ env.LEDE_OUTPUT_NAME }}
           path: ${{ env.FIRMWARE }}
@@ -68,6 +74,7 @@ jobs:
       - name: Upload firmware to cowtransfer
         id: cowtransfer
         if: steps.compile.outputs.status == 'success'
+        working-directory: ${{ env.WORKING_DIR }}
         continue-on-error: true
         run: |
           curl -fsSL git.io/file-transfer | sh
@@ -75,51 +82,65 @@ jobs:
           echo "::warning file=cowtransfer.com::$(cat cowtransfer.log | grep https)"
           echo "::set-output name=url::$(cat cowtransfer.log | grep https | cut -f3 -d" ")"
 
-      - name: Upload firmware to WeTransfer
-        id: wetransfer
+      - name: Upload firmware to CatBox
+        id: catbox
         if: steps.compile.outputs.status == 'success'
+        working-directory: ${{ env.WORKING_DIR }}
         continue-on-error: true
         run: |
           curl -fsSL git.io/file-transfer | sh
-          ./transfer wet -s -p 16 --no-progress ${FIRMWARE} 2>&1 | tee wetransfer.log
-          echo "::warning file=wetransfer.com::$(cat wetransfer.log | grep https)"
-          echo "::set-output name=url::$(cat wetransfer.log | grep https | cut -f3 -d" ")"
+          ./transfer cat --no-progress ${FIRMWARE} 2>&1 | tee catbox.log
+          echo "::warning file=catbox.com::$(cat catbox.log | grep https)"
+          echo "::set-output name=url::$(cat catbox.log | grep https | cut -f3 -d" ")"
+
+      - name: Upload firmware to anonfiles
+        id: anonfiles
+        if: steps.compile.outputs.status == 'success'
+        working-directory: ${{ env.WORKING_DIR }}
+        continue-on-error: true
+        run: |
+          upfile="${FIRMWARE}/${LEDE_OUTPUT_NAME}.bin"
+          for i in $(seq 1 5); do downurl="$(curl -F file=@${upfile}  https://api.anonfiles.com/upload 2>/dev/null | tee | tr '\"' '\n' | grep "^https" | head -n 1)"; [ -n ${downurl} ] && break; done
+          echo "::warning file=anonfiles.com::Download Link: ${downurl}"
+          echo "::set-output name=url::${downurl}"
 
       - name: Upload firmware to anonymousfiles
         id: anonymousfiles
         if: steps.compile.outputs.status == 'success'
+        working-directory: ${{ env.WORKING_DIR }}
         continue-on-error: true
         run: |
           upfile="${FIRMWARE}/${LEDE_OUTPUT_NAME}.bin"
-          for i in $(seq 1 5); do downurl=$(curl -F file=@${upfile} -F expires=6m https://api.anonymousfiles.io/ 2>/dev/null | tee | tr '\"' '\n' | grep "https"); [ -n ${downurl} ] && break; done
+          for i in $(seq 1 5); do downurl="$(curl -F file=@${upfile} -F expires=6m https://api.anonymousfiles.io/ 2>/dev/null | tee | tr '\"' '\n' | grep "^https" | head -n 1)"; [ -n ${downurl} ] && break; done
           echo "::warning file=anonymousfiles.io::Download Link: ${downurl}"
           echo "::set-output name=url::${downurl}"
 
       - name: Generate release tag
         id: tag
+        working-directory: ${{ env.WORKING_DIR }}
         run: |
           echo "::set-output name=release_tag::${LEDE_OUTPUT_NAME}"
-          work_dir="$PWD"
-          touch "$work_dir/release.txt"
-          echo "🔗 [奶牛快传下载（1天内有效）](${{ steps.cowtransfer.outputs.url }})" >> "$work_dir/release.txt"
-          echo "🔗 [WeTransfer下载（7天内有效）](${{ steps.wetransfer.outputs.url }})" >> "$work_dir/release.txt"
-          echo "🔗 [AnonymousFiles下载（6个月内有效）](${{ steps.anonymousfiles.outputs.url }})" >> "$work_dir/release.txt"
+          touch "$WORKING_DIR/release.txt"
+          echo "🔗 [奶牛快传下载](${{ steps.cowtransfer.outputs.url }})" >> "$WORKING_DIR/release.txt"
+          echo "🔗 [CatBox下载](${{ steps.catbox.outputs.url }})" >> "$WORKING_DIR/release.txt"
+          echo "🔗 [anonfiles下载](${{ steps.anonfiles.outputs.url }})" >> "$WORKING_DIR/release.txt"
+          echo "🔗 [AnonymousFiles下载](${{ steps.anonymousfiles.outputs.url }})" >> "$WORKING_DIR/release.txt"
           cd "${FIRMWARE}"
-          echo "" >> "$work_dir/release.txt"
-          echo "文件MD5校验：" >> "$work_dir/release.txt"
-          md5sum *.bin | awk '{print $2,$1}' >> "$work_dir/release.txt"
-          echo "" >> "$work_dir/release.txt"
-          echo "若以上链接过期失效，请在以下Assets中下载文件。" >> "$work_dir/release.txt"
+          echo "" >> "$WORKING_DIR/release.txt"
+          echo "文件MD5校验：" >> "$WORKING_DIR/release.txt"
+          md5sum *.bin | awk '{print $2,$1}' >> "$WORKING_DIR/release.txt"
+          echo "" >> "$WORKING_DIR/release.txt"
+          echo "以上所有链接的文件均相同，不同网盘过期时间不同，仅需下载其中一个链接即可。若以上链接均过期失效或无法打开，请在以下Assets中下载文件。下载后请核对文件MD5校验。" >> "$WORKING_DIR/release.txt"
           echo "::set-output name=status::success"
 
       - name: Upload firmware to release
         uses: HiGarfield/action-gh-release@v1
         if: steps.tag.outputs.status == 'success'
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
-          body_path: release.txt
+          body_path: ${{ env.WORKING_DIR }}/release.txt
           files: ${{ env.FIRMWARE }}/*
 
       - name: Remove old releases
@@ -129,4 +150,4 @@ jobs:
           keep_latest: ${{ env.TOTAL_KEEP_NUMBER }}
           delete_tags: true
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.MY_TOKEN }}
