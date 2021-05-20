@@ -34,8 +34,8 @@ define Build/Compile
 endef
 
 define Package/$(PKG_NAME)/install
-	$(INSTALL_DIR) $(1)/etc/init.d
-	$(INSTALL_BIN) ./files/lede-info $(1)/etc/init.d
+	$(INSTALL_DIR) $(1)/lib/preinit
+	$(INSTALL_BIN) ./files/lede-info $(1)/lib/preinit/99_99_lede_info
 endef
 
 $(eval $(call BuildPackage,$(PKG_NAME)))
