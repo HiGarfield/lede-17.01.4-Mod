@@ -47,7 +47,7 @@ jobs:
         id: package
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          make download -j8 || make download -j1 V=s
+          for i in $(seq 6 -1 1); do make download -j${i} && break; done
           find dl -size -1024c -exec ls -l {} \;
           find dl -size -1024c -exec rm -f {} \;
 
