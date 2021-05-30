@@ -49,14 +49,14 @@ EOF
 sed -i '/log-facility=/d' /etc/dnsmasq.conf
 echo "log-facility=/dev/null" >>/etc/dnsmasq.conf
 
-sed -i '/REDIRECT\s\s*--to-ports\s\s*53\s*$/d' /etc/firewall.user
-{
-	echo ""
-	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53"
-	echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53"
-} >>/etc/firewall.user
-sed -i '/^\s*$/d' /etc/firewall.user
-echo "" >>/etc/firewall.user
+# sed -i '/REDIRECT\s\s*--to-ports\s\s*53\s*$/d' /etc/firewall.user
+# {
+# 	echo ""
+# 	echo "iptables -t nat -A PREROUTING -p udp --dport 53 -j REDIRECT --to-ports 53"
+# 	echo "iptables -t nat -A PREROUTING -p tcp --dport 53 -j REDIRECT --to-ports 53"
+# } >>/etc/firewall.user
+# sed -i '/^\s*$/d' /etc/firewall.user
+# echo "" >>/etc/firewall.user
 
 #####################防止LAN与WAN网段重合#########################
 lan_ip=$(uci -q get network.lan.ipaddr)
