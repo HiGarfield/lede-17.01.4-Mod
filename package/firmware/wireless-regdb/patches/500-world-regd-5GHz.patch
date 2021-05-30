@@ -3,7 +3,6 @@ to make it usable for AP mode.
 
 Signed-off-by: Felix Fietkau <nbd@nbd.name>
 ---
-
 --- a/db.txt
 +++ b/db.txt
 @@ -16,7 +16,7 @@ country 00:
