@@ -22,6 +22,7 @@ PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
 PKG_LICENSE:=GPL-2.0
 
 PKG_FIXUP:=autoreconf
+PKG_BUILD_PARALLEL:=0
 PKG_INSTALL:=1
 
 PKG_BUILD_DEPENDS:=librpc
