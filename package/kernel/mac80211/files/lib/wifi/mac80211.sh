@@ -9,18 +9,14 @@ lookup_phy() {
 	local devpath
 	config_get devpath "$device" path
 	[ -n "$devpath" ] && {
-		for phy in $(ls /sys/class/ieee80211 2>/dev/null); do
-			case "$(readlink -f /sys/class/ieee80211/$phy/device)" in
-				*$devpath) return;;
-			esac
-		done
+		phy="$(iwinfo nl80211 phyname "path=$devpath")"
+		[ -n "$phy" ] && return
 	}
 
 	local macaddr="$(config_get "$device" macaddr | tr 'A-Z' 'a-z')"
 	[ -n "$macaddr" ] && {
 		for _phy in /sys/class/ieee80211/*; do
 			[ -e "$_phy" ] || continue
-
 			[ "$macaddr" = "$(cat ${_phy}/macaddress)" ] || continue
 			phy="${_phy##*/}"
 			return
@@ -96,22 +92,14 @@ detect_mac80211() {
 		ht40_noscan=""		
 		[ "$htmode" = "HT40" ] && ht40_noscan="set wireless.radio${devidx}.noscan=1"
 
-		if [ -x /usr/bin/readlink -a -h /sys/class/ieee80211/${dev} ]; then
-			path="$(readlink -f /sys/class/ieee80211/${dev}/device)"
-		else
-			path=""
-		fi
+		path="$(iwinfo nl80211 path "$dev")"
 		if [ -n "$path" ]; then
-			path="${path##/sys/devices/}"
-			case "$path" in
-				platform*/pci*) path="${path##platform/}";;
-			esac
 			dev_id="set wireless.radio${devidx}.path='$path'"
 		else
 			dev_id="set wireless.radio${devidx}.macaddr=$(cat /sys/class/ieee80211/${dev}/macaddress)"
 		fi
 
-		mac_addr="$(cat /sys/class/ieee80211/${dev}/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)"
+		mac_addr="$(cat /sys/class/ieee80211/${dev}/macaddress | awk -F ":" '{print $5""$6 }' | tr a-z A-Z)"
 		ssid="LEDE_${mac_addr}${wifi_5ghz}"
 
 		uci -q batch <<-EOF
