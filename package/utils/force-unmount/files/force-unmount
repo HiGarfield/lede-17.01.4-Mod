@@ -19,14 +19,14 @@ compare_pid() {
 # 停止所有占用挂载点的服务
 # example: stop_occupying_service /mnt/sda1
 stop_occupying_service() {
-	local dir_name process_id services service instances instance kill_flag pid running
+	local mountpoint process_id services service instances instance kill_flag pid running
 
 	json_init
 	json_load "$(ubus call service list)"
 	json_get_keys services
 
-	dir_name="$1"
-	for process_id in $(busybox lsof | awk '{print $3,$1}' | grep -w "^$dir_name" | awk '{print $NF}' | uniq); do
+	mountpoint="$1"
+	for process_id in $(lsof -t "$mountpoint"); do
 		for service in $services; do
 			kill_flag=0
 			if json_is_a $service object; then
@@ -49,7 +49,7 @@ stop_occupying_service() {
 				json_select ..
 			fi
 			[ $kill_flag -eq 1 ] && {
-				logger -t force-unmount "Stopping service: ${service}."
+				echo "force-unmount: stopping service: ${service}" >&2
 				/etc/init.d/$service stop
 			}
 		done
@@ -60,34 +60,43 @@ stop_occupying_service() {
 # 结束所有占用挂载点的进程
 # example: kill_occupying_process /mnt/sda1
 kill_occupying_process() {
-	local dir_name pids
-	dir_name="$1"
-
-	pids=$(busybox lsof | awk '{print $3,$1}' | grep -w "^$dir_name" | awk '{print $2}' | uniq | tr "\n" " ")
-	[ -n "$pids" ] && kill -9 $pids >/dev/null 2>&1
+	local mountpoint process_id
+	mountpoint="$1"
+	for process_id in $(lsof -t "$mountpoint"); do
+		echo "force-unmount: killing process: $(cat /proc/$process_id/comm)" >&2
+		kill -9 $process_id
+	done
 }
 
 MAX_TRY=5
 
 [ "$#" -eq 1 ] || exit 1
-mountpoint="$1"
 
-if awk '{print $2}' /proc/mounts | grep -q "$mountpoint"; then
+# 去除挂载点路径中连续多余的'/'，例如 /mnt//sda1 -> /mnt/sda1
+# 去除挂载点路径末尾的'/'，例如 /mnt/sda1/ -> /mnt/sda1
+mountpoint="$(echo "$1" | sed -e 's#/\+#/#g' -e 's#/*[[:space:]]*$##g')"
+
+[ -e "$mountpoint" ] || {
+	echo "force-unmount: can't unmount ${mountpoint}: No such file or directory" >&2
+	exit 1
+}
+
+if awk '{print $2}' /proc/mounts | grep -q "^${mountpoint}$"; then
 	for try_count in $(seq $MAX_TRY); do
-		logger -t force-unmount "Unmount ${mountpoint}: try count ${try_count}."
+		echo "force-unmount: unmounting ${mountpoint}: try count: ${try_count}" >&2
 		stop_occupying_service "$mountpoint"
 		kill_occupying_process "$mountpoint"
 		sync
 		umount "$mountpoint"
 		exit_code="$?"
 		[ "$exit_code" -eq 0 ] && {
-			logger -t force-unmount "Unmount ${mountpoint} successfully."
+			echo "force-unmount: ${mountpoint} successfully unmounted" >&2
 			exit 0
 		}
 	done
-	logger -t force-unmount "Cannot unmount ${mountpoint}."
+	echo "force-unmount: can't unmount ${mountpoint}" >&2
 	exit "$exit_code"
 else
-	logger -t force-unmount "${mountpoint} is not mounted."
-	exit 0
+	echo "force-unmount: ${mountpoint} is not mounted" >&2
+	exit 1
 fi
