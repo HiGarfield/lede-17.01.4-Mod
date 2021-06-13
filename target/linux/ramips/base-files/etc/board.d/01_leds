@@ -29,7 +29,7 @@ wf-2881)
 	;;
 wr1200js)
 	set_usb_led "$board:blue:usb"
-	ucidef_set_led_switch "internet" "INTERNET" "$board:blue:internet" "switch0" "0x01"
+	ucidef_set_led_netdev "internet" "INTERNET" "$board:blue:internet" "eth0.2"
 	ucidef_set_led_default "wps" "wps" "$board:blue:wps" "0"
 	;;
 a3004ns)
