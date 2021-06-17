@@ -100,8 +100,8 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 
 	/* Port 5 enable flow control */
 	/* (GE1, Force 1000M/FD, FC OFF, MAX_RX_LENGTH 1536) */
-	mtk_switch_w32(gsw, 0x2305e33b, GSW_REG_MAC_P0_MCR);
-	mt7530_mdio_w32(gsw, 0x3600, 0x5e33b);
+	mtk_switch_w32(gsw, 0x2305e30b, GSW_REG_MAC_P0_MCR);
+	mt7530_mdio_w32(gsw, 0x3600, 0x5e30b);
 
 	/* turn off pause advertisement on all PHYs */
 	for (i = 0; i <= 4; i++) {
