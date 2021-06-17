@@ -23,7 +23,7 @@ endif
 
 tools-$(BUILD_TOOLCHAIN) += gmp mpfr mpc libelf expat
 tools-y += m4 libtool autoconf automake flex bison pkg-config mklibs
-tools-y += sstrip make-ext4fs e2fsprogs mtd-utils mkimage
+tools-y += sstrip make-ext4fs meson e2fsprogs mtd-utils mkimage
 tools-y += firmware-utils patch-image quilt padjffs2
 tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
 tools-y += mtools dosfstools libressl
@@ -45,6 +45,7 @@ $(curdir)/flex/compile := $(curdir)/libtool/install
 $(curdir)/libtool/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/automake/install $(curdir)/missing-macros/install
 $(curdir)/squashfs/compile := $(curdir)/lzma-old/install
 $(curdir)/squashfs4/compile := $(curdir)/xz/install
+$(curdir)/meson/compile := $(curdir)/ninja/compile
 $(curdir)/quilt/compile := $(curdir)/autoconf/install $(curdir)/findutils/install
 $(curdir)/autoconf/compile := $(curdir)/m4/install
 $(curdir)/automake/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/pkg-config/install $(curdir)/xz/install
