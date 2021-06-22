@@ -10,8 +10,6 @@
 /staging_dir
 /tmp
 /logs
-/files
-/overlay
 /out
 key-build*
 *.orig
@@ -21,3 +19,6 @@ key-build*
 *#
 .emacs.desktop*
 TAGS*~
+.project
+.cproject
+.ccache
