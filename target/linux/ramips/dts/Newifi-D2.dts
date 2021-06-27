@@ -61,6 +61,17 @@
 		};
 	};
 
+	gpio_export {
+		compatible = "gpio-export";
+		#size-cells = <0>;
+
+		power_usb3 {
+			gpio-export,name = "power_usb3";
+			gpio-export,output = <1>;
+			gpios = <&gpio0 11 0>;
+		};
+	};
+
 };
 
 &hsdma {
