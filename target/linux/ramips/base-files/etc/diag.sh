@@ -130,6 +130,7 @@ get_status_led() {
 	wt3020|\
 	y1|\
 	y1s|\
+	newifi-d2|\
 	youku-yk1)
 		status_led="$board:blue:power"
 		;;
@@ -182,9 +183,6 @@ get_status_led() {
 		;;
 	newifi-d1)
 		status_led="$board:blue:status"
-		;;
-	newifi-d2)
-		status_led="newifi-d2:blue:power"
 		;;
 	omega2| \
 	omega2p)

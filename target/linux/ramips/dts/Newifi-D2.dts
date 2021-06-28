@@ -14,9 +14,19 @@
 	gpio-leds {
 		compatible = "gpio-leds";
 
-		led_power_blue: power-blue {
+		power-amber {
+			label = "newifi-d2:amber:power";
+			gpios = <&gpio0 6 1>;
+		};
+
+		power-blue {
 			label = "newifi-d2:blue:power";
 			gpios = <&gpio0 15 1>;
+		};
+
+		internet-amber {
+			label = "newifi-d2:amber:internet";
+			gpios = <&gpio0 4 1>;
 		};
 
 		internet-blue {
@@ -71,7 +81,6 @@
 			gpios = <&gpio0 11 0>;
 		};
 	};
-
 };
 
 &hsdma {
