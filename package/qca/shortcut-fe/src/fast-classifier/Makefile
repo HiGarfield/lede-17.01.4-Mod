@@ -8,3 +8,5 @@ ccflags-$(SFE_SUPPORT_IPV6) += -DSFE_SUPPORT_IPV6 -Wno-format
 ccflags-y += -I$(obj)/../shortcut-fe
 
 obj ?= .
+
+ccflags-y += -Werror -Wall
