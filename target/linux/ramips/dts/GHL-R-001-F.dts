@@ -49,12 +49,11 @@
 	status = "okay";
 
 	m25p80@0 {
-		compatible = "mx25l25635F", "jedec,spi-nor";
+		compatible = "mx25l25635f", "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <10000000>;
 		m25p,chunked-io = <32>;
 		m25p,fast-read;
-		apply-4byte-shutdown;
 
 		partitions {
 			compatible = "fixed-partitions";
