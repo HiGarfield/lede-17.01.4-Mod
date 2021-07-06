@@ -8,12 +8,12 @@ PKG_LICENSE_FILES:=
 
 PKG_SOURCE_URL:=https://github.com/greearb/ath10k-ct.git
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_DATE:=2020-10-09
-PKG_SOURCE_VERSION:=1d28d176e5b6e63a6583f497adf68e1d9c1dc962
-PKG_MIRROR_HASH:=b7c173bc8c54cda6472e9f098472248617c0cb67e5693b95693e4479da531970
+PKG_SOURCE_DATE:=2021-06-03
+PKG_SOURCE_VERSION:=b44cd7b2e7b0df5995ece18f358d4dfc40834ba1
+PKG_MIRROR_HASH:=59f961ad425eb1a48fa9c391a325cc0f23845daec9d12673445d3077f9756cf0
 
-# Build the 4.19 ath10k-ct driver version.
-# Probably this should match as closely as
+# Build the 4.19 ath10k-ct driver version.  Other options are "-4.16", or
+# leave un-defined for 4.7 kernel.  Probably this should match as closely as
 # possible to whatever mac80211 backports version is being used.
 CT_KVER="-4.19"
 
@@ -101,8 +101,6 @@ endif
 
 define Build/Compile
 	+$(MAKE) $(CT_MAKEDEFS) $(PKG_JOBS) -C "$(LINUX_DIR)" \
-		CROSS_COMPILE="$(KERNEL_CROSS)" \
-		ARCH="$(LINUX_KARCH)" \
 		$(KERNEL_MAKE_FLAGS) \
 		SUBDIRS="$(PKG_BUILD_DIR)/ath10k$(CT_KVER)" \
 		NOSTDINC_FLAGS="$(NOSTDINC_FLAGS)" \
