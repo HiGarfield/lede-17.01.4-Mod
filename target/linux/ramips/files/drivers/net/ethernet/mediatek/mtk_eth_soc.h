@@ -52,7 +52,7 @@ enum fe_work_flag {
 #define MTK_FE_DRV_VERSION		"0.1.2"
 
 /* power of 2 to let NEXT_TX_DESP_IDX work */
-#define NUM_DMA_DESC		BIT(7)
+#define NUM_DMA_DESC		BIT(10)
 #define MAX_DMA_DESC		0xfff
 
 #define FE_DELAY_EN_INT		0x80
@@ -435,19 +435,12 @@ struct fe_hw_stats {
 #undef _FE
 };
 
-enum fe_tx_flags {
-	FE_TX_FLAGS_SINGLE0	= 0x01,
-	FE_TX_FLAGS_PAGE0	= 0x02,
-	FE_TX_FLAGS_PAGE1	= 0x04,
-};
-
 struct fe_tx_buf {
 	struct sk_buff *skb;
-	u32 flags;
 	DEFINE_DMA_UNMAP_ADDR(dma_addr0);
-	DEFINE_DMA_UNMAP_LEN(dma_len0);
 	DEFINE_DMA_UNMAP_ADDR(dma_addr1);
-	DEFINE_DMA_UNMAP_LEN(dma_len1);
+	u16 dma_len0;
+	u16 dma_len1;
 };
 
 struct fe_tx_ring {
