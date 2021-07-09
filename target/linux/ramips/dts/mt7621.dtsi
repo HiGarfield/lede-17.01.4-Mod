@@ -437,7 +437,7 @@
 		reg = <0x1e100000 0x10000>;
 
 		#address-cells = <1>;
-		#size-cells = <0>;
+		#size-cells = <1>;
 
 		resets = <&rstctrl 6 &rstctrl 23>;
 		reset-names = "fe", "eth";
