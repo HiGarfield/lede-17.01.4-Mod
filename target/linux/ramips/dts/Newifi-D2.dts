@@ -150,7 +150,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "wdt", "rgmii2", "jtag", "uart2", "uart3", "i2c";
+			ralink,group = "i2c", "jtag", "uart2", "uart3";
 			ralink,function = "gpio";
 		};
 	};
