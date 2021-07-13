@@ -1,8 +1,8 @@
 Source-Makefile: feeds/telephony/libs/pjproject/Makefile
 Package: libpj
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +librt
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +librt
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -11,7 +11,7 @@ Category: Libraries
 Repository: base
 Title: libpj library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -22,8 +22,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjlib-util
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +librt
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +librt
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -32,7 +32,7 @@ Category: Libraries
 Repository: base
 Title: libpjlib-util library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -43,8 +43,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjmedia
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjnath +libresample +librt +libspeex +libsrtp
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjnath +librt +libsrtp
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -53,7 +53,7 @@ Category: Libraries
 Repository: base
 Title: libpjmedia library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -64,8 +64,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjnath
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +librt
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +librt
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -74,7 +74,7 @@ Category: Libraries
 Repository: base
 Title: libpjnath library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -85,8 +85,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjsip-simple
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjsip +libresample +librt +libspeex +libsrtp
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjsip +librt
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -95,7 +95,7 @@ Category: Libraries
 Repository: base
 Title: libpjsip-simple library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -106,8 +106,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjsip-ua
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjmedia +libpjsip-simple +libpjsip +libresample +librt +libspeex +libsrtp
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjmedia +libpjsip-simple +libpjsip +librt
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -116,7 +116,7 @@ Category: Libraries
 Repository: base
 Title: libpjsip-ua library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -127,8 +127,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjsip
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libresample +librt +libspeex +libsrtp
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +librt +libsrtp
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -137,7 +137,7 @@ Category: Libraries
 Repository: base
 Title: libpjsip library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -148,8 +148,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjsua
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjmedia +libpjnath +libpjsip-simple +libpjsip-ua +libpjsip +libresample +librt +libspeex +libsrtp
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjmedia +libpjnath +libpjsip-simple +libpjsip-ua +libpjsip +librt
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -158,7 +158,7 @@ Category: Libraries
 Repository: base
 Title: libpjsua library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
@@ -169,8 +169,8 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: libpjsua2
 Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjmedia +libpjnath +libpjsip-simple +libpjsip-ua +libpjsip +libresample +librt +libspeex +libsrtp +libpjsua
+Version: 2.7.2-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libuuid +libstdcpp +libpthread +libpj +libpjlib-util +libpjmedia +libpjnath +libpjsip-simple +libpjsip-ua +libpjsip +librt +libpjsua
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -179,32 +179,11 @@ Category: Libraries
 Repository: base
 Title: libpjsua2 library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
+Source: pjproject-2.7.2.tar.bz2
 License: GPL-2.0
 LicenseFiles: COPYING
 Type: ipkg
 Description: libpjsua2 library
-http://www.pjsip.org/
-Jiri Slachta <jiri@slachta.eu>
-@@
-
-Package: libresample
-Submenu: Telephony
-Version: 2.4.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libuuid +libstdcpp +libpthread
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Section: lib
-Category: Libraries
-Repository: base
-Title: libresample library
-Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: pjproject-2.4.5.tar.bz2
-License: GPL-2.0
-LicenseFiles: COPYING
-Type: ipkg
-Description: libresample library
 http://www.pjsip.org/
 Jiri Slachta <jiri@slachta.eu>
 @@

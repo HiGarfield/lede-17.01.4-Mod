@@ -1,7 +1,7 @@
 Source-Makefile: feeds/telephony/net/asterisk-g72x/Makefile
 Package: asterisk11-codec-g729
 Submenu: Telephony
-Version: 1.3-2
+Version: 1.3-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +bcg729 asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -23,7 +23,7 @@ Alex Samorukov <samm@os2.kiev.ua>
 
 Package: asterisk13-codec-g729
 Submenu: Telephony
-Version: 1.3-2
+Version: 1.3-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +bcg729 asterisk13
 Conflicts: 
 Menu-Depends: 
