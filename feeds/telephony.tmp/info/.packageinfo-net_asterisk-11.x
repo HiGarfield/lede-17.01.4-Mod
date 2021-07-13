@@ -2,7 +2,7 @@ Source-Makefile: feeds/telephony/net/asterisk-11.x/Makefile
 Package: asterisk11
 Menu: 1
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libncurses +libpopt +libpthread +libsqlite3 +librt +libuuid +zlib @!TARGET_avr32
 Conflicts: asterisk13
 Menu-Depends: 
@@ -27,7 +27,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-sounds
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -49,7 +49,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-alarmreceiver
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -71,7 +71,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-authenticate
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -93,7 +93,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-confbridge
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -115,7 +115,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-dahdiras
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-app-dahdiras:asterisk11-chan-dahdi
 Conflicts: 
 Menu-Depends: 
@@ -137,7 +137,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-directory
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -159,7 +159,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-directed_pickup
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -181,7 +181,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-disa
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -203,7 +203,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-exec
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -225,7 +225,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-chanisavail
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -247,7 +247,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-chanspy
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -269,7 +269,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-minivm
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -291,7 +291,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-mixmonitor
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -313,7 +313,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-originate
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -335,7 +335,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-playtones
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -357,7 +357,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-queue
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -379,7 +379,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-read
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -401,7 +401,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-readexten
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -423,7 +423,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-record
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -445,7 +445,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-sayunixtime
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -467,7 +467,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-senddtmf
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -489,7 +489,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-sms
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-app-sms:libpopt +PACKAGE_asterisk11-app-sms:libstdcpp
 Conflicts: 
 Menu-Depends: 
@@ -511,7 +511,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-stack
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-app-stack:asterisk11-res-agi
 Conflicts: 
 Menu-Depends: 
@@ -533,7 +533,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-system
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -555,7 +555,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-talkdetect
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -577,7 +577,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-verbose
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -599,7 +599,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-waituntil
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -621,7 +621,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-app-while
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -643,7 +643,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-cdr-csv
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -665,7 +665,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-cdr-sqlite3
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 libsqlite3
 Conflicts: 
 Menu-Depends: 
@@ -687,7 +687,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-cdr
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -709,7 +709,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-alsa
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-chan-alsa:alsa-lib
 Conflicts: 
 Menu-Depends: 
@@ -731,7 +731,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-agent
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -753,7 +753,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-dahdi
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-chan-dahdi:dahdi-tools-libtonezone +PACKAGE_asterisk11-chan-dahdi:kmod-dahdi +PACKAGE_asterisk11-chan-dahdi:libpri
 Conflicts: 
 Menu-Depends: 
@@ -775,7 +775,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-iax2
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-chan-iax2:asterisk11-res-timing-timerfd
 Conflicts: 
 Menu-Depends: 
@@ -797,7 +797,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-mgcp
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -819,7 +819,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-motif
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-chan-motif:asterisk11-res-xmpp
 Conflicts: 
 Menu-Depends: 
@@ -841,7 +841,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-ooh323
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -863,7 +863,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-oss
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -885,7 +885,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-skinny
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -907,7 +907,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-chan-unistim
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -929,7 +929,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-a-mu
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -951,7 +951,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-adpcm
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -973,7 +973,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-alaw
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -995,7 +995,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-dahdi
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-codec-dahdi:asterisk11-chan-dahdi
 Conflicts: 
 Menu-Depends: 
@@ -1017,7 +1017,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-g722
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1039,7 +1039,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-g726
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1061,7 +1061,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-gsm
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1083,7 +1083,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-ilbc
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1105,7 +1105,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-lpc10
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1127,7 +1127,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-codec-resample
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1149,7 +1149,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-curl
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-curl:libcurl
 Conflicts: 
 Menu-Depends: 
@@ -1171,7 +1171,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-g726
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1193,7 +1193,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-g729
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1215,7 +1215,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-gsm
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1237,7 +1237,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-h263
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1259,7 +1259,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-h264
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1281,7 +1281,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-ilbc
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1303,7 +1303,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-sln
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1325,7 +1325,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-vox
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1347,7 +1347,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-wav-gsm
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1369,7 +1369,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-format-wav
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1391,7 +1391,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-base64
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1413,7 +1413,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-blacklist
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1435,7 +1435,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-cut
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1457,7 +1457,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-db
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1479,7 +1479,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-devstate
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1501,7 +1501,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-enum
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1523,7 +1523,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-env
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1545,7 +1545,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-extstate
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1567,7 +1567,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-global
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1589,7 +1589,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-groupcount
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1611,7 +1611,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-channel
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1633,7 +1633,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-math
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1655,7 +1655,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-module
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1677,7 +1677,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-presencestate
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1699,7 +1699,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-shell
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1721,7 +1721,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-uri
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1743,7 +1743,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-vmcount
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1765,7 +1765,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-func-realtime
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1787,7 +1787,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-mysql
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-mysql:libmysqlclient
 Conflicts: 
 Menu-Depends: 
@@ -1809,7 +1809,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-odbc
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-odbc:libpthread +PACKAGE_asterisk11-odbc:libc +PACKAGE_asterisk11-odbc:unixodbc
 Conflicts: 
 Menu-Depends: 
@@ -1831,7 +1831,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-pbx-ael
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1853,7 +1853,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-pbx-dundi
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1875,7 +1875,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-pbx-lua
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-pbx-lua:libpthread +PACKAGE_asterisk11-pbx-lua:libc +PACKAGE_asterisk11-pbx-lua:liblua
 Conflicts: 
 Menu-Depends: 
@@ -1897,7 +1897,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-pbx-spool
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1919,7 +1919,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-pbx-realtime
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1941,7 +1941,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-pgsql
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-pgsql:libpq
 Conflicts: 
 Menu-Depends: 
@@ -1963,7 +1963,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-adsi
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -1985,7 +1985,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-ael-share
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2007,7 +2007,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-agi
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2029,7 +2029,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-calendar
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2051,7 +2051,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-clioriginate
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2073,7 +2073,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-monitor
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2095,7 +2095,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-musiconhold
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2117,7 +2117,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-phoneprov
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2139,7 +2139,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-pktccops
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2161,7 +2161,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-smdi
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2183,7 +2183,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-srtp
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-res-srtp:libsrtp
 Conflicts: 
 Menu-Depends: 
@@ -2205,7 +2205,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-timing-dahdi
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-res-timing-dahdi:asterisk11-chan-dahdi
 Conflicts: 
 Menu-Depends: 
@@ -2227,7 +2227,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-timing-pthread
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2249,7 +2249,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-timing-timerfd
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2271,7 +2271,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-xmpp
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-res-xmpp:libiksemel +PACKAGE_asterisk11-res-xmpp:libopenssl
 Conflicts: 
 Menu-Depends: 
@@ -2293,7 +2293,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-res-realtime
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11
 Conflicts: 
 Menu-Depends: 
@@ -2315,7 +2315,7 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk11-voicemail
 Submenu: Telephony
-Version: 11.22.0-2
+Version: 11.22.0-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread asterisk11 +PACKAGE_asterisk11-voicemail:asterisk11-res-adsi +PACKAGE_asterisk11-voicemail:asterisk11-res-smdi
 Conflicts: 
 Menu-Depends: 

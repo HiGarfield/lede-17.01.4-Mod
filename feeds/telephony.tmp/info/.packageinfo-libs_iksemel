@@ -1,8 +1,8 @@
 Source-Makefile: feeds/telephony/libs/iksemel/Makefile
 Package: libiksemel
 Submenu: Telephony
-Version: 1.4-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgnutls +libtasn1 +libgcrypt +libgpg-error
+Version: 1.4-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libgnutls
 Conflicts: 
 Menu-Depends: 
 Provides: 

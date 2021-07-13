@@ -1,12 +1,13 @@
 Source-Makefile: feeds/telephony/net/chan-sccp-b/Makefile
 Package: asterisk11-chan-sccp-b
 Submenu: Telephony
-Version: v4.2.3-r6647-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libltdl asterisk11
+Version: v4.2.3-r6647-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +USE_UCLIBC:libiconv-full +libltdl asterisk11
 Conflicts: asterisk11-chan-skinny
 Menu-Depends: 
 Provides: 
 Build-Variant: asterisk11
+Build-Depends: libiconv
 Section: net
 Category: Network
 Repository: base
@@ -24,12 +25,13 @@ Jiri Slachta <jiri@slachta.eu>
 
 Package: asterisk13-chan-sccp-b
 Submenu: Telephony
-Version: v4.2.3-r6647-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libltdl asterisk13
+Version: v4.2.3-r6647-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +USE_UCLIBC:libiconv-full +libltdl asterisk13
 Conflicts: asterisk13-chan-skinny
 Menu-Depends: 
 Provides: 
 Build-Variant: asterisk13
+Build-Depends: libiconv
 Section: net
 Category: Network
 Repository: base
