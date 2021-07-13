@@ -42,7 +42,7 @@ Vittorio Gambaletta <openwrt@vittgam.net>
 Package: dahdi-tools-libtonezone
 Submenu: Telephony
 Version: 2.11.1-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-dahdi
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-dahdi +libpthread
 Conflicts: 
 Menu-Depends: 
 Provides: 

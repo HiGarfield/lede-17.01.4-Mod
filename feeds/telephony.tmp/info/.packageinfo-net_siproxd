@@ -2,7 +2,7 @@ Source-Makefile: feeds/telephony/net/siproxd/Makefile
 Package: siproxd
 Menu: 1
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libltdl +libpthread +libosip2
 Conflicts: 
 Menu-Depends: 
@@ -12,7 +12,7 @@ Category: Network
 Repository: base
 Title: SIP (Session Initiation Protocol) proxy
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -21,9 +21,30 @@ http://siproxd.sourceforge.net/
 
 @@
 
+Package: siproxd-mod-codecfilter
+Submenu: Telephony
+Version: 0.8.2-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: siproxd codecfilter plugin
+Maintainer: 
+Source: siproxd-0.8.2.tar.gz
+License: GPL-2.0+
+LicenseFiles: COPYING
+Type: ipkg
+Description: siproxd codecfilter plugin
+http://siproxd.sourceforge.net/
+
+@@
+
 Package: siproxd-mod-defaulttarget
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -33,7 +54,7 @@ Category: Network
 Repository: base
 Title: siproxd defaulttarget plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -44,7 +65,7 @@ http://siproxd.sourceforge.net/
 
 Package: siproxd-mod-demo
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -54,7 +75,7 @@ Category: Network
 Repository: base
 Title: siproxd demo plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -65,7 +86,7 @@ http://siproxd.sourceforge.net/
 
 Package: siproxd-mod-fix_bogus_via
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -75,7 +96,7 @@ Category: Network
 Repository: base
 Title: siproxd fix_bogus_via plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -84,9 +105,51 @@ http://siproxd.sourceforge.net/
 
 @@
 
+Package: siproxd-mod-fix_DTAG
+Submenu: Telephony
+Version: 0.8.2-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: siproxd fix_DTAG plugin
+Maintainer: 
+Source: siproxd-0.8.2.tar.gz
+License: GPL-2.0+
+LicenseFiles: COPYING
+Type: ipkg
+Description: siproxd fix_DTAG plugin
+http://siproxd.sourceforge.net/
+
+@@
+
+Package: siproxd-mod-fix_fbox_anoncall
+Submenu: Telephony
+Version: 0.8.2-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: siproxd fix_fbox_anoncall plugin
+Maintainer: 
+Source: siproxd-0.8.2.tar.gz
+License: GPL-2.0+
+LicenseFiles: COPYING
+Type: ipkg
+Description: siproxd fix_fbox_anoncall plugin
+http://siproxd.sourceforge.net/
+
+@@
+
 Package: siproxd-mod-logcall
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -96,7 +159,7 @@ Category: Network
 Repository: base
 Title: siproxd logcall plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -107,7 +170,7 @@ http://siproxd.sourceforge.net/
 
 Package: siproxd-mod-prefix
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -117,7 +180,7 @@ Category: Network
 Repository: base
 Title: siproxd prefix plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -128,7 +191,7 @@ http://siproxd.sourceforge.net/
 
 Package: siproxd-mod-regex
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -138,7 +201,7 @@ Category: Network
 Repository: base
 Title: siproxd regex plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -149,7 +212,7 @@ http://siproxd.sourceforge.net/
 
 Package: siproxd-mod-shortdial
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -159,7 +222,7 @@ Category: Network
 Repository: base
 Title: siproxd shortdial plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
@@ -168,9 +231,30 @@ http://siproxd.sourceforge.net/
 
 @@
 
+Package: siproxd-mod-stripheader
+Submenu: Telephony
+Version: 0.8.2-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: siproxd stripheader plugin
+Maintainer: 
+Source: siproxd-0.8.2.tar.gz
+License: GPL-2.0+
+LicenseFiles: COPYING
+Type: ipkg
+Description: siproxd stripheader plugin
+http://siproxd.sourceforge.net/
+
+@@
+
 Package: siproxd-mod-stun
 Submenu: Telephony
-Version: 0.8.1-5
+Version: 0.8.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
 Conflicts: 
 Menu-Depends: 
@@ -180,11 +264,32 @@ Category: Network
 Repository: base
 Title: siproxd stun plugin
 Maintainer: 
-Source: siproxd-0.8.1.tar.gz
+Source: siproxd-0.8.2.tar.gz
 License: GPL-2.0+
 LicenseFiles: COPYING
 Type: ipkg
 Description: siproxd stun plugin
+http://siproxd.sourceforge.net/
+
+@@
+
+Package: siproxd-mod-siptrunk
+Submenu: Telephony
+Version: 0.8.2-3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread siproxd
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: net
+Category: Network
+Repository: base
+Title: siproxd siptrunk plugin
+Maintainer: 
+Source: siproxd-0.8.2.tar.gz
+License: GPL-2.0+
+LicenseFiles: COPYING
+Type: ipkg
+Description: siproxd siptrunk plugin
 http://siproxd.sourceforge.net/
 
 @@
