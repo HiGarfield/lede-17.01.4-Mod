@@ -4,7 +4,7 @@
 . /lib/functions.sh
 
 #检测IP列表
-chk_ip_list="$(cat /tmp/resolv.conf.auto | grep nameserver | cut -d' ' -f2 | sort -u | tr '\n' ' ') 115.239.210.27 115.239.211.112 220.181.112.244 220.181.111.188 114.114.114.114 114.114.115.115"
+chk_ip_list="$(grep nameserver /tmp/resolv.conf.auto | cut -d' ' -f2 | grep -v ':' | sort -u | tr '\n' ' ') 114.114.114.114 119.29.29.29 223.5.5.5 180.76.76.76"
 fw_str="wan wan6"
 
 #添加MWAN负载均衡相关配置
@@ -17,9 +17,8 @@ mwan_cfg_add() {
 	uci set mwan3.${1}.timeout=2
 	uci set mwan3.${1}.interval=5
 	uci set mwan3.${1}.down=3
-	uci set mwan3.${1}.up=2
-	for i in $chk_ip_list
-	do
+	uci set mwan3.${1}.up=1
+	for i in $chk_ip_list; do
 		uci add_list mwan3.${1}.track_ip="$i"
 	done
 	uci set mwan3.${1}.reliability=1
@@ -52,8 +51,6 @@ macvlan_dev_add() {
 #添加PPPoE接口
 #$1:接口名称 $2:设备名称 $3:账户 $4:密码 $5:网关跃点
 pppoe_if_add() {
-	#gen vwan macaddr
-	local NEW_MACADDR=$(hexdump -n 6 -ve '1/1 ":%02x"' /dev/urandom | awk -v r="$(hexdump -n 1 -ve '1/1 "%d"' /dev/urandom)" '{split("2,6,a,e",a,","); printf "%s%s%s",substr($0,2,1),a[r%4+1],substr($0,4);exit}')
 	#gen wan if
 	uci set network.${1}=interface
 	uci set network.${1}.ifname=${2}
@@ -61,46 +58,56 @@ pppoe_if_add() {
 	uci set network.${1}.username=${3}
 	uci set network.${1}.password=${4}
 	uci set network.${1}.metric=${5}
-	uci set network.${1}.macaddr=$NEW_MACADDR
 	#gen firewall
 	fw_str="${fw_str} ${1}"
 }
 
 apply_cfg() {
+	local pids
 	uci commit
 	/etc/init.d/network restart
-	killall pppconnectcheck
+	pids="$(pgrep -f "pppconnectcheck" | tr '\n' ' ')"
+	kill -9 $pids
 	/etc/init.d/firewall restart
 	mwan3 restart
 }
 
 general_config_load() {
 	config_load 'syncdial'
-	config_get_bool enabled 'config' 'enabled'
-	config_get_bool old_frame 'config' 'old_frame'
-	[ $enabled -eq 0 ] && {
-		echo "Disabled.Exit now."
+	config_get_bool enabled 'config' 'enabled' 0
+	[ "$enabled" -eq 0 ] && {
+		echo "Syncdial is disabled. Exit now."
 		apply_cfg
 		exit 1
 	}
-	config_get wannum 'config' 'wannum'
+	config_get_bool old_frame 'config' 'old_frame' 1
+	config_get wannum 'config' 'wannum' 2
 
 	config_load 'network'
 	config_get pppoe_user 'wan' 'username'
 	config_get pppoe_password 'wan' 'password'
-	pppoe_ifname=$(uci get network.wan.ifname)
+	config_get pppoe_ifname 'wan' 'ifname'
+	config_get wan_proto 'wan' 'proto'
+
+	[ "$wan_proto" = 'pppoe' ] &&
+		[ -n "$pppoe_user" ] &&
+		[ -n "$pppoe_password" ] || {
+		echo "Wan setting error. Exit now."
+		apply_cfg
+		exit 1
+	}
 }
 
 check_remove_device() {
 	local devcfg=${1}
-	[ ${devcfg::11} == 'macvlandev_' ] && uci del network.${devcfg}
+	[ "${devcfg::11}" = 'macvlandev_' ] && uci del "network.$devcfg"
 }
 
 check_remove_interface() {
 	local ifcfg=${1}
-	[ ${ifcfg::4} == 'vwan' ] && {
-		uci del network.${ifcfg}
-		mwan_cfg_del ${ifcfg} 
+	echo "$ifcfg" | grep -q "^vwan[[:digit:]]\+$" && {
+		uci del "network.$ifcfg"
+		mwan_cfg_del "$ifcfg"
 	}
 }
 
@@ -108,39 +115,38 @@ general_config_remove() {
 	config_load network
 	config_foreach check_remove_device 'device'
 	config_foreach check_remove_interface 'interface'
-	[ $(uci get network.wan.proto) == "none" ] && {
+	[ "$(uci get network.wan.proto)" = "none" ] && {
 		uci set network.wan.proto=pppoe
 	}
 	mwan_cfg_del 'wan'
 	uci set firewall.@zone[1].network="wan wan6"
+	uci commit
 }
-
 
 general_config_remove
 general_config_load
 
 uci set network.wan.metric=40
-[ $old_frame -eq 1 ] && {
+if [ "$old_frame" -eq 1 ]; then
 	uci set network.wan.proto=none
 	ifname=$(uci get network.wan.ifname)
-	for i in $(seq 1 $wannum)
-	do
-		ip link add link $ifname name sdveth$i type macvlan
-		ifconfig sdveth$i hw ether $(echo $(cat /sys/class/net/$ifname/address|awk -F ":" '{print $1":"$2":"$3":"$4":"$5":" }')$(echo "" | awk -F ":" '{printf("%X\n", 16+i);}' i=$i))
-		ifconfig sdveth$i up
+	for i in $(seq 1 "$wannum"); do
+		ip link add link "$ifname" name "macvlan$i" type macvlan
+		ifconfig "macvlan$i" hw ether "$(sed -e "s/\(:[^:]*\)\{3\}$/$(hexdump -n 3 -ve '1/1 ":%02x"' /dev/urandom)/" -e "s/ff/fe/g" -e "s/00/01/g" "/sys/class/net/$ifname/address")"
+		ifconfig "macvlan$i" up
 	done
-}
-[ $old_frame -eq 0 ] && mwan_cfg_add wan
+else
+	mwan_cfg_add wan
+fi
 
-for i in $(seq 1 $wannum)
-do
-	[ $old_frame -eq 0 ] && macvlan_dev_add sdveth$i $pppoe_ifname
-	pppoe_if_add vwan$i sdveth$i $pppoe_user $pppoe_password $((40+$i))
-	mwan_cfg_add vwan$i
+for i in $(seq 1 "$wannum"); do
+	[ "$old_frame" -eq 0 ] && macvlan_dev_add "macvlan$i" "$pppoe_ifname"
+	pppoe_if_add "vwan$i" "macvlan$i" "$pppoe_user" "$pppoe_password" $((40 + i))
+	mwan_cfg_add "vwan$i"
 done
 
 uci set firewall.@zone[1].network="$fw_str"
 
 apply_cfg
 
-return 0
+exit 0

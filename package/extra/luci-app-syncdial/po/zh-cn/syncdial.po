@@ -7,7 +7,7 @@ msgstr "创建虚拟WAN接口"
 msgid "Add multiple virtual WAN interfaces using macvlan."
 msgstr "使用macvlan驱动创建多个虚拟WAN口."
 
-msgid "Number of interfaces online:"
+msgid "Number of online interfaces:"
 msgstr "当前在线接口数量:"
 
 msgid "Enable"
@@ -22,9 +22,17 @@ msgstr "使用旧的macvlan创建方式"
 msgid "Redial"
 msgstr "重新拨号"
 
+msgid "Enable dial check"
+msgstr "启用掉线检测"
 
+msgid "Minimal number of online interfaces"
+msgstr "最低在线接口数量"
 
+msgid "Redial if the number of online interfaces is less than this value"
+msgstr "如果在线接口数量小于这个值则重拨"
 
+msgid "Time waiting before redial"
+msgstr "重拨等待时间"
 
-
-
+msgid "Minimal value: 5 seconds"
+msgstr "最小值：5秒"

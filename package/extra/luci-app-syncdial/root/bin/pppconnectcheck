@@ -1,0 +1,66 @@
+#!/bin/sh
+#PPPoE拨号在线接口数检测及重拨脚本
+. /lib/functions.sh
+
+[ -f /etc/config/syncdial ] || exit 1
+
+config_load "syncdial"
+config_get enabled config enabled 0
+config_get_bool dialchk config dialchk 0
+config_get dial config dialnum 0
+config_get dialwait config dialwait 20
+
+[ "$enabled" -eq 1 ] && [ "$dialchk" -eq 1 ] || exit 0
+
+[ "$(pgrep -fl "pppconnectcheck" | grep -c "/bin/sh")" -gt 2 ] && {
+	logger -t PPPoE-IFChecker "Another checker is running. Exit."
+	exit 1
+}
+
+ifs_opt_down() {
+	local ifn=$1
+	echo "$ifn" | grep -q "^vwan[[:digit:]]\+$" && ifdown "$ifn"
+}
+
+ifs_opt_up() {
+	local ifn=$1
+	echo "$ifn" | grep -q "^vwan[[:digit:]]\+$" && ifup "$ifn"
+}
+
+ifs_add_checkwait() {
+	local ifn=$1
+	local inf_checkwait
+	local mwan3_check_interval
+	local mwan3_up_time
+	echo "$ifn" | grep -q "^vwan[[:digit:]]\+$" && {
+		config_get mwan3_check_interval "$ifn" interval 5
+		config_get mwan3_up_time "$ifn" up 1
+		inf_checkwait=$((mwan3_check_interval * mwan3_up_time))
+		checkwait=$((checkwait + inf_checkwait))
+	}
+}
+
+checkwait=0
+config_load "mwan3"
+config_foreach ifs_add_checkwait "interface"
+checkwait=$((checkwait + 1))
+
+sleep $checkwait
+PPPUPNUM=$(mwan3 interfaces | grep -c "interface vwan[[:digit:]]\+ is online")
+logger -t PPPoE-IFChecker "$PPPUPNUM interfaces are online."
+
+[ "$PPPUPNUM" -lt "$dial" ] && {
+	logger -t PPPoE-IFChecker "Stop interfaces."
+	config_load "network"
+	config_foreach ifs_opt_down "interface"
+	ifdown wan
+	sleep $dialwait
+	logger -t PPPoE-IFChecker "Start interfaces."
+	config_foreach ifs_opt_up "interface"
+	ifup wan
+	logger -t PPPoE-IFChecker "Interfaces restarted."
+	logger -t PPPoE-IFChecker "Another checker will be started ${checkwait}s later."
+	sleep $checkwait
+	pppconnectcheck &
+	exit 0
+}
