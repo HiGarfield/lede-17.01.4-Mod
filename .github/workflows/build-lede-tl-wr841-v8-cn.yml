@@ -6,7 +6,7 @@ on:
 
 env:
   TARGET_DEVICE: tl-wr841-v8-cn
-  TOTAL_KEEP_NUMBER: 20
+  TOTAL_KEEP_NUMBER: 19
 
 jobs:
   build:

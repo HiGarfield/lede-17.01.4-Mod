@@ -5,7 +5,7 @@ on:
     branches: [master]
 
 env:
-  TOTAL_KEEP_NUMBER: 20
+  TOTAL_KEEP_NUMBER: 19
 
 jobs:
   build:

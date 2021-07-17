@@ -6,7 +6,7 @@ on:
 
 env:
   TARGET_DEVICE: tl-wr1041n-v2
-  TOTAL_KEEP_NUMBER: 20
+  TOTAL_KEEP_NUMBER: 19
 
 jobs:
   build:
