@@ -13,14 +13,31 @@ jobs:
     runs-on: ubuntu-20.04
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@master
-
-      - name: Initialization environment
+      - name: Initialize token
         env:
           DEBIAN_FRONTEND: noninteractive
           MY_TOKEN_SECRET: ${{ secrets.MY_TOKEN }}
           GITHUB_TOKEN_SECRET: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ -n "${MY_TOKEN_SECRET}" ]; then
+            echo "MY_TOKEN=${MY_TOKEN_SECRET}" >> $GITHUB_ENV
+          else
+            echo "MY_TOKEN=${GITHUB_TOKEN_SECRET}" >> $GITHUB_ENV
+          fi
+    
+      - name: Cancel previous runs
+        uses: HiGarfield/cancel-workflow-action@0.9.0
+        continue-on-error: true
+        with:
+          all_but_latest: true
+          access_token: ${{ env.MY_TOKEN }}
+
+      - name: Checkout
+        uses: actions/checkout@master
+
+      - name: Initialize environment
+        env:
+          DEBIAN_FRONTEND: noninteractive
         run: |
           sudo swapoff -a
           sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc
@@ -37,11 +54,6 @@ jobs:
           LEDE_OUTPUT_NAME="lede-${LEDE_VERSION}-${TARGET_DEVICE}"
           echo "LEDE_OUTPUT_NAME=${LEDE_OUTPUT_NAME}" >>$GITHUB_ENV
           echo "FIRMWARE=${WORKING_DIR}/out" >> $GITHUB_ENV
-          if [ -n "${MY_TOKEN_SECRET}" ]; then
-            echo "MY_TOKEN=${MY_TOKEN_SECRET}" >> $GITHUB_ENV
-          else
-            echo "MY_TOKEN=${GITHUB_TOKEN_SECRET}" >> $GITHUB_ENV
-          fi
 
           cp -f "${WORKING_DIR}/.github/backup/download.pl" "${WORKING_DIR}/scripts/download.pl"
 
