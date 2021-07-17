@@ -6,7 +6,7 @@ on:
 
 env:
   TARGET_DEVICE: hq55-v1
-  TOTAL_KEEP_NUMBER: 20
+  TOTAL_KEEP_NUMBER: 19
 
 jobs:
   build:

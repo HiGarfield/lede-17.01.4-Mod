@@ -43,7 +43,7 @@ if [ "$auto_find_device" -ne "1" ]; then
 		"tl-wr1041n-v2"
 		"tl-wr842n-v2"
 		# "tl-wr842n-v2-cn"
-		"tl-wr941nd-v2"
+		# "tl-wr941nd-v2"
 		"wr1200js"
 		"newifi-d2"
 		"a3004ns"
