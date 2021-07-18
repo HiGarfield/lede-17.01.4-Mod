@@ -105,7 +105,7 @@
 
 &ethernet {
 	pinctrl-names = "default";
-	mtd-mac-address = <&factory 0x4>;
+	mtd-mac-address = <&factory 0x28>;
 	mediatek,portmap = "llllw";
 };
 
