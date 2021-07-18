@@ -116,5 +116,6 @@ process_devices $devices "1004kc"
 ### 7620 with USB
 devices=(
 	"ramips_mt7620_DEVICE_y1s"
+	"ramips_mt7620_DEVICE_youku-yk1"
 )
 process_devices $devices
