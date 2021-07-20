@@ -13,6 +13,9 @@ start_service() {
 
 	. /lib/functions/network.sh
 
+	# needs long delay, otherwise service may not register correctly on stratup/reboot (not sure what the issues is?)
+	sleep 5
+
 	if [ -e /etc/samba/smb.conf ] && [ -e /etc/init.d/samba ] && [ -n "$(ps | grep -w smbd | grep -v -w grep)" ]; then
 			SMB_CONF="/etc/samba/smb.conf"
 	fi
@@ -76,6 +79,6 @@ start_service() {
 }
 
 service_triggers() {
-	PROCD_RELOAD_DELAY=1000
+	# PROCD_RELOAD_DELAY=1000
 	procd_add_reload_trigger "dhcp" "system" "samba"
 }
