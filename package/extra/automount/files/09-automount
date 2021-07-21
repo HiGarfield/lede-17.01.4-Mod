@@ -90,7 +90,7 @@ blkdev="$(dirname $DEVPATH)"
 		;;
 
 		remove)
-			awk '{print $1,$2}' /proc/mounts | grep "^/dev/$device " | awk '{print $2}' | uniq | while read -r mountpoint
+			awk '{print $1,$2}' /proc/mounts | grep "^/dev/$device " | awk '{print $2}' | sort -u | while read -r mountpoint
 			do
 				/bin/force-unmount "$mountpoint" >/dev/null 2>&1
 			done
