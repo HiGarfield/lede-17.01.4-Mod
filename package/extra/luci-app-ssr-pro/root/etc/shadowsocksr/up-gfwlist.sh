@@ -1,7 +1,7 @@
 #!/bin/sh
 
 mkdir -p /var/lock
-lock -n /var/lock/up-gfwlist.lck
+lock -n /var/lock/up-gfwlist.lck || exit 0
 
 /etc/shadowsocksr/gen-gfwlist.sh >/tmp/ol-gfw.txt
 
