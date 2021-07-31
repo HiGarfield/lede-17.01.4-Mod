@@ -37,7 +37,7 @@ if [ "$auto_find_device" -ne "1" ]; then
 		"tl-wr841-v9"
 		"csac"
 		"domywifi-dw33d"
-		"hq55-v1"
+		"hq55"
 		"tl-wdr7500-v3"
 		"tl-wdr4310-v1"
 		"tl-wr1041n-v2"
