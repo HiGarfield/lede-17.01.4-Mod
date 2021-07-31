@@ -607,10 +607,13 @@ tl-wr1041n-v2)
 tl-wdr3320-v2)
 	ucidef_set_led_wlan "wlan5g" "WLAN5G" "tp-link:green:wlan5g" "phy0tpt"
 	;;
-tl-wdr3500|\
-hq55)
+tl-wdr3500)
 	ucidef_set_led_usbdev "usb" "USB" "tp-link:green:usb" "1-1"
 	ucidef_set_led_wlan "wlan" "WLAN" "tp-link:green:wlan" "phy0tpt"
+	;;
+hq55)
+	ucidef_set_led_usbdev "usb" "USB" "$board:green:usb" "1-1"
+	ucidef_set_led_wlan "wlan" "WLAN" "$board:green:wlan" "phy0tpt"
 	;;
 csac)
 	ucidef_set_led_wlan "wlan2g" "WLAN2G" "csac:green:wlan2g" "phy1tpt"

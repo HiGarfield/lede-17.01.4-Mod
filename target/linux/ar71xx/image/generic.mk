@@ -771,3 +771,13 @@ define Device/csac
   IMAGE/sysupgrade.bin := append-rootfs | pad-rootfs | pad-to $$$$(ROOTFS_SIZE) | append-kernel | check-size $$$$(IMAGE_SIZE)
 endef
 TARGET_DEVICES += csac
+
+define Device/hq55
+  $(Device/tplink-16mlzma)
+  DEVICE_TITLE := HQ55
+  DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
+  BOARDNAME := HQ55
+  DEVICE_PROFILE := HQ55
+  TPLINK_HWID := 0x00550001
+endef
+TARGET_DEVICES += hq55
