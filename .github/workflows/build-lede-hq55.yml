@@ -1,11 +1,11 @@
-name: Build LEDE hq55-v1
+name: Build LEDE hq55
 
 on:
   push:
     branches: [master]
 
 env:
-  TARGET_DEVICE: hq55-v1
+  TARGET_DEVICE: hq55
   TOTAL_KEEP_NUMBER: 19
 
 jobs:
