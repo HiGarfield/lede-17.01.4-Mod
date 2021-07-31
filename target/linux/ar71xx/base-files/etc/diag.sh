@@ -335,7 +335,7 @@ get_status_led() {
 		status_led="trendnet:green:power"
 		;;
 	hq55)
-		status_led="tp-link:green:wlan"
+		status_led="$board:green:wlan"
 		;;
 	tl-mr3020)
 		status_led="tp-link:green:wps"

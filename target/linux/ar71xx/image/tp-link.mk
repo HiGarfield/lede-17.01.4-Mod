@@ -228,16 +228,6 @@ $(Device/tl-wdr4300-v1)
 endef
 TARGET_DEVICES += tl-wdr3500-v1 tl-wdr3600-v1 tl-wdr4300-v1 tl-wdr4300-v1-il tl-wdr4310-v1 mw4530r-v1
 
-define Device/hq55-v1
-$(Device/tplink-16mlzma)
-  DEVICE_TITLE := HQ55 v1
-  DEVICE_PACKAGES := kmod-ath9k kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
-  BOARDNAME := HQ55
-  DEVICE_PROFILE := TLWDR4300
-  TPLINK_HWID := 0x00550001
-endef
-TARGET_DEVICES += hq55-v1
-
 define Device/tl-wdr6500-v2
 $(Device/tplink-8mlzma)
   DEVICE_TITLE := TP-LINK TL-WDR6500v2

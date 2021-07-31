@@ -55,12 +55,12 @@ static struct flash_platform_data hq55_flash_data = {
 
 static struct gpio_led hq55_leds_gpio[] __initdata = {
 	{
-		.name		= "tp-link:green:usb",
+		.name		= "hq55:green:usb",
 		.gpio		= HQ55_GPIO_LED_USB,
 		.active_low	= 1,
 	},
 	{
-		.name		= "tp-link:green:wlan",
+		.name		= "hq55:green:wlan",
 		.gpio		= HQ55_GPIO_LED_WLAN,
 		.active_low	= 1,
 	},
