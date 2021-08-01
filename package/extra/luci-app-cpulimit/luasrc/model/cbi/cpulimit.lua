@@ -1,5 +1,5 @@
 
-m = Map("cpulimit", translate("cpulimit"), translate("Use cpulimit to limit CPU usage of a process."))
+m = Map("cpulimit", translate("Cpulimit"), translate("Use cpulimit to limit CPU usage of a process."))
 s = m:section(TypedSection, "list", translate("Settings"))
 s.template = "cbi/tblsection"
 s.anonymous = true
