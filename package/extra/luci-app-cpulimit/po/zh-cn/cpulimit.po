@@ -1,4 +1,4 @@
-msgid "cpulimit"
+msgid "Cpulimit"
 msgstr "CPU 使用率限制"
 
 msgid "Use cpulimit to limit CPU usage of a process."
