@@ -36,6 +36,9 @@ msgstr "空闲时间单位"
 msgid "Settings"
 msgstr "设置"
 
+msgid "Spin down immediately"
+msgstr "立即休眠"
+
 # Hours
 msgid "h"
 msgstr "小时"
