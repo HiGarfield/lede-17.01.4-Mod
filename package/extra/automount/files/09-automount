@@ -1,99 +1,141 @@
 #!/bin/sh
 
-set_fstab(){
-	local n old_swap i skip_flag mnt_opts
-	mkdir -p /var/lock
-	lock /var/lock/fstab.lock
+. /lib/functions.sh
+
+uci_find_swap() {
+	local swap_dev device
+	device="$2"
+	config_get swap_dev "$1" device
+	[ "$swap_dev" = "/dev/$device" ] && skip_flag=1
+}
+
+uci_find_uuid() {
+	local uuid dev_uuid
+	config_get uuid "$1" uuid
+	dev_uuid="$2"
+	[ "$uuid" = "$dev_uuid" ] && skip_flag=1
+}
+
+mkdir_for_mnt_point() {
+	local uuid target_dir dev_uuid
+	config_get uuid "$1" uuid
+	dev_uuid="$2"
+	[ "$uuid" = "$dev_uuid" ] && {
+		config_get target_dir "$1" target
+		[ -n "$target_dir" ] && {
+			[ -d "$target_dir" ] ||
+				mkdir -m 777 -p "$target_dir"
+		}
+	}
+}
+
+set_mount() {
+	local skip_flag mnt_opts dev_uuid fstype device new_mount new_swap
+
+	device="$1"
+	[ -n "$device" ] || return 1
+
+	fstype="$(block info | grep "^/dev/${device}:[[:space:]]\+" | awk -F "[[:space:]]TYPE=\"" '{print $2}' | awk -F "\"" '{print $1}')"
+
+	[ -n "$fstype" ] || return 1
+
+	logger -t Auto-Mount "Block detected, file system: ${fstype}."
+
 	skip_flag=0
 
-	[ -n "$fstype" ] && {
-		logger -t Auto-Mount "New block detected, file system: ${fstype}."
-		if [ "$fstype" = 'swap' ] ; then
-			n=$(uci show fstab | grep -c "^fstab\..*=swap$")
-			let n-=1
-			for i in $(seq 0 $n); do
-				old_swap="$(uci -q get fstab.@swap[$i].device)"
-				[ "$old_swap" = "/dev/$device" ] && {
-					skip_flag=1
-					break
-				}
-			done
-			
-			[ $skip_flag -eq 0 ] && {
-				uci add fstab swap
-				uci set fstab.@swap[-1]="swap"
-				uci set fstab.@swap[-1].enabled=1
-				uci set fstab.@swap[-1].device="/dev/$device"
-				uci commit fstab
-			}
-		else
+	if [ "$fstype" = 'swap' ]; then
+		config_load fstab
+		config_foreach uci_find_swap swap "$device"
+		[ $skip_flag -eq 0 ] && {
+			new_swap=$(uci add fstab swap)
+			uci -q batch <<-EOI
+				set fstab.$new_swap.enabled=1
+				set fstab.$new_swap.device="/dev/$device"
+				commit fstab
+			EOI
+		}
+	else
+		dev_uuid="$(block info | grep "^/dev/${device}:[[:space:]]\+" | awk -F "[[:space:]]UUID=\"" '{print $2}' | awk -F "\"" '{print $1}')"
+
+		[ -n "$dev_uuid" ] && {
+			config_load fstab
+			config_foreach uci_find_uuid mount "$dev_uuid"
+
+			[ $skip_flag -eq 0 ] ||
+				logger -t Auto-Mount "Block with UUID $dev_uuid already exists."
+
 			mnt_opts=
-			case "$fstype" in
-				'ext2'|'ext3'|'ext4')
-					mnt_opts="noatime" ;;
+			[ $skip_flag -eq 0 ] && {
+				case "$fstype" in
+				'ext2' | 'ext3' | 'ext4')
+					mnt_opts="noatime"
+					;;
 				'ntfs')
-					if [ "$(lsmod | grep -c -w 'ufsd')" -ge 1 ] ; then
-						fstype="ufsd"
-						mnt_opts="noatime,nls=utf8,force"
-					else
-						fstype="ntfs-3g"
-						mnt_opts="noatime,iocharset=utf8,big_writes"
-					fi
+					fstype="ntfs-3g"
+					mnt_opts="noatime,iocharset=utf8,big_writes"
 					;;
 				'exfat')
-					mnt_opts="noatime" ;;
+					mnt_opts="noatime"
+					;;
 				'vfat')
-					mnt_opts="iocharset=utf8,umask=0000,dmask=0000,fmask=0000" ;;
+					mnt_opts="iocharset=utf8,umask=0000,dmask=0000,fmask=0000"
+					;;
 				*)
 					skip_flag=1
 					logger -t Auto-Mount "File system: ${fstype} not supported."
 					;;
-			esac
+				esac
+			}
 
 			[ $skip_flag -eq 0 ] && {
-				uci add fstab mount
-				uci set fstab.@mount[-1]="mount"
-				uci set fstab.@mount[-1].enabled=1
-				uci set fstab.@mount[-1].uuid="$get_uuid"
-				uci set fstab.@mount[-1].target="/mnt/$device"
-				uci set fstab.@mount[-1].fstype="$fstype"
-				[ -n "$mnt_opts" ] && uci set fstab.@mount[-1].options="$mnt_opts"
-				uci commit fstab
+				logger -t Auto-Mount "New block /dev/${device} added."
+				logger -t Auto-Mount "UUID=$dev_uuid"
+				new_mount=$(uci add fstab mount)
+				uci -q batch <<-EOI
+					set fstab.$new_mount.enabled=1
+					set fstab.$new_mount.uuid="$dev_uuid"
+					set fstab.$new_mount.target="/mnt/$device"
+					set fstab.$new_mount.fstype="$fstype"
+					set fstab.$new_mount.options="$mnt_opts"
+					commit fstab
+				EOI
 			}
-		fi
-	}
-	lock -u /var/lock/fstab.lock
+
+			config_load fstab
+			config_foreach mkdir_for_mnt_point mount "$dev_uuid"
+		}
+	fi
 }
 
+[ "$DEVTYPE" = "partition" ] || exit
 
-blkdev="$(dirname $DEVPATH)"
-[ "$(basename $blkdev)" != "block" ] && {
-	device="$(basename $DEVPATH)"
-	fstype="$(block info | grep "^/dev/$device: " | awk -F 'TYPE="' '{print $2}' | sed 's/\"//')"
-	case "$ACTION" in
-		add)
-			get_uuid="$(block info | grep "^/dev/${device}: " | awk -F "UUID=" '{print $2}' | awk -F "\"" '{print $2}')"
-			if [ -n "$get_uuid" ] ; then
-				have_uuid=$(uci show fstab | grep -w -c "\.uuid=\'$get_uuid\'$")
-				[ $have_uuid -eq 0 ] && set_fstab
-				have_uuid=$(uci show fstab | grep -w -c "\.uuid=\'$get_uuid\'$")
-				[ $have_uuid -gt 0 ] && {
-					logger -t Auto-Mount "Block /dev/${device} added."
-					logger -t Auto-Mount "UUID=$get_uuid"
-					mkdir -p /mnt/$device
-				}
-			else
-				[ "$fstype" = 'swap' ] && {
-					set_fstab
-				}
-			fi
-		;;
+device="$DEVNAME"
+case "$device" in
+sd*) ;;
+md*) ;;
+hd*) ;;
+mmcblk*) ;;
+*) exit ;;
+esac
 
-		remove)
-			awk '{print $1,$2}' /proc/mounts | grep "^/dev/$device " | awk '{print $2}' | sort -u | while read -r mountpoint
-			do
-				/bin/force-unmount "$mountpoint" >/dev/null 2>&1
-			done
-		;;
-	esac
-}
+mkdir -p /var/lock
+lock /var/lock/automount.lock
+
+case "$ACTION" in
+add)
+	set_mount "$device"
+	;;
+
+remove)
+	grep "^/dev/${device}[[:space:]]\+" /proc/mounts |
+		awk '{print $2}' | sort -u |
+		while read -r mountpoint; do
+			/bin/force-unmount "$mountpoint" >/dev/null 2>&1
+		done
+
+	grep -q "^/dev/${device}[[:space:]]\+" /proc/swaps &&
+		swapoff "/dev/$device" >/dev/null 2>&1
+	;;
+esac
+
+lock -u /var/lock/automount.lock

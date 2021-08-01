@@ -10,4 +10,3 @@ uci -q batch <<-EOF
 EOF
 
 exit 0
-
