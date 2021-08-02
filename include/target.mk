@@ -33,17 +33,17 @@ luci-app-wifischedule luci-app-uhttpd xl2tpd \
 luci-app-syncdial
 
 ifneq ($(_CONF_ROUTER_WITHOUT_USB_PORT_),1)
-DEFAULT_PACKAGES += block-mount automount autosamba fdisk lsblk \
+DEFAULT_PACKAGES += block-mount automount fdisk lsblk \
 luci-app-usb-printer luci-app-vsftpd \
-autosamba luci-app-hd-idle luci-app-aria2 ariang \
-luci-app-transmission
+luci-app-hd-idle luci-app-aria2 ariang \
+luci-app-transmission luci-app-samba
 endif
 
 # For nas targets
-DEFAULT_PACKAGES.nas:=block-mount automount autosamba fdisk lsblk \
+DEFAULT_PACKAGES.nas:=block-mount automount fdisk lsblk \
 mdadm luci-app-usb-printer luci-app-vsftpd \
-autosamba luci-app-hd-idle luci-app-aria2 ariang \
-luci-app-transmission
+luci-app-hd-idle luci-app-aria2 ariang \
+luci-app-transmission luci-app-samba
 
 # For router targets
 DEFAULT_PACKAGES.router:=-wpad-mini -wpad wpad-mesh-openssl dnsmasq-full odhcpd-ipv6only iptables \
