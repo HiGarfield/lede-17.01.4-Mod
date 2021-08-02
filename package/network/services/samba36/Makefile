@@ -152,6 +152,8 @@ define Package/samba36-server/install
 	$(LN) samba_multicall $(1)/usr/sbin/smbd
 	$(LN) samba_multicall $(1)/usr/sbin/nmbd
 	$(LN) samba_multicall $(1)/usr/sbin/smbpasswd
+	$(INSTALL_DIR) $(1)/etc/hotplug.d/block
+	$(INSTALL_BIN) ./files/samba.hotplug $(1)/etc/hotplug.d/block/60-samba
 	$(INSTALL_DIR) $(1)/etc/uci-defaults
 	$(INSTALL_BIN) ./files/99_samba-settings $(1)/etc/uci-defaults/99_samba-settings
 endef
