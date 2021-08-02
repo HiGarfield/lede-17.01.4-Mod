@@ -20,8 +20,10 @@ lock /var/lock/autosamba.lock
 
 [ "$ACTION" = "add" ] && {
 	mount=$(grep "^/dev/${DEVICE}[[:space:]]" /proc/mounts | awk 'NR==1{print $2}')
-	[ -n "$mount" ] && {
-		label=$(basename "$mount")
+	uuid="$(block info | grep "^/dev/${DEVICE}:[[:space:]]\+" | awk -F "[[:space:]]UUID=\"" '{print $2}' | awk -F "\"" '{print $1}' | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
+	[ -n "$mount" ] && [ -n "$uuid" ] && {
+		uuid="00000$uuid"
+		label="auto_share_${uuid:0-6}"
 		uci -q -c /var/run/config batch <<-EOF
 			set samba.$DEVICE="sambashare"
 			set samba.$DEVICE.name="$label"
