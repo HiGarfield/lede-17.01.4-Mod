@@ -15,6 +15,18 @@ esac
 	mkdir -p /var/run/config && touch /var/run/config/samba
 }
 
+. /lib/functions.sh
+
+get_auto_share() {
+	local auto_share_value
+	config_get auto_share_value "$1" auto_share 0
+	[ "$auto_share_value" -eq 1 ] && auto_share=1
+}
+
+auto_share=0
+config_load samba
+config_foreach get_auto_share samba
+
 mkdir -p /var/lock
 lock /var/lock/autosamba.lock
 
@@ -35,7 +47,8 @@ lock /var/lock/autosamba.lock
 			set samba.$DEVICE.dir_mask="0777"
 			commit samba
 		EOF
-		/etc/init.d/samba reload
+		[ "$auto_share" -eq 1 ] &&
+			/etc/init.d/samba reload
 	}
 }
 
@@ -44,7 +57,8 @@ lock /var/lock/autosamba.lock
 		delete samba.$DEVICE
 		commit samba
 	EOF
-	/etc/init.d/samba reload
+	[ "$auto_share" -eq 1 ] &&
+		/etc/init.d/samba reload
 }
 
 lock -u /var/lock/autosamba.lock

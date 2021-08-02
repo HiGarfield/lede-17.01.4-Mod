@@ -13,6 +13,9 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 "X-Generator: Pootle 2.0.6\n"
 
+msgid "Allow auto share when a storage is mounted"
+msgstr "允许在存储设备挂载时自动共享"
+
 msgid "Allow guests"
 msgstr "允许匿名用户"
 
@@ -21,6 +24,9 @@ msgstr "允许系统用户通过网络共享访问他们的主目录"
 
 msgid "Allowed users"
 msgstr "允许用户"
+
+msgid "Auto share"
+msgstr "自动共享"
 
 msgid "Create mask"
 msgstr "创建权限"
