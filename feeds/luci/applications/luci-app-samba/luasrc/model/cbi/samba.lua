@@ -13,9 +13,11 @@ s:tab("template", translate("Edit Template"))
 s:taboption("general", Value, "name", translate("Hostname"))
 s:taboption("general", Value, "description", translate("Description"))
 s:taboption("general", Value, "workgroup", translate("Workgroup"))
-s:taboption("general", Value, "homes", translate("Share home-directories"),
+s:taboption("general", Flag, "homes", translate("Share home-directories"),
         translate("Allow system users to reach their home directories via " ..
-                "network shares"))
+                "network shares")).default = 0
+s:taboption("general", Flag, "auto_share", translate("Auto share"),
+		translate("Allow auto share when a storage is mounted")).default = 1
 
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the samba configuration."), 
