@@ -23,9 +23,17 @@ get_auto_share() {
 	[ "$auto_share_value" -eq 1 ] && auto_share=1
 }
 
+get_auto_share_ro() {
+	local auto_share_ro_value
+	config_get auto_share_ro_value "$1" auto_share_ro 0
+	[ "$auto_share_ro_value" -eq 1 ] && auto_share_ro=1
+}
+
 auto_share=0
+auto_share_ro=0
 config_load samba
 config_foreach get_auto_share samba
+config_foreach get_auto_share_ro samba
 
 mkdir -p /var/lock
 lock /var/lock/autosamba.lock
@@ -38,12 +46,14 @@ need_reload=0
 	[ -n "$mount" ] && [ -n "$uuid" ] && {
 		uuid="00000$uuid"
 		label="auto_share_${uuid:0-6}"
+		read_only="no"
+		[ "$auto_share_ro" -eq 1 ] && read_only="yes"
 		uci -q -c /var/run/config batch <<-EOF
 			set samba.$DEVICE="sambashare"
 			set samba.$DEVICE.name="$label"
 			set samba.$DEVICE.path="$mount"
 			set samba.$DEVICE.browseable="yes"
-			set samba.$DEVICE.read_only="no"
+			set samba.$DEVICE.read_only="$read_only"
 			set samba.$DEVICE.guest_ok="yes"
 			set samba.$DEVICE.create_mask="0666"
 			set samba.$DEVICE.dir_mask="0777"

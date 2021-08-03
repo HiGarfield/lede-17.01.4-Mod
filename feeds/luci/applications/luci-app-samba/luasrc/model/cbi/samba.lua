@@ -18,6 +18,13 @@ s:taboption("general", Flag, "homes", translate("Share home-directories"),
                 "network shares")).default = 0
 s:taboption("general", Flag, "auto_share", translate("Auto share"),
 		translate("Allow auto share when a storage is mounted")).default = 1
+auto_share_ro = s:taboption("general", Flag, "auto_share_ro",
+		translate("Auto share with read-only permission"),
+		"<strong><font color=\"red\">" ..
+		 translate("The permission will take effect at the next mount") ..
+		 "</font></strong>")
+auto_share_ro.default = 0
+auto_share_ro:depends("auto_share", "1")
 
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the samba configuration."), 
