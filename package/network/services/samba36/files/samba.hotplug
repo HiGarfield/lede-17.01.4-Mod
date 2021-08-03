@@ -30,6 +30,8 @@ config_foreach get_auto_share samba
 mkdir -p /var/lock
 lock /var/lock/autosamba.lock
 
+need_reload=0
+
 [ "$ACTION" = "add" ] && {
 	mount=$(grep "^/dev/${DEVICE}[[:space:]]" /proc/mounts | awk 'NR==1{print $2}')
 	uuid="$(block info | grep "^/dev/${DEVICE}:[[:space:]]\+" | awk -F "[[:space:]]UUID=\"" '{print $2}' | awk -F "\"" '{print $1}' | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
@@ -47,18 +49,20 @@ lock /var/lock/autosamba.lock
 			set samba.$DEVICE.dir_mask="0777"
 			commit samba
 		EOF
-		[ "$auto_share" -eq 1 ] &&
-			/etc/init.d/samba reload
+		[ "$auto_share" -eq 1 ] && need_reload=1
 	}
 }
 
 [ "$ACTION" = "remove" ] && {
-	uci -q -c /var/run/config batch <<-EOF
-		delete samba.$DEVICE
-		commit samba
-	EOF
-	[ "$auto_share" -eq 1 ] &&
-		/etc/init.d/samba reload
+	[ "$(uci -q -c /var/run/config get "samba.$DEVICE")" = "sambashare" ] && {
+		uci -q -c /var/run/config batch <<-EOF
+			delete samba.$DEVICE
+			commit samba
+		EOF
+		[ "$auto_share" -eq 1 ] && need_reload=1
+	}
 }
+
+[ "$need_reload" -eq 1 ] && /etc/init.d/samba reload
 
 lock -u /var/lock/autosamba.lock
