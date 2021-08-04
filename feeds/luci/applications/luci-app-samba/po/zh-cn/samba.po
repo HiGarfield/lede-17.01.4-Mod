@@ -76,9 +76,6 @@ msgstr "共享主目录"
 msgid "Shared Directories"
 msgstr "共享目录"
 
-msgid "The permission will take effect at the next mount"
-msgstr "权限将在下一次挂载时生效"
-
 msgid ""
 "This is the content of the file '/etc/samba/smb.conf.template' from which "
 "your samba configuration will be generated. Values enclosed by pipe symbols "
