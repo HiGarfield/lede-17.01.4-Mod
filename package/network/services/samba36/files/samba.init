@@ -89,12 +89,31 @@ get_auto_share() {
 	[ "$auto_share_value" -eq 1 ] && auto_share=1
 }
 
+get_auto_share_ro() {
+	local auto_share_ro_value
+	config_get auto_share_ro_value "$1" auto_share_ro 0
+	[ "$auto_share_ro_value" -eq 1 ] && auto_share_ro=1
+}
+
+# $1 read_only (0 or 1)
+process_read_only_opt() {
+	local perm_ro="no"
+	[ "$1" -eq 1 ] && perm_ro="yes"
+	sed -i "/^[[:space:]]*option[[:space:]]\+[\"\']\{0,1\}read_only[\"\']\{0,1\}[[:space:]]\+[\"\']\{0,1\}\(yes\|no\)[\"\']\{0,1\}[[:space:]]*$/ s/[\"\']\{0,1\}\(yes\|no\)[\"\']\{0,1\}[[:space:]]*$/'$perm_ro'/g" /var/run/config/samba
+}
+
 init_config() {
 	local auto_share=0
+	local auto_share_ro=0
 	config_load samba
 	config_foreach get_auto_share samba
+	config_foreach get_auto_share_ro samba
 	[ "$auto_share" -eq 1 ] && {
+		mkdir -p /var/lock
+		lock /var/lock/autosamba.lock
+		process_read_only_opt $auto_share_ro
 		CONFIG_APPEND=1 UCI_CONFIG_DIR=/var/run/config config_load samba
+		lock -u /var/lock/autosamba.lock
 	}
 
 	config_foreach smb_header samba

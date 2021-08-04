@@ -35,9 +35,6 @@ config_load samba
 config_foreach get_auto_share samba
 config_foreach get_auto_share_ro samba
 
-mkdir -p /var/lock
-lock /var/lock/autosamba.lock
-
 need_reload=0
 
 [ "$ACTION" = "add" ] && {
@@ -48,6 +45,8 @@ need_reload=0
 		label="auto_share_${uuid:0-6}"
 		read_only="no"
 		[ "$auto_share_ro" -eq 1 ] && read_only="yes"
+		mkdir -p /var/lock
+		lock /var/lock/autosamba.lock
 		uci -q -c /var/run/config batch <<-EOF
 			set samba.$DEVICE="sambashare"
 			set samba.$DEVICE.name="$label"
@@ -59,11 +58,14 @@ need_reload=0
 			set samba.$DEVICE.dir_mask="0777"
 			commit samba
 		EOF
+		lock -u /var/lock/autosamba.lock
 		[ "$auto_share" -eq 1 ] && need_reload=1
 	}
 }
 
 [ "$ACTION" = "remove" ] && {
+	mkdir -p /var/lock
+	lock /var/lock/autosamba.lock
 	[ "$(uci -q -c /var/run/config get "samba.$DEVICE")" = "sambashare" ] && {
 		uci -q -c /var/run/config batch <<-EOF
 			delete samba.$DEVICE
@@ -71,8 +73,7 @@ need_reload=0
 		EOF
 		[ "$auto_share" -eq 1 ] && need_reload=1
 	}
+	lock -u /var/lock/autosamba.lock
 }
 
 [ "$need_reload" -eq 1 ] && /etc/init.d/samba reload
-
-lock -u /var/lock/autosamba.lock
