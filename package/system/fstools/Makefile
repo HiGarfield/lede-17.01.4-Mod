@@ -8,13 +8,13 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=fstools
-PKG_RELEASE:=1
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL=$(PROJECT_GIT)/project/fstools.git
-PKG_MIRROR_HASH:=1b875efd7d675d74a56602f57dd27093e2feef8761ba28b567e2d2f43db14b48
-PKG_SOURCE_DATE:=2020-05-12
-PKG_SOURCE_VERSION:=84269037b75de93bdd4ea75b7f50ba77ba976377
+PKG_MIRROR_HASH:=9cf9b4fd5951196813deb5c71dd24ad7af89348f7e647545b38760332953a8dc
+PKG_SOURCE_DATE:=2021-08-05
+PKG_SOURCE_VERSION:=d4f01298105bb8c97e7ac0cad0e78f0ffe261354
 CMAKE_INSTALL:=1
 
 PKG_LICENSE:=GPL-2.0
@@ -82,6 +82,13 @@ define Package/block-mount
   DEPENDS:=+ubox +libubox +libuci +libblobmsg-json +libjson-c
 endef
 
+define Package/blockd
+  SECTION:=base
+  CATEGORY:=Base system
+  TITLE:=Block device automounting
+  DEPENDS:=+block-mount +fstools +libubus +kmod-fs-autofs4 +libblobmsg-json +libjson-c
+endef
+
 define Package/fstools/install
 	$(INSTALL_DIR) $(1)/sbin $(1)/lib
 
@@ -112,6 +119,12 @@ define Package/block-mount/install
 
 endef
 
+define Package/blockd/install
+	$(INSTALL_DIR) $(1)/sbin $(1)/etc/init.d/
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/blockd $(1)/sbin/
+	$(INSTALL_BIN) ./files/blockd.init $(1)/etc/init.d/blockd
+endef
+
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
 	$(CP) $(PKG_INSTALL_DIR)/usr/include/*.h $(1)/usr/include/
@@ -122,3 +135,4 @@ endef
 $(eval $(call BuildPackage,fstools))
 $(eval $(call BuildPackage,snapshot-tool))
 $(eval $(call BuildPackage,block-mount))
+$(eval $(call BuildPackage,blockd))
