@@ -38,18 +38,24 @@ config_foreach get_auto_share_ro samba
 need_reload=0
 
 [ "$ACTION" = "add" ] && {
-	mount=$(grep "^/dev/${DEVICE}[[:space:]]" /proc/mounts | awk 'NR==1{print $2}')
-	uuid="$(block info | grep "^/dev/${DEVICE}:[[:space:]]\+" | awk -F "[[:space:]]UUID=\"" '{print $2}' | awk -F "\"" '{print $1}' | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
-	[ -n "$mount" ] && [ -n "$uuid" ] && {
+	block_info="$(block info "/dev/${DEVICE}")"
+	mount=$(echo "$block_info" | awk -F "[[:space:]]MOUNT=\"" '{print $2}' | awk -F "\"" '{print $1}')
+	label=$(echo "$block_info" | awk -F "[[:space:]]LABEL=\"" '{print $2}' | awk -F "\"" '{print $1}')
+	[ -n "$label" ] || {
+		uuid="$(echo "$block_info" | awk -F "[[:space:]]UUID=\"" '{print $2}' | awk -F "\"" '{print $1}' | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
 		uuid="00000$uuid"
-		label="auto_share_${uuid:0-6}"
+		label="${uuid:0-6}"
+	}
+	share_name="auto_share_$label"
+
+	[ -n "$mount" ] && {
 		read_only="no"
 		[ "$auto_share_ro" -eq 1 ] && read_only="yes"
 		mkdir -p /var/lock
 		lock /var/lock/autosamba.lock
 		uci -q -c /var/run/config batch <<-EOF
 			set samba.$DEVICE="sambashare"
-			set samba.$DEVICE.name="$label"
+			set samba.$DEVICE.name="$share_name"
 			set samba.$DEVICE.path="$mount"
 			set samba.$DEVICE.browseable="yes"
 			set samba.$DEVICE.read_only="$read_only"
