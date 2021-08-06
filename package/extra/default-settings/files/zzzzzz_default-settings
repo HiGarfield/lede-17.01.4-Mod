@@ -21,7 +21,7 @@ fi
 
 /etc/init.d/sysctl restart
 
-[ ! -f '/etc/crontabs/root' ] && echo "" >'/etc/crontabs/root'
+touch '/etc/crontabs/root'
 /etc/init.d/cron enable
 /etc/init.d/cron restart
 
@@ -39,7 +39,6 @@ sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/transmission.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/mjpg-streamer.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
-sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/xunlei.lua
 
 uci -q batch <<-EOF >/dev/null
 	set luci.main.mediaurlbase=/luci-static/material
@@ -92,10 +91,8 @@ if [ -n "$lan_ip" ]; then
 		if [ "$wan_ip1.$wan_ip2.$wan_ip3" = "$lan_ip1.$lan_ip2.$lan_ip3" ]; then
 			lan_ip3=$(((lan_ip3 + 1) % 255))
 			lan_ip="$lan_ip1.$lan_ip2.$lan_ip3.$lan_ip4"
-			uci -q batch <<-EOF >/dev/null
-				set network.lan.ipaddr=$lan_ip
-				commit network.lan.ipaddr
-			EOF
+			uci -q set network.lan.ipaddr="$lan_ip"
+			# 后面有uci commit network，所以此处不commit，减少不必要的network服务重启
 		fi
 	fi
 fi
