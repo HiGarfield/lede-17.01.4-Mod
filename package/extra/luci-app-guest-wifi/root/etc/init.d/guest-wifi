@@ -3,47 +3,17 @@
 
 START=50
 
-interface_name="guest"
-
-enabled=$(uci -q get guest-wifi.@guest-wifi[0].enable)
-[ -z "$enabled" ] && enabled=0
-wifi_name=$(uci -q get guest-wifi.@guest-wifi[0].wifi_name)
-[ -z "$wifi_name" ] && wifi_name="Guest-WiFi"
-encryption=$(uci -q get guest-wifi.@guest-wifi[0].encryption)
-[ -z "$encryption" ] && encryption="psk2"
-passwd=$(uci -q get guest-wifi.@guest-wifi[0].passwd)
-[ -z "$passwd" ] && passwd="guestnetwork"
-interface_ip=$(uci -q get guest-wifi.@guest-wifi[0].interface_ip)
-[ -z "$interface_ip" ] && interface_ip="192.168.4.1"
-isolate=$(uci -q get guest-wifi.@guest-wifi[0].isolate)
-[ -z "$isolate" ] && isolate=1
-start=$(uci -q get guest-wifi.@guest-wifi[0].start)
-[ -z "$start" ] && start=50
-limit=$(uci -q get guest-wifi.@guest-wifi[0].limit)
-[ -z "$limit" ] && limit=200
-leasetime=$(uci -q get guest-wifi.@guest-wifi[0].leasetime)
-[ -z "$leasetime" ] && leasetime="1h"
-device=$(uci -q get guest-wifi.@guest-wifi[0].device)
-[ -z "$device" ] && device="radio0"
-create=$(uci -q get guest-wifi.@guest-wifi[0].create)
-[ -z "$create" ] && create=0
-
 del_guest_wifi_cfg() {
 	uci -q batch <<-EOF >/dev/null
 		delete network.${interface_name}
-		commit network
 		delete wireless.${interface_name}
-		commit wireless
 		delete dhcp.${interface_name}
-		commit dhcp
 		delete firewall.${interface_name}_zone
 		delete firewall.${interface_name}_fwd
 		delete firewall.${interface_name}_dns_rule
 		delete firewall.${interface_name}_dhcp_rule
 		delete firewall.${interface_name}_hide_rule
-		commit firewall
-		set guest-wifi.@guest-wifi[0].create='0'
-		commit guest-wifi
+		set guest-wifi.config.create='0'
 	EOF
 }
 
@@ -53,12 +23,11 @@ add_interface() {
 		set network.${interface_name}.proto='static'
 		set network.${interface_name}.ipaddr="$interface_ip"
 		set network.${interface_name}.netmask='255.255.255.0'
-		commit network
 	EOF
 }
 
 add_ssid() {
-	local encryption_setting=''
+	local encryption_setting=
 	[ "$encryption" != "none" ] &&
 		encryption_setting="set wireless.${interface_name}.key=\"$passwd\""
 
@@ -70,8 +39,8 @@ add_ssid() {
 		set wireless.${interface_name}.ssid="$wifi_name"
 		set wireless.${interface_name}.encryption="$encryption"
 		set wireless.${interface_name}.isolate="$isolate"
+		set wireless.${interface_name}.disabled='0'
 		$encryption_setting
-		commit wireless
 	EOF
 }
 
@@ -82,7 +51,6 @@ mod_dhcp() {
 		set dhcp.${interface_name}.start="$start"
 		set dhcp.${interface_name}.limit="$limit"
 		set dhcp.${interface_name}.leasetime="$leasetime"
-		commit dhcp
 	EOF
 }
 
@@ -126,9 +94,49 @@ mod_fw() {
 
 		set firewall.${interface_name}_hide_rule.dest_ip="$lan_subnet"
 		set firewall.${interface_name}_hide_rule.target='REJECT'
-
-		commit firewall
 	EOF
+}
+
+guest_wifi_config() {
+	mkdir -p /var/lock
+	lock /var/lock/guest-wifi.lock
+
+	local interface_name enabled wifi_name encryption passwd interface_ip isolate start limit leasetime device create
+
+	interface_name="guest"
+	config_load guest-wifi
+	config_get_bool enabled config enabled 0
+	config_get wifi_name config wifi_name "Guest-WiFi"
+	config_get encryption config encryption "psk2"
+	config_get passwd config passwd "guestnetwork"
+	config_get interface_ip config interface_ip "192.168.4.1"
+	config_get_bool isolate config isolate 1
+	config_get start config start 50
+	config_get limit config limit 200
+	config_get leasetime config leasetime "1h"
+	config_get device config device "radio0"
+	config_get_bool create config create 0
+
+	if [ "$enabled" -eq 0 ]; then
+		if [ "$create" -eq 1 ]; then
+			del_guest_wifi_cfg
+		else
+			[ "$(uci -q get wireless.${interface_name}.disabled)" -eq 0 ] &&
+				uci -q set wireless.${interface_name}.disabled='1'
+		fi
+	elif [ "$enabled" -eq 1 ]; then
+		[ "$create" -eq 1 ] && {
+			del_guest_wifi_cfg
+			add_interface
+			add_ssid
+			mod_dhcp
+			mod_fw
+		}
+		[ "$(uci -q get wireless.${interface_name}.disabled)" -eq 1 ] &&
+			uci -q set wireless.${interface_name}.disabled='0'
+	fi
+	uci commit
+	lock -u /var/lock/guest-wifi.lock
 }
 
 boot() {
@@ -136,35 +144,7 @@ boot() {
 }
 
 start() {
-	mkdir -p /var/lock
-	lock /var/lock/guest-wifi.lock
-	if [ $enabled = 0 ]; then
-		if [ $create = 1 ]; then
-			del_guest_wifi_cfg
-			/etc/init.d/network restart
-		else
-			[ "$(uci -q get wireless.${interface_name}.disabled)" != "1" ] && {
-				uci set wireless.${interface_name}.disabled='1'
-				uci commit wireless
-			}
-		fi
-	elif [ $enabled = 1 ]; then
-		uci -q get network.lan.ipaddr >/dev/null || exit
-		[ $create = 1 ] && {
-			del_guest_wifi_cfg
-			add_interface
-			add_ssid
-			mod_dhcp
-			mod_fw
-			/etc/init.d/network restart
-		}
-		[ "$(uci -q get wireless.${interface_name}.disabled)" = "1" ] && {
-			uci del wireless.${interface_name}.disabled
-			uci commit wireless
-		}
-	fi
-	wifi reload
-	lock -u /var/lock/guest-wifi.lock
+	guest_wifi_config
 }
 
 stop() {

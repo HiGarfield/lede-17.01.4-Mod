@@ -5,22 +5,22 @@ msgid "Guest-wifi"
 msgstr "访客网络"
 
 msgid "Config"
-msgstr "设置"
+msgstr "配置"
 
-msgid "You can set guest wifi here. The wifi will be disconnected when enabling/disabling. When creating guest wifi or modifying the settings, please check both \"Enable\" and \"Create/Remove\". When deleting guest wifi, please uncheck \"Enable\" and check \"Create/Remove\"."
+msgid "You can set guest wifi here. The wifi will be disconnected when enabling/disabling. When creating guest wifi or modifying the settings, please check both \"Enabled\" and \"Create/Remove\". When removing guest wifi, please uncheck \"Enabled\" and check \"Create/Remove\"."
 msgstr "在此可以设置访客网络。启用/禁用访客网络时wifi会断开。当启用访客网络或修改设置时，请同时勾选“启用”和“创建/删除”。当删除访客网络时，不勾选“启用”，勾选“创建/删除”。"
 
-msgid "Enable"
+msgid "Enabled"
 msgstr "启用"
 
-msgid "Enable or disable guest wifi"
-msgstr "启用/禁用访客网络"
+msgid "Enable guest wifi"
+msgstr "启用访客网络"
 
 msgid "Create/Remove"
-msgstr"创建/删除"
+msgstr "创建/删除"
 
-msgid "Check to create guest wifi when enabled, or check to remove guest wifi when disabled."
-msgstr "启用时勾选此项，可创建和启用访客网络；不启用时勾选此项，可删除访客网络。"
+msgid "Check this to create guest wifi with \"Enabled\" checked; Check this to remove guest wifi with \"Enabled\" unchecked."
+msgstr "勾选“启用”时，同时勾选此项可创建并启用访客网络；未勾选“启用”时，同时勾选此项可删除访客网络。"
 
 msgid "Define device"
 msgstr "指定设备"

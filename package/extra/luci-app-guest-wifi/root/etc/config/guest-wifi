@@ -1,6 +1,6 @@
 
-config guest-wifi
-	option enable '0'
+config guest-wifi config
+	option enabled '0'
 	option wifi_name 'Guest-WiFi'
 	option encryption 'psk2'
 	option passwd 'guestnetwork'
