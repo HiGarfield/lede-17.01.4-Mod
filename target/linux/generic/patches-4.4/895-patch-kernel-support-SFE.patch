@@ -1,5 +1,5 @@
---- a/include/linux/if_bridge.h	2017-06-24 11:38:23.000000000 +0800
-+++ b/include/linux/if_bridge.h	2017-06-24 11:41:58.824178423 +0800
+--- a/include/linux/if_bridge.h
++++ b/include/linux/if_bridge.h
 @@ -51,6 +51,7 @@ struct br_ip_list {
  #define BR_DEFAULT_AGEING_TIME	(300 * HZ)
  
@@ -8,11 +8,11 @@
  
  typedef int br_should_route_hook_t(struct sk_buff *skb);
  extern br_should_route_hook_t __rcu *br_should_route_hook;
---- a/include/linux/skbuff.h	2017-06-24 11:38:23.000000000 +0800
-+++ b/include/linux/skbuff.h	2017-06-24 11:44:23.112531660 +0800
-@@ -641,9 +641,10 @@ struct sk_buff {
- #endif
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -646,9 +646,10 @@ struct sk_buff {
  	__u8			ipvs_property:1;
+ 
  	__u8			inner_protocol_type:1;
 +	__u8			fast_forwarded:1;
  	__u8			remcsum_offload:1;
@@ -22,9 +22,9 @@
  
  #ifdef CONFIG_NET_SCHED
  	__u16			tc_index;	/* traffic control index */
---- a/include/net/netfilter/nf_conntrack_ecache.h	2017-06-07 18:06:14.000000000 +0800
-+++ b/include/net/netfilter/nf_conntrack_ecache.h	2017-06-24 11:51:00.149503653 +0800
-@@ -63,25 +63,16 @@ struct nf_ct_event {
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -63,26 +63,16 @@ struct nf_ct_event {
  	int report;
  };
  
@@ -45,15 +45,15 @@
  nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
  {
 -	struct net *net = nf_ct_net(ct);
--	struct nf_conntrack_ecache *e;
+ 	struct nf_conntrack_ecache *e;
  
 -	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
 -		return;
-+	struct nf_conntrack_ecache *e;
- 
+-
  	e = nf_ct_ecache_find(ct);
  	if (e == NULL)
-@@ -96,19 +87,13 @@ nf_conntrack_eventmask_report(unsigned i
+ 		return;
+@@ -96,19 +86,13 @@ nf_conntrack_eventmask_report(unsigned int eventmask,
  			      u32 portid,
  			      int report)
  {
@@ -75,13 +75,12 @@
  
  	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct)) {
  		struct nf_ct_event item = {
-@@ -120,28 +105,12 @@ nf_conntrack_eventmask_report(unsigned i
+@@ -120,28 +104,12 @@ nf_conntrack_eventmask_report(unsigned int eventmask,
  		unsigned long missed = e->portid ? 0 : e->missed;
  
  		if (!((eventmask | missed) & e->ctmask))
 -			goto out_unlock;
-+			return 0;
- 
+-
 -		ret = notify->fcn(eventmask | missed, &item);
 -		if (unlikely(ret < 0 || missed)) {
 -			spin_lock_bh(&ct->lock);
@@ -98,6 +97,8 @@
 -				e->missed &= ~missed;
 -			spin_unlock_bh(&ct->lock);
 -		}
++			return 0;
++
 +		atomic_notifier_call_chain(&net->ct.nf_conntrack_chain, eventmask | missed, &item);
  	}
 -out_unlock:
@@ -108,8 +109,8 @@
  }
  
  static inline int
---- a/include/net/netns/conntrack.h	2017-06-07 18:06:14.000000000 +0800
-+++ b/include/net/netns/conntrack.h	2017-06-24 11:52:11.178677541 +0800
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
 @@ -100,7 +100,7 @@ struct netns_ct {
  	struct hlist_head	*expect_hash;
  	struct ct_pcpu __percpu *pcpu_lists;
@@ -119,9 +120,9 @@
  	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
  	struct nf_ip_net	nf_ct_proto;
  #if defined(CONFIG_NF_CONNTRACK_LABELS)
---- a/net/bridge/br_if.c	2017-06-07 18:06:14.000000000 +0800
-+++ b/net/bridge/br_if.c	2017-06-24 11:54:02.380947700 +0800
-@@ -588,3 +588,27 @@ void br_port_flags_change(struct net_bri
+--- a/net/bridge/br_if.c
++++ b/net/bridge/br_if.c
+@@ -596,3 +596,27 @@ void br_port_flags_change(struct net_bridge_port *p, unsigned long mask)
  	if (mask & BR_AUTO_MASK)
  		nbp_update_port_count(br);
  }
@@ -149,9 +150,9 @@
 +	u64_stats_update_end(&stats->syncp);
 +}
 +EXPORT_SYMBOL_GPL(br_dev_update_stats);
---- a/net/core/dev.c	2017-06-24 11:38:23.000000000 +0800
-+++ b/net/core/dev.c	2017-06-24 12:00:19.597856277 +0800
-@@ -2732,8 +2732,14 @@ static int xmit_one(struct sk_buff *skb,
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2773,8 +2773,14 @@ static int xmit_one(struct sk_buff *skb, struct net_device *dev,
  	unsigned int len;
  	int rc;
  
@@ -168,7 +169,7 @@
  
  #ifdef CONFIG_ETHERNET_PACKET_MANGLE
  	if (!dev->eth_mangle_tx ||
-@@ -3823,6 +3829,9 @@ void netdev_rx_handler_unregister(struct
+@@ -3877,6 +3883,9 @@ void netdev_rx_handler_unregister(struct net_device *dev)
  }
  EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
@@ -178,7 +179,7 @@
  /*
   * Limit the use of PFMEMALLOC reserves to those protocols that implement
   * the special handling of PFMEMALLOC skbs.
-@@ -3865,6 +3874,7 @@ static int __netif_receive_skb_core(stru
+@@ -3919,6 +3928,7 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc)
  	bool deliver_exact = false;
  	int ret = NET_RX_DROP;
  	__be16 type;
@@ -186,7 +187,7 @@
  
  	net_timestamp_check(!netdev_tstamp_prequeue, skb);
  
-@@ -3891,6 +3901,12 @@ another_round:
+@@ -3945,6 +3955,12 @@ another_round:
  			goto out;
  	}
  
@@ -199,9 +200,9 @@
  #ifdef CONFIG_NET_CLS_ACT
  	if (skb->tc_verd & TC_NCLS) {
  		skb->tc_verd = CLR_TC_NCLS(skb->tc_verd);
---- a/net/netfilter/nf_conntrack_core.c	2017-06-07 18:06:14.000000000 +0800
-+++ b/net/netfilter/nf_conntrack_core.c	2017-06-24 12:01:41.177052773 +0800
-@@ -1817,6 +1817,7 @@ int nf_conntrack_init_net(struct net *ne
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1859,6 +1859,7 @@ int nf_conntrack_init_net(struct net *net)
  	ret = nf_conntrack_proto_pernet_init(net);
  	if (ret < 0)
  		goto err_proto;
@@ -209,8 +210,8 @@
  	return 0;
  
  err_proto:
---- a/net/netfilter/nf_conntrack_ecache.c	2017-06-07 18:06:14.000000000 +0800
-+++ b/net/netfilter/nf_conntrack_ecache.c	2017-06-24 12:06:30.439749498 +0800
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
 @@ -18,6 +18,7 @@
  #include <linux/stddef.h>
  #include <linux/err.h>
@@ -324,17 +325,17 @@
  }
  EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
  
---- a/net/netfilter/nf_conntrack_netlink.c	2017-06-07 18:06:14.000000000 +0800
-+++ b/net/netfilter/nf_conntrack_netlink.c	2017-06-24 12:09:18.044153196 +0800
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
 @@ -28,6 +28,7 @@
  #include <linux/netlink.h>
  #include <linux/spinlock.h>
  #include <linux/interrupt.h>
 +#include <linux/notifier.h>
  #include <linux/slab.h>
+ #include <linux/siphash.h>
  
- #include <linux/netfilter.h>
-@@ -629,14 +630,15 @@ ctnetlink_nlmsg_size(const struct nf_con
+@@ -634,14 +635,15 @@ ctnetlink_nlmsg_size(const struct nf_conn *ct)
  }
  
  #ifdef CONFIG_NF_CONNTRACK_EVENTS
@@ -352,7 +353,7 @@
  	struct nf_conn *ct = item->ct;
  	struct sk_buff *skb;
  	unsigned int type;
-@@ -3258,8 +3260,8 @@ ctnetlink_stat_exp_cpu(struct sock *ctnl
+@@ -3290,8 +3292,8 @@ ctnetlink_stat_exp_cpu(struct sock *ctnl, struct sk_buff *skb,
  }
  
  #ifdef CONFIG_NF_CONNTRACK_EVENTS
