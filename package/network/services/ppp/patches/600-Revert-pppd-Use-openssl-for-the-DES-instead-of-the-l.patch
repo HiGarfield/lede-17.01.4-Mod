@@ -17,7 +17,7 @@ This reverts commit 3c7b86229f7bd2600d74db14b1fe5b3896be3875.
 +++ b/pppd/Makefile.linux
 @@ -35,10 +35,10 @@ endif
  COPTS = -O2 -pipe -Wall -g
- LIBS =
+ LIBS = -lpthread
  
 -# Uncomment the next line to include support for Microsoft's
 +# Uncomment the next 2 lines to include support for Microsoft's
@@ -40,7 +40,7 @@ This reverts commit 3c7b86229f7bd2600d74db14b1fe5b3896be3875.
  endif
 --- a/pppd/pppcrypt.c
 +++ b/pppd/pppcrypt.c
-@@ -64,7 +64,7 @@ u_char *des_key;	/* OUT 64 bit DES key w
+@@ -64,7 +64,7 @@ u_char *des_key;	/* OUT 64 bit DES key with parity bits added */
  	des_key[7] = Get7Bits(key, 49);
  
  #ifndef USE_CRYPT
