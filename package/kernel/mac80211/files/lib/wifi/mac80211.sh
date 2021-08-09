@@ -3,15 +3,15 @@ append DRIVERS "mac80211"
 
 lookup_phy() {
 	[ -n "$phy" ] && {
-		[ -d /sys/class/ieee80211/$phy ] && return
+		[ -d "/sys/class/ieee80211/$phy" ] && return
 	}
 
 	local devpath
 	config_get devpath "$device" path
 	[ -n "$devpath" ] && {
 		for phy in $(ls /sys/class/ieee80211 2>/dev/null); do
-			case "$(readlink -f /sys/class/ieee80211/$phy/device)" in
-				*$devpath) return;;
+			case "$(readlink -f "/sys/class/ieee80211/$phy/device")" in
+			*$devpath) return ;;
 			esac
 		done
 	}
@@ -21,7 +21,7 @@ lookup_phy() {
 		for _phy in /sys/class/ieee80211/*; do
 			[ -e "$_phy" ] || continue
 
-			[ "$macaddr" = "$(cat ${_phy}/macaddress)" ] || continue
+			[ "$macaddr" = "$(cat "${_phy}/macaddress")" ] || continue
 			phy="${_phy##*/}"
 			return
 		done
@@ -35,7 +35,7 @@ find_mac80211_phy() {
 
 	config_get phy "$device" phy
 	lookup_phy
-	[ -n "$phy" -a -d "/sys/class/ieee80211/$phy" ] || {
+	[ -n "$phy" ] && [ -d "/sys/class/ieee80211/$phy" ] || {
 		echo "PHY for wifi device $1 not found"
 		return 1
 	}
@@ -43,7 +43,7 @@ find_mac80211_phy() {
 
 	config_get macaddr "$device" macaddr
 	[ -z "$macaddr" ] && {
-		config_set "$device" macaddr "$(cat /sys/class/ieee80211/${phy}/macaddress)"
+		config_set "$device" macaddr "$(cat "/sys/class/ieee80211/${phy}/macaddress")"
 	}
 
 	return 0
@@ -64,7 +64,7 @@ detect_mac80211() {
 	while :; do
 		config_get type "radio$devidx" type
 		[ -n "$type" ] || break
-		devidx=$(($devidx + 1))
+		devidx=$((devidx + 1))
 	done
 
 	for _dev in /sys/class/ieee80211/*; do
@@ -78,41 +78,43 @@ detect_mac80211() {
 
 		mode_band="g"
 		channel="11"
-		htmode=""
-		ht_capab=""
-		wifi_5ghz=""
+		htmode=
+		ht_capab=
+		local wifi_5ghz=
 
 		iw phy "$dev" info | grep -q 'Capabilities:' && htmode="HT40"
 
-		iw phy "$dev" info | grep '\* 5[0-9][0-9][0-9] MHz \[' && {
+		local detected_channel_80211a=$(iw phy "$dev" info | grep '\*[[:space:]]\+5[[:digit:]]\{3\}[[:space:]]\+MHz[[:space:]]\+\[' | grep -v '(disabled)' -m 1 | sed 's/[^[]*\[\|\].*//g')
+
+		echo "$detected_channel_80211a" | grep -q "^[[:digit:]]\+$" && {
 			mode_band="a"
-			channel=$(iw phy "$dev" info |  grep '\* 5[0-9][0-9][0-9] MHz \[' | grep '(disabled)' -v -m 1 | sed 's/[^[]*\[\|\].*//g')
+			channel="$detected_channel_80211a"
 			iw phy "$dev" info | grep -q 'VHT Capabilities' && htmode="VHT80"
 			wifi_5ghz="_5G"
 		}
 
 		[ -n "$htmode" ] && ht_capab="set wireless.radio${devidx}.htmode=${htmode}"
 
-		ht40_noscan=""		
+		local ht40_noscan=
 		[ "$htmode" = "HT40" ] && ht40_noscan="set wireless.radio${devidx}.noscan=1"
 
-		if [ -x /usr/bin/readlink -a -h /sys/class/ieee80211/${dev} ]; then
-			path="$(readlink -f /sys/class/ieee80211/${dev}/device)"
+		if [ -x /usr/bin/readlink ] && [ -h "/sys/class/ieee80211/${dev}" ]; then
+			path="$(readlink -f "/sys/class/ieee80211/${dev}/device")"
 		else
-			path=""
+			path=
 		fi
 		if [ -n "$path" ]; then
 			path="${path##/sys/devices/}"
 			case "$path" in
-				platform*/pci*) path="${path##platform/}";;
+			platform*/pci*) path="${path##platform/}" ;;
 			esac
 			dev_id="set wireless.radio${devidx}.path='$path'"
 		else
-			dev_id="set wireless.radio${devidx}.macaddr=$(cat /sys/class/ieee80211/${dev}/macaddress)"
+			dev_id="set wireless.radio${devidx}.macaddr=$(cat "/sys/class/ieee80211/${dev}/macaddress")"
 		fi
 
-		mac_addr="$(cat /sys/class/ieee80211/${dev}/macaddress|awk -F ":" '{print $5""$6 }'| tr a-z A-Z)"
-		ssid="LEDE_${mac_addr}${wifi_5ghz}"
+		local mac_addr="$(awk -F ':' '{print toupper($5$6)}' "/sys/class/ieee80211/${dev}/macaddress")"
+		local ssid="LEDE_${mac_addr}${wifi_5ghz}"
 
 		uci -q batch <<-EOF
 			set wireless.radio${devidx}=wifi-device
@@ -130,9 +132,10 @@ detect_mac80211() {
 			set wireless.default_radio${devidx}.mode=ap
 			set wireless.default_radio${devidx}.ssid=${ssid}
 			set wireless.default_radio${devidx}.encryption=none
-EOF
-		uci -q commit wireless
 
-		devidx=$(($devidx + 1))
+			commit wireless
+		EOF
+
+		devidx=$((devidx + 1))
 	done
 }
