@@ -28,22 +28,24 @@ command -v openssl >/dev/null 2>&1 || write_log 13 "使用阿里云API需要 ope
 # 变量声明
 local __HOST __DOMAIN __TYPE __URLBASE __CMDBASE __URLARGS __SEPARATOR __RECID
 if [ $use_https -eq 0 ]; then
-	__URLBASE="http://alidns.aliyuncs.com/" 
+	__URLBASE="http://alidns.aliyuncs.com/"
 else
-	__URLBASE="https://alidns.aliyuncs.com/" 
+	__URLBASE="https://alidns.aliyuncs.com/"
 fi
 __SEPARATOR="&"
 
 # 从 $domain 分离主机和域名
-[ "${domain:0:2}" == "@." ] && domain="${domain/./}" # 主域名处理
-[ "$domain" == "${domain/@/}" ] && domain="${domain/./@}" # 未找到分隔符，兼容常用域名格式
+[ "${domain:0:2}" = "@." ] && domain="${domain/./}"      # 主域名处理
+[ "$domain" = "${domain/@/}" ] && domain="${domain/./@}" # 未找到分隔符，兼容常用域名格式
 __HOST="${domain%%@*}"
 __DOMAIN="${domain#*@}"
-[ -z "$__HOST" -o "$__HOST" == "$__DOMAIN" ] && __HOST="@"
+if [ -z "$__HOST" ] || [ "$__HOST" = "$__DOMAIN" ]; then
+	__HOST="@"
+fi
 
 # 设置记录类型
 if [ $use_ipv6 -eq 0 ]; then
-	__TYPE="A" 
+	__TYPE="A"
 else
 	__TYPE="AAAA"
 fi
@@ -54,12 +56,12 @@ build_command() {
 	# 绑定用于通信的主机/IP
 	if [ -n "$bind_network" ]; then
 		local bind_ip run_prog
-		if [ $use_ipv6 -eq 0 ] ; then
+		if [ $use_ipv6 -eq 0 ]; then
 			run_prog="network_get_ipaddr"
 		else
 			run_prog="network_get_ipaddr6"
 		fi
-		eval "$run_prog bind_ip $bind_network" || \
+		eval "$run_prog bind_ip $bind_network" ||
 			write_log 13 "无法使用 '$run_prog $bind_network' 获取本地IP地址 - 错误代码: '$?'"
 		write_log 7 "强制使用IP '$bind_ip' 通信"
 		__CMDBASE="$__CMDBASE --bind-address=$bind_ip"
@@ -96,7 +98,7 @@ aliyun_transfer() {
 
 	[ $# -eq 0 ] && write_log 12 "'aliyun_transfer()' 出错 - 参数数量错误"
 
-	while : ; do
+	while :; do
 		build_Request $__PARAM
 		__RUNPROG="$__CMDBASE '${__URLBASE}?${__URLARGS}'"
 
@@ -113,8 +115,8 @@ aliyun_transfer() {
 			return 1
 		fi
 
-		__CNT=$(( $__CNT + 1 ))
-		[ $retry_count -gt 0 -a $__CNT -gt $retry_count ] && \
+		__CNT=$((__CNT + 1))
+		[ "$retry_count" -gt 0 ] && [ "$__CNT" -gt "$retry_count" ] &&
 			write_log 14 "$retry_count 次重试后传输还是失败"
 
 		write_log 4 "传输失败 - $__CNT/$retry_count 在 $RETRY_SECONDS 秒后重试"
@@ -130,12 +132,14 @@ percentEncode() {
 	if [ -z "${1//[A-Za-z0-9_.~-]/}" ]; then
 		echo -n "$1"
 	else
-		local string=$1; local i=0; local ret chr
+		local string=$1
+		local i=0
+		local ret chr
 		while [ $i -lt ${#string} ]; do
 			chr=${string:$i:1}
 			[ -z "${chr#[^A-Za-z0-9_.~-]}" ] && chr=$(printf '%%%02X' "'$chr")
 			ret="$ret$chr"
-			i=$(( $i + 1 ))
+			i=$((i + 1))
 		done
 		echo -n "$ret"
 	fi
@@ -143,47 +147,58 @@ percentEncode() {
 
 # 构造阿里云解析请求参数
 build_Request() {
-	local args=$*; local string
+	local args=$*
+	local string
 	local HTTP_METHOD="GET"
 
 	# 添加请求参数
 	__URLARGS=
 	for string in $args; do
 		case "${string%%=*}" in
-			Format|TTL|Version|AccessKeyId|SignatureMethod|Timestamp|SignatureVersion|SignatureNonce|Signature) ;; # 过滤公共参数
-			*) __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}");;
+		Format | TTL | Version | AccessKeyId | SignatureMethod | Timestamp | SignatureVersion | SignatureNonce | Signature) ;; # 过滤公共参数
+		*) __URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")" ;;
 		esac
 	done
 	__URLARGS="${__URLARGS:1}"
 
 	# 附加公共参数
-	string="Format=JSON"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
-	string="TTL=600";__URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
-	string="Version=2015-01-09"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
-	string="AccessKeyId=$username"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
-	string="SignatureMethod=HMAC-SHA1"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
-	string="Timestamp="$(date -u '+%Y-%m-%dT%H:%M:%SZ'); __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
-	string="SignatureVersion=1.0"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
-	string="SignatureNonce="$(cat '/proc/sys/kernel/random/uuid'); __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
+	string="Format=JSON"
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
+	string="TTL=600"
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
+	string="Version=2015-01-09"
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
+	string="AccessKeyId=$username"
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
+	string="SignatureMethod=HMAC-SHA1"
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
+	string="Timestamp="$(date -u '+%Y-%m-%dT%H:%M:%SZ')
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
+	string="SignatureVersion=1.0"
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
+	string="SignatureNonce="$(cat '/proc/sys/kernel/random/uuid')
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
 
 	# 对请求参数进行排序，用于生成签名
 	string=$(echo -n "$__URLARGS" | sed 's/\'"${__SEPARATOR}"'/\n/g' | sort | sed ':label; N; s/\n/\'"${__SEPARATOR}"'/g; b label')
 	# 构造用于计算签名的字符串
-	string="${HTTP_METHOD}${__SEPARATOR}"$(percentEncode "/")"${__SEPARATOR}"$(percentEncode "$string")
+	string="${HTTP_METHOD}${__SEPARATOR}$(percentEncode "/")${__SEPARATOR}$(percentEncode "$string")"
 	# 字符串计算签名HMAC值
 	local signature=$(echo -n "$string" | openssl dgst -sha1 -hmac "${password}&" -binary)
 	# HMAC值编码成字符串，得到签名值
 	signature=$(echo -n "$signature" | openssl base64)
 
 	# 附加签名参数
-	string="Signature=$signature"; __URLARGS="$__URLARGS${__SEPARATOR}"$(percentEncode "${string%%=*}")"="$(percentEncode "${string#*=}")
+	string="Signature=$signature"
+	__URLARGS="$__URLARGS${__SEPARATOR}$(percentEncode "${string%%=*}")=$(percentEncode "${string#*=}")"
 }
 
 # 添加解析记录
 add_domain() {
 	local value
 	aliyun_transfer "Action=AddDomainRecord" "DomainName=${__DOMAIN}" "RR=${__HOST}" "Type=${__TYPE}" "Value=${__IP}" || write_log 14 "服务器通信失败"
-	json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
+	json_init
+	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
 	json_get_var value "RecordId"
 	[ -z "$value" ] && write_log 14 "添加新解析记录失败"
 	write_log 7 "添加新解析记录成功"
@@ -194,7 +209,8 @@ add_domain() {
 update_domain() {
 	local value
 	aliyun_transfer "Action=UpdateDomainRecord" "RecordId=${__RECID}" "RR=${__HOST}" "Type=${__TYPE}" "Value=${__IP}" || write_log 14 "服务器通信失败"
-	json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
+	json_init
+	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
 	json_get_var value "RecordId"
 	[ -z "$value" ] && write_log 14 "修改解析记录失败"
 	write_log 7 "修改解析记录成功"
@@ -205,7 +221,8 @@ update_domain() {
 enable_domain() {
 	local value
 	aliyun_transfer "Action=SetDomainRecordStatus" "RecordId=${__RECID}" "Status=Enable" || write_log 14 "服务器通信失败"
-	json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
+	json_init
+	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
 	json_get_var value "Status"
 	[ "$value" != "Enable" ] && write_log 14 "启用解析记录失败"
 	write_log 7 "启用解析记录成功"
@@ -214,26 +231,30 @@ enable_domain() {
 
 # 获取子域名解析记录列表
 describe_domain() {
-	local count value; local ret=0
+	local count value
+	local ret=0
 	aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=${__HOST}.${__DOMAIN}" || write_log 14 "服务器通信失败"
-	write_log 7 "获取到解析记录: $(cat "$DATFILE" 2> /dev/null)" 
-	json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
+	write_log 7 "获取到解析记录: $(cat "$DATFILE" 2>/dev/null)"
+	json_init
+	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
 	json_get_var count "TotalCount"
 	if [ $count -eq 0 ]; then
 		write_log 7 "解析记录不存在"
 		ret=1
 	else
-		local i=1;
+		local i=1
 		while [ $i -le $count ]; do
-			json_cleanup; json_load "$(cat "$DATFILE" 2> /dev/null)" >/dev/null 2>&1
+			json_init
+			json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
 			json_select "DomainRecords" >/dev/null 2>&1
 			json_select "Record" >/dev/null 2>&1
 			json_select $i >/dev/null 2>&1
-			i=$(( $i + 1 ))
+			i=$((i + 1))
 			json_get_var value "Type"
 			if [ "$value" != "${__TYPE}" ]; then
 				write_log 7 "当前解析类型: ${__TYPE}, 获得不匹配类型: $value"
-				ret=1; continue
+				ret=1
+				continue
 			else
 				ret=0
 				json_get_var __RECID "RecordId"
@@ -241,9 +262,9 @@ describe_domain() {
 				json_get_var value "Locked"
 				[ $value -ne 0 ] && write_log 14 "解析记录被锁定"
 				json_get_var value "Status"
-				[ "$value" != "ENABLE" ] && ret=$(( $ret | 2 )) && write_log 7 "解析记录被禁用"
+				[ "$value" != "ENABLE" ] && ret=$((ret | 2)) && write_log 7 "解析记录被禁用"
 				json_get_var value "Value"
-				[ "$value" != "${__IP}" ] && ret=$(( $ret | 4 )) && write_log 7 "地址需要修改"
+				[ "$value" != "${__IP}" ] && ret=$((ret | 4)) && write_log 7 "地址需要修改"
 				break
 			fi
 		done
@@ -257,8 +278,8 @@ ret=$?
 if [ $ret -eq 1 ]; then
 	sleep 3 && add_domain
 else
-	[ $(( $ret & 2 )) -ne 0 ] && sleep 3 && enable_domain
-	[ $(( $ret & 4 )) -ne 0 ] && sleep 3 && update_domain
+	[ $((ret & 2)) -ne 0 ] && sleep 3 && enable_domain
+	[ $((ret & 4)) -ne 0 ] && sleep 3 && update_domain
 fi
 
 return 0
