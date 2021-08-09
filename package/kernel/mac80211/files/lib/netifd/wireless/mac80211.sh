@@ -409,8 +409,11 @@ mac80211_generate_mac() {
 find_phy() {
 	[ -n "$phy" -a -d /sys/class/ieee80211/$phy ] && return 0
 	[ -n "$path" ] && {
-		phy="$(iwinfo nl80211 phyname "path=$path")"
-		[ -n "$phy" ] && return 0
+		for phy in $(ls /sys/class/ieee80211 2>/dev/null); do
+			case "$(readlink -f /sys/class/ieee80211/$phy/device)" in
+				*$path) return 0;;
+			esac
+		done
 	}
 	[ -n "$macaddr" ] && {
 		for phy in $(ls /sys/class/ieee80211 2>/dev/null); do
