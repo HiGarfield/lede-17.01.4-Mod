@@ -35,20 +35,19 @@ unit:value("minutes", translate("min"))
 unit:value("hours", translate("h"))
 unit.optional = false
 
-spindown = s:option(Button, "spin_down_immediately", translate("Spin down immediately"))
+spindown = s:option(Button, "spin_down_immediately")
+spindown.inputstyle = "apply"
 spindown.render = function(self, section, scope)
     if nixio.fs.stat("/dev/%s" % self.map:get(section, "disk"), "type") == "blk" then
-        self.inputstyle = "apply"
+        self.title = translate("Spin down immediately")
+        self.template = "cbi/button"
     else
-        self.inputstyle = nil
+        self.template = "cbi/dvalue"
     end
     Button.render(self, section, scope)
 end
 spindown.write = function(self, section)
-    local disk_dev = self.map:get(section, "disk")
-    if nixio.fs.stat("/dev/%s" % disk_dev, "type") == "blk" then
-        luci.sys.call("hd-idle -t '%s'" % disk_dev)
-    end
+    luci.sys.call("hd-idle -t '%s'" % self.map:get(section, "disk"))
 end
 
 return m
