@@ -2272,6 +2272,7 @@ CONFIG_FSTOOLS_UBIFS_EXTROOT=y
 # CONFIG_FSTOOLS_OVL_MOUNT_FULL_ACCESS_TIME is not set
 # CONFIG_FSTOOLS_OVL_MOUNT_COMPRESS_ZLIB is not set
 CONFIG_PACKAGE_fwtool=y
+CONFIG_PACKAGE_getrandom=y
 CONFIG_PACKAGE_jsonfilter=y
 CONFIG_PACKAGE_lede-info=y
 CONFIG_PACKAGE_lede-keyring=y
@@ -5647,8 +5648,6 @@ CONFIG_PACKAGE_openssl-util=y
 # CONFIG_PACKAGE_pcscd is not set
 # CONFIG_PACKAGE_pps-tools is not set
 # CONFIG_PACKAGE_prlimit is not set
-CONFIG_PACKAGE_procd-nand=y
-# CONFIG_PACKAGE_procd-nand-firstboot is not set
 # CONFIG_PACKAGE_procps-ng is not set
 # CONFIG_PACKAGE_pv is not set
 # CONFIG_PACKAGE_qrencode is not set
