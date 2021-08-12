@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/net/transmission-web-control/Makefile
 Package: transmission-web-control
 Submenu: BitTorrent
-Version: 2021-05-09-f28505e81737ba42d5fd8508824eaeb799e3c3d8-1
+Version: 2021-07-09-14c6ede79a74aca741202d6597803f10aa063a3f-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +transmission-daemon
 Conflicts: transmission-web
 Menu-Depends: 
@@ -11,7 +11,7 @@ Category: Network
 Repository: base
 Title: Transmission Web Control
 Maintainer: Richard Yu <yurichard3839@gmail.com>
-Source: transmission-web-control-2021-05-09-f28505e81737ba42d5fd8508824eaeb799e3c3d8.tar.xz
+Source: transmission-web-control-2021-07-09-14c6ede79a74aca741202d6597803f10aa063a3f.tar.xz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg

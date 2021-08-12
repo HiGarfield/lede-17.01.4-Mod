@@ -26226,7 +26226,7 @@ Config:
 Source-Makefile: feeds/packages/net/ariang/Makefile
 Package: ariang
 Submenu: Download Manager
-Version: 1.1.7-1
+Version: 1.2.2-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +uhttpd
 Conflicts: 
 Menu-Depends: 
@@ -26236,7 +26236,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for uhttpd webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.1.7.tar.gz
+Source: ariang-1.2.2.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -26247,7 +26247,7 @@ Ansuel Smith <ansuelsmth@gmail.com>
 
 Package: ariang-nginx
 Submenu: Download Manager
-Version: 1.1.7-1
+Version: 1.2.2-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +nginx
 Conflicts: 
 Menu-Depends: 
@@ -26257,7 +26257,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for nginx webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.1.7.tar.gz
+Source: ariang-1.2.2.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -38735,7 +38735,7 @@ Rosen Penev <rosenp@gmail.com>
 Source-Makefile: feeds/packages/net/transmission-web-control/Makefile
 Package: transmission-web-control
 Submenu: BitTorrent
-Version: 2021-05-09-f28505e81737ba42d5fd8508824eaeb799e3c3d8-1
+Version: 2021-07-09-14c6ede79a74aca741202d6597803f10aa063a3f-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +transmission-daemon
 Conflicts: transmission-web
 Menu-Depends: 
@@ -38745,7 +38745,7 @@ Category: Network
 Repository: base
 Title: Transmission Web Control
 Maintainer: Richard Yu <yurichard3839@gmail.com>
-Source: transmission-web-control-2021-05-09-f28505e81737ba42d5fd8508824eaeb799e3c3d8.tar.xz
+Source: transmission-web-control-2021-07-09-14c6ede79a74aca741202d6597803f10aa063a3f.tar.xz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
