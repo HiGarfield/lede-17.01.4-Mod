@@ -60,8 +60,8 @@ create_config() {
 	[ -n "$cipher_mode" ] && echo "--cipher-mode ${cipher_mode}" >>$config_file
 	[ -n "$auth_mode" ] && echo "--auth-mode ${auth_mode}" >>$config_file
 
-	[ $auto_rule -eq 1 -a $keep_rule -eq 1 ] && echo "--auto-rule" >>$config_file
-	[ $auto_rule -eq 1 -a $keep_rule -eq 1 ] && echo "--keep-rule" >>$config_file
+	[ $auto_rule -eq 1 ] && [ $keep_rule -eq 1 ] && echo "--auto-rule" >>$config_file
+	[ $auto_rule -eq 1 ] && [ $keep_rule -eq 1 ] && echo "--keep-rule" >>$config_file
 
 	[ -n "$seq_mode" ] && echo "--seq-mode ${seq_mode}" >>$config_file
 	[ -n "$lower_level" ] && echo "--lower-level ${lower_level}" >>$config_file
@@ -101,34 +101,46 @@ validate_server_section() {
 start_instance() {
 	local server="$1"
 
-	if [ -z "$server" -o "$server" == "nil" ]; then
+	if [ -z "$server" ] || [ "$server" = "nil" ]; then
 		return 0
 	elif ! validate_server_section "$server"; then
 		_log "err" "Server config validation failed."
 		return 1
 	fi
 
+	# 服务器地址必须是域名或者ip地址
+	/sbin/validate_data "hostname" "$server_addr" >/dev/null 2>&1 || {
+		_log "err" "Server address validation failed."
+		return 1
+	}
+
+	# 若服务器地址为ip地址，则无需处理
+	# 若服务器地址为域名，尝试进行域名解析，获取ip地址
 	/sbin/validate_data "ipaddr" "$server_addr" >/dev/null 2>&1 || {
-		local server_domain="$server_addr"
-		local retry_num
-		for retry_num in $(seq 1 2); do
-			server_addr=$(nslookup "$server_domain" |
-				sed -n 's/^Address[[:space:]]*[0-9]*:[[:space:]]*\(\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}\)$/\1/p')
+		local server_hostname="$server_addr"
+		local retry_count
+		for retry_count in $(seq 1 3); do
+			server_addr=$(nslookup "$server_hostname" | sed -n 's/^Address[[:space:]]*[0-9]*:[[:space:]]*\(\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}\)$/\1/p')
 			/sbin/validate_data "ipaddr" "$server_addr" >/dev/null 2>&1 && break
 			sleep 1
 		done
+		# 域名无法解析，报错退出
+		/sbin/validate_data "ipaddr" "$server_addr" >/dev/null 2>&1 || {
+			_log "err" "Server address validation failed."
+			_log "err" "Host name $server_hostname can not be resolved."
+			mkdir -p /var/run
+			touch "/var/run/udp2raw.hostname_not_resolved.err"
+			return 1
+		}
 	}
 
-	if [ -z "$server_addr" ]; then
-		_log "err" "Server address validation failed."
-		return 1
-	fi
+	rm -f "/var/run/udp2raw.hostname_not_resolved.err"
 
 	[ -d /var/etc ] || mkdir -p /var/etc
 	local config_file="/var/etc/${NAME}.${server}.conf"
 	create_config "$config_file" || return 1
 
-	if [ $auto_rule -eq 1 -a $keep_rule -ne 1 ]; then
+	if [ $auto_rule -eq 1 ] && [ $keep_rule -ne 1 ]; then
 		add_ipt_rule || {
 			_log "err" "added iptables rule failed."
 			return 1
@@ -150,11 +162,6 @@ start_instance() {
 	procd_close_instance
 }
 
-service_triggers() {
-	procd_add_reload_trigger "$NAME"
-	procd_add_interface_trigger 'interface.*.up' 'wan' /etc/init.d/${NAME} reload
-}
-
 start_service() {
 	if ! validate_config_section "general"; then
 		_log "err" "Config validate failed."
@@ -170,4 +177,12 @@ start_service() {
 
 stop_service() {
 	flush_ipt_rules
+}
+
+reload_service() {
+	restart
+}
+
+service_triggers() {
+	procd_add_reload_trigger "$NAME"
 }
