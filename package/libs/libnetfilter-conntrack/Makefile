@@ -8,20 +8,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libnetfilter_conntrack
-PKG_VERSION:=1.0.6
+PKG_VERSION:=1.0.8
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-	http://www.netfilter.org/projects/libnetfilter_conntrack/files/ \
-	ftp://ftp.netfilter.org/pub/libnetfilter_conntrack/
-PKG_HASH:=efcc08021284e75f4d96d3581c5155a11f08fd63316b1938cbcb269c87f37feb
-PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
+PKG_SOURCE_URL:=https://www.netfilter.org/projects/libnetfilter_conntrack/files
+PKG_HASH:=0cd13be008923528687af6c6b860f35392d49251c04ee0648282d36b1faec1cf
 
-PKG_FIXUP:=autoreconf
-PKG_LICENSE:=GPL-2.0+
+PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
+PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE_FILES:=COPYING
 
 PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -31,6 +30,7 @@ define Package/libnetfilter-conntrack
   DEPENDS:=+libnfnetlink +kmod-nf-conntrack-netlink +libmnl
   TITLE:=API to the in-kernel connection tracking state table
   URL:=http://www.netfilter.org/projects/libnetfilter_conntrack/
+  ABI_VERSION:=3
 endef
 
 define Package/libnetfilter-conntrack/description
