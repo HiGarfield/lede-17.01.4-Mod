@@ -98,8 +98,7 @@ if [ -n "$lan_ip" ]; then
 fi
 ##################### 防止LAN与WAN网段重合 结束 #########################
 
-# ula_prefix=2d$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | hexdump -e '1/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')::/48
-ula_prefix=''
+ula_prefix="2d$(dd if=/dev/urandom bs=1 count=1 2>/dev/null | hexdump -e '1/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"'):$(dd if=/dev/urandom bs=2 count=1 2>/dev/null | hexdump -e '2/1 "%02x"')::/48"
 
 uci -q batch <<-EOF >/dev/null
 	set dhcp.lan.ra='server'
