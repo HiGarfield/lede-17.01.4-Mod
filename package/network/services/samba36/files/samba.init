@@ -22,10 +22,10 @@ smb_header() {
 	)
 
 	local name workgroup description charset
-	local hostname="$(uci_get system.@system[0].hostname)"
+	local hostname="$(sed 's/\..*//' /proc/sys/kernel/hostname | tr -d '{};%?=#\n')"
 
 	config_get name        $1 name        "${hostname:-Lede}"
-	config_get workgroup   $1 workgroup   "${hostname:-Lede}"
+	config_get workgroup   $1 workgroup   "WORKGROUP"
 	config_get description $1 description "Samba on ${hostname:-Lede}"
 	config_get charset     $1 charset     "UTF-8"
 
