@@ -47,7 +47,12 @@ spindown.render = function(self, section, scope)
     Button.render(self, section, scope)
 end
 spindown.write = function(self, section)
-    luci.sys.call("hd-idle -t '%s'" % self.map:get(section, "disk"))
+    local disk_dev = self.map:get(section, "disk")
+    if luci.sys.call("hd-idle -t '%s'" % disk_dev) == 0 then
+        m.message = translate("Disk %s has been spun down.") % disk_dev
+    else
+        m.message = translate("Fails to spin down disk %s.") % disk_dev
+    end
 end
 
 return m
