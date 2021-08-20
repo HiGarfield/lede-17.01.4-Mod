@@ -1,0 +1,80 @@
+--- a/hd-idle.c
++++ b/hd-idle.c
+@@ -148,7 +148,7 @@ typedef struct DISKSTATS {
+ /* function prototypes */
+ static void        daemonize       (void);
+ static DISKSTATS  *get_diskstats   (const char *name);
+-static void        spindown_disk   (const char *name);
++static int         spindown_disk   (const char *name);
+ static void        log_spinup      (DISKSTATS *ds);
+ static char       *disk_name       (char *name);
+ static void        phex            (const void *p, int len,
+@@ -185,8 +185,7 @@ int main(int argc, char *argv[])
+ 
+     case 't':
+       /* just spin-down the specified disk and exit */
+-      spindown_disk(optarg);
+-      return(0);
++      return(spindown_disk(optarg));
+ 
+     case 'a':
+       /* add a new set of idle-time parameters for this particular disk */
+@@ -304,9 +303,10 @@ int main(int argc, char *argv[])
+           if (!ds->spun_down) {
+             /* no activity on this disk and still running */
+             if (ds->idle_time != 0 && now - ds->last_io >= ds->idle_time) {
+-              spindown_disk(ds->name);
+-              ds->spindown = now;
+-              ds->spun_down = 1;
++              if(spindown_disk(ds->name) == 0){
++                ds->spindown = now;
++                ds->spun_down = 1;
++              }
+             }
+           }
+ 
+@@ -386,12 +386,13 @@ static DISKSTATS *get_diskstats(const char *name)
+ }
+ 
+ /* spin-down a disk */
+-static void spindown_disk(const char *name)
++static int spindown_disk(const char *name)
+ {
+   struct sg_io_hdr io_hdr;
+   unsigned char sense_buf[255];
+   char dev_name[100];
+   int fd;
++  int spindown_status = 0;
+ 
+   dprintf("spindown: %s\n", name);
+ 
+@@ -411,7 +412,8 @@ static void spindown_disk(const char *name)
+   snprintf(dev_name, sizeof(dev_name), "/dev/%s", name);
+   if ((fd = open(dev_name, O_RDONLY)) < 0) {
+     perror(dev_name);
+-    return;
++    spindown_status = 1;
++    return spindown_status;
+   }
+ 
+   /* execute SCSI request */
+@@ -419,16 +421,18 @@ static void spindown_disk(const char *name)
+     char buf[100];
+     snprintf(buf, sizeof(buf), "ioctl on %s:", name);
+     perror(buf);
+-
++    spindown_status = 1;
+   } else if (io_hdr.masked_status != 0) {
+     fprintf(stderr, "error: SCSI command failed with status 0x%02x\n",
+             io_hdr.masked_status);
+     if (io_hdr.masked_status == CHECK_CONDITION) {
+       phex(sense_buf, io_hdr.sb_len_wr, "sense buffer:\n");
+     }
++    spindown_status = 1;
+   }
+ 
+   close(fd);
++  return spindown_status;
+ }
+ 
+ /* write a spin-up event message to the log file */
