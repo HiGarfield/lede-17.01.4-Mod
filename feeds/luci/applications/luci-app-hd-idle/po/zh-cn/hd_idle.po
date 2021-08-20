@@ -47,5 +47,11 @@ msgstr "小时"
 msgid "min"
 msgstr "分钟"
 
+msgid "Disk %s has been spun down."
+msgstr "硬盘%s已休眠。"
+
+msgid "Fails to spin down disk %s."
+msgstr "无法休眠硬盘%s。"
+
 #~ msgid "Enable debug"
 #~ msgstr "开启调试"
