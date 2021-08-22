@@ -8,12 +8,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=vsftpd-alt
-PKG_VERSION:=3.0.3
-PKG_RELEASE:=7
+PKG_VERSION:=3.0.5
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE:=vsftpd-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://security.appspot.com/downloads/
-PKG_MD5SUM:=da119d084bd3f98664636ea05b5bb398
+PKG_HASH:=26b602ae454b0ba6d99ef44a09b6b9e0dfa7f67228106736df1f278c70bc91d3
 PKG_LICENSE:=GPLv2
 
 BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
@@ -25,7 +25,7 @@ define Package/vsftpd-alt/Default
   SUBMENU:=File Transfer
   SECTION:=net
   CATEGORY:=Network
-  TITLE:=A fast and secure FTP server (with aio support)
+  TITLE:=A fast and secure FTP server
   URL:=http://vsftpd.beasts.org/
   MAINTAINER:=Cezary Jackiewicz <cezary@eko.one.pl>
   DEPENDS=+libuci 
@@ -39,17 +39,11 @@ define Package/vsftpd-alt/conffiles
 /etc/vsftpd.conf
 endef
 
-#EXTRA_LDFLAGS:= -lcrypt -lcrypto -lssl
-
 define Package/vsftpd-alt/config
 config VSFTPD_USE_UCI_SCRIPTS
 	bool "Uses UCI scripts"
 	depends on PACKAGE_vsftpd-alt
 	default y
-#config VSFTPD_ENABLE_AIO
-#	bool "Enable async I/O (Currently Buggy)"
-#	depends on PACKAGE_vsftpd-alt
-#	default n
 endef
 
 ifneq ($(CONFIG_USE_MUSL),)
@@ -62,23 +56,9 @@ endif
 
 TARGET_CFLAGS += -D_GNU_SOURCE -include fcntl.h
 
-#ifdef CONFIG_PACKAGE_libpam
-#  EXTRA_LDFLAGS += -lpam
-#endif
-
-#ifeq ($(CONFIG_VSFTPD_ENABLE_AIO),y)
-#define Package/vsftpd-alt
-#$(call Package/vsftpd-alt/Default)
-#  DEPENDS=+PACKAGE_libpam:libpam +libopenssl +libuci +libaio
-#endef
-#  EXTRA_LDFLAGS += -laio
-#  EXTRA_CFLAGS += -DVSFTPD_ASYNC_IO
-#else
 define Package/vsftpd-alt
 $(call Package/vsftpd-alt/Default)
 endef
-#endif
-
 
 define Build/Compile
 	$(SED) 's/-lcrypt -lnsl/$(NLSSTRING)/' $(PKG_BUILD_DIR)/Makefile
