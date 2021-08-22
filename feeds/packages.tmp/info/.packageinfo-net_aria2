@@ -1,22 +1,24 @@
 Source-Makefile: feeds/packages/net/aria2/Makefile
 Package: aria2
 Submenu: File Transfer
-Version: 1.35.0-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +ARIA2_SFTP:libssh2 +ARIA2_LIBXML2:libxml2 +ARIA2_EXPAT:libexpat +libstdcpp +ARIA2_OPENSSL:libopenssl +ARIA2_GNUTLS:libgnutls
+Version: 1.36.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libstdcpp +ARIA2_OPENSSL:libopenssl +ARIA2_GNUTLS:libgnutls +ARIA2_NETTLE:libnettle +ARIA2_LIBGCRYPT:libgcrypt +ARIA2_GMP:libgmp +ARIA2_LIBXML2:libxml2 +ARIA2_EXPAT:libexpat +ARIA2_SFTP:libssh2 +ARIA2_ASYNC_DNS:libcares +ARIA2_COOKIE:libsqlite3
 Conflicts: 
 Menu-Depends: 
 Provides: 
+Build-Depends: !BUILD_NLS:libiconv !BUILD_NLS:libintl
 Section: net
 Category: Network
 Repository: base
 Title: lightweight download utility
 Maintainer: Imre Kaloz <kaloz@openwrt.org>, Hsing-Wang Liao <kuoruan@gmail.com>
-Source: aria2-1.35.0.tar.xz
+Require-User: aria2=6800:aria2=6800
+Source: aria2-1.36.0.tar.xz
 License: GPLv2
 LicenseFiles: COPYING
 Type: ipkg
-Description:  aria2 is a lightweight multi-protocol & multi-source command-line download
- utility
+Description:   aria2 is a lightweight multi-protocol & multi-source command-line download
+  utility
 https://aria2.github.io/
 Imre Kaloz <kaloz@openwrt.org>, Hsing-Wang Liao <kuoruan@gmail.com>
 @@
