@@ -667,6 +667,9 @@ ramips_board_detect() {
 	*"YK1")
 		name="youku-yk1"
 		;;
+	*"HD51-N")
+		name="hd51-n"
+		;;
 	*)
 		name="generic"
 		;;

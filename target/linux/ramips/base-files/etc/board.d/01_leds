@@ -405,6 +405,10 @@ youku-yk1)
 	set_usb_led "$board:blue:usb"
 	ucidef_set_led_switch "wan" "wan" "$board:blue:wan" "switch0" "0x10"
 	;;
+hd51-n)
+	set_wifi_led "$board:green:wlan2g"
+	set_usb_led "$board:green:usb"
+	;;
 esac
 
 board_config_flush
