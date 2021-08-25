@@ -117,5 +117,6 @@ process_devices $devices "1004kc"
 devices=(
 	"ramips_mt7620_DEVICE_y1s"
 	"ramips_mt7620_DEVICE_youku-yk1"
+	"ramips_mt7620_DEVICE_hd51-n"
 )
 process_devices $devices
