@@ -68,14 +68,14 @@ CONFIG_TARGET_ramips_mt7620=y
 # CONFIG_TARGET_ramips_mt7620_DEVICE_gl-mt300a is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_gl-mt300n is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_gl-mt750 is not set
-# CONFIG_TARGET_ramips_mt7620_DEVICE_hd51-n is not set
+CONFIG_TARGET_ramips_mt7620_DEVICE_hd51-n=y
 # CONFIG_TARGET_ramips_mt7620_DEVICE_hc5661 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_hc5761 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_hc5861 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_mlw221 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_mlwg2 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_y1 is not set
-CONFIG_TARGET_ramips_mt7620_DEVICE_y1s=y
+# CONFIG_TARGET_ramips_mt7620_DEVICE_y1s is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_e1700 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_mt7620a_mt7530 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_mt7620a_mt7610e is not set
@@ -115,7 +115,7 @@ CONFIG_HAS_SUBTARGETS=y
 CONFIG_HAS_DEVICES=y
 CONFIG_TARGET_BOARD="ramips"
 CONFIG_TARGET_SUBTARGET="mt7620"
-CONFIG_TARGET_PROFILE="DEVICE_y1s"
+CONFIG_TARGET_PROFILE="DEVICE_hd51-n"
 CONFIG_TARGET_ARCH_PACKAGES="mipsel_24kc"
 CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kc"
 CONFIG_CPU_TYPE="24kc"
@@ -151,6 +151,8 @@ CONFIG_DEFAULT_kmod-nf-nathelper=y
 CONFIG_DEFAULT_kmod-nf-nathelper-extra=y
 CONFIG_DEFAULT_kmod-rt2800-pci=y
 CONFIG_DEFAULT_kmod-rt2800-soc=y
+CONFIG_DEFAULT_kmod-sdhci-mt7620=y
+CONFIG_DEFAULT_kmod-usb-ledtrig-usbport=y
 CONFIG_DEFAULT_kmod-usb-ohci=y
 CONFIG_DEFAULT_kmod-usb2=y
 CONFIG_DEFAULT_lede-info=y
@@ -2894,7 +2896,7 @@ CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
 # CONFIG_PACKAGE_kmod-iio-core is not set
 # CONFIG_PACKAGE_kmod-ikconfig is not set
 # CONFIG_PACKAGE_kmod-lp is not set
-# CONFIG_PACKAGE_kmod-mmc is not set
+CONFIG_PACKAGE_kmod-mmc=y
 # CONFIG_PACKAGE_kmod-mtd-rw is not set
 # CONFIG_PACKAGE_kmod-mtdtests is not set
 # CONFIG_PACKAGE_kmod-pps is not set
@@ -2904,8 +2906,8 @@ CONFIG_PACKAGE_kmod-gpio-button-hotplug=y
 # CONFIG_PACKAGE_kmod-random-core is not set
 # CONFIG_PACKAGE_kmod-regmap is not set
 # CONFIG_PACKAGE_kmod-rotary-gpio-custom is not set
-# CONFIG_PACKAGE_kmod-sdhci is not set
-# CONFIG_PACKAGE_kmod-sdhci-mt7620 is not set
+CONFIG_PACKAGE_kmod-sdhci=y
+CONFIG_PACKAGE_kmod-sdhci-mt7620=y
 # CONFIG_PACKAGE_kmod-serial-8250 is not set
 # CONFIG_PACKAGE_kmod-softdog is not set
 # CONFIG_PACKAGE_kmod-ssb is not set
@@ -2941,7 +2943,7 @@ CONFIG_PACKAGE_kmod-usb-core=y
 # CONFIG_PACKAGE_kmod-usb-dwc3 is not set
 # CONFIG_PACKAGE_kmod-usb-dwc3-of-simple is not set
 # CONFIG_PACKAGE_kmod-usb-hid is not set
-# CONFIG_PACKAGE_kmod-usb-ledtrig-usbport is not set
+CONFIG_PACKAGE_kmod-usb-ledtrig-usbport=y
 # CONFIG_PACKAGE_kmod-usb-net is not set
 CONFIG_PACKAGE_kmod-usb-ohci=y
 # CONFIG_PACKAGE_kmod-usb-ohci-pci is not set
