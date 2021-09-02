@@ -52,22 +52,26 @@ opt_incomplete_dir_enabled() {
 	[ $opt_incomplete_dir_enabled -gt 0 ]
 }
 
-is_sub_dir() {
-	local sub_dir="$(echo "$1" | sed -e 's#/\+#/#g' -e 's#/*[[:space:]]*$##g')"
-	local base_dir="$(echo "$2" | sed -e 's#/\+#/#g' -e 's#/*[[:space:]]*$##g')"
-	while [ -n "$sub_dir" ] && [ "$sub_dir" != "/" ]; do
-		[ "${sub_dir%/}" = "${base_dir%/}" ] && return 0
-		sub_dir="$(dirname "$sub_dir")"
-	done
-	return 1
-}
-
 is_in_mounted_dir() {
-	local my_dir="$1"
-	local mounted_dir
+	local my_dir="$(echo "$1" | sed -e 's#/\+#/#g' -e 's#/*[[:space:]]*$##g')"
+	echo "$my_dir" | grep -q '^/' || return 1
+	local mounted_dirs="$(
+		{
+			block info |
+				grep "[[:space:]]TYPE=\"\(exfat\|ntfs\|vfat\|ext[2-4]\)\"" |
+				awk -F "[[:space:]]MOUNT=\"" '{print $2}' |
+				awk -F "\"" '{print $1}'
 
-	for mounted_dir in $(grep "^/dev/sd[a-z][[:digit:]]\+[[:space:]]\+" /proc/mounts | grep -w 'rw' | awk '{print $2}' | tr '\n' ' '); do
-		is_sub_dir "$my_dir" "$mounted_dir" && return 0
+			grep "^/dev/" /proc/mounts |
+				grep -w "rw" |
+				awk '{print $2}'
+
+		} | sort | uniq -d
+	)"
+	while [ "$my_dir" != "/" ]; do
+		echo "$mounted_dirs" | grep -q "^$my_dir$" &&
+			return 0
+		my_dir="$(dirname "$my_dir")"
 	done
 	return 1
 }

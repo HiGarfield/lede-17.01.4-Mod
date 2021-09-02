@@ -40,7 +40,7 @@ define Package/transmission/template
   CATEGORY:=Network
   TITLE:=BitTorrent client
   URL:=http://www.transmissionbt.com
-  DEPENDS:=+libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls $(ICONV_DEPENDS)
+  DEPENDS:=+libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls $(ICONV_DEPENDS) +block-mount
 endef
 
 define Package/transmission-daemon
