@@ -35,8 +35,7 @@ set_mount() {
 	device="$1"
 	[ -n "$device" ] || return 1
 
-	fstype="$(block info | grep "^/dev/${device}:[[:space:]]\+" | awk -F "[[:space:]]TYPE=\"" '{print $2}' | awk -F "\"" '{print $1}')"
-
+	fstype="$(lsblk -n -o FSTYPE "/dev/${device}")"
 	[ -n "$fstype" ] || return 1
 
 	logger -t Auto-Mount "Block detected, file system: ${fstype}."
@@ -55,8 +54,7 @@ set_mount() {
 			EOI
 		}
 	else
-		dev_uuid="$(block info | grep "^/dev/${device}:[[:space:]]\+" | awk -F "[[:space:]]UUID=\"" '{print $2}' | awk -F "\"" '{print $1}')"
-
+		dev_uuid="$(lsblk -n -o UUID "/dev/${device}")"
 		[ -n "$dev_uuid" ] && {
 			config_load fstab
 			config_foreach uci_find_uuid mount "$dev_uuid"
