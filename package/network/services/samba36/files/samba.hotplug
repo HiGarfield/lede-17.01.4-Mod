@@ -38,12 +38,11 @@ config_foreach get_auto_share_ro samba
 need_reload=0
 
 [ "$ACTION" = "add" ] && {
-	block_info="$(block info "/dev/${DEVICE}")"
-	mount=$(echo "$block_info" | awk -F "[[:space:]]MOUNT=\"" '{print $2}' | awk -F "\"" '{print $1}')
-	label=$(echo "$block_info" | awk -F "[[:space:]]LABEL=\"" '{print $2}' | awk -F "\"" '{print $1}')
+	mount="$(lsblk -n -o MOUNTPOINT "/dev/${DEVICE}" | grep '^/')"
+	label="$(lsblk -n -o LABEL "/dev/${DEVICE}")"
 	[ -n "$label" ] || {
-		uuid="$(echo "$block_info" | awk -F "[[:space:]]UUID=\"" '{print $2}' | awk -F "\"" '{print $1}' | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
-		uuid="00000$uuid"
+		uuid="$(lsblk -n -o UUID "/dev/${DEVICE}" | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
+		uuid="000000$uuid"
 		label="${uuid:0-6}"
 	}
 	share_name="auto_share_$label"
