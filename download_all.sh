@@ -14,10 +14,8 @@ download_model_file(){
 		./clean_all.sh
 		cp -f "conf/.config.$1" ".config" &&
 		make defconfig &&
-		make dirclean  >/dev/null 2>&1 &&
 		make -j8 download &&
-		make dirclean  >/dev/null 2>&1 &&
-		rm -rf bin/* build_dir/* tmp/ staging_dir/* .config
+		rm -f .config
 	} || exit
 }
 
