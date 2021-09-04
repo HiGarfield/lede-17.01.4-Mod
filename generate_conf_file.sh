@@ -27,6 +27,8 @@ gen_conf() {
 		CONFIG_TARGET_${target1}=y
 		CONFIG_TARGET_${target2}=y
 		CONFIG_TARGET_${device}=y
+		CONFIG_DEVEL=y
+		CONFIG_CCACHE=y
 	EOF
 
 	make defconfig >/dev/null
