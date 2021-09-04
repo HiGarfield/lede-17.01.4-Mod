@@ -33,7 +33,10 @@ jobs:
           access_token: ${{ env.MY_TOKEN }}
 
       - name: Checkout
-        uses: actions/checkout@master
+        uses: actions/checkout@v2
+        with:
+          ref: master
+          fetch-depth: 0
 
       - name: Initialize environment
         env:
@@ -57,13 +60,19 @@ jobs:
 
           cp -f "${WORKING_DIR}/.github/backup/download.pl" "${WORKING_DIR}/scripts/download.pl"
 
+      - name: cache
+        uses: HiGarfield/cachewrtbuild@main
+        with:
+          ccache: 'true'
+          prefix: ${{ env.WORKING_DIR }}
+
       - name: Load custom configuration
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           sed -i 's/HOST_BUILD_PARALLEL ?=/HOST_BUILD_PARALLEL ?= 1/g' include/host-build.mk
           sed -i 's/PKG_BUILD_PARALLEL ?=/PKG_BUILD_PARALLEL ?= 1/g' include/package.mk
-          ./clean_all.sh
-          cp -f "conf/.config.$TARGET_DEVICE" .config        
+          # ./clean_all.sh
+          cp -f "conf/.config.$TARGET_DEVICE" .config
           make defconfig V=s
 
       - name: Download package
