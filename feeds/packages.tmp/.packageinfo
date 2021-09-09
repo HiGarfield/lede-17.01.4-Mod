@@ -1509,7 +1509,7 @@ Gergely Kiss <mail.gery@gmail.com>
 Source-Makefile: feeds/packages/lang/golang/golang/Makefile
 Package: golang
 Submenu: Go
-Version: 1.17-1
+Version: 1.17.1-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64) +golang-src
 Conflicts: 
 Menu-Depends: 
@@ -1521,7 +1521,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (compiler)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.src.tar.gz
+Source: go1.17.1.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1547,7 +1547,7 @@ Config:
 
 Package: golang-doc
 Submenu: Go
-Version: 1.17-1
+Version: 1.17.1-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1559,7 +1559,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (documentation)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.src.tar.gz
+Source: go1.17.1.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1581,7 +1581,7 @@ Jeffery To <jeffery.to@gmail.com>
 
 Package: golang-src
 Submenu: Go
-Version: 1.17-1
+Version: 1.17.1-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1593,7 +1593,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (source files)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.src.tar.gz
+Source: go1.17.1.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -26187,7 +26187,7 @@ Source-Makefile: feeds/packages/net/aria2/Makefile
 Package: aria2
 Submenu: File Transfer
 Version: 1.36.0-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libstdcpp +ARIA2_OPENSSL:libopenssl +ARIA2_GNUTLS:libgnutls +ARIA2_NETTLE:libnettle +ARIA2_LIBGCRYPT:libgcrypt +ARIA2_GMP:libgmp +ARIA2_LIBXML2:libxml2 +ARIA2_EXPAT:libexpat +ARIA2_SFTP:libssh2 +ARIA2_ASYNC_DNS:libcares +ARIA2_COOKIE:libsqlite3
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libstdcpp +ARIA2_OPENSSL:libopenssl +ARIA2_GNUTLS:libgnutls +ARIA2_NETTLE:libnettle +ARIA2_LIBGCRYPT:libgcrypt +ARIA2_GMP:libgmp +ARIA2_LIBXML2:libxml2 +ARIA2_EXPAT:libexpat +ARIA2_SFTP:libssh2 +ARIA2_ASYNC_DNS:libcares +ARIA2_COOKIE:libsqlite3 +block-mount
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -38631,7 +38631,7 @@ Source-Makefile: feeds/packages/net/transmission/Makefile
 Package: transmission-daemon
 Submenu: BitTorrent
 Version: 3.00-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full +block-mount
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -38657,7 +38657,7 @@ Rosen Penev <rosenp@gmail.com>
 Package: transmission-cli
 Submenu: BitTorrent
 Version: 3.00-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full +block-mount
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -38679,7 +38679,7 @@ Rosen Penev <rosenp@gmail.com>
 Package: transmission-remote
 Submenu: BitTorrent
 Version: 3.00-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +BUILD_NLS:libiconv-full +block-mount
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -46398,7 +46398,7 @@ http://www.nongnu.org/dmidecode/
 Source-Makefile: feeds/packages/utils/dosfstools/Makefile
 Package: dosfstools
 Submenu: Filesystem
-Version: 4.1-1
+Version: 4.2-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full
 Conflicts: 
 Menu-Depends: 
@@ -46409,8 +46409,8 @@ Category: Utilities
 Repository: base
 Title: Utilities for making and checking MS-DOS FAT filesystems
 Maintainer: Álvaro Fernández Rojas <noltari@gmail.com>
-Source: dosfstools-4.1.tar.xz
-License: GPL-3.0+
+Source: dosfstools-4.2.tar.xz
+License: GPL-3.0-or-later
 LicenseFiles: COPYING
 Type: ipkg
 Description: 	The dosfstools package includes the mkfs.fat and fsck.fat utilities, which respectively make and check MS-DOS FAT filesystems.
