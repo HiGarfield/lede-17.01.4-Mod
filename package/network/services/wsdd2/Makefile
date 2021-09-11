@@ -4,10 +4,10 @@ PKG_NAME:=wsdd2
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/Andy2244/wsdd2.git
-PKG_SOURCE_DATE:=2021-07-13
-PKG_SOURCE_VERSION:=017775214088a2e497be15a11677f99b9d726d0a
-PKG_MIRROR_HASH:=9f8759ba31520aaa058111f99e36b67b576b3ee3b33f8d9edd6e866a5caf73ec
+PKG_SOURCE_URL:=https://github.com/Netgear/wsdd2.git
+PKG_SOURCE_DATE:=2021-08-09
+PKG_SOURCE_VERSION:=bcc51c3ee97df57a8c0efdbd0ac4097deb3029d0
+PKG_MIRROR_HASH:=46285c90e6f28586edae2e4b8e5f5c850a0dd6655c1f0e01076e05bddd4725fb
 
 PKG_MAINTAINER:=Andy Walsh <andy.walsh44+github@gmail.com>
 PKG_LICENSE:=GPL-3.0-only
@@ -20,7 +20,7 @@ define Package/wsdd2
   CATEGORY:=Network
   SUBMENU:=IP Addresses and Names
   TITLE:=Web Services for Devices (WSD) daemon
-  URL:=https://kb.netgear.com/2649/NETGEAR-Open-Source-Code-for-Programmers-GPL
+  URL:=https://github.com/Netgear/wsdd2
 endef
 
 define Package/wsdd2/description
