@@ -34,6 +34,14 @@ define Device/wr1200js
 endef
 TARGET_DEVICES += wr1200js
 
+define Device/hw24g
+  DTS := HW24G
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Huahuan HW24G
+  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += hw24g
+
 define Device/a3004ns
   DTS := A3004NS
   IMAGE_SIZE := $(ralink_default_fw_size_16M)

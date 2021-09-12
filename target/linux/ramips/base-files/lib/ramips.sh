@@ -16,6 +16,9 @@ ramips_board_detect() {
 	*"A3004NS")
 		name="a3004ns"
 		;;
+	*"Huahuan HW24G")
+		name="hw24g"
+		;;
 	*"11AC NAS Router")
 		name="11acnas"
 		;;
@@ -188,7 +191,7 @@ ramips_board_detect() {
 		name="esr-9753"
 		;;
 	*"EX2700")
-		name="ex2700";
+		name="ex2700"
 		;;
 	*"F5D8235 v1")
 		name="f5d8235-v1"
@@ -263,7 +266,7 @@ ramips_board_detect() {
 		name="m4-8M"
 		;;
 	*"MediaTek LinkIt Smart 7688")
-		linkit="$(dd bs=1 skip=1024 count=12 if=/dev/mtd2 2> /dev/null)"
+		linkit="$(dd bs=1 skip=1024 count=12 if=/dev/mtd2 2>/dev/null)"
 		if [ "${linkit}" = "LINKITS7688D" ]; then
 			name="linkits7688d"
 			RAMIPS_MODEL="${machine} DUO"
@@ -539,7 +542,7 @@ ramips_board_detect() {
 		name="widora-neo"
 		;;
 	*"WiTi")
-                name="witi"
+		name="witi"
 		;;
 	*"WIZARD 8800")
 		name="wizard8800"
@@ -680,8 +683,8 @@ ramips_board_detect() {
 
 	[ -e "/tmp/sysinfo/" ] || mkdir -p "/tmp/sysinfo/"
 
-	echo "$RAMIPS_BOARD_NAME" > /tmp/sysinfo/board_name
-	echo "$RAMIPS_MODEL" > /tmp/sysinfo/model
+	echo "$RAMIPS_BOARD_NAME" >/tmp/sysinfo/board_name
+	echo "$RAMIPS_MODEL" >/tmp/sysinfo/model
 }
 
 ramips_board_name() {

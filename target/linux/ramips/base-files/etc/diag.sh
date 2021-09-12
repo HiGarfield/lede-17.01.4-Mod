@@ -99,7 +99,8 @@ get_status_led() {
 	awapn2403|\
 	dir-645|\
 	sk-wb8|\
-	wrh-300cr)
+	wrh-300cr|\
+	hw24g)
 		status_led="$board:green:wps"
 		;;
 	cf-wr800n|\
