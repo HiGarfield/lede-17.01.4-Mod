@@ -448,7 +448,7 @@ mac80211_iw_interface_add() {
 		ip link show dev "$ifname" >/dev/null 2>/dev/null && rc=0
 	}
 
-	[ "$rc" != 0 ] && wireless_setup_failed INTERFACE_CREATION_FAILED
+	[ "$rc" != 0 ] && echo "Failed to create interface $ifname"
 	return $rc
 }
 
