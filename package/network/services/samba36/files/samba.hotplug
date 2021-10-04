@@ -81,4 +81,4 @@ need_reload=0
 	lock -u /var/lock/autosamba.lock
 }
 
-[ "$need_reload" -eq 1 ] && /etc/init.d/samba reload
+[ "$need_reload" -eq 1 ] && /etc/init.d/samba running && /etc/init.d/samba reload
