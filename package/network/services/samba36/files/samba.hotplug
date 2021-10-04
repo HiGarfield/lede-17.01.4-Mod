@@ -38,7 +38,15 @@ config_foreach get_auto_share_ro samba
 need_reload=0
 
 [ "$ACTION" = "add" ] && {
-	mount="$(lsblk -n -o MOUNTPOINT "/dev/${DEVICE}" | grep '^/')"
+	# 自动挂载可能有延迟，等待挂载完成
+	mount=
+	max_try=10
+	for try_count in $(seq 1 $max_try); do
+		mount="$(lsblk -n -o MOUNTPOINT "/dev/${DEVICE}" | grep '^/')"
+		[ -n "$mount" ] && break
+		sleep 1
+	done
+
 	label="$(lsblk -n -o LABEL "/dev/${DEVICE}")"
 	[ -n "$label" ] || {
 		uuid="$(lsblk -n -o UUID "/dev/${DEVICE}" | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
