@@ -129,6 +129,10 @@ service_triggers() {
 	done
 }
 
+service_running() {
+	procd_running samba
+}
+
 start_service() {
 	init_config
 
