@@ -11,6 +11,14 @@ mmcblk*) ;;
 *) exit ;;
 esac
 
+[ "$ACTION" = "add" ] && {
+	fstype="$(lsblk -n -o FSTYPE "/dev/${DEVICE}")"
+	case "$fstype" in
+	'ext2' | 'ext3' | 'ext4' | 'ntfs' | 'exfat' | 'vfat') ;;
+	*) exit ;;
+	esac
+}
+
 [ -f /var/run/config/samba ] || {
 	mkdir -p /var/run/config && touch /var/run/config/samba
 }
