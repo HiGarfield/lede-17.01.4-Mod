@@ -136,6 +136,7 @@ guest_wifi_config() {
 			uci -q set wireless.${interface_name}.disabled='0'
 	fi
 	uci commit
+	wifi reload
 	lock -u /var/lock/guest-wifi.lock
 }
 
