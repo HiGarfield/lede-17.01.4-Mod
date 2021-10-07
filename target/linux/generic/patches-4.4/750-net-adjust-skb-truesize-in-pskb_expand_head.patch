@@ -1,0 +1,73 @@
+From e99dff412a2502e94215b279a66e8748aafa01c6 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 8 Oct 2021 02:01:59 +0800
+Subject: [PATCH] net: adjust skb->truesize in pskb_expand_head()
+
+---
+ include/net/sock.h  |  2 +-
+ net/core/skbuff.c   | 14 +++++++++++---
+ net/wireless/util.c |  2 --
+ 3 files changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/include/net/sock.h b/include/net/sock.h
+index 0aadd3b0..fdb8b1fa 100644
+--- a/include/net/sock.h
++++ b/include/net/sock.h
+@@ -1543,7 +1543,7 @@ void sock_efree(struct sk_buff *skb);
+ #ifdef CONFIG_INET
+ void sock_edemux(struct sk_buff *skb);
+ #else
+-#define sock_edemux(skb) sock_efree(skb)
++#define sock_edemux sock_efree
+ #endif
+ 
+ int sock_setsockopt(struct socket *sock, int level, int op,
+diff --git a/net/core/skbuff.c b/net/core/skbuff.c
+index a057bd0c..efe689d1 100644
+--- a/net/core/skbuff.c
++++ b/net/core/skbuff.c
+@@ -1142,10 +1142,10 @@ EXPORT_SYMBOL(__pskb_copy_fclone);
+ int pskb_expand_head(struct sk_buff *skb, int nhead, int ntail,
+ 		     gfp_t gfp_mask)
+ {
+-	int i;
+-	u8 *data;
+-	int size = nhead + skb_end_offset(skb) + ntail;
++	int i, osize = skb_end_offset(skb);
++	int size = osize + nhead + ntail;
+ 	long off;
++	u8 *data;
+ 
+ 	BUG_ON(nhead < 0);
+ 
+@@ -1207,6 +1207,14 @@ int pskb_expand_head(struct sk_buff *skb, int nhead, int ntail,
+ 	skb->hdr_len  = 0;
+ 	skb->nohdr    = 0;
+ 	atomic_set(&skb_shinfo(skb)->dataref, 1);
++
++	/* It is not generally safe to change skb->truesize.
++	 * For the moment, we really care of rx path, or
++	 * when skb is orphaned (not attached to a socket).
++	 */
++	if (!skb->sk || skb->destructor == sock_edemux)
++		skb->truesize += size - osize;
++
+ 	return 0;
+ 
+ nofrags:
+diff --git a/net/wireless/util.c b/net/wireless/util.c
+index 1d239564..5402f205 100644
+--- a/net/wireless/util.c
++++ b/net/wireless/util.c
+@@ -618,8 +618,6 @@ int ieee80211_data_from_8023(struct sk_buff *skb, const u8 *addr,
+ 
+ 		if (pskb_expand_head(skb, head_need, 0, GFP_ATOMIC))
+ 			return -ENOMEM;
+-
+-		skb->truesize += head_need;
+ 	}
+ 
+ 	if (encaps_data) {
+-- 
+2.17.1
+
