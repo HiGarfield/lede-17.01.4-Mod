@@ -2,7 +2,7 @@
 
 {
 	./clean_all.sh &&
-	./generate_workflow_yml.sh &&
+	# ./generate_workflow_yml.sh &&
 	./new_version.sh &&
 	ver_num=$(cat version) &&
 	git add . &&
