@@ -3955,6 +3955,11 @@ msgstr "转发 mesh 节点数据包"
 msgid "Generate PMK locally"
 msgstr "本地生成 PMK"
 
+msgid ""
+"When using a PSK, the PMK can be generated locally without inter AP "
+"communications"
+msgstr "当使用 PSK 时，PMK 可以在没有 AP 间通信的情况下在本地生成"
+
 msgid "If checked, 1DES is enabled"
 msgstr "选中以启用 1DES"
 
