@@ -114,7 +114,7 @@ static int ag71xx_ring_alloc(struct ag71xx_ring *ring)
 	int err;
 
 	ring->descs_cpu = dma_alloc_coherent(NULL, ring_size * AG71XX_DESC_SIZE,
-					     &ring->descs_dma, GFP_ATOMIC);
+					     &ring->descs_dma, GFP_KERNEL);
 	if (!ring->descs_cpu) {
 		err = -ENOMEM;
 		goto err;
