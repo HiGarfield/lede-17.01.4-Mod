@@ -553,6 +553,28 @@ if hwtype == "mac80211" then
 	dtim_period = s:taboption("advanced", Value, "dtim_period", translate("DTIM Interval"),translate("Delivery Traffic Indication Message Interval"))
 	dtim_period.optional = true
 	dtim_period.placeholder = 2
+
+	wpa_group_rekey = s:taboption("advanced", Value, "wpa_group_rekey", translate("Time interval for rekeying GTK"), translate("sec"))
+	wpa_group_rekey.optional = true
+	wpa_group_rekey.placeholder = 600
+	wpa_group_rekey.datatype = "uinteger"
+
+	skip_inactivity_poll = s:taboption("advanced", Flag , "skip_inactivity_poll", translate("Disable Inactivity Polling"))
+	skip_inactivity_poll.optional = true
+	skip_inactivity_poll.datatype = "uinteger"
+
+	max_inactivity = s:taboption("advanced", Value, "max_inactivity", translate("Station inactivity limit"), translate("sec"))
+	max_inactivity.optional = true
+	max_inactivity.placeholder = 300
+	max_inactivity.datatype = "uinteger"
+
+	max_listen_interval = s:taboption("advanced", Value, "max_listen_interval", translate("Maximum allowed Listen Interval"))
+	max_listen_interval.optional = true
+	max_listen_interval.placeholder = 65535
+	max_listen_interval.datatype = "uinteger"
+
+	disassoc_low_ack = s:taboption("advanced", Flag, "disassoc_low_ack", translate("Disassociate On Low Acknowledgement"), translate("Allow AP mode to disconnect STAs based on low ACK condition"))
+	disassoc_low_ack.default = disassoc_low_ack.enabled
 end
 
 
