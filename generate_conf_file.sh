@@ -76,6 +76,11 @@ process_devices $devices "74kc"
 
 ### ar71xx 24kc without USB
 devices=(
+	"ar71xx_generic_DEVICE_tl-wr740n-v3"
+	"ar71xx_generic_DEVICE_tl-wr740n-v4"
+	"ar71xx_generic_DEVICE_tl-wr841-v3"
+	"ar71xx_generic_DEVICE_tl-wr841-v5"
+	"ar71xx_generic_DEVICE_tl-wr841-v7"
 	"ar71xx_generic_DEVICE_tl-wr841-v9"
 )
 process_devices $devices
