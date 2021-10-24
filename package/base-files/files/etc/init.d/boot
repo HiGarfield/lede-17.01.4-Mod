@@ -22,9 +22,10 @@ boot() {
 	[ -f /proc/jffs2_bbc ] && echo "S" > /proc/jffs2_bbc
 	[ -f /proc/net/vlan/config ] && vconfig set_name_type DEV_PLUS_VID_NO_PAD
 
-	mkdir -p /var/run
-	mkdir -p /var/log
 	mkdir -p /var/lock
+	chmod 1777 /var/lock
+	mkdir -p /var/log
+	mkdir -p /var/run
 	mkdir -p /var/state
 	mkdir -p /var/tmp
 	mkdir -p /tmp/.uci
