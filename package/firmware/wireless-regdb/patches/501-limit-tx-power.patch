@@ -369,7 +369,16 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -452,7 +452,7 @@ country DE: DFS-ETSI
+@@ -458,7 +458,7 @@ country DE: DFS-ETSI
+ 	(2400 - 2483.5 @ 40), (100 mW)
+ 	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
+ 	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
+-	(5470 - 5725 @ 160), (500 mW), DFS, wmmrule=ETSI
++	(5470 - 5725 @ 160), (200 mW), DFS, wmmrule=ETSI
+ 	# short range devices (ETSI EN 300 440-1)
+ 	(5725 - 5875 @ 80), (25 mW)
+ 	# WiFi 6E
+@@ -478,7 +478,7 @@ country DK: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -378,16 +387,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -470,7 +470,7 @@ country DK: DFS-ETSI
- 	(2400 - 2483.5 @ 40), (100 mW)
- 	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
- 	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
--	(5470 - 5725 @ 160), (500 mW), DFS, wmmrule=ETSI
-+	(5470 - 5725 @ 160), (200 mW), DFS, wmmrule=ETSI
- 	# short range devices (ETSI EN 300 440-1)
- 	(5725 - 5875 @ 80), (25 mW)
- 	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -479,16 +479,16 @@ country DK: DFS-ETSI
+@@ -487,16 +487,16 @@ country DK: DFS-ETSI
  # Source:
  # http://www.ntrcdom.org/index.php?option=com_content&view=category&layout=blog&id=10&Itemid=55
  country DM: DFS-FCC
@@ -408,20 +408,21 @@ Limit tx power:
  
  country DZ: DFS-JP
  	(2402 - 2482 @ 40), (20)
-@@ -499,9 +499,9 @@ country DZ: DFS-JP
+@@ -507,11 +507,11 @@ country DZ: DFS-JP
+ # Source:
+ # https://www.arcotel.gob.ec/wp-content/uploads/2018/04/NORMA-ESPECTRO-DE-USO-LIBRE-Y-ESPECTRO-PARA-USO-DETERMINADO-EN-BANDAS-LIBRES.pdf
  country EC: DFS-FCC
- 	(2402 - 2482 @ 40), (20)
- 	(5170 - 5250 @ 20), (17)
--	(5250 - 5330 @ 20), (24), DFS
--	(5490 - 5730 @ 20), (24), DFS
--	(5735 - 5835 @ 20), (30)
-+	(5250 - 5330 @ 20), (23), DFS
-+	(5490 - 5730 @ 20), (23), DFS
-+	(5735 - 5835 @ 20), (23)
+-	(2400 - 2483.5 @ 40), (1000 mW)
++	(2400 - 2483.5 @ 40), (100 mW)
+ 	(5150 - 5250 @ 80), (50 mW), AUTO-BW, DFS
+ 	(5250 - 5350 @ 80), (125 mW), AUTO-BW, DFS
+ 	(5470 - 5725 @ 160), (125 mW), DFS
+-	(5725 - 5850 @ 80), (1000 mW)
++	(5725 - 5850 @ 80), (200 mW)
  
  # EE as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -514,7 +514,7 @@ country EE: DFS-ETSI
+@@ -524,7 +524,7 @@ country EE: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -430,7 +431,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -536,7 +536,7 @@ country ES: DFS-ETSI
+@@ -546,7 +546,7 @@ country ES: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -439,7 +440,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -546,7 +546,7 @@ country ET: DFS-ETSI
+@@ -556,7 +556,7 @@ country ET: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
@@ -448,7 +449,7 @@ Limit tx power:
  
  # FI as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -557,18 +557,18 @@ country FI: DFS-ETSI
+@@ -567,18 +567,18 @@ country FI: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -473,7 +474,7 @@ Limit tx power:
  
  # FR as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -579,7 +579,7 @@ country FR: DFS-ETSI
+@@ -589,7 +589,7 @@ country FR: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -482,14 +483,14 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -597,18 +597,18 @@ country GB: DFS-ETSI
+@@ -607,18 +607,18 @@ country GB: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
 -	(5470 - 5730 @ 160), (500 mW), DFS, wmmrule=ETSI
 +	(5470 - 5730 @ 160), (200 mW), DFS, wmmrule=ETSI
  	# short range devices (ETSI EN 300 440-1)
- 	(5725 - 5875 @ 80), (100 mW), DFS
+ 	(5725 - 5850 @ 80), (200 mW), NO-OUTDOOR
  	# 60 GHz band channels 1-6
  	(57000 - 71000 @ 2160), (40)
  
@@ -506,7 +507,7 @@ Limit tx power:
  
  country GE: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
-@@ -621,26 +621,26 @@ country GF: DFS-ETSI
+@@ -631,26 +631,26 @@ country GF: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW, wmmrule=ETSI
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW, wmmrule=ETSI
@@ -539,7 +540,7 @@ Limit tx power:
  
  # GR as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -653,42 +653,42 @@ country GR: DFS-ETSI
+@@ -663,42 +663,42 @@ country GR: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -597,7 +598,7 @@ Limit tx power:
  
  country HR: DFS-ETSI
  # HR as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
-@@ -700,18 +700,18 @@ country HR: DFS-ETSI
+@@ -710,18 +710,18 @@ country HR: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (200 mW), DFS, AUTO-BW, wmmrule=ETSI
@@ -622,7 +623,7 @@ Limit tx power:
  
  # HU as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -725,7 +725,7 @@ country HU: DFS-ETSI
+@@ -735,7 +735,7 @@ country HU: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -631,7 +632,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -733,7 +733,7 @@ country HU: DFS-ETSI
+@@ -743,7 +743,7 @@ country HU: DFS-ETSI
  
  country ID: DFS-JP
  	# ref: https://jdih.kominfo.go.id/produk_hukum/view/id/676/t/peraturan+menteri+komunikasi+dan+informatika+nomor+1+tahun+2019+tanggal+24+april+2019
@@ -640,7 +641,7 @@ Limit tx power:
  	(5150 - 5350 @ 80), (200 mW), NO-OUTDOOR
  	(5725 - 5825 @ 80), (200 mW), NO-OUTDOOR
  
-@@ -748,7 +748,7 @@ country IE: DFS-ETSI
+@@ -758,7 +758,7 @@ country IE: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -649,7 +650,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -761,14 +761,14 @@ country IL: DFS-ETSI
+@@ -771,14 +771,14 @@ country IL: DFS-ETSI
  
  country IN:
  	(2402 - 2482 @ 40), (20)
@@ -669,7 +670,7 @@ Limit tx power:
  
  # IS as part of CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -780,7 +780,7 @@ country IS: DFS-ETSI
+@@ -790,7 +790,7 @@ country IS: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -678,7 +679,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -795,7 +795,7 @@ country IT: DFS-ETSI
+@@ -805,7 +805,7 @@ country IT: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -687,7 +688,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -804,9 +804,9 @@ country IT: DFS-ETSI
+@@ -814,9 +814,9 @@ country IT: DFS-ETSI
  country JM: DFS-FCC
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (17), AUTO-BW
@@ -700,7 +701,7 @@ Limit tx power:
  
  country JO: DFS-JP
  	(2402 - 2482 @ 40), (20)
-@@ -827,14 +827,14 @@ country JP: DFS-JP
+@@ -837,14 +837,14 @@ country JP: DFS-JP
  country KE: DFS-JP
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (23)
@@ -717,7 +718,7 @@ Limit tx power:
  
  # Source
  # http://ntrc.kn/?page_id=7
-@@ -842,19 +842,19 @@ country KN: DFS-ETSI
+@@ -852,19 +852,19 @@ country KN: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
@@ -742,7 +743,7 @@ Limit tx power:
  	(5150 - 5250 @ 80), (23), AUTO-BW
  	(5250 - 5350 @ 80), (20), DFS, AUTO-BW
  	(5470 - 5725 @ 160), (20), DFS
-@@ -870,10 +870,10 @@ country KW: DFS-ETSI
+@@ -880,10 +880,10 @@ country KW: DFS-ETSI
  
  country KY: DFS-FCC
  	(2402 - 2482 @ 40), (20)
@@ -757,7 +758,7 @@ Limit tx power:
  
  # Source:
  # http://adilet.zan.kz/rus/docs/V1500010730
-@@ -889,9 +889,9 @@ country KZ: DFS-ETSI
+@@ -899,9 +899,9 @@ country KZ: DFS-ETSI
  country LB: DFS-FCC
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (17), AUTO-BW
@@ -770,7 +771,7 @@ Limit tx power:
  
  # Source:
  # http://www.ntrc.org.lc/operational_structures.htm
-@@ -899,8 +899,8 @@ country LC: DFS-ETSI
+@@ -909,8 +909,8 @@ country LC: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
@@ -781,7 +782,7 @@ Limit tx power:
  
  # LI as part of CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -915,7 +915,7 @@ country LI: DFS-ETSI
+@@ -925,7 +925,7 @@ country LI: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -790,7 +791,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -924,9 +924,9 @@ country LI: DFS-ETSI
+@@ -934,9 +934,9 @@ country LI: DFS-ETSI
  country LK: DFS-FCC
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 20), (17)
@@ -803,7 +804,7 @@ Limit tx power:
  
  # Source:
  # http://lca.org.ls/images/documents/lesotho_national_frequency_allocation_plan.pdf
-@@ -934,7 +934,7 @@ country LS: DFS-ETSI
+@@ -944,7 +944,7 @@ country LS: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
@@ -812,7 +813,7 @@ Limit tx power:
  
  # LT as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -947,7 +947,7 @@ country LT: DFS-ETSI
+@@ -957,7 +957,7 @@ country LT: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -821,7 +822,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -963,7 +963,7 @@ country LU: DFS-ETSI
+@@ -973,7 +973,7 @@ country LU: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -830,7 +831,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -979,7 +979,7 @@ country LV: DFS-ETSI
+@@ -989,7 +989,7 @@ country LV: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -839,7 +840,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -999,7 +999,7 @@ country MC: DFS-ETSI
+@@ -1009,7 +1009,7 @@ country MC: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -848,7 +849,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  
-@@ -1014,7 +1014,7 @@ country MD: DFS-ETSI
+@@ -1024,7 +1024,7 @@ country MD: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -857,7 +858,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  
-@@ -1029,7 +1029,7 @@ country ME: DFS-ETSI
+@@ -1039,7 +1039,7 @@ country ME: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -866,7 +867,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  
-@@ -1037,14 +1037,14 @@ country MF: DFS-ETSI
+@@ -1047,14 +1047,14 @@ country MF: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW, wmmrule=ETSI
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW, wmmrule=ETSI
@@ -887,7 +888,7 @@ Limit tx power:
  
  # MK as part of CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -1055,7 +1055,7 @@ country MK: DFS-ETSI
+@@ -1065,7 +1065,7 @@ country MK: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -896,7 +897,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4, ref: Etsi En 302 567
-@@ -1063,30 +1063,30 @@ country MK: DFS-ETSI
+@@ -1073,30 +1073,30 @@ country MK: DFS-ETSI
  
  country MN: DFS-FCC
  	(2402 - 2482 @ 40), (20)
@@ -940,7 +941,7 @@ Limit tx power:
  
  # Source:
  # http://www.are.mr/pdfs/telec_freq_TNAbf_2010.pdf
-@@ -1094,7 +1094,7 @@ country MR: DFS-ETSI
+@@ -1104,7 +1104,7 @@ country MR: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
@@ -949,7 +950,7 @@ Limit tx power:
  
  # MT as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -1106,7 +1106,7 @@ country MT: DFS-ETSI
+@@ -1116,7 +1116,7 @@ country MT: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -958,7 +959,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1114,10 +1114,10 @@ country MT: DFS-ETSI
+@@ -1124,10 +1124,10 @@ country MT: DFS-ETSI
  
  country MU: DFS-FCC
  	(2402 - 2482 @ 40), (20)
@@ -973,7 +974,7 @@ Limit tx power:
  
  # Source:
  # http://www.cam.gov.mv/docs/tech_standards/TAM-TS-100-2004-WLAN.pdf
-@@ -1131,33 +1131,33 @@ country MW: DFS-ETSI
+@@ -1141,33 +1141,33 @@ country MW: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
@@ -1022,7 +1023,7 @@ Limit tx power:
  
  # NL as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -1169,7 +1169,7 @@ country NL: DFS-ETSI
+@@ -1179,7 +1179,7 @@ country NL: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1031,7 +1032,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1187,7 +1187,7 @@ country NO: DFS-ETSI
+@@ -1197,7 +1197,7 @@ country NO: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1039,8 +1040,8 @@ Limit tx power:
 +	(5470 - 5725 @ 160), (200 mW), DFS, wmmrule=ETSI
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
- 	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1200,60 +1200,60 @@ country NP: DFS-JP
+ 	# WiFi 6E
+@@ -1212,60 +1212,60 @@ country NP: DFS-JP
  	(5735 - 5835 @ 80), (20)
  
  country NZ: DFS-ETSI
@@ -1122,7 +1123,7 @@ Limit tx power:
  
  # PL as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -1264,7 +1264,7 @@ country PL: DFS-ETSI
+@@ -1276,7 +1276,7 @@ country PL: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1131,7 +1132,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1274,14 +1274,14 @@ country PM: DFS-ETSI
+@@ -1286,14 +1286,14 @@ country PM: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW, wmmrule=ETSI
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW, wmmrule=ETSI
@@ -1151,7 +1152,7 @@ Limit tx power:
  
  # PT as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -1293,25 +1293,25 @@ country PT: DFS-ETSI
+@@ -1305,25 +1305,25 @@ country PT: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1187,7 +1188,7 @@ Limit tx power:
  
  country QA: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW), NO-OUTDOOR
-@@ -1325,7 +1325,7 @@ country RE: DFS-ETSI
+@@ -1337,7 +1337,7 @@ country RE: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW, wmmrule=ETSI
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW, wmmrule=ETSI
@@ -1196,7 +1197,7 @@ Limit tx power:
  
  # RO as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -1337,7 +1337,7 @@ country RO: DFS-ETSI
+@@ -1349,7 +1349,7 @@ country RO: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1205,7 +1206,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1354,7 +1354,7 @@ country RS: DFS-ETSI
+@@ -1366,7 +1366,7 @@ country RS: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1214,7 +1215,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4, ref: Etsi En 302 567
-@@ -1370,15 +1370,15 @@ country RU:
+@@ -1382,15 +1382,15 @@ country RU:
  country RW: DFS-FCC
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (17), AUTO-BW
@@ -1234,7 +1235,7 @@ Limit tx power:
  
  # SE as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
  # and 2006/771/EC (amended by 2008/432/EC, Short-Range Devices, EN 300 440)
-@@ -1390,7 +1390,7 @@ country SE: DFS-ETSI
+@@ -1402,7 +1402,7 @@ country SE: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1243,7 +1244,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1409,11 +1409,11 @@ country SE: DFS-ETSI
+@@ -1421,11 +1421,11 @@ country SE: DFS-ETSI
  # Note: The transmit power for 5470-5725MHz bands can be raised by 3dBm when TPC is implemented: IMDA TS SRD Table 1 (30)
  
  country SG: DFS-FCC
@@ -1258,7 +1259,7 @@ Limit tx power:
  	(57000 - 66000 @ 2160), (40)
  
  # SI as part of EU/CEPT accepted decisions 2005/513/EC (5GHz RLAN, EN 301 893)
-@@ -1426,7 +1426,7 @@ country SI: DFS-ETSI
+@@ -1438,7 +1438,7 @@ country SI: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1267,7 +1268,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1444,7 +1444,7 @@ country SK: DFS-ETSI
+@@ -1456,7 +1456,7 @@ country SK: DFS-ETSI
  	(2400 - 2483.5 @ 40), (100 mW)
  	(5150 - 5250 @ 80), (200 mW), NO-OUTDOOR, AUTO-BW, wmmrule=ETSI
  	(5250 - 5350 @ 80), (100 mW), NO-OUTDOOR, DFS, AUTO-BW, wmmrule=ETSI
@@ -1276,7 +1277,7 @@ Limit tx power:
  	# short range devices (ETSI EN 300 440-1)
  	(5725 - 5875 @ 80), (25 mW)
  	# 60 GHz band channels 1-4 (ETSI EN 302 567)
-@@ -1455,21 +1455,21 @@ country SK: DFS-ETSI
+@@ -1467,21 +1467,21 @@ country SK: DFS-ETSI
  country SN: DFS-FCC
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (17), AUTO-BW
@@ -1303,7 +1304,7 @@ Limit tx power:
  
  country SY:
  	(2402 - 2482 @ 40), (20)
-@@ -1478,29 +1478,29 @@ country SY:
+@@ -1490,29 +1490,29 @@ country SY:
  # http://www.telecommission.tc/Spectrum-plan20110324-101210.html
  country TC: DFS-FCC
  	(2402 - 2482 @ 40), (20)
@@ -1342,7 +1343,7 @@ Limit tx power:
  
  country TN: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
-@@ -1515,16 +1515,16 @@ country TR: DFS-ETSI
+@@ -1527,16 +1527,16 @@ country TR: DFS-ETSI
  	(2400 - 2483.5 @ 40), (20)
  	(5170 - 5250 @ 80), (23), NO-OUTDOOR, AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, NO-OUTDOOR, AUTO-BW
@@ -1363,7 +1364,7 @@ Limit tx power:
  
  # Source:
  # Table of Frequency Allocations of Republic of China (Taiwan) / Feb 2017:
-@@ -1534,7 +1534,7 @@ country TT: DFS-FCC
+@@ -1546,7 +1546,7 @@ country TT: DFS-FCC
  #   http://www.ncc.gov.tw/english/show_file.aspx?table_name=news&file_sn=681
  country TW: DFS-FCC
  	# 2.4g band, LP0002 section 3.10.1
@@ -1372,7 +1373,7 @@ Limit tx power:
  	# 5g U-NII band, LP0002 section 4.7
  	# 5.15 ~ 5.25 GHz: 30 dBm for master mode, 23 dBm for clients
  	(5150 - 5250 @ 80), (23), AUTO-BW
-@@ -1544,13 +1544,13 @@ country TW: DFS-FCC
+@@ -1556,13 +1556,13 @@ country TW: DFS-FCC
  	# requirements, we can extend the range by 5 MHz to make the kernel
  	# happy and be able to use channel 144.
  	(5470 - 5730 @ 160), (23), DFS
@@ -1388,7 +1389,7 @@ Limit tx power:
  
  # Source: https://zakon.rada.gov.ua/laws/show/z0201-15#n48
  # Although it is allowed to use up to 250 mW for some 5 GHz frequency ranges,
-@@ -1569,10 +1569,10 @@ country UA: DFS-ETSI
+@@ -1581,10 +1581,10 @@ country UA: DFS-ETSI
  
  country UG: DFS-FCC
  	(2402 - 2482 @ 40), (20)
@@ -1403,7 +1404,7 @@ Limit tx power:
  
  # https://www.ecfr.gov/cgi-bin/text-idx?SID=eed706a2c49fd9271106c3228b0615f3&mc=true&node=pt47.1.15&rgn=div5
  # Title 47 Part 15 - Radio Frequency Devices, April 2, 2020
-@@ -1581,7 +1581,7 @@ country UG: DFS-FCC
+@@ -1593,7 +1593,7 @@ country UG: DFS-FCC
  # frequency band, 2,483.5–2,500 MHz which is subject to strict emission limits
  # set out in 47 CFR § 15.205. TODO: reenable and specify a safe TX power here.
  country US: DFS-FCC
@@ -1412,16 +1413,20 @@ Limit tx power:
  	# 5.15 ~ 5.25 GHz: 30 dBm for master mode, 23 dBm for clients
  	(5150 - 5250 @ 80), (23), AUTO-BW
  	(5250 - 5350 @ 80), (23), DFS, AUTO-BW
-@@ -1590,7 +1590,7 @@ country US: DFS-FCC
+@@ -1602,10 +1602,10 @@ country US: DFS-FCC
  	# requirements, we can extend the range by 5 MHz to make the kernel
  	# happy and be able to use channel 144.
  	(5470 - 5730 @ 160), (23), DFS
--	(5730 - 5850 @ 80), (30)
-+	(5730 - 5850 @ 80), (23)
+-	(5730 - 5850 @ 80), (30), AUTO-BW
++	(5730 - 5850 @ 80), (23), AUTO-BW
+ 	# https://www.federalregister.gov/documents/2021/05/03/2021-08802/use-of-the-5850-5925-ghz-band
+ 	# max. 33 dBm AP @ 20MHz, 36 dBm AP @ 40Mhz+, 6 dB less for clients
+-	(5850 - 5895 @ 40), (27), NO-OUTDOOR, AUTO-BW, NO-IR
++	(5850 - 5895 @ 40), (23), NO-OUTDOOR, AUTO-BW, NO-IR
  	# 60g band
  	# reference: section IV-D https://docs.fcc.gov/public/attachments/FCC-16-89A1.pdf
  	# channels 1-6 EIRP=40dBm(43dBm peak)
-@@ -1600,7 +1600,7 @@ country UY: DFS-FCC
+@@ -1615,7 +1615,7 @@ country UY: DFS-FCC
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (23), AUTO-BW
  	(5250 - 5330 @ 80), (23), DFS, AUTO-BW
@@ -1430,7 +1435,7 @@ Limit tx power:
  
  # Source:
  # http://cemc.uz/article/1976/
-@@ -1615,52 +1615,52 @@ country VC: DFS-ETSI
+@@ -1630,52 +1630,52 @@ country VC: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW
@@ -1499,7 +1504,7 @@ Limit tx power:
  
  country YE:
  	(2402 - 2482 @ 40), (20)
-@@ -1669,17 +1669,17 @@ country YT: DFS-ETSI
+@@ -1684,17 +1684,17 @@ country YT: DFS-ETSI
  	(2402 - 2482 @ 40), (20)
  	(5170 - 5250 @ 80), (20), AUTO-BW, wmmrule=ETSI
  	(5250 - 5330 @ 80), (20), DFS, AUTO-BW, wmmrule=ETSI
