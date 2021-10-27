@@ -66,10 +66,10 @@ jobs:
       - name: Get architecture
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*_DEVICE_${TARGET_DEVICE}=y$" "conf/.config.$TARGET_DEVICE" | head -n 1 | sed -e 's/^CONFIG_TARGET_//' -e 's/_DEVICE_.*$/_/')"
+          TARGET_DEVICE_ARCH="$(sed -n 's/^CONFIG_TARGET_BOARD=\"\(.*\)\"/\1/p' "conf/.config.$TARGET_DEVICE")"
           echo "TARGET_DEVICE_ARCH=${TARGET_DEVICE_ARCH}" >>$GITHUB_ENV
 
-      - name: cache
+      - name: Cache
         uses: HiGarfield/cachewrtbuild@test
         with:
           ccache: 'true'
@@ -186,10 +186,10 @@ jobs:
       - name: Get architecture
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          TARGET_DEVICE_ARCH="$(grep "^CONFIG_TARGET_.*_DEVICE_${TARGET_DEVICE}=y$" "conf/.config.$TARGET_DEVICE" | head -n 1 | sed -e 's/^CONFIG_TARGET_//' -e 's/_DEVICE_.*$/_/')"
+          TARGET_DEVICE_ARCH="$(sed -n 's/^CONFIG_TARGET_BOARD=\"\(.*\)\"/\1/p' "conf/.config.$TARGET_DEVICE")"
           echo "TARGET_DEVICE_ARCH=${TARGET_DEVICE_ARCH}" >>$GITHUB_ENV
 
-      - name: cache
+      - name: Cache
         uses: HiGarfield/cachewrtbuild@test
         with:
           ccache: 'true'
@@ -298,13 +298,6 @@ jobs:
           echo "OUTPUT_DIR=${OUTPUT_DIR}" >> $GITHUB_ENV
 
           cp -f "${WORKING_DIR}/.github/backup/download.pl" "${WORKING_DIR}/scripts/download.pl"
-
-      - name: cache
-        uses: HiGarfield/cachewrtbuild@test
-        with:
-          ccache: 'true'
-          mixkey: 'dl_'
-          prefix: ${{ env.WORKING_DIR }}
 
       - name: Download
         id: download
