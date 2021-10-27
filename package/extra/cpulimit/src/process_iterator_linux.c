@@ -21,26 +21,6 @@
 
 #include <sys/vfs.h>
 
-static int get_boot_time()
-{
-	int uptime = 0;
-	FILE *fp = fopen ("/proc/uptime", "r");
-	if (fp != NULL)
-	{
-		char buf[BUFSIZ];
-		char *b = fgets(buf, BUFSIZ, fp);
-		if (b == buf)
-		{
-			char *end_ptr;
-			double upsecs = strtod(buf, &end_ptr);
-			uptime = (int)upsecs;
-		}
-		fclose (fp);
-	}
-	time_t now = time(NULL);
-	return now - uptime;
-}
-
 static int check_proc()
 {
 	struct statfs mnt;
@@ -64,7 +44,6 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
 		return -1;
 	}
 	it->filter = filter;
-	it->boot_time = get_boot_time();
 	return 0;
 }
 
@@ -145,7 +124,6 @@ int get_next_process(struct process_iterator *it, struct process *p)
 	if (it->filter->pid != 0 && !it->filter->include_children)
 	{
 		int ret = read_process_info(it->filter->pid, p);
-		//p->starttime += it->boot_time;
 		closedir(it->dip);
 		it->dip = NULL;
 		if (ret != 0) return -1;
@@ -159,7 +137,6 @@ int get_next_process(struct process_iterator *it, struct process *p)
 		p->pid = atoi(dit->d_name);
 		if (it->filter->pid != 0 && it->filter->pid != p->pid && !is_child_of(p->pid, it->filter->pid)) continue;
 		read_process_info(p->pid, p);
-		//p->starttime += it->boot_time;
 		break;
 	}
 	if (dit == NULL)
