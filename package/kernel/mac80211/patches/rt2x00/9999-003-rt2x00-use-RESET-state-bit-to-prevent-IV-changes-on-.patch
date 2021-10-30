@@ -1,0 +1,47 @@
+From 575633f29ffe53cde181e94172c588b4839f86e7 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 30 Oct 2021 09:49:26 +0800
+Subject: [PATCH 3/5] rt2x00: use RESET state bit to prevent IV changes on
+ restart
+
+---
+ .../net/wireless/ralink/rt2x00/rt2800lib.c    | 21 ++++++++-----------
+ 1 file changed, 9 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+index 55387b1..ab2fbbc 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -1664,20 +1664,17 @@ static void rt2800_config_wcid_attr_cipher(struct rt2x00_dev *rt2x00dev,
+ 		rt2800_register_write(rt2x00dev, offset, reg);
+ 	}
+ 
+-	offset = MAC_IVEIV_ENTRY(key->hw_key_idx);
++	if (test_bit(DEVICE_STATE_RESET, &rt2x00dev->flags))
++		return;
+ 
+-	if (crypto->cmd == SET_KEY) {
+-		rt2800_register_multiread(rt2x00dev, offset,
+-					  &iveiv_entry, sizeof(iveiv_entry));
+-		if ((crypto->cipher == CIPHER_TKIP) ||
+-		    (crypto->cipher == CIPHER_TKIP_NO_MIC) ||
+-		    (crypto->cipher == CIPHER_AES))
+-			iveiv_entry.iv[3] |= 0x20;
+-		iveiv_entry.iv[3] |= key->keyidx << 6;
+-	} else {
+-		memset(&iveiv_entry, 0, sizeof(iveiv_entry));
+-	}
++	offset = MAC_IVEIV_ENTRY(key->hw_key_idx);
+ 
++	memset(&iveiv_entry, 0, sizeof(iveiv_entry));
++	if ((crypto->cipher == CIPHER_TKIP) ||
++	    (crypto->cipher == CIPHER_TKIP_NO_MIC) ||
++	    (crypto->cipher == CIPHER_AES))
++		iveiv_entry.iv[3] |= 0x20;
++	iveiv_entry.iv[3] |= key->keyidx << 6;
+ 	rt2800_register_multiwrite(rt2x00dev, offset,
+ 				   &iveiv_entry, sizeof(iveiv_entry));
+ }
+-- 
+2.17.1
+
