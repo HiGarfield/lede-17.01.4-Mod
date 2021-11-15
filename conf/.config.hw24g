@@ -53,7 +53,7 @@ CONFIG_TARGET_ramips_mt7621=y
 # CONFIG_TARGET_ramips_rt288x is not set
 # CONFIG_TARGET_MULTI_PROFILE is not set
 # CONFIG_TARGET_ramips_mt7621_Default is not set
-CONFIG_TARGET_ramips_mt7621_DEVICE_a3004ns=y
+# CONFIG_TARGET_ramips_mt7621_DEVICE_a3004ns is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_wsr-1166 is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_wsr-600 is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_dir-860l-b1 is not set
@@ -61,7 +61,7 @@ CONFIG_TARGET_ramips_mt7621_DEVICE_a3004ns=y
 # CONFIG_TARGET_ramips_mt7621_DEVICE_firewrt is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_ghl-r-001-e is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_ghl-r-001-f is not set
-# CONFIG_TARGET_ramips_mt7621_DEVICE_hw24g is not set
+CONFIG_TARGET_ramips_mt7621_DEVICE_hw24g=y
 # CONFIG_TARGET_ramips_mt7621_DEVICE_re6500 is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_witi is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_mt7621 is not set
@@ -85,7 +85,7 @@ CONFIG_HAS_SUBTARGETS=y
 CONFIG_HAS_DEVICES=y
 CONFIG_TARGET_BOARD="ramips"
 CONFIG_TARGET_SUBTARGET="mt7621"
-CONFIG_TARGET_PROFILE="DEVICE_a3004ns"
+CONFIG_TARGET_PROFILE="DEVICE_hw24g"
 CONFIG_TARGET_ARCH_PACKAGES="mipsel_24kc"
 CONFIG_DEFAULT_TARGET_OPTIMIZATION="-Os -pipe -mno-branch-likely -mips32r2 -mtune=24kc"
 CONFIG_CPU_TYPE="24kc"

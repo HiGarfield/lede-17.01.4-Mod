@@ -61,6 +61,7 @@ CONFIG_TARGET_ramips_mt7621=y
 # CONFIG_TARGET_ramips_mt7621_DEVICE_firewrt is not set
 CONFIG_TARGET_ramips_mt7621_DEVICE_ghl-r-001-e=y
 # CONFIG_TARGET_ramips_mt7621_DEVICE_ghl-r-001-f is not set
+# CONFIG_TARGET_ramips_mt7621_DEVICE_hw24g is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_re6500 is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_witi is not set
 # CONFIG_TARGET_ramips_mt7621_DEVICE_mt7621 is not set
