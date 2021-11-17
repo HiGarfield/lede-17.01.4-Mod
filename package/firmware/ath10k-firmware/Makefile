@@ -8,9 +8,9 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ath10k-firmware
-PKG_SOURCE_DATE:=2021-06-22
-PKG_SOURCE_VERSION:=91e35569a86984d64c0271d29a0be16413eb1179
-PKG_MIRROR_HASH:=c2f1d0a42a19c82b20835d63f2e59b6aceeef2a362a08aff118e7cfcf58e0931
+PKG_SOURCE_DATE:=2021-11-17
+PKG_SOURCE_VERSION:=e4981d6365d2f1c01d3a188283433b5ef4b85c76
+PKG_MIRROR_HASH:=deda7829cf2032cb377ef13ddddf1b5dfbc8cc0dfbea9a08bb2da0b80c1b6610
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
@@ -119,7 +119,7 @@ define Package/ath10k-firmware-qca9888/install
 		$(PKG_BUILD_DIR)/QCA9888/hw2.0/board-2.bin \
 		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/board-2.bin
 	$(INSTALL_DATA) \
-		$(PKG_BUILD_DIR)/QCA9888/hw2.0/3.9.0.2/firmware-5.bin_10.4-3.9.0.2-00152 \
+		$(PKG_BUILD_DIR)/QCA9888/hw2.0/3.9.0.2/firmware-5.bin_10.4-3.9.0.2-00156 \
 		$(1)/lib/firmware/ath10k/QCA9888/hw2.0/firmware-5.bin
 endef
 
