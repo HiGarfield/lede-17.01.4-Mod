@@ -49,7 +49,7 @@
 	status = "okay";
 
 	m25p80@0 {
-		compatible = "mx25l25635e", "jedec,spi-nor";
+		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <10000000>;
 		m25p,chunked-io = <32>;
