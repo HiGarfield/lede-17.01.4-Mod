@@ -82,7 +82,6 @@ ramips_setup_interfaces()
 	firewrt|\
 	hlk-rm04|\
 	mac1200rv2|\
-	miwifi-mini|\
 	miwifi-nano|\
 	mt7621|\
 	mt7628|\
@@ -294,7 +293,8 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "0:wan" "6@eth0"
 		;;
-	y1)
+	y1|\
+	miwifi-mini)
 		ucidef_add_switch "switch0" \
 			"0:lan:2" "1:lan:1" "4:wan" "6@eth0"
 		;;
