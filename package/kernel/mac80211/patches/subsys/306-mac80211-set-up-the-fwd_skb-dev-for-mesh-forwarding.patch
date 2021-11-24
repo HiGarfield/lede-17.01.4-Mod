@@ -1,0 +1,24 @@
+From bf3936bddb22302cd03ebb33c591a5ef530f2730 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 25 Nov 2021 02:06:48 +0800
+Subject: [PATCH] mac80211: set up the fwd_skb->dev for mesh forwarding
+
+---
+ net/mac80211/rx.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/net/mac80211/rx.c b/net/mac80211/rx.c
+index edbdf19..976bddc 100644
+--- a/net/mac80211/rx.c
++++ b/net/mac80211/rx.c
+@@ -2801,6 +2801,7 @@ ieee80211_rx_h_mesh_fwding(struct ieee80211_rx_data *rx)
+ 	if (!fwd_skb)
+ 		goto out;
+ 
++	fwd_skb->dev = sdata->dev;
+ 	fwd_hdr =  (struct ieee80211_hdr *) fwd_skb->data;
+ 	fwd_hdr->frame_control &= ~cpu_to_le16(IEEE80211_FCTL_RETRY);
+ 	info = IEEE80211_SKB_CB(fwd_skb);
+-- 
+2.17.1
+
