@@ -1,10 +1,10 @@
 msgid "SFE Acceleration"
 msgstr "SFE 转发加速"
 
-msgid "<strong><font color=\"green\">Shortcut Forwarding Engine is Running</font></strong>"
+msgid "<strong><font color=\"green\">Shortcut forwarding engine is running</font></strong>"
 msgstr "<strong><font color=\"green\">SFE 转发加速引擎正在运行</font></strong>"
 
-msgid "<strong><font color=\"red\">Shortcut Forwarding Engine is Not Running</font></strong>"
+msgid "<strong><font color=\"red\">Shortcut forwarding engine is not running</font></strong>"
 msgstr "<strong><font color=\"red\">SFE 转发加速引擎未运行</font></strong>"
 
 msgid "Shortcut Forwarding Engine Acceleration Settings"
@@ -16,14 +16,20 @@ msgstr "来自高通开源的 Shortcut FE 转发加速引擎 (Fast Path)"
 msgid "Enable"
 msgstr "启用"
 
-msgid "Bridge Acceleration"
+msgid "Bridge acceleration"
 msgstr "桥接加速"
 
-msgid "Enable Bridge Acceleration"
-msgstr "开启桥接加速"
+msgid "Enable bridge acceleration"
+msgstr "启用桥接加速"
 
-msgid "IPv6 Acceleration"
+msgid "IPv6 acceleration"
 msgstr "IPv6 加速"
 
-msgid "Enable IPv6 Acceleration"
-msgstr "开启IPv6加速"
+msgid "Enable IPv6 acceleration"
+msgstr "启用IPv6加速"
+
+msgid "Accelerate at packets"
+msgstr "多少数据包后开始加速"
+
+msgid "Start acceleration after how many packets, defaultly 128, at least 4"
+msgstr "多少数据包后开始加速，默认为128，可设置的最小值为4"
