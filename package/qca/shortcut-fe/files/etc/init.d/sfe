@@ -15,42 +15,52 @@ have_cm() {
 
 #load shortcut-fe connection manager
 load_sfe_cm() {
-	local kernel_version=$(uname -r)
+	local kernel_version="$(uname -r)"
 
 	#shortcut-fe-drv.ko is not needed because other connection manager is not enabled
-	if [ -d /sys/module/shortcut_fe_drv ]; then
+	if [ -d "/sys/module/shortcut_fe_drv" ]; then
 		rmmod shortcut_fe_drv
 	fi
 
-	if [ -e /lib/modules/$kernel_version/shortcut-fe-cm.ko ] && [ ! -d /sys/module/shortcut_fe_cm ]; then
-		insmod /lib/modules/$kernel_version/shortcut-fe-cm.ko && return
-	fi 
+	if [ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] && [ ! -d /sys/module/shortcut_fe_cm ]; then
+		insmod "/lib/modules/$kernel_version/shortcut-fe-cm.ko" && return
+	fi
 
-	if [ -e /lib/modules/$kernel_version/fast-classifier.ko ] && [ ! -d /sys/module/fast_classifier ]; then
-		insmod /lib/modules/$kernel_version/fast-classifier.ko && return
+	if [ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] && [ ! -d /sys/module/fast_classifier ]; then
+		insmod "/lib/modules/$kernel_version/fast-classifier.ko" && return
 	fi
 }
 
-start() {
+load_sfe() {
 	local enabled
 	local bridge
 	local ipv6
 	local sfe_ipv6
+	local offload_at_pkts
 
-	enabled=$(uci -q get sfe.config.enabled)
+	config_load sfe
+	config_get_bool enabled config enabled 0
+	config_get_bool bridge config bridge 0
+	config_get_bool ipv6 config ipv6 0
+	config_get offload_at_pkts config offload_at_pkts 128
+
 	if [ "$enabled" -eq 1 ]; then
 		if [ "$(have_cm)" -ne 1 ]; then
 			load_sfe_cm
 		fi
-		bridge=$(uci -q get sfe.config.bridge)
-		if [ -n "$bridge" ]; then
-			echo "$bridge" > /sys/fast_classifier/skip_to_bridge_ingress
+
+		if [ -f "/sys/fast_classifier/skip_to_bridge_ingress" ]; then
+			echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
 		fi
-		ipv6=$(uci -q get sfe.config.ipv6)
-		if [ $ipv6 -eq 1 ]; then
+
+		if [ -f "/sys/fast_classifier/offload_at_pkts" ]; then
+			echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
+		fi
+
+		if [ "$ipv6" -eq 1 ]; then
 			sfe_ipv6=$(cat /sys/sfe_ipv6/debug_dev)
 			if [ ! -f /dev/sfe_ipv6 ]; then
-				mknod /dev/sfe_ipv6 c $sfe_ipv6 0
+				mknod /dev/sfe_ipv6 c "$sfe_ipv6" 0
 			fi
 		else
 			rm -f /dev/sfe_ipv6
@@ -58,7 +68,7 @@ start() {
 	fi
 }
 
-stop() {
+unload_sfe() {
 	if [ -d /sys/module/shortcut_fe_cm ]; then
 		rmmod shortcut_fe_cm
 	fi
@@ -66,9 +76,19 @@ stop() {
 	if [ -d /sys/module/fast_classifier ]; then
 		rmmod fast_classifier
 	fi
+
+	rm -f /dev/sfe_ipv6
+}
+
+start() {
+	unload_sfe
+	load_sfe
+}
+
+stop() {
+	unload_sfe
 }
 
 restart() {
-	stop
 	start
 }
