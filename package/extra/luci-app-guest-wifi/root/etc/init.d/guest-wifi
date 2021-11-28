@@ -101,7 +101,7 @@ guest_wifi_config() {
 	mkdir -p /var/lock
 	lock /var/lock/guest-wifi.lock
 
-	local interface_name enabled wifi_name encryption passwd interface_ip isolate start limit leasetime device create
+	local interface_name enabled wifi_name encryption passwd interface_ip isolate start limit leasetime device create need_reload guest_wifi_iface_disabled
 
 	interface_name="guest"
 	config_load guest-wifi
@@ -117,12 +117,19 @@ guest_wifi_config() {
 	config_get device config device "radio0"
 	config_get_bool create config create 0
 
+	need_reload=0
+	guest_wifi_iface_disabled="$(uci -q get wireless.${interface_name}.disabled)"
+	[ -n "$guest_wifi_iface_disabled" ] || guest_wifi_iface_disabled=0
+
 	if [ "$enabled" -eq 0 ]; then
 		if [ "$create" -eq 1 ]; then
 			del_guest_wifi_cfg
+			need_reload=1
 		else
-			[ "$(uci -q get wireless.${interface_name}.disabled)" -eq 0 ] &&
+			[ "$guest_wifi_iface_disabled" -eq 0 ] && {
 				uci -q set wireless.${interface_name}.disabled='1'
+				need_reload=1
+			}
 		fi
 	elif [ "$enabled" -eq 1 ]; then
 		[ "$create" -eq 1 ] && {
@@ -131,12 +138,19 @@ guest_wifi_config() {
 			add_ssid
 			mod_dhcp
 			mod_fw
+			need_reload=1
 		}
-		[ "$(uci -q get wireless.${interface_name}.disabled)" -eq 1 ] &&
+		[ "$guest_wifi_iface_disabled" -eq 1 ] && {
 			uci -q set wireless.${interface_name}.disabled='0'
+			need_reload=1
+		}
 	fi
 	uci commit
-	wifi reload
+	[ "$need_reload" -eq 1 ] && {
+		/etc/init.d/network reload
+		/etc/init.d/dnsmasq reload
+		wifi reload
+	}
 	lock -u /var/lock/guest-wifi.lock
 }
 
