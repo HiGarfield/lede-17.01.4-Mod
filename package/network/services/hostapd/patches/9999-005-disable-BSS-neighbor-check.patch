@@ -1,0 +1,75 @@
+From 8cf6223cdcbf80ffb3d160fc5bb6fc3b246ab949 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 2 Dec 2021 20:07:16 +0800
+Subject: [PATCH 5/5] disable BSS neighbor check
+
+---
+ src/ap/hw_features.c   | 15 ---------------
+ src/ap/ieee802_11_ht.c | 25 -------------------------
+ 2 files changed, 40 deletions(-)
+
+diff --git a/src/ap/hw_features.c b/src/ap/hw_features.c
+index 993f0d0..49f843f 100644
+--- a/src/ap/hw_features.c
++++ b/src/ap/hw_features.c
+@@ -310,21 +310,6 @@ static void ieee80211n_check_scan(struct hostapd_iface *iface)
+ 	wpa_scan_results_free(scan_res);
+ 
+ 	iface->secondary_ch = iface->conf->secondary_channel;
+-	if (!oper40) {
+-		wpa_printf(MSG_INFO, "20/40 MHz operation not permitted on "
+-			   "channel pri=%d sec=%d based on overlapping BSSes",
+-			   iface->conf->channel,
+-			   iface->conf->channel +
+-			   iface->conf->secondary_channel * 4);
+-		iface->conf->secondary_channel = 0;
+-		if (iface->drv_flags & WPA_DRIVER_FLAGS_HT_2040_COEX) {
+-			/*
+-			 * TODO: Could consider scheduling another scan to check
+-			 * if channel width can be changed if no coex reports
+-			 * are received from associating stations.
+-			 */
+-		}
+-	}
+ 
+ 	res = ieee80211n_allowed_ht40_channel_pair(iface);
+ 	if (!res) {
+diff --git a/src/ap/ieee802_11_ht.c b/src/ap/ieee802_11_ht.c
+index 3697ca3..0c8abf3 100644
+--- a/src/ap/ieee802_11_ht.c
++++ b/src/ap/ieee802_11_ht.c
+@@ -351,31 +351,6 @@ void hostapd_2040_coex_action(struct hostapd_data *hapd,
+ 	}
+ 	wpa_printf(MSG_DEBUG, "is_ht40_allowed=%d num_sta_ht40_intolerant=%d",
+ 		   is_ht40_allowed, iface->num_sta_ht40_intolerant);
+-
+-	if (!is_ht40_allowed &&
+-	    (iface->drv_flags & WPA_DRIVER_FLAGS_HT_2040_COEX)) {
+-		if (iface->conf->secondary_channel) {
+-			hostapd_logger(hapd, mgmt->sa,
+-				       HOSTAPD_MODULE_IEEE80211,
+-				       HOSTAPD_LEVEL_INFO,
+-				       "Switching to 20 MHz operation");
+-			iface->conf->secondary_channel = 0;
+-			ieee802_11_set_beacons(iface);
+-		}
+-		if (!iface->num_sta_ht40_intolerant &&
+-		    iface->conf->obss_interval) {
+-			unsigned int delay_time;
+-			delay_time = OVERLAPPING_BSS_TRANS_DELAY_FACTOR *
+-				iface->conf->obss_interval;
+-			eloop_cancel_timeout(ap_ht2040_timeout, hapd->iface,
+-					     NULL);
+-			eloop_register_timeout(delay_time, 0, ap_ht2040_timeout,
+-					       hapd->iface, NULL);
+-			wpa_printf(MSG_DEBUG,
+-				   "Reschedule HT 20/40 timeout to occur in %u seconds",
+-				   delay_time);
+-		}
+-	}
+ }
+ 
+ 
+-- 
+2.17.1
+
