@@ -1,6 +1,6 @@
 --- a/drivers/mtd/devices/m25p80.c
 +++ b/drivers/mtd/devices/m25p80.c
-@@ -307,7 +307,7 @@ static const struct spi_device_id m25p_ids[] = {
+@@ -298,7 +298,7 @@ static const struct spi_device_id m25p_ids[] = {
  	{"at25df321a"},	{"at25df641"},	{"at26df081a"},
  	{"mr25h256"},
  	{"mx25l4005a"},	{"mx25l1606e"},	{"mx25l6405d"},	{"mx25l12805d"},
@@ -64,7 +64,7 @@
  	dev_err(nor->dev, "unrecognized JEDEC id bytes: %02x, %2x, %2x\n",
  		id[0], id[1], id[2]);
  	return ERR_PTR(-ENODEV);
-@@ -1274,7 +1282,7 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+@@ -1301,7 +1309,7 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
  		info = spi_nor_match_id(name);
  	/* Try to auto-detect if chip name wasn't specified or not found */
  	if (!info)
@@ -73,7 +73,7 @@
  	if (IS_ERR_OR_NULL(info))
  		return -ENOENT;
  
-@@ -1285,7 +1293,7 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+@@ -1312,7 +1320,7 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
  	if (name && info->id_len) {
  		const struct flash_info *jinfo;
  

@@ -1,16 +1,3 @@
-From 0455f51a5ace74a7292e84646f19dac9b60a28ab Mon Sep 17 00:00:00 2001
-From: HiGarfield <HiGarfield@126.com>
-Date: Thu, 18 Nov 2021 17:04:55 +0800
-Subject: [PATCH] mtd: spi-nor: clear Winbond Extended Address Reg on switch to
- 3-byte addressing
-
----
- drivers/mtd/spi-nor/spi-nor.c | 14 ++++++++++++++
- include/linux/mtd/spi-nor.h   |  2 ++
- 2 files changed, 16 insertions(+)
-
-diff --git a/drivers/mtd/spi-nor/spi-nor.c b/drivers/mtd/spi-nor/spi-nor.c
-index b1a1b556..1e1a5067 100644
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
 @@ -280,6 +280,20 @@ static inline int set_4byte(struct spi_nor *nor, const struct flash_info *info,
@@ -34,8 +21,6 @@ index b1a1b556..1e1a5067 100644
  		return status;
  	default:
  		/* Spansion style */
-diff --git a/include/linux/mtd/spi-nor.h b/include/linux/mtd/spi-nor.h
-index 285f915a..c2504f0c 100644
 --- a/include/linux/mtd/spi-nor.h
 +++ b/include/linux/mtd/spi-nor.h
 @@ -57,6 +57,8 @@
@@ -47,6 +32,3 @@ index 285f915a..c2504f0c 100644
  
  /* 4-byte address opcodes - used on Spansion and some Macronix flashes. */
  #define SPINOR_OP_READ_4B	0x13	/* Read data bytes (low frequency) */
--- 
-2.17.1
-

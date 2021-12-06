@@ -1,22 +1,30 @@
-From: lunatickochiya <125438787@qq.com>
-Subject: mtd: add broken-flash-reset to dts for shutdown hack
-
-This patch comes from manfeel and improves by lunatickochiya
-usage: we can define broken-flash-reset; under m25p80 to use manfeel's hack and drop this line to disable hack.
-
-example:	m25p80@0 {
-				#address-cells = <1>;
-				#size-cells = <1>;
-				compatible = "jedec,spi-nor";
-				reg = <0>;
-				linux,modalias = "m25p80";
-				spi-max-frequency = <10000000>;
-				m25p,chunked-io = <32>;
-				m25p,fast-read;
-				broken-flash-reset;
-
-Signed-off-by: LunaticKochiya <125438787@qq.com>
-Tested-by:  LunaticKochiya <125438787@qq.com>
+--- a/Documentation/devicetree/bindings/mtd/jedec,spi-nor.txt
++++ b/Documentation/devicetree/bindings/mtd/jedec,spi-nor.txt
+@@ -19,6 +19,15 @@ Optional properties:
+                    all chips and support for it can not be detected at runtime.
+                    Refer to your chips' datasheet to check if this is supported
+                    by your chip.
++- broken-flash-reset : Some flash devices utilize stateful addressing modes
++		   (e.g., for 32-bit addressing) which need to be managed
++		   carefully by a system. Because these sorts of flash don't
++		   have a standardized software reset command, and because some
++		   systems don't toggle the flash RESET# pin upon system reset
++		   (if the pin even exists at all), there are systems which
++		   cannot reboot properly if the flash is left in the "wrong"
++		   state. This boolean flag can be used on such systems, to
++		   denote the absence of a reliable reset mechanism.
+ 
+ Example:
+ 
+--- a/Documentation/mtd/spi-nor.txt
++++ b/Documentation/mtd/spi-nor.txt
+@@ -60,3 +60,6 @@ The main API is spi_nor_scan(). Before you call the hook, a driver should
+ initialize the necessary fields for spi_nor{}. Please see
+ drivers/mtd/spi-nor/spi-nor.c for detail. Please also refer to fsl-quadspi.c
+ when you want to write a new driver for a SPI NOR controller.
++Another API is spi_nor_restore(), this is used to restore the status of SPI
++flash chip such as addressing mode. Call it whenever detach the driver from
++device or reboot the system.
 --- a/drivers/mtd/devices/m25p80.c
 +++ b/drivers/mtd/devices/m25p80.c
 @@ -26,6 +26,7 @@
@@ -27,40 +35,25 @@ Tested-by:  LunaticKochiya <125438787@qq.com>
  
  #define	MAX_CMD_SIZE		6
  struct m25p {
-@@ -256,15 +257,30 @@ static int m25p_probe(struct spi_device *spi)
- 			data ? data->nr_parts : 0);
- }
- 
--
+@@ -260,11 +261,17 @@ static int m25p_probe(struct spi_device *spi)
  static int m25p_remove(struct spi_device *spi)
  {
  	struct m25p	*flash = spi_get_drvdata(spi);
--
-+	struct device_node *np = spi->dev.of_node;
-+	if(np && of_property_read_bool(np, "broken-flash-reset")
-+			&& flash && (&flash->spi_nor)->addr_width > 3)
-+	{
-+		printk(KERN_INFO "m25p80: exit 4-byte address mode\n");
-+		flash->command[0] = SPINOR_OP_EX4B;  /* exit 4-byte address mode: 0xe9 */
-+		spi_write(flash->spi, flash->command, 1);
-+		flash->command[0] = 0x66;           /* Enable reset */
-+		spi_write(flash->spi, flash->command, 1);
-+		flash->command[0] = 0x99;           /* Reset device */
-+		spi_write(flash->spi, flash->command, 1);
-+	}
++	spi_nor_reset(&flash->spi_nor);
+ 
  	/* Clean up MTD stuff. */
  	return mtd_device_unregister(&flash->spi_nor.mtd);
  }
  
 +static void m25p_shutdown(struct spi_device *spi)
 +{
-+	(void) m25p_remove(spi);
++	m25p_remove(spi);
 +}
 +
  /*
   * Do NOT add to this array without reading the following:
   *
-@@ -328,6 +344,7 @@ static struct spi_driver m25p80_driver = {
+@@ -328,6 +335,7 @@ static struct spi_driver m25p80_driver = {
  	.id_table	= m25p_ids,
  	.probe	= m25p_probe,
  	.remove	= m25p_remove,
@@ -68,3 +61,93 @@ Tested-by:  LunaticKochiya <125438787@qq.com>
  
  	/* REVISIT: many of these chips have deep power-down modes, which
  	 * should clearly be entered on suspend() to minimize power use.
+--- a/drivers/mtd/spi-nor/spi-nor.c
++++ b/drivers/mtd/spi-nor/spi-nor.c
+@@ -1257,6 +1257,33 @@ static int spi_nor_check(struct spi_nor *nor)
+ 	return 0;
+ }
+ 
++void spi_nor_restore(struct spi_nor *nor)
++{
++	/* restore the addressing mode */
++	if ((nor->addr_width == 4) &&
++	    (JEDEC_MFR(nor->info) != SNOR_MFR_SPANSION) &&
++	    !(nor->info->flags & SPI_NOR_4B_OPCODES) &&
++	    (nor->flags & SNOR_F_BROKEN_RESET))
++		set_4byte(nor, nor->info, 0);
++}
++EXPORT_SYMBOL_GPL(spi_nor_restore);
++
++void spi_nor_reset(struct spi_nor *nor)
++{
++	if ((nor->addr_width == 4) &&
++	    (JEDEC_MFR(nor->info) != SNOR_MFR_SPANSION) &&
++	    !(nor->info->flags & SPI_NOR_4B_OPCODES) &&
++	    (nor->flags & SNOR_F_BROKEN_RESET)) {
++		spi_nor_restore(nor);
++		/* Enable reset */
++		nor->write_reg(nor, 0x66, NULL, 0);
++		/* Reset device */
++		nor->write_reg(nor, 0x99, NULL, 0);
++		while(spi_nor_wait_till_ready(nor));
++	}
++}
++EXPORT_SYMBOL_GPL(spi_nor_reset);
++
+ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+ {
+ 	const struct flash_info *info = NULL;
+@@ -1395,6 +1422,9 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+ 		nor->flash_read = SPI_NOR_FAST;
+ 	}
+ 
++	if (of_property_read_bool(np, "broken-flash-reset"))
++		nor->flags |= SNOR_F_BROKEN_RESET;
++
+ 	/* Some devices cannot do fast-read, no matter what DT tells us */
+ 	if (info->flags & SPI_NOR_NO_FR)
+ 		nor->flash_read = SPI_NOR_NORMAL;
+@@ -1448,6 +1478,8 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+ 
+ 	nor->read_dummy = spi_nor_read_dummy_cycles(nor);
+ 
++	nor->info = info;
++
+ 	dev_info(dev, "%s (%lld Kbytes)\n", info->name,
+ 			(long long)mtd->size >> 10);
+ 
+--- a/include/linux/mtd/spi-nor.h
++++ b/include/linux/mtd/spi-nor.h
+@@ -127,8 +127,11 @@ enum spi_nor_ops {
+ enum spi_nor_option_flags {
+ 	SNOR_F_USE_FSR		= BIT(0),
+ 	SNOR_F_SST		= BIT(1),
++	SNOR_F_BROKEN_RESET	= BIT(2),
+ };
+ 
++struct flash_info;
++
+ /**
+  * struct spi_nor - Structure for defining a the SPI NOR layer
+  * @mtd:		point to a mtd_info structure
+@@ -166,6 +169,7 @@ struct spi_nor {
+ 	struct mutex		lock;
+ 	struct device		*dev;
+ 	struct device_node	*flash_node;
++	struct flash_info	*info;
+ 	u32			page_size;
+ 	u16			chunk_size;
+ 	u8			addr_width;
+@@ -212,4 +216,12 @@ struct spi_nor {
+  */
+ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode);
+ 
++/**
++ * spi_nor_restore_addr_mode() - restore the status of SPI NOR
++ * @nor:	the spi_nor structure
++ */
++void spi_nor_restore(struct spi_nor *nor);
++
++void spi_nor_reset(struct spi_nor *nor);
++
+ #endif
