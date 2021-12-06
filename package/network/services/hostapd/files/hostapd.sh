@@ -550,6 +550,8 @@ hostapd_set_bss_options() {
 			fi
 		fi
 
+		wpa_disable_eapol_key_retries=1
+
 		append bss_conf "wpa_disable_eapol_key_retries=$wpa_disable_eapol_key_retries" "$N"
 
 		hostapd_append_wpa_key_mgmt
