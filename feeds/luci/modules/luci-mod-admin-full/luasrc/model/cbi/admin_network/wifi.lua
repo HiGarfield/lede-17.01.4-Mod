@@ -1324,20 +1324,20 @@ if hwtype == "mac80211" then
 		retry_timeout.rmempty = true
 	end
 
-	local key_retries = s:taboption("encryption", Flag, "wpa_disable_eapol_key_retries",
-		translate("Enable key reinstallation (KRACK) countermeasures"),
-		translate("Complicates key reinstallation attacks on the client side by disabling retransmission of EAPOL-Key frames that are used to install keys. This workaround might cause interoperability issues and reduced robustness of key negotiation especially in environments with heavy traffic load."))
+	-- local key_retries = s:taboption("encryption", Flag, "wpa_disable_eapol_key_retries",
+	-- 	translate("Enable key reinstallation (KRACK) countermeasures"),
+	-- 	translate("Complicates key reinstallation attacks on the client side by disabling retransmission of EAPOL-Key frames that are used to install keys. This workaround might cause interoperability issues and reduced robustness of key negotiation especially in environments with heavy traffic load."))
 
-	key_retries:depends({mode="ap", encryption="wpa2"})
-	key_retries:depends({mode="ap", encryption="psk2"})
-	key_retries:depends({mode="ap", encryption="psk-mixed"})
-	key_retries:depends({mode="ap", encryption="sae"})
-	key_retries:depends({mode="ap", encryption="sae-mixed"})
-	key_retries:depends({mode="ap-wds", encryption="wpa2"})
-	key_retries:depends({mode="ap-wds", encryption="psk2"})
-	key_retries:depends({mode="ap-wds", encryption="psk-mixed"})
-	key_retries:depends({mode="ap-wds", encryption="sae"})
-	key_retries:depends({mode="ap-wds", encryption="sae-mixed"})
+	-- key_retries:depends({mode="ap", encryption="wpa2"})
+	-- key_retries:depends({mode="ap", encryption="psk2"})
+	-- key_retries:depends({mode="ap", encryption="psk-mixed"})
+	-- key_retries:depends({mode="ap", encryption="sae"})
+	-- key_retries:depends({mode="ap", encryption="sae-mixed"})
+	-- key_retries:depends({mode="ap-wds", encryption="wpa2"})
+	-- key_retries:depends({mode="ap-wds", encryption="psk2"})
+	-- key_retries:depends({mode="ap-wds", encryption="psk-mixed"})
+	-- key_retries:depends({mode="ap-wds", encryption="sae"})
+	-- key_retries:depends({mode="ap-wds", encryption="sae-mixed"})
 end
 
 if hwtype == "atheros" or hwtype == "mac80211" or hwtype == "prism2" then
