@@ -1,0 +1,10 @@
+--- a/src/crypto/crypto.c
++++ b/src/crypto/crypto.c
+@@ -1,6 +1,7 @@
+ // based on:
+ // https://github.com/vedantk/gcrypt-example/blob/master/gcry.cc
+ 
++#include <stdio.h>
+ #include <gcrypt.h>
+ 
+ #include "crypto.h"
