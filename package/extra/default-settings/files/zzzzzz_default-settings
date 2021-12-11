@@ -65,10 +65,11 @@ if [ -n "$lan_ip" ]; then
 	need_detect=1
 	if [ "$wan_proto" = "dhcp" ]; then
 		/etc/init.d/network restart
+		ubus -t 15 wait_for network.interface.wan
 		for i in $(seq 1 15); do
 			sleep 1
 			wan_up=$(ifstatus wan | jsonfilter -e '@["up"]')
-			[ x"$wan_up" = x"true" ] || continue
+			[ "$wan_up" = "true" ] || continue
 			wan_ip=$(ifstatus wan | jsonfilter -e '@["ipv4-address"][0].address')
 			[ -n "$wan_ip" ] && break
 		done
