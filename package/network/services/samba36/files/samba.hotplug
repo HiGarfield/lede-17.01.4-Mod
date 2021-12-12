@@ -55,15 +55,8 @@ need_reload=0
 		sleep 1
 	done
 
-	label="$(lsblk -n -o LABEL "/dev/${DEVICE}")"
-	[ -n "$label" ] || {
-		uuid="$(lsblk -n -o UUID "/dev/${DEVICE}" | tr 'A-Z' 'a-z' | sed 's/[^0-9a-z]//g')"
-		uuid="000000$uuid"
-		label="${uuid:0-6}"
-	}
-	share_name="auto_share_$label"
-
 	[ -n "$mount" ] && {
+		share_name="$(echo "$mount" | sed -e 's#^/##g' -e 's#/#_#g')"
 		read_only="no"
 		[ "$auto_share_ro" -eq 1 ] && read_only="yes"
 		mkdir -p /var/lock
