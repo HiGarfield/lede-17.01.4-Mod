@@ -154,12 +154,8 @@ guest_wifi_config() {
 	lock -u /var/lock/guest-wifi.lock
 }
 
-boot() {
-	exit 0
-}
-
 start() {
-	guest_wifi_config
+	exit 0
 }
 
 stop() {
@@ -167,5 +163,5 @@ stop() {
 }
 
 restart() {
-	start
+	guest_wifi_config
 }
