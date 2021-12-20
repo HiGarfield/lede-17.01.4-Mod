@@ -110,49 +110,102 @@ Gabriel Kerneis <gabriel@kerneis.info>, Baptiste Jonglez <openwrt-pkg@bitsofnetw
 
 
 Source-Makefile: feeds/routing/batctl/Makefile
-Package: batctl
-Version: 2016.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-batman-adv +libnl-tiny +librt
+Package: batctl-default
+Version: 2019.2-8
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl-tiny +librt
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: batctl
+Build-Variant: default
 Section: net
 Category: Network
 Repository: base
-Title: B.A.T.M.A.N. Advanced user space configuration tool batctl
-Maintainer: Marek Lindner <mareklindner@neomailbox.ch>
-Source: batctl-2016.5.tar.gz
+Title: B.A.T.M.A.N. Advanced user space configuration tool (Default)
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batctl-2019.2.tar.gz
 License: GPL-2.0
 Type: ipkg
 Description: batctl is a more intuitive managment utility for B.A.T.M.A.N.-Advanced.
 It is an easier method for configuring batman-adv and provides some
 additional tools for debugging as well. This package builds
-version 2016.5 of the user space utility.
+version 2019.2 of the user space utility.
+Standard subcommands for configuration and online debugging are enabled.
 https://www.open-mesh.org/
-Marek Lindner <mareklindner@neomailbox.ch>
+Simon Wunderlich <sw@simonwunderlich.de>
+@@
+
+Package: batctl-tiny
+Version: 2019.2-8
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl-tiny +librt
+Conflicts: 
+Menu-Depends: 
+Provides: batctl
+Build-Variant: tiny
+Section: net
+Category: Network
+Repository: base
+Title: B.A.T.M.A.N. Advanced user space configuration tool (Minimal)
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batctl-2019.2.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: batctl is a more intuitive managment utility for B.A.T.M.A.N.-Advanced.
+It is an easier method for configuring batman-adv and provides some
+additional tools for debugging as well. This package builds
+version 2019.2 of the user space utility.
+Only configuration relevant subcommands are enabled.
+https://www.open-mesh.org/
+Simon Wunderlich <sw@simonwunderlich.de>
+@@
+
+Package: batctl-full
+Version: 2019.2-8
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl-tiny +librt
+Conflicts: 
+Menu-Depends: 
+Provides: batctl
+Build-Variant: full
+Section: net
+Category: Network
+Repository: base
+Title: B.A.T.M.A.N. Advanced user space configuration tool (Full)
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batctl-2019.2.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: batctl is a more intuitive managment utility for B.A.T.M.A.N.-Advanced.
+It is an easier method for configuring batman-adv and provides some
+additional tools for debugging as well. This package builds
+version 2019.2 of the user space utility.
+Subcommands for configuration, online and offline debugging are enabled.
+https://www.open-mesh.org/
+Simon Wunderlich <sw@simonwunderlich.de>
 @@
 
 
 Source-Makefile: feeds/routing/batman-adv/Makefile
 Package: kmod-batman-adv
 Submenu: Network Support
-Version: <LINUX_VERSION>+2016.5-16
-Depends: +KMOD_BATMAN_ADV_BLA:kmod-lib-crc16 +kmod-crypto-crc32c +kmod-lib-crc32c +kmod-cfg80211
+Version: <LINUX_VERSION>+2019.2-13
+Depends: +BATMAN_ADV_BLA:kmod-lib-crc16 +kmod-lib-crc32c +kmod-cfg80211 +batctl
 Conflicts: 
 Menu-Depends: 
 Provides: 
 Section: kernel
 Category: Kernel modules
 Title: B.A.T.M.A.N. Adv
-Maintainer: Marek Lindner <mareklindner@neomailbox.ch>
-Source: batman-adv-2016.5.tar.gz
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batman-adv-2019.2.tar.gz
 License: GPL-2.0
 Type: ipkg
-Description: B.A.T.M.A.N. advanced is a kernel module which allows to
-build layer 2 mesh networks. This package builds
-version 2016.5 of the kernel module.
+Description: B.A.T.M.A.N. (better approach to mobile ad-hoc networking) is
+a routing protocol for multi-hop ad-hoc mesh networks. The
+networks may be wired or wireless. See
+https://www.open-mesh.org/ for more information and user space
+tools. This package builds version 2019.2 of the kernel
+module.
 https://www.open-mesh.org/
-Marek Lindner <mareklindner@neomailbox.ch>
+Simon Wunderlich <sw@simonwunderlich.de>
 @@
 Config:
 	source "feeds/routing/batman-adv/Config.in"

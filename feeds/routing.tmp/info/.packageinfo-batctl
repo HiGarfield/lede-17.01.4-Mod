@@ -1,24 +1,74 @@
 Source-Makefile: feeds/routing/batctl/Makefile
-Package: batctl
-Version: 2016.5-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-batman-adv +libnl-tiny +librt
+Package: batctl-default
+Version: 2019.2-8
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl-tiny +librt
 Conflicts: 
 Menu-Depends: 
-Provides: 
+Provides: batctl
+Build-Variant: default
 Section: net
 Category: Network
 Repository: base
-Title: B.A.T.M.A.N. Advanced user space configuration tool batctl
-Maintainer: Marek Lindner <mareklindner@neomailbox.ch>
-Source: batctl-2016.5.tar.gz
+Title: B.A.T.M.A.N. Advanced user space configuration tool (Default)
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batctl-2019.2.tar.gz
 License: GPL-2.0
 Type: ipkg
 Description: batctl is a more intuitive managment utility for B.A.T.M.A.N.-Advanced.
 It is an easier method for configuring batman-adv and provides some
 additional tools for debugging as well. This package builds
-version 2016.5 of the user space utility.
+version 2019.2 of the user space utility.
+Standard subcommands for configuration and online debugging are enabled.
 https://www.open-mesh.org/
-Marek Lindner <mareklindner@neomailbox.ch>
+Simon Wunderlich <sw@simonwunderlich.de>
+@@
+
+Package: batctl-tiny
+Version: 2019.2-8
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl-tiny +librt
+Conflicts: 
+Menu-Depends: 
+Provides: batctl
+Build-Variant: tiny
+Section: net
+Category: Network
+Repository: base
+Title: B.A.T.M.A.N. Advanced user space configuration tool (Minimal)
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batctl-2019.2.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: batctl is a more intuitive managment utility for B.A.T.M.A.N.-Advanced.
+It is an easier method for configuring batman-adv and provides some
+additional tools for debugging as well. This package builds
+version 2019.2 of the user space utility.
+Only configuration relevant subcommands are enabled.
+https://www.open-mesh.org/
+Simon Wunderlich <sw@simonwunderlich.de>
+@@
+
+Package: batctl-full
+Version: 2019.2-8
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libnl-tiny +librt
+Conflicts: 
+Menu-Depends: 
+Provides: batctl
+Build-Variant: full
+Section: net
+Category: Network
+Repository: base
+Title: B.A.T.M.A.N. Advanced user space configuration tool (Full)
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batctl-2019.2.tar.gz
+License: GPL-2.0
+Type: ipkg
+Description: batctl is a more intuitive managment utility for B.A.T.M.A.N.-Advanced.
+It is an easier method for configuring batman-adv and provides some
+additional tools for debugging as well. This package builds
+version 2019.2 of the user space utility.
+Subcommands for configuration, online and offline debugging are enabled.
+https://www.open-mesh.org/
+Simon Wunderlich <sw@simonwunderlich.de>
 @@
 
 
