@@ -30,7 +30,7 @@ jobs:
           fi
 
       - name: Cancel previous runs
-        uses: HiGarfield/cancel-workflow-action@0.9.0
+        uses: HiGarfield/cancel-workflow-action@main
         continue-on-error: true
         with:
           all_but_latest: true
@@ -110,7 +110,7 @@ jobs:
 
       - name: Upload images to Releases
         if: ${{ steps.compile.outputs.status == 'success' }}
-        uses: HiGarfield/upload-release-action@2.2.0
+        uses: HiGarfield/upload-release-action@master
         with:
           repo_token: ${{ env.MY_TOKEN }}
           file: ${{ env.FIRMWARE }}/*
@@ -119,7 +119,7 @@ jobs:
           file_glob: true
 
       - name: Remove old releases
-        uses: HiGarfield/delete-older-releases@v0.1.0
+        uses: HiGarfield/delete-older-releases@master
         continue-on-error: true
         with:
           keep_latest: 1
@@ -150,7 +150,7 @@ jobs:
           fi
 
       - name: Cancel previous runs
-        uses: HiGarfield/cancel-workflow-action@0.9.0
+        uses: HiGarfield/cancel-workflow-action@main
         continue-on-error: true
         with:
           all_but_latest: true
@@ -230,7 +230,7 @@ jobs:
 
       - name: Upload images to Releases
         if: ${{ steps.compile.outputs.status == 'success' }}
-        uses: HiGarfield/upload-release-action@2.2.0
+        uses: HiGarfield/upload-release-action@master
         with:
           repo_token: ${{ env.MY_TOKEN }}
           file: ${{ env.FIRMWARE }}/*
@@ -239,7 +239,7 @@ jobs:
           file_glob: true
 
       - name: Remove old releases
-        uses: HiGarfield/delete-older-releases@v0.1.0
+        uses: HiGarfield/delete-older-releases@master
         continue-on-error: true
         with:
           keep_latest: 1
@@ -265,7 +265,7 @@ jobs:
           fi
 
       - name: Cancel previous runs
-        uses: HiGarfield/cancel-workflow-action@0.9.0
+        uses: HiGarfield/cancel-workflow-action@main
         continue-on-error: true
         with:
           all_but_latest: true
@@ -314,7 +314,7 @@ jobs:
 
       - name: Upload assets to Releases
         if: ${{ steps.download.outputs.status == 'success' }}
-        uses: HiGarfield/upload-release-action@2.2.0
+        uses: HiGarfield/upload-release-action@master
         with:
           repo_token: ${{ env.MY_TOKEN }}
           file: ${{ env.OUTPUT_DIR }}/*
@@ -323,7 +323,7 @@ jobs:
           file_glob: true
 
       - name: Remove old releases
-        uses: HiGarfield/delete-older-releases@v0.1.0
+        uses: HiGarfield/delete-older-releases@master
         continue-on-error: true
         with:
           keep_latest: 1
