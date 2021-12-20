@@ -1,23 +1,26 @@
 Source-Makefile: feeds/routing/batman-adv/Makefile
 Package: kmod-batman-adv
 Submenu: Network Support
-Version: <LINUX_VERSION>+2016.5-16
-Depends: +KMOD_BATMAN_ADV_BLA:kmod-lib-crc16 +kmod-crypto-crc32c +kmod-lib-crc32c +kmod-cfg80211
+Version: <LINUX_VERSION>+2019.2-13
+Depends: +BATMAN_ADV_BLA:kmod-lib-crc16 +kmod-lib-crc32c +kmod-cfg80211 +batctl
 Conflicts: 
 Menu-Depends: 
 Provides: 
 Section: kernel
 Category: Kernel modules
 Title: B.A.T.M.A.N. Adv
-Maintainer: Marek Lindner <mareklindner@neomailbox.ch>
-Source: batman-adv-2016.5.tar.gz
+Maintainer: Simon Wunderlich <sw@simonwunderlich.de>
+Source: batman-adv-2019.2.tar.gz
 License: GPL-2.0
 Type: ipkg
-Description: B.A.T.M.A.N. advanced is a kernel module which allows to
-build layer 2 mesh networks. This package builds
-version 2016.5 of the kernel module.
+Description: B.A.T.M.A.N. (better approach to mobile ad-hoc networking) is
+a routing protocol for multi-hop ad-hoc mesh networks. The
+networks may be wired or wireless. See
+https://www.open-mesh.org/ for more information and user space
+tools. This package builds version 2019.2 of the kernel
+module.
 https://www.open-mesh.org/
-Marek Lindner <mareklindner@neomailbox.ch>
+Simon Wunderlich <sw@simonwunderlich.de>
 @@
 Config:
 	source "feeds/routing/batman-adv/Config.in"
