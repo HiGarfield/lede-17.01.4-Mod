@@ -8,24 +8,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=conntrack-tools
-PKG_VERSION:=1.4.4
-PKG_RELEASE:=1
+PKG_VERSION:=1.4.6
+PKG_RELEASE:=3
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:= \
-	http://www.netfilter.org/projects/conntrack-tools/files \
-	ftp://ftp.netfilter.org/pub/conntrack-tools \
-	http://mirrors.evolva.ro/netfilter.org/conntrack-tools
-PKG_HASH:=b7caf4fcc4c03575df57d25e5216584d597fd916c891f191dac616ce68bdba6c
+PKG_SOURCE_URL:=https://www.netfilter.org/projects/conntrack-tools/files
+PKG_HASH:=590859cc848245dbfd9c6487761dd303b3a1771e007f4f42213063ca56205d5f
 
 PKG_MAINTAINER:=Jo-Philipp Wich <jo@mein.io>
-PKG_LICENSE:=GPL-2.0
+PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:netfilter:conntrack-tools
 
-PKG_FIXUP:=autoreconf
-PKG_BUILD_PARALLEL:=0
 PKG_INSTALL:=1
-
-PKG_BUILD_DEPENDS:=librpc
+PKG_BUILD_PARALLEL:=1
+PKG_BUILD_DEPENDS:=libtirpc
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -34,7 +31,7 @@ define Package/conntrack-tools/default
   CATEGORY:=Network
   DEPENDS:=+libnetfilter-conntrack +libnetfilter-cttimeout +libnetfilter-cthelper +libnetfilter-queue
   SUBMENU:=Firewall
-  URL:=http://conntrack-tools.netfilter.org/
+  URL:=https://conntrack-tools.netfilter.org/
 endef
 
 define Package/conntrack
@@ -47,6 +44,9 @@ define Package/conntrack/description
  administrators. It enables them to view and manage the in-kernel
  connection tracking state table.
 endef
+
+CONFIGURE_ARGS += \
+	--with-libtirpc
 
 define Package/conntrack/install
 	$(INSTALL_DIR) $(1)/usr/sbin
