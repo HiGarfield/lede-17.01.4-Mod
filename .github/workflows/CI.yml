@@ -15,7 +15,7 @@ jobs:
       TARGET_DEVICE: ${{ matrix.target }}
     strategy:
       matrix:
-        target: ["a3004ns", "csac", "domywifi-dw33d", "ghl-r-001-e", "ghl-r-001-f", "hd51-n", "hq55", "hw24g", "newifi-d2", "tl-wdr4310-v1", "tl-wdr7500-v3", "tl-wr1041n-v2",  "tl-wr841-v9", "tl-wr941nd-v6", "tl-wr941nd-v6-cn", "tl-wr941n-v7", "wr1200js", "y1s", "youku-yk1"]
+        target: ["a3004ns", "csac", "domywifi-dw33d", "ghl-r-001-e", "ghl-r-001-f", "hd51-n", "hq55", "hw24g", "newifi-d2", "tl-wdr4310-v1", "tl-wdr7500-v3", "tl-wr1041n-v2",  "tl-wr841-v9", "tl-wr885n-v1", "tl-wr941nd-v6-cn", "tl-wr941n-v7", "wr1200js", "y1s", "youku-yk1"]
     steps:
       - name: Initialize token
         env:
@@ -135,7 +135,7 @@ jobs:
       TARGET_DEVICE: ${{ matrix.target }}
     strategy:
       matrix:
-        target: ["tl-wr841-v8", "tl-wr841-v8-cn", "tl-wr842n-v2", "tl-wr842n-v2-cn", "tl-wr941nd-v2", "tl-wr740n-v3", "tl-wr740n-v4", "tl-wr841-v3", "tl-wr841-v5", "tl-wr841-v7", "miwifi-mini", "hc5661"]
+        target: ["tl-wr841-v8", "tl-wr841-v8-cn", "tl-wr941nd-v6", "tl-wr842n-v2", "tl-wr842n-v2-cn", "tl-wr941nd-v2", "tl-wr740n-v3", "tl-wr740n-v4", "tl-wr841-v3", "tl-wr841-v5", "tl-wr841-v7", "miwifi-mini", "hc5661"]
     steps:
       - name: Initialize token
         env:
