@@ -287,6 +287,7 @@ CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wdr4310-v1=y
 # CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr842n-v3 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr843nd-v1 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr847n-v8 is not set
+# CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr885n-v1 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr940n-v4 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr941nd-v2 is not set
 # CONFIG_TARGET_ar71xx_generic_DEVICE_tl-wr941nd-v3 is not set
