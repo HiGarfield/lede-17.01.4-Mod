@@ -305,6 +305,11 @@ ar71xx_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4@eth1"
 		;;
+	tl-wr885n-v1)
+		ucidef_set_interfaces_lan_wan "eth1.1" "eth0"
+		ucidef_add_switch "switch0" \
+			"0@eth1" "1:lan:4" "2:lan:3" "3:lan:2" "4:lan:1"
+		;;
 	tl-wr841n-v8-cn|\
 	tl-wr842n-v2-cn)
 		ucidef_set_interfaces_lan_wan "eth1" "eth0"
