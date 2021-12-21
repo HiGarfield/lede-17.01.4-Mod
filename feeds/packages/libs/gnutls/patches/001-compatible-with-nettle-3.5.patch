@@ -1,0 +1,39 @@
+--- a/lib/nettle/pk.c
++++ b/lib/nettle/pk.c
+@@ -50,6 +50,14 @@
+ #include <gnettle.h>
+ #include <fips.h>
+ 
++#if NETTLE_VERSION_MAJOR == 3 && NETTLE_VERSION_MINOR < 4
++#define nettle_get_secp_192r1() (&nettle_secp_192r1)
++#define nettle_get_secp_224r1() (&nettle_secp_224r1)
++#define nettle_get_secp_256r1() (&nettle_secp_256r1)
++#define nettle_get_secp_384r1() (&nettle_secp_384r1)
++#define nettle_get_secp_521r1() (&nettle_secp_521r1)
++#endif
++
+ static inline const struct ecc_curve *get_supported_nist_curve(int curve);
+ 
+ static void rnd_func(void *_ctx, size_t length, uint8_t * data)
+@@ -772,16 +780,16 @@ static inline const struct ecc_curve *get_supported_nist_curve(int curve)
+ 	switch (curve) {
+ #ifdef ENABLE_NON_SUITEB_CURVES
+ 	case GNUTLS_ECC_CURVE_SECP192R1:
+-		return &nettle_secp_192r1;
++		return nettle_get_secp_192r1();
+ 	case GNUTLS_ECC_CURVE_SECP224R1:
+-		return &nettle_secp_224r1;
++		return nettle_get_secp_224r1();
+ #endif
+ 	case GNUTLS_ECC_CURVE_SECP256R1:
+-		return &nettle_secp_256r1;
++		return nettle_get_secp_256r1();
+ 	case GNUTLS_ECC_CURVE_SECP384R1:
+-		return &nettle_secp_384r1;
++		return nettle_get_secp_384r1();
+ 	case GNUTLS_ECC_CURVE_SECP521R1:
+-		return &nettle_secp_521r1;
++		return nettle_get_secp_521r1();
+ 	default:
+ 		return NULL;
+ 	}
