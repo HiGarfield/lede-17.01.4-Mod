@@ -78,8 +78,8 @@ Description:     Translation for luci-app-statistics - Português (Portuguese)
 
 @@
 
-Package: luci-i18n-statistics-ro
-Default: LUCI_LANG_ro||(ALL&&m)
+Package: luci-i18n-statistics-no
+Default: LUCI_LANG_no||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
 Conflicts: 
@@ -89,12 +89,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-statistics - ro translation
+Title: luci-app-statistics - no translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-statistics - Română (Romanian)
+Description:     Translation for luci-app-statistics - Norsk (Norwegian)
 
 @@
 
@@ -118,8 +118,8 @@ Description:     Translation for luci-app-statistics - English
 
 @@
 
-Package: luci-i18n-statistics-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-statistics-pl
+Default: LUCI_LANG_pl||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-statistics - el translation
+Title: luci-app-statistics - pl translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-statistics - Ελληνικά (Greek)
+Description:     Translation for luci-app-statistics - Polski (Polish)
 
 @@
 
@@ -158,8 +158,8 @@ Description:     Translation for luci-app-statistics - Slovenčina (Slovak)
 
 @@
 
-Package: luci-i18n-statistics-ru
-Default: LUCI_LANG_ru||(ALL&&m)
+Package: luci-i18n-statistics-ja
+Default: LUCI_LANG_ja||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
 Conflicts: 
@@ -169,12 +169,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-statistics - ru translation
+Title: luci-app-statistics - ja translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-statistics - Русский (Russian)
+Description:     Translation for luci-app-statistics - 日本語 (Japanese)
 
 @@
 
@@ -218,8 +218,8 @@ Description:     Translation for luci-app-statistics - Deutsch (German)
 
 @@
 
-Package: luci-i18n-statistics-no
-Default: LUCI_LANG_no||(ALL&&m)
+Package: luci-i18n-statistics-ro
+Default: LUCI_LANG_ro||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
 Conflicts: 
@@ -229,12 +229,32 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-statistics - no translation
+Title: luci-app-statistics - ro translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-statistics - Norsk (Norwegian)
+Description:     Translation for luci-app-statistics - Română (Romanian)
+
+@@
+
+Package: luci-i18n-statistics-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-statistics - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-statistics - Português do Brasil (Brazialian Portuguese)
 
 @@
 
@@ -255,26 +275,6 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-statistics - Bahasa Melayu (Malay)
-
-@@
-
-Package: luci-i18n-statistics-pl
-Default: LUCI_LANG_pl||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-statistics - pl translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-statistics - Polski (Polish)
 
 @@
 
@@ -378,8 +378,8 @@ Description:     Translation for luci-app-statistics - Svenska (Swedish)
 
 @@
 
-Package: luci-i18n-statistics-ja
-Default: LUCI_LANG_ja||(ALL&&m)
+Package: luci-i18n-statistics-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
 Conflicts: 
@@ -389,17 +389,17 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-statistics - ja translation
+Title: luci-app-statistics - ru translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-statistics - 日本語 (Japanese)
+Description:     Translation for luci-app-statistics - Русский (Russian)
 
 @@
 
-Package: luci-i18n-statistics-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-statistics-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-statistics
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-statistics - pt-br translation
+Title: luci-app-statistics - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-statistics - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-statistics - Ελληνικά (Greek)
 
 @@
 

@@ -61,8 +61,8 @@ Description:     Translation for luci-app-ddns - Português (Portuguese)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-ddns-ro
-Default: LUCI_LANG_ro||(ALL&&m)
+Package: luci-i18n-ddns-no
+Default: LUCI_LANG_no||(ALL&&m)
 Version: 2.4.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ddns
 Conflicts: 
@@ -72,18 +72,18 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ddns - ro translation
+Title: luci-app-ddns - no translation
 Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
 Source: 
 License: Apache-2.0
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ddns - Română (Romanian)
+Description:     Translation for luci-app-ddns - Norsk (Norwegian)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-ddns-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-ddns-pl
+Default: LUCI_LANG_pl||(ALL&&m)
 Version: 2.4.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ddns
 Conflicts: 
@@ -93,13 +93,13 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ddns - el translation
+Title: luci-app-ddns - pl translation
 Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
 Source: 
 License: Apache-2.0
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ddns - Ελληνικά (Greek)
+Description:     Translation for luci-app-ddns - Polski (Polish)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
@@ -124,8 +124,8 @@ Description:     Translation for luci-app-ddns - украї́нська (Ukraini
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-ddns-ru
-Default: LUCI_LANG_ru||(ALL&&m)
+Package: luci-i18n-ddns-ja
+Default: LUCI_LANG_ja||(ALL&&m)
 Version: 2.4.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ddns
 Conflicts: 
@@ -135,13 +135,13 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ddns - ru translation
+Title: luci-app-ddns - ja translation
 Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
 Source: 
 License: Apache-2.0
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ddns - Русский (Russian)
+Description:     Translation for luci-app-ddns - 日本語 (Japanese)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
@@ -187,8 +187,8 @@ Description:     Translation for luci-app-ddns - Deutsch (German)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-ddns-no
-Default: LUCI_LANG_no||(ALL&&m)
+Package: luci-i18n-ddns-ro
+Default: LUCI_LANG_ro||(ALL&&m)
 Version: 2.4.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ddns
 Conflicts: 
@@ -198,18 +198,18 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ddns - no translation
+Title: luci-app-ddns - ro translation
 Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
 Source: 
 License: Apache-2.0
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ddns - Norsk (Norwegian)
+Description:     Translation for luci-app-ddns - Română (Romanian)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-ddns-pl
-Default: LUCI_LANG_pl||(ALL&&m)
+Package: luci-i18n-ddns-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: 2.4.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ddns
 Conflicts: 
@@ -219,13 +219,13 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ddns - pl translation
+Title: luci-app-ddns - pt-br translation
 Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
 Source: 
 License: Apache-2.0
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ddns - Polski (Polish)
+Description:     Translation for luci-app-ddns - Português do Brasil (Brazialian Portuguese)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
@@ -313,8 +313,8 @@ Description:     Translation for luci-app-ddns - Türkçe (Turkish)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-ddns-ja
-Default: LUCI_LANG_ja||(ALL&&m)
+Package: luci-i18n-ddns-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: 2.4.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ddns
 Conflicts: 
@@ -324,18 +324,18 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ddns - ja translation
+Title: luci-app-ddns - ru translation
 Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
 Source: 
 License: Apache-2.0
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ddns - 日本語 (Japanese)
+Description:     Translation for luci-app-ddns - Русский (Russian)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-ddns-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-ddns-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: 2.4.8-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ddns
 Conflicts: 
@@ -345,13 +345,13 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ddns - pt-br translation
+Title: luci-app-ddns - el translation
 Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
 Source: 
 License: Apache-2.0
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ddns - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-ddns - Ελληνικά (Greek)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 

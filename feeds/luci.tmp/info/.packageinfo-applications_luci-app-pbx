@@ -78,8 +78,8 @@ Description:     Translation for luci-app-pbx - Português (Portuguese)
 
 @@
 
-Package: luci-i18n-pbx-ro
-Default: LUCI_LANG_ro||(ALL&&m)
+Package: luci-i18n-pbx-no
+Default: LUCI_LANG_no||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
 Conflicts: 
@@ -89,12 +89,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-pbx - ro translation
+Title: luci-app-pbx - no translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-pbx - Română (Romanian)
+Description:     Translation for luci-app-pbx - Norsk (Norwegian)
 
 @@
 
@@ -118,8 +118,8 @@ Description:     Translation for luci-app-pbx - English
 
 @@
 
-Package: luci-i18n-pbx-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-pbx-pl
+Default: LUCI_LANG_pl||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-pbx - el translation
+Title: luci-app-pbx - pl translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-pbx - Ελληνικά (Greek)
+Description:     Translation for luci-app-pbx - Polski (Polish)
 
 @@
 
@@ -158,8 +158,8 @@ Description:     Translation for luci-app-pbx - Slovenčina (Slovak)
 
 @@
 
-Package: luci-i18n-pbx-ru
-Default: LUCI_LANG_ru||(ALL&&m)
+Package: luci-i18n-pbx-ja
+Default: LUCI_LANG_ja||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
 Conflicts: 
@@ -169,12 +169,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-pbx - ru translation
+Title: luci-app-pbx - ja translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-pbx - Русский (Russian)
+Description:     Translation for luci-app-pbx - 日本語 (Japanese)
 
 @@
 
@@ -218,8 +218,8 @@ Description:     Translation for luci-app-pbx - Deutsch (German)
 
 @@
 
-Package: luci-i18n-pbx-no
-Default: LUCI_LANG_no||(ALL&&m)
+Package: luci-i18n-pbx-ro
+Default: LUCI_LANG_ro||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
 Conflicts: 
@@ -229,12 +229,32 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-pbx - no translation
+Title: luci-app-pbx - ro translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-pbx - Norsk (Norwegian)
+Description:     Translation for luci-app-pbx - Română (Romanian)
+
+@@
+
+Package: luci-i18n-pbx-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-pbx - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-pbx - Português do Brasil (Brazialian Portuguese)
 
 @@
 
@@ -255,26 +275,6 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-pbx - Bahasa Melayu (Malay)
-
-@@
-
-Package: luci-i18n-pbx-pl
-Default: LUCI_LANG_pl||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-pbx - pl translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-pbx - Polski (Polish)
 
 @@
 
@@ -378,8 +378,8 @@ Description:     Translation for luci-app-pbx - Svenska (Swedish)
 
 @@
 
-Package: luci-i18n-pbx-ja
-Default: LUCI_LANG_ja||(ALL&&m)
+Package: luci-i18n-pbx-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
 Conflicts: 
@@ -389,17 +389,17 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-pbx - ja translation
+Title: luci-app-pbx - ru translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-pbx - 日本語 (Japanese)
+Description:     Translation for luci-app-pbx - Русский (Russian)
 
 @@
 
-Package: luci-i18n-pbx-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-pbx-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-pbx
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-pbx - pt-br translation
+Title: luci-app-pbx - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-pbx - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-pbx - Ελληνικά (Greek)
 
 @@
 
