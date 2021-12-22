@@ -78,8 +78,8 @@ Description:     Translation for luci-app-diag-devinfo - Português (Portuguese)
 
 @@
 
-Package: luci-i18n-diag-devinfo-ro
-Default: LUCI_LANG_ro||(ALL&&m)
+Package: luci-i18n-diag-devinfo-no
+Default: LUCI_LANG_no||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
 Conflicts: 
@@ -89,12 +89,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-diag-devinfo - ro translation
+Title: luci-app-diag-devinfo - no translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-diag-devinfo - Română (Romanian)
+Description:     Translation for luci-app-diag-devinfo - Norsk (Norwegian)
 
 @@
 
@@ -118,8 +118,8 @@ Description:     Translation for luci-app-diag-devinfo - English
 
 @@
 
-Package: luci-i18n-diag-devinfo-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-diag-devinfo-pl
+Default: LUCI_LANG_pl||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-diag-devinfo - el translation
+Title: luci-app-diag-devinfo - pl translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-diag-devinfo - Ελληνικά (Greek)
+Description:     Translation for luci-app-diag-devinfo - Polski (Polish)
 
 @@
 
@@ -158,8 +158,8 @@ Description:     Translation for luci-app-diag-devinfo - Slovenčina (Slovak)
 
 @@
 
-Package: luci-i18n-diag-devinfo-ru
-Default: LUCI_LANG_ru||(ALL&&m)
+Package: luci-i18n-diag-devinfo-ja
+Default: LUCI_LANG_ja||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
 Conflicts: 
@@ -169,12 +169,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-diag-devinfo - ru translation
+Title: luci-app-diag-devinfo - ja translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-diag-devinfo - Русский (Russian)
+Description:     Translation for luci-app-diag-devinfo - 日本語 (Japanese)
 
 @@
 
@@ -218,8 +218,8 @@ Description:     Translation for luci-app-diag-devinfo - Deutsch (German)
 
 @@
 
-Package: luci-i18n-diag-devinfo-no
-Default: LUCI_LANG_no||(ALL&&m)
+Package: luci-i18n-diag-devinfo-ro
+Default: LUCI_LANG_ro||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
 Conflicts: 
@@ -229,12 +229,32 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-diag-devinfo - no translation
+Title: luci-app-diag-devinfo - ro translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-diag-devinfo - Norsk (Norwegian)
+Description:     Translation for luci-app-diag-devinfo - Română (Romanian)
+
+@@
+
+Package: luci-i18n-diag-devinfo-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-diag-devinfo - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-diag-devinfo - Português do Brasil (Brazialian Portuguese)
 
 @@
 
@@ -255,26 +275,6 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-diag-devinfo - Bahasa Melayu (Malay)
-
-@@
-
-Package: luci-i18n-diag-devinfo-pl
-Default: LUCI_LANG_pl||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-diag-devinfo - pl translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-diag-devinfo - Polski (Polish)
 
 @@
 
@@ -378,8 +378,8 @@ Description:     Translation for luci-app-diag-devinfo - Svenska (Swedish)
 
 @@
 
-Package: luci-i18n-diag-devinfo-ja
-Default: LUCI_LANG_ja||(ALL&&m)
+Package: luci-i18n-diag-devinfo-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
 Conflicts: 
@@ -389,17 +389,17 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-diag-devinfo - ja translation
+Title: luci-app-diag-devinfo - ru translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-diag-devinfo - 日本語 (Japanese)
+Description:     Translation for luci-app-diag-devinfo - Русский (Russian)
 
 @@
 
-Package: luci-i18n-diag-devinfo-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-diag-devinfo-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-diag-devinfo
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-diag-devinfo - pt-br translation
+Title: luci-app-diag-devinfo - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-diag-devinfo - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-diag-devinfo - Ελληνικά (Greek)
 
 @@
 

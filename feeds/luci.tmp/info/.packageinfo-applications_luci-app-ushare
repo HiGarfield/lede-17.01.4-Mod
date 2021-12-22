@@ -78,8 +78,8 @@ Description:     Translation for luci-app-ushare - Português (Portuguese)
 
 @@
 
-Package: luci-i18n-ushare-ro
-Default: LUCI_LANG_ro||(ALL&&m)
+Package: luci-i18n-ushare-no
+Default: LUCI_LANG_no||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
 Conflicts: 
@@ -89,12 +89,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ushare - ro translation
+Title: luci-app-ushare - no translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ushare - Română (Romanian)
+Description:     Translation for luci-app-ushare - Norsk (Norwegian)
 
 @@
 
@@ -118,8 +118,8 @@ Description:     Translation for luci-app-ushare - English
 
 @@
 
-Package: luci-i18n-ushare-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-ushare-pl
+Default: LUCI_LANG_pl||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ushare - el translation
+Title: luci-app-ushare - pl translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ushare - Ελληνικά (Greek)
+Description:     Translation for luci-app-ushare - Polski (Polish)
 
 @@
 
@@ -158,8 +158,8 @@ Description:     Translation for luci-app-ushare - Slovenčina (Slovak)
 
 @@
 
-Package: luci-i18n-ushare-ru
-Default: LUCI_LANG_ru||(ALL&&m)
+Package: luci-i18n-ushare-ja
+Default: LUCI_LANG_ja||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
 Conflicts: 
@@ -169,12 +169,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ushare - ru translation
+Title: luci-app-ushare - ja translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ushare - Русский (Russian)
+Description:     Translation for luci-app-ushare - 日本語 (Japanese)
 
 @@
 
@@ -218,8 +218,8 @@ Description:     Translation for luci-app-ushare - Deutsch (German)
 
 @@
 
-Package: luci-i18n-ushare-no
-Default: LUCI_LANG_no||(ALL&&m)
+Package: luci-i18n-ushare-ro
+Default: LUCI_LANG_ro||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
 Conflicts: 
@@ -229,12 +229,32 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ushare - no translation
+Title: luci-app-ushare - ro translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ushare - Norsk (Norwegian)
+Description:     Translation for luci-app-ushare - Română (Romanian)
+
+@@
+
+Package: luci-i18n-ushare-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-ushare - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-ushare - Português do Brasil (Brazialian Portuguese)
 
 @@
 
@@ -255,26 +275,6 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-ushare - Bahasa Melayu (Malay)
-
-@@
-
-Package: luci-i18n-ushare-pl
-Default: LUCI_LANG_pl||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-ushare - pl translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-ushare - Polski (Polish)
 
 @@
 
@@ -378,8 +378,8 @@ Description:     Translation for luci-app-ushare - Svenska (Swedish)
 
 @@
 
-Package: luci-i18n-ushare-ja
-Default: LUCI_LANG_ja||(ALL&&m)
+Package: luci-i18n-ushare-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
 Conflicts: 
@@ -389,17 +389,17 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ushare - ja translation
+Title: luci-app-ushare - ru translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ushare - 日本語 (Japanese)
+Description:     Translation for luci-app-ushare - Русский (Russian)
 
 @@
 
-Package: luci-i18n-ushare-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-ushare-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ushare
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ushare - pt-br translation
+Title: luci-app-ushare - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ushare - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-ushare - Ελληνικά (Greek)
 
 @@
 

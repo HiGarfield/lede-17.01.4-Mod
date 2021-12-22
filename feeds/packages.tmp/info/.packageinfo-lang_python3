@@ -311,30 +311,6 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python3-email
-Submenu: Python
-Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: python3/host
-Build-Depends/host: bzip2/host expat/host libffi/host
-Build-Types: host
-Section: lang
-Category: Languages
-Repository: base
-Title: Python 3.6 email module
-Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-3.6.0.tar.xz
-License: PSF
-LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
-Type: ipkg
-Description: Python 3.6 email module
-https://www.python.org/
-Alexandru Ardelean <ardeleanalex@gmail.com>
-@@
-
 Package: python3-distutils
 Submenu: Python
 Version: 3.6.0-2
@@ -355,6 +331,30 @@ License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
 Description: Python 3.6 distutils module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
+Package: python3-email
+Submenu: Python
+Version: 3.6.0-2
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python3/host
+Build-Depends/host: bzip2/host expat/host libffi/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 3.6 email module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-3.6.0.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 3.6 email module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -509,7 +509,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 Package: python3
 Submenu: Python
 Version: 3.6.0-2
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +python3-unittest +python3-ncurses +python3-ctypes +python3-pydoc +python3-logging +python3-decimal +python3-multiprocessing +python3-codecs +python3-xml +python3-sqlite3 +python3-gdbm +python3-email +python3-distutils +python3-openssl +python3-dbm +python3-lzma +python3-asyncio
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python3-light +python3-unittest +python3-ncurses +python3-ctypes +python3-pydoc +python3-logging +python3-decimal +python3-multiprocessing +python3-codecs +python3-xml +python3-sqlite3 +python3-gdbm +python3-distutils +python3-email +python3-openssl +python3-dbm +python3-lzma +python3-asyncio
 Conflicts: 
 Menu-Depends: 
 Provides: 

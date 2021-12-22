@@ -78,8 +78,8 @@ Description:     Translation for luci-app-ntpc - Português (Portuguese)
 
 @@
 
-Package: luci-i18n-ntpc-ro
-Default: LUCI_LANG_ro||(ALL&&m)
+Package: luci-i18n-ntpc-no
+Default: LUCI_LANG_no||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
 Conflicts: 
@@ -89,12 +89,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ntpc - ro translation
+Title: luci-app-ntpc - no translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ntpc - Română (Romanian)
+Description:     Translation for luci-app-ntpc - Norsk (Norwegian)
 
 @@
 
@@ -118,8 +118,8 @@ Description:     Translation for luci-app-ntpc - English
 
 @@
 
-Package: luci-i18n-ntpc-el
-Default: LUCI_LANG_el||(ALL&&m)
+Package: luci-i18n-ntpc-pl
+Default: LUCI_LANG_pl||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
 Conflicts: 
@@ -129,12 +129,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ntpc - el translation
+Title: luci-app-ntpc - pl translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ntpc - Ελληνικά (Greek)
+Description:     Translation for luci-app-ntpc - Polski (Polish)
 
 @@
 
@@ -158,8 +158,8 @@ Description:     Translation for luci-app-ntpc - Slovenčina (Slovak)
 
 @@
 
-Package: luci-i18n-ntpc-ru
-Default: LUCI_LANG_ru||(ALL&&m)
+Package: luci-i18n-ntpc-ja
+Default: LUCI_LANG_ja||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
 Conflicts: 
@@ -169,12 +169,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ntpc - ru translation
+Title: luci-app-ntpc - ja translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ntpc - Русский (Russian)
+Description:     Translation for luci-app-ntpc - 日本語 (Japanese)
 
 @@
 
@@ -218,8 +218,8 @@ Description:     Translation for luci-app-ntpc - Deutsch (German)
 
 @@
 
-Package: luci-i18n-ntpc-no
-Default: LUCI_LANG_no||(ALL&&m)
+Package: luci-i18n-ntpc-ro
+Default: LUCI_LANG_ro||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
 Conflicts: 
@@ -229,12 +229,32 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ntpc - no translation
+Title: luci-app-ntpc - ro translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ntpc - Norsk (Norwegian)
+Description:     Translation for luci-app-ntpc - Română (Romanian)
+
+@@
+
+Package: luci-i18n-ntpc-pt-br
+Default: LUCI_LANG_pt-br||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-ntpc - pt-br translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-ntpc - Português do Brasil (Brazialian Portuguese)
 
 @@
 
@@ -255,26 +275,6 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-ntpc - Bahasa Melayu (Malay)
-
-@@
-
-Package: luci-i18n-ntpc-pl
-Default: LUCI_LANG_pl||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-ntpc - pl translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-ntpc - Polski (Polish)
 
 @@
 
@@ -378,8 +378,8 @@ Description:     Translation for luci-app-ntpc - Svenska (Swedish)
 
 @@
 
-Package: luci-i18n-ntpc-ja
-Default: LUCI_LANG_ja||(ALL&&m)
+Package: luci-i18n-ntpc-ru
+Default: LUCI_LANG_ru||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
 Conflicts: 
@@ -389,17 +389,17 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ntpc - ja translation
+Title: luci-app-ntpc - ru translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ntpc - 日本語 (Japanese)
+Description:     Translation for luci-app-ntpc - Русский (Russian)
 
 @@
 
-Package: luci-i18n-ntpc-pt-br
-Default: LUCI_LANG_pt-br||(ALL&&m)
+Package: luci-i18n-ntpc-el
+Default: LUCI_LANG_el||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-ntpc
 Conflicts: 
@@ -409,12 +409,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-ntpc - pt-br translation
+Title: luci-app-ntpc - el translation
 Maintainer: 
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-ntpc - Português do Brasil (Brazialian Portuguese)
+Description:     Translation for luci-app-ntpc - Ελληνικά (Greek)
 
 @@
 

@@ -71,6 +71,30 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
+Package: python-logging
+Submenu: Python
+Version: 2.7.14-5
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: python/host
+Build-Depends/host: bzip2/host expat/host
+Build-Types: host
+Section: lang
+Category: Languages
+Repository: base
+Title: Python 2.7 logging module
+Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
+Source: Python-2.7.14.tar.xz
+License: PSF
+LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
+Type: ipkg
+Description: Python 2.7 logging module
+https://www.python.org/
+Alexandru Ardelean <ardeleanalex@gmail.com>
+@@
+
 Package: python-codecs
 Submenu: Python
 Version: 2.7.14-5
@@ -143,10 +167,10 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python-logging
+Package: python-xml
 Submenu: Python
 Version: 2.7.14-5
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libexpat
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -156,13 +180,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 2.7 logging module
+Title: Python 2.7 xml libs
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 2.7 logging module
+Description: Python 2.7 xml libs
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -239,10 +263,10 @@ https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
 
-Package: python-xml
+Package: python-openssl
 Submenu: Python
 Version: 2.7.14-5
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libexpat
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libopenssl
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -252,13 +276,13 @@ Build-Types: host
 Section: lang
 Category: Languages
 Repository: base
-Title: Python 2.7 xml libs
+Title: Python 2.7 SSL module
 Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
 Source: Python-2.7.14.tar.xz
 License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
-Description: Python 2.7 xml libs
+Description: Python 2.7 SSL module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -307,30 +331,6 @@ License: PSF
 LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
 Type: ipkg
 Description: Python 2.7 db module
-https://www.python.org/
-Alexandru Ardelean <ardeleanalex@gmail.com>
-@@
-
-Package: python-openssl
-Submenu: Python
-Version: 2.7.14-5
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +libopenssl
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: python/host
-Build-Depends/host: bzip2/host expat/host
-Build-Types: host
-Section: lang
-Category: Languages
-Repository: base
-Title: Python 2.7 SSL module
-Maintainer: Alexandru Ardelean <ardeleanalex@gmail.com>
-Source: Python-2.7.14.tar.xz
-License: PSF
-LicenseFiles: LICENSE Modules/_ctypes/libffi_msvc/LICENSE Modules/_ctypes/darwin/LICENSE Modules/_ctypes/libffi/LICENSE Modules/_ctypes/libffi_osx/LICENSE Tools/pybench/LICENSE
-Type: ipkg
-Description: Python 2.7 SSL module
 https://www.python.org/
 Alexandru Ardelean <ardeleanalex@gmail.com>
 @@
@@ -485,7 +485,7 @@ Alexandru Ardelean <ardeleanalex@gmail.com>
 Package: python
 Submenu: Python
 Version: 2.7.14-5
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-ctypes +python-pydoc +python-multiprocessing +python-codecs +python-sqlite3 +python-logging +python-gdbm +python-email +python-distutils +python-xml +python-compiler +python-db +python-openssl +python-decimal +python-unittest +python-ncurses
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +python-light +python-ctypes +python-pydoc +python-multiprocessing +python-logging +python-codecs +python-sqlite3 +python-xml +python-gdbm +python-email +python-distutils +python-openssl +python-compiler +python-db +python-decimal +python-unittest +python-ncurses
 Conflicts: 
 Menu-Depends: 
 Provides: 
