@@ -135,7 +135,7 @@ jobs:
       TARGET_DEVICE: ${{ matrix.target }}
     strategy:
       matrix:
-        target: ["tl-wr841-v8", "tl-wr841-v8-cn", "tl-wr941nd-v6", "tl-wr842n-v2", "tl-wr842n-v2-cn", "tl-wr941nd-v2", "tl-wr740n-v3", "tl-wr740n-v4", "tl-wr841-v3", "tl-wr841-v5", "tl-wr841-v7", "miwifi-mini", "hc5661"]
+        target: ["tl-wr841-v8", "tl-wr841-v8-cn", "tl-wr941nd-v6", "tl-wr842n-v2", "tl-wr842n-v2-cn", "tl-wr941nd-v2", "tl-wr740n-v3", "tl-wr740n-v4", "tl-wr841-v3", "tl-wr841-v5", "tl-wr841-v7", "miwifi-mini", "hc5661", "tl-wr842n-v3"]
     steps:
       - name: Initialize token
         env:
