@@ -101,7 +101,7 @@ clear_iptables_rule() {
 validate_config_section() {
 	uci_validate_section "$KCPTUN" general "$1" \
 		'server:uciname' \
-		'client_file:string' \
+		'client_file:string:/usr/bin/kcptun-client' \
 		'daemon_user:string:root' \
 		'enable_logging:bool:0' \
 		'log_folder:directory:/var/log/kcptun' \
