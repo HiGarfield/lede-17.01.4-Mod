@@ -5994,4 +5994,3 @@ CONFIG_PACKAGE_shellsync=y
 # font-utils
 #
 # CONFIG_PACKAGE_fontconfig is not set
-CONFIG_OVERRIDE_PKGS="f2fs-tools"
