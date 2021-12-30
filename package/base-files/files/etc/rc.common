@@ -100,7 +100,9 @@ service_data() {
 }
 
 service_running() {
-	return 0
+	local instance="${1:-*}"
+
+	procd_running "$(basename $initscript)" "$instance"
 }
 
 ${INIT_TRACE:+set -x}
@@ -109,6 +111,9 @@ ${INIT_TRACE:+set -x}
 
 [ -n "$USE_PROCD" ] && {
 	EXTRA_COMMANDS="${EXTRA_COMMANDS} running trace"
+	EXTRA_HELP="\
+	running	Check if service is running
+	"
 
 	. $IPKG_INSTROOT/lib/functions/procd.sh
 	basescript=$(readlink "$initscript")
