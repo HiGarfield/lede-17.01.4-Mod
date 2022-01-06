@@ -98,10 +98,19 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 	mt7530_mdio_w32(gsw, 0x7000, 0x3);
 	usleep_range(10, 20);
 
-	/* Port 5 enable flow control */
+	/* Disable Flow Control Globally - MT7621 bug */
+	usleep_range(10, 20);
+	val = mt7530_mdio_r32(gsw, 0x1fe0);
+	val &= ~BIT(31);
+	mt7530_mdio_w32(gsw, 0x1fe0, val);
+
+	/* Disable flow control on Port 5 (GMAC) and Port 6 (CPU) */
 	/* (GE1, Force 1000M/FD, FC OFF, MAX_RX_LENGTH 1536) */
 	mtk_switch_w32(gsw, 0x2305e30b, GSW_REG_MAC_P0_MCR);
-	mt7530_mdio_w32(gsw, 0x3600, 0x5e30b);
+	for (i = 5; i <= 6; i++) {
+		mt7530_mdio_w32(gsw, 0x3000 + (i * 0x100), 0x5e30b);
+		usleep_range(10, 20);
+	}
 
 	/* turn off pause advertisement on all PHYs */
 	for (i = 0; i <= 4; i++) {
