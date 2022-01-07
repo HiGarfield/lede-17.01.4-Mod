@@ -111,6 +111,9 @@ init_config() {
 	[ "$auto_share" -eq 1 ] && {
 		mkdir -p /var/lock
 		lock /var/lock/autosamba.lock
+		[ -f /var/run/config/samba ] || {
+			mkdir -p /var/run/config && touch /var/run/config/samba
+		}
 		process_read_only_opt $auto_share_ro
 		CONFIG_APPEND=1 UCI_CONFIG_DIR=/var/run/config config_load samba
 		lock -u /var/lock/autosamba.lock
