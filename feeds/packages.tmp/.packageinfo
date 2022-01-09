@@ -1509,7 +1509,7 @@ Gergely Kiss <mail.gery@gmail.com>
 Source-Makefile: feeds/packages/lang/golang/golang/Makefile
 Package: golang
 Submenu: Go
-Version: 1.17.5-1
+Version: 1.17.6-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64) +golang-src
 Conflicts: 
 Menu-Depends: 
@@ -1521,7 +1521,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (compiler)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.5.src.tar.gz
+Source: go1.17.6.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1547,7 +1547,7 @@ Config:
 
 Package: golang-doc
 Submenu: Go
-Version: 1.17.5-1
+Version: 1.17.6-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1559,7 +1559,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (documentation)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.5.src.tar.gz
+Source: go1.17.6.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1581,7 +1581,7 @@ Jeffery To <jeffery.to@gmail.com>
 
 Package: golang-src
 Submenu: Go
-Version: 1.17.5-1
+Version: 1.17.6-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1593,7 +1593,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (source files)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.5.src.tar.gz
+Source: go1.17.6.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -26816,7 +26816,7 @@ Imre Kaloz <kaloz@openwrt.org>
 
 Source-Makefile: feeds/packages/net/cshark/Makefile
 Package: cshark
-Version: 2015-11-24-e575ab3d35d75a6f70488001fcba45690ebe9b3e-2
+Version: 2018-08-20-7a7cf7f35074b85c6fb0c52067e640d2433ef73b-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libjson-c +libpcap +libuci +libubox +libuclient +libustream-mbedtls
 Conflicts: 
 Menu-Depends: 
@@ -26826,7 +26826,7 @@ Category: Network
 Repository: base
 Title: CloudShark capture tool
 Maintainer: Luka Perkov <luka@openwrt.org>
-Source: cshark-2015-11-24-e575ab3d35d75a6f70488001fcba45690ebe9b3e-e575ab3d35d75a6f70488001fcba45690ebe9b3e.tar.xz
+Source: cshark-2018-08-20-7a7cf7f35074b85c6fb0c52067e640d2433ef73b-7a7cf7f35074b85c6fb0c52067e640d2433ef73b.tar.xz
 Type: ipkg
 Description: CloudShark capture tool
 http://www.cloudshark.org/
@@ -26835,7 +26835,7 @@ Luka Perkov <luka@openwrt.org>
 
 Package: luci-app-cshark
 Submenu: 3. Applications
-Version: 2015-11-24-e575ab3d35d75a6f70488001fcba45690ebe9b3e-2
+Version: 2018-08-20-7a7cf7f35074b85c6fb0c52067e640d2433ef73b-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +cshark +luci
 Conflicts: 
 Menu-Depends: 
@@ -26845,7 +26845,7 @@ Category: LuCI
 Repository: base
 Title: Cloudshark capture tool Web UI
 Maintainer: Luka Perkov <luka@openwrt.org>
-Source: cshark-2015-11-24-e575ab3d35d75a6f70488001fcba45690ebe9b3e-e575ab3d35d75a6f70488001fcba45690ebe9b3e.tar.xz
+Source: cshark-2018-08-20-7a7cf7f35074b85c6fb0c52067e640d2433ef73b-7a7cf7f35074b85c6fb0c52067e640d2433ef73b.tar.xz
 Type: ipkg
 Description: Cloudshark capture tool Web UI
 Luka Perkov <luka@openwrt.org>
@@ -36354,7 +36354,7 @@ Source-Makefile: feeds/packages/net/squid/Makefile
 Package: squid
 Menu: 1
 Submenu: Web Servers/Proxies
-Version: 3.5.12-1
+Version: 3.5.28-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +libpthread +librt +libltdl +libstdcpp
 Conflicts: 
 Menu-Depends: 
@@ -36363,20 +36363,21 @@ Section: net
 Category: Network
 Repository: base
 Title: full-featured Web proxy cache
-Maintainer: Luka Perkov <luka@openwrt.org>
-Source: squid-3.5.12.tar.xz
+Maintainer: Marko Ratkaj <marko.ratkaj@sartura.hr>
+Source: squid-3.5.28.tar.xz
 License: GPL-2.0
 Type: ipkg
 Description:   Squid is a caching proxy for the Web supporting HTTP, HTTPS, FTP, and more.
   It reduces bandwidth and improves response times by caching and reusing
   frequently-requested web pages.
 http://www.squid-cache.org/
-Luka Perkov <luka@openwrt.org>
+Marko Ratkaj <marko.ratkaj@sartura.hr>
 @@
 
 Package: squid-mod-cachemgr
+Menu: 1
 Submenu: Web Servers/Proxies
-Version: 3.5.12-1
+Version: 3.5.28-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread squid
 Conflicts: 
 Menu-Depends: 
@@ -36385,13 +36386,13 @@ Section: net
 Category: Network
 Repository: base
 Title: Web based proxy manager and reporting tool
-Maintainer: Luka Perkov <luka@openwrt.org>
-Source: squid-3.5.12.tar.xz
+Maintainer: Marko Ratkaj <marko.ratkaj@sartura.hr>
+Source: squid-3.5.28.tar.xz
 License: GPL-2.0
 Type: ipkg
 Description: Web based proxy manager and reporting tool
 http://www.squid-cache.org/
-Luka Perkov <luka@openwrt.org>
+Marko Ratkaj <marko.ratkaj@sartura.hr>
 @@
 
 
