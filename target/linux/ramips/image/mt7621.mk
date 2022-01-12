@@ -42,6 +42,14 @@ define Device/hw24g
 endef
 TARGET_DEVICES += hw24g
 
+define Device/link7
+  DTS := LINK7
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := LINK7
+  DEVICE_PACKAGES := kmod-usb3
+endef
+TARGET_DEVICES += link7
+
 define Device/a3004ns
   DTS := A3004NS
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
