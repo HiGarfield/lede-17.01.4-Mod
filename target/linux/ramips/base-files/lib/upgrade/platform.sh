@@ -107,6 +107,7 @@ platform_check_image() {
 	a3004ns|\
 	wr1200js|\
 	hw24g|\
+	link7|\
 	nixcore|\
 	nw718|\
 	omega2|\

@@ -19,6 +19,9 @@ ramips_board_detect() {
 	*"Huahuan HW24G")
 		name="hw24g"
 		;;
+	*"LINK7")
+		name="link7"
+		;;
 	*"11AC NAS Router")
 		name="11acnas"
 		;;
