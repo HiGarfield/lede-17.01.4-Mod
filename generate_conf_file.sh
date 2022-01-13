@@ -120,6 +120,7 @@ devices=(
 	"ramips_mt7621_DEVICE_ghl-r-001-e"
 	"ramips_mt7621_DEVICE_ghl-r-001-f"
 	"ramips_mt7621_DEVICE_hw24g"
+	"ramips_mt7621_DEVICE_link7"
 )
 process_devices $devices "1004kc"
 
