@@ -1,6 +1,6 @@
 #!/bin/bash
 
-tmpfs_size=9
+tmpfs_size=12
 user_password="111111"
 
 build_dir_path="build_dir"
