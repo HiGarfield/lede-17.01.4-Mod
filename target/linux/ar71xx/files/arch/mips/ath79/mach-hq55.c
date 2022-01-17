@@ -1,5 +1,5 @@
 /*
- *  HQ55 board support
+ *  100MI NETBOX HQ55 board support
  *
  *  Copyright (C) 2012 Gabor Juhos <juhosg@openwrt.org>
  *  Copyright (C) 2013 Gui Iribarren <gui@altermundi.net>
@@ -133,5 +133,5 @@ static void __init hq55_setup(void)
 }
 
 MIPS_MACHINE(ATH79_MACH_HQ55, "HQ55",
-	     "HQ55",
+	     "100MI NETBOX HQ55",
 	     hq55_setup);

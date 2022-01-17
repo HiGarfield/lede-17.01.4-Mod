@@ -774,7 +774,7 @@ TARGET_DEVICES += csac
 
 define Device/hq55
   $(Device/tplink-16mlzma)
-  DEVICE_TITLE := HQ55
+  DEVICE_TITLE := 100MI NETBOX HQ55
   DEVICE_PACKAGES := kmod-usb-core kmod-usb2 kmod-usb-ledtrig-usbport
   BOARDNAME := HQ55
   DEVICE_PROFILE := HQ55

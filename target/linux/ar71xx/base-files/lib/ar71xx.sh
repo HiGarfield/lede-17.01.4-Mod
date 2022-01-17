@@ -313,7 +313,7 @@ tplink_board_detect() {
 		model="TP-Link TL-WDR3320"
 		;;
 	"005500"*)
-		model="HQ55"
+		model="100MI NETBOX HQ55"
 		;;
 	"999900"*)
 		model="CSAC"
@@ -1040,7 +1040,7 @@ ar71xx_board_detect() {
 	*"TL-WDR3500")
 		name="tl-wdr3500"
 		;;
-	*"HQ55")
+	*"100MI NETBOX HQ55")
 		name="hq55"
 		;;
 	*"CSAC")

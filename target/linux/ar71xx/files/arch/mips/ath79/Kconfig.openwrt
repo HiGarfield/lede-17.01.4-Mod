@@ -1425,7 +1425,7 @@ config ATH79_MACH_TL_WDR3500
 	select ATH79_DEV_WMAC
 
 config ATH79_MACH_HQ55
-	bool "HQ55 board support"
+	bool "100MI NETBOX HQ55 board support"
 	select SOC_AR934X
 	select ATH79_DEV_AP9X_PCI if PCI
 	select ATH79_DEV_ETH
