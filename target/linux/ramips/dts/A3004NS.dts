@@ -7,7 +7,7 @@
 
 / {
 	compatible = "a3004ns", "mediatek,mt7621-soc";
-	model = "A3004NS";
+	model = "TOTOLINK A3004NS";
 
 	chosen {
 		bootargs = "console=ttyS0,115200";
