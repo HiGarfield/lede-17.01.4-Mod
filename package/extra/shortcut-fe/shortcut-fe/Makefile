@@ -17,17 +17,19 @@ include $(INCLUDE_DIR)/kernel.mk
 PKG_NAME:=shortcut-fe
 PKG_RELEASE:=1
 
-include $(INCLUDE_DIR)/local-development.mk
 include $(INCLUDE_DIR)/package.mk
 
 define KernelPackage/shortcut-fe
   SECTION:=kernel
   CATEGORY:=Kernel modules
   SUBMENU:=Network Support
-  DEPENDS:=
+  DEPENDS:=@IPV6 +kmod-nf-conntrack
   TITLE:=Kernel driver for SFE
-  FILES:=$(PKG_BUILD_DIR)/shortcut-fe/shortcut-fe.ko $(PKG_BUILD_DIR)/shortcut-fe/shortcut-fe-ipv6.ko
-  KCONFIG:=CONFIG_NF_CONNTRACK_EVENTS=y \
+  FILES:= \
+	   $(PKG_BUILD_DIR)/shortcut-fe.ko \
+	   $(PKG_BUILD_DIR)/shortcut-fe-ipv6.ko
+  KCONFIG:= \
+	   CONFIG_NF_CONNTRACK_EVENTS=y \
 	   CONFIG_NF_CONNTRACK_TIMEOUT=y \
 	   CONFIG_SHORTCUT_FE=y \
 	   CONFIG_XFRM=y
@@ -53,10 +55,11 @@ define KernelPackage/shortcut-fe-cm
   SUBMENU:=Network Support
   DEPENDS:=@IPV6 +kmod-ipt-conntrack +kmod-shortcut-fe
   TITLE:=Kernel driver for SFE
-  FILES:=$(PKG_BUILD_DIR)/shortcut-fe/shortcut-fe-cm.ko
-  KCONFIG:=CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y \
-  	   CONFIG_NF_CONNTRACK_EVENTS=y \
-  	   CONFIG_XFRM=y
+  FILES:=$(PKG_BUILD_DIR)/shortcut-fe-cm.ko
+  KCONFIG:= \
+	   CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y \
+	   CONFIG_NF_CONNTRACK_EVENTS=y \
+	   CONFIG_XFRM=y
 endef
 
 define KernelPackage/shortcut-fe-cm/Description
@@ -64,22 +67,22 @@ Simple connection manager for the Shortcut forwarding engine.
 endef
 
 TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
-EXTRA_CFLAGS+=-DSFE_SUPPORT_IPV6
+SFE_MAKE_OPTS := SFE_SUPPORT_IPV6=y
 
 define Build/Compile
 	$(MAKE) -C "$(LINUX_DIR)" \
+		$(strip $(SFE_MAKE_OPTS)) \
 		CROSS_COMPILE="$(TARGET_CROSS)" \
 		ARCH="$(LINUX_KARCH)" \
-		SUBDIRS="$(PKG_BUILD_DIR)/shortcut-fe" \
+		SUBDIRS="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
-		SFE_SUPPORT_IPV6=1 \
 		modules
 endef
 
 ifneq ($(CONFIG_PACKAGE_kmod-shortcut-fe)$(CONFIG_PACKAGE_kmod-shortcut-fe-cm),)
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/shortcut-fe
-	$(CP) -rf $(PKG_BUILD_DIR)/shortcut-fe/sfe.h $(1)/usr/include/shortcut-fe
+	$(CP) -rf $(PKG_BUILD_DIR)/sfe.h $(1)/usr/include/shortcut-fe
 endef
 endif
 
