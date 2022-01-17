@@ -1,0 +1,94 @@
+#!/bin/sh /etc/rc.common
+#
+#SFE connection manager has a lower priority, it should be started after other connection manager
+#to detect the existence of connection manager with higher priority
+
+START=72
+
+have_cm() {
+	if [ -d "/sys/kernel/debug/ecm" ]; then
+		echo 1
+	else
+		echo 0
+	fi
+}
+
+#load shortcut-fe connection manager
+load_sfe_cm() {
+	local kernel_version="$(uname -r)"
+
+	#shortcut-fe-drv.ko is not needed because other connection manager is not enabled
+	if [ -d "/sys/module/shortcut_fe_drv" ]; then
+		rmmod shortcut_fe_drv
+	fi
+
+	if [ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] && [ ! -d /sys/module/shortcut_fe_cm ]; then
+		insmod "/lib/modules/$kernel_version/shortcut-fe-cm.ko" && return
+	fi
+
+	if [ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] && [ ! -d /sys/module/fast_classifier ]; then
+		insmod "/lib/modules/$kernel_version/fast-classifier.ko" && return
+	fi
+}
+
+load_sfe() {
+	local enabled
+	local bridge
+	local ipv6
+	local sfe_ipv6
+	local offload_at_pkts
+
+	config_load sfe
+	config_get_bool enabled config enabled 0
+	config_get_bool bridge config bridge 0
+	config_get_bool ipv6 config ipv6 0
+	config_get offload_at_pkts config offload_at_pkts 128
+
+	if [ "$enabled" -eq 1 ]; then
+		if [ "$(have_cm)" -ne 1 ]; then
+			load_sfe_cm
+		fi
+
+		if [ -f "/sys/fast_classifier/skip_to_bridge_ingress" ]; then
+			echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
+		fi
+
+		if [ -f "/sys/fast_classifier/offload_at_pkts" ]; then
+			echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
+		fi
+
+		if [ "$ipv6" -eq 1 ]; then
+			sfe_ipv6=$(cat /sys/sfe_ipv6/debug_dev)
+			if [ ! -f /dev/sfe_ipv6 ]; then
+				mknod /dev/sfe_ipv6 c "$sfe_ipv6" 0
+			fi
+		else
+			rm -f /dev/sfe_ipv6
+		fi
+	fi
+}
+
+unload_sfe() {
+	if [ -d /sys/module/shortcut_fe_cm ]; then
+		rmmod shortcut_fe_cm
+	fi
+
+	if [ -d /sys/module/fast_classifier ]; then
+		rmmod fast_classifier
+	fi
+
+	rm -f /dev/sfe_ipv6
+}
+
+start() {
+	unload_sfe
+	load_sfe
+}
+
+stop() {
+	unload_sfe
+}
+
+restart() {
+	start
+}
