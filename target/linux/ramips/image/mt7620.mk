@@ -494,7 +494,7 @@ TARGET_DEVICES += d240
 define Device/hd51-n
   DTS := HD51-N
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_TITLE := HD51-N
+  DEVICE_TITLE := 100MI NETBOX HD51-N
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci-mt7620 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += hd51-n

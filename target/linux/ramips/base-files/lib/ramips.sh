@@ -13,13 +13,13 @@ ramips_board_detect() {
 	machine=$(awk 'BEGIN{FS="[ \t]+:[ \t]"} /machine/ {print $2}' /proc/cpuinfo)
 
 	case "$machine" in
-	*"A3004NS")
+	*"TOTOLINK A3004NS")
 		name="a3004ns"
 		;;
 	*"Huahuan HW24G")
 		name="hw24g"
 		;;
-	*"LINK7")
+	*"China Mobile LINK7")
 		name="link7"
 		;;
 	*"11AC NAS Router")
@@ -673,7 +673,7 @@ ramips_board_detect() {
 	*"YK1")
 		name="youku-yk1"
 		;;
-	*"HD51-N")
+	*"100MI NETBOX HD51-N")
 		name="hd51-n"
 		;;
 	*)

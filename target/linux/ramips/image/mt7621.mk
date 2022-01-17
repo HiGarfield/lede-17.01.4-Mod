@@ -45,7 +45,7 @@ TARGET_DEVICES += hw24g
 define Device/link7
   DTS := LINK7
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_TITLE := LINK7
+  DEVICE_TITLE := China Mobile LINK7
   DEVICE_PACKAGES := kmod-usb3
 endef
 TARGET_DEVICES += link7
@@ -53,7 +53,7 @@ TARGET_DEVICES += link7
 define Device/a3004ns
   DTS := A3004NS
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
-  DEVICE_TITLE := A3004NS
+  DEVICE_TITLE := TOTOLINK A3004NS
   DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += a3004ns

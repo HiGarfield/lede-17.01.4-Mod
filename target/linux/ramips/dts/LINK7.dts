@@ -7,7 +7,7 @@
 
 / {
 	compatible = "link7", "mediatek,mt7621-soc";
-	model = "LINK7";
+	model = "China Mobile LINK7";
 
 	chosen {
 		bootargs = "console=ttyS0,115200";
