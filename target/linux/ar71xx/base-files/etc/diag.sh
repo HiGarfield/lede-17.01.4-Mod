@@ -389,6 +389,9 @@ get_status_led() {
 	tl-wr941nd-v5)
 		status_led="tp-link:green:system"
 		;;
+	mw450r-v3)
+		status_led="mw450r:green:system"
+		;;
 	tl-mr10u|\
 	tl-mr12u|\
 	tl-mr13u|\

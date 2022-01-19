@@ -262,6 +262,9 @@ tplink_board_detect() {
 	"088500"*)
 		model="TP-Link TL-WR885N"
 		;;
+	"04500003"*)
+		model="MERCURY MW450R v3"
+		;;
 	"090100"*)
 		model="TP-Link TL-WA901N/ND"
 		;;
@@ -1093,6 +1096,9 @@ ar71xx_board_detect() {
 		;;
 	*"TL-WR885N v1")
 		name="tl-wr885n-v1"
+		;;
+	*"MERCURY MW450R v3")
+		name="mw450r-v3"
 		;;
 	*TL-WR941ND)
 		name="tl-wr941nd"

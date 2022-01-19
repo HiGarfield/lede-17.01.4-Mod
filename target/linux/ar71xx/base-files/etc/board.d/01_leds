@@ -637,6 +637,13 @@ tl-wr885n-v1)
 	ucidef_set_led_switch "lan3" "LAN3" "tp-link:green:lan3" "switch0" "0x04"
 	ucidef_set_led_switch "lan4" "LAN4" "tp-link:green:lan4" "switch0" "0x02"
 	;;
+mw450r-v3)
+	ucidef_set_led_netdev "wan" "WAN" "mw450r:green:wan" "eth0"
+	ucidef_set_led_switch "lan1" "LAN1" "mw450r:green:lan1" "switch0" "0x02"
+	ucidef_set_led_switch "lan2" "LAN2" "mw450r:green:lan2" "switch0" "0x04"
+	ucidef_set_led_switch "lan3" "LAN3" "mw450r:green:lan3" "switch0" "0x08"
+	ucidef_set_led_switch "lan4" "LAN4" "mw450r:green:lan4" "switch0" "0x10"
+	;;
 tl-wdr6500-v2|\
 tl-wr741nd)
 	ucidef_set_led_netdev "wan" "WAN" "tp-link:green:wan" "eth1"
