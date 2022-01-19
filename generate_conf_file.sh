@@ -72,6 +72,7 @@ devices=(
 	"ar71xx_generic_DEVICE_tl-wr941nd-v6-cn"
 	"ar71xx_generic_DEVICE_tl-wr941n-v7"
 	"ar71xx_generic_DEVICE_tl-wr885n-v1"
+	"ar71xx_generic_DEVICE_mw450r-v3"
 )
 process_devices $devices "74kc"
 
