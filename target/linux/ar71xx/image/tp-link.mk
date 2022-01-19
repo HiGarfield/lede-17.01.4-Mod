@@ -750,6 +750,15 @@ define Device/tl-wr885n-v1
 endef
 TARGET_DEVICES += tl-wr885n-v1
 
+define Device/mw450r-v3
+  $(Device/tplink-16mlzma)
+  DEVICE_TITLE := MERCURY MW450R v3
+  BOARDNAME := MW450R-v3
+  DEVICE_PROFILE := MW450R
+  TPLINK_HWID := 0x04500003
+endef
+TARGET_DEVICES += mw450r-v3
+
 define Device/tl-wr941nd-v2
     $(Device/tplink-4m)
     DEVICE_TITLE := TP-LINK TL-WR941N/ND v2
