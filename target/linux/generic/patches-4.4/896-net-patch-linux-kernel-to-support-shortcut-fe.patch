@@ -1,0 +1,169 @@
+From f65fb9f5ff8bfe7f2386cd3e14480b94caa54066 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 22 Jan 2022 02:40:47 +0800
+Subject: [PATCH 2/2] net-patch-linux-kernel-to-support-shortcut-fe
+
+---
+ include/linux/if_bridge.h              |  2 ++
+ include/linux/skbuff.h                 |  3 +++
+ net/Kconfig                            |  3 +++
+ net/bridge/br_if.c                     | 23 +++++++++++++++++++++++
+ net/core/dev.c                         | 24 ++++++++++++++++++++++++
+ net/netfilter/nf_conntrack_proto_tcp.c | 10 ++++++++--
+ 6 files changed, 63 insertions(+), 2 deletions(-)
+
+diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
+index ef5661b9..de79c001 100644
+--- a/include/linux/if_bridge.h
++++ b/include/linux/if_bridge.h
+@@ -51,6 +51,8 @@ struct br_ip_list {
+ #define BR_DEFAULT_AGEING_TIME	(300 * HZ)
+ 
+ extern void brioctl_set(int (*ioctl_hook)(struct net *, unsigned int, void __user *));
++extern void br_dev_update_stats(struct net_device *dev,
++				struct rtnl_link_stats64 *nlstats);
+ 
+ typedef int br_should_route_hook_t(struct sk_buff *skb);
+ extern br_should_route_hook_t __rcu *br_should_route_hook;
+diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
+index f08895ac..2eeb1552 100644
+--- a/include/linux/skbuff.h
++++ b/include/linux/skbuff.h
+@@ -645,6 +645,9 @@ struct sk_buff {
+ #endif
+ 	__u8			ipvs_property:1;
+ 
++#ifdef CONFIG_SHORTCUT_FE
++	__u8			fast_forwarded:1;
++#endif
+ 	__u8			inner_protocol_type:1;
+ 	__u8			remcsum_offload:1;
+ 	__u8			gro_skip:1;
+diff --git a/net/Kconfig b/net/Kconfig
+index 1824c31f..878f6886 100644
+--- a/net/Kconfig
++++ b/net/Kconfig
+@@ -401,3 +401,6 @@ config HAVE_BPF_JIT
+ 
+ config HAVE_EBPF_JIT
+ 	bool
++
++config SHORTCUT_FE
++	bool "Enables kernel network stack path for Shortcut Forwarding Engine"
+diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
+index c7a28154..4a1bec7c 100644
+--- a/net/bridge/br_if.c
++++ b/net/bridge/br_if.c
+@@ -596,3 +596,26 @@ void br_port_flags_change(struct net_bridge_port *p, unsigned long mask)
+ 	if (mask & BR_AUTO_MASK)
+ 		nbp_update_port_count(br);
+ }
++
++/* Update bridge statistics for bridge packets processed by offload engines */
++void br_dev_update_stats(struct net_device *dev,
++			 struct rtnl_link_stats64 *nlstats)
++{
++	struct net_bridge *br;
++	struct pcpu_sw_netstats *stats;
++
++	/* Is this a bridge? */
++	if (!(dev->priv_flags & IFF_EBRIDGE))
++		return;
++
++	br = netdev_priv(dev);
++	stats = this_cpu_ptr(br->stats);
++
++	u64_stats_update_begin(&stats->syncp);
++	stats->rx_packets += nlstats->rx_packets;
++	stats->rx_bytes += nlstats->rx_bytes;
++	stats->tx_packets += nlstats->tx_packets;
++	stats->tx_bytes += nlstats->tx_bytes;
++	u64_stats_update_end(&stats->syncp);
++}
++EXPORT_SYMBOL_GPL(br_dev_update_stats);
+diff --git a/net/core/dev.c b/net/core/dev.c
+index c7046979..996f8b6a 100644
+--- a/net/core/dev.c
++++ b/net/core/dev.c
+@@ -2773,8 +2773,17 @@ static int xmit_one(struct sk_buff *skb, struct net_device *dev,
+ 	unsigned int len;
+ 	int rc;
+ 
++#ifdef CONFIG_SHORTCUT_FE
++	/* If this skb has been fast forwarded then we don't want it to
++	 * go to any taps (by definition we're trying to bypass them).
++	 */
++	if (!skb->fast_forwarded) {
++#endif
+ 	if (!list_empty(&ptype_all) || !list_empty(&dev->ptype_all))
+ 		dev_queue_xmit_nit(skb, dev);
++#ifdef CONFIG_SHORTCUT_FE
++	}
++#endif
+ 
+ #ifdef CONFIG_ETHERNET_PACKET_MANGLE
+ 	if (!dev->eth_mangle_tx ||
+@@ -3877,6 +3886,11 @@ void netdev_rx_handler_unregister(struct net_device *dev)
+ }
+ EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
+ 
++#ifdef CONFIG_SHORTCUT_FE
++int (*fast_nat_recv)(struct sk_buff *skb) __rcu __read_mostly;
++EXPORT_SYMBOL_GPL(fast_nat_recv);
++#endif
++
+ /*
+  * Limit the use of PFMEMALLOC reserves to those protocols that implement
+  * the special handling of PFMEMALLOC skbs.
+@@ -3920,6 +3934,9 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc)
+ 	int ret = NET_RX_DROP;
+ 	__be16 type;
+ 
++#ifdef CONFIG_SHORTCUT_FE
++	int (*fast_recv)(struct sk_buff *skb);
++#endif
+ 	net_timestamp_check(!netdev_tstamp_prequeue, skb);
+ 
+ 	trace_netif_receive_skb(skb);
+@@ -3945,6 +3962,13 @@ another_round:
+ 			goto out;
+ 	}
+ 
++#ifdef CONFIG_SHORTCUT_FE
++	fast_recv = rcu_dereference(fast_nat_recv);
++	if (fast_recv && fast_recv(skb)) {
++		ret = NET_RX_SUCCESS;
++		goto out;
++	}
++#endif
+ #ifdef CONFIG_NET_CLS_ACT
+ 	if (skb->tc_verd & TC_NCLS) {
+ 		skb->tc_verd = CLR_TC_NCLS(skb->tc_verd);
+diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
+index 01ff7584..5ba225d8 100644
+--- a/net/netfilter/nf_conntrack_proto_tcp.c
++++ b/net/netfilter/nf_conntrack_proto_tcp.c
+@@ -34,12 +34,18 @@
+ #include <net/netfilter/ipv6/nf_conntrack_ipv6.h>
+ 
+ /* Do not check the TCP window for incoming packets  */
+-static int nf_ct_tcp_no_window_check __read_mostly = 1;
++int nf_ct_tcp_no_window_check __read_mostly = 1;
++#ifdef CONFIG_SHORTCUT_FE
++EXPORT_SYMBOL_GPL(nf_ct_tcp_no_window_check);
++#endif
+ 
+ /* "Be conservative in what you do,
+     be liberal in what you accept from others."
+     If it's non-zero, we mark only out of window RST segments as INVALID. */
+-static int nf_ct_tcp_be_liberal __read_mostly = 0;
++int nf_ct_tcp_be_liberal __read_mostly = 0;
++#ifdef CONFIG_SHORTCUT_FE
++EXPORT_SYMBOL_GPL(nf_ct_tcp_be_liberal);
++#endif
+ 
+ /* If it is set to zero, we disable picking up already established
+    connections. */
+-- 
+2.25.1
+
