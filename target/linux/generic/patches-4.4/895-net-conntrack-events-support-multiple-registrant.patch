@@ -1,0 +1,331 @@
+From 076a9e9651802b2e5eb0a30623b20e543760b94c Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 22 Jan 2022 00:33:59 +0800
+Subject: [PATCH 1/2] net-conntrack-events-support-multiple-registrant
+
+---
+ include/net/netfilter/nf_conntrack_ecache.h | 55 ++++++++++++++++++-
+ include/net/netns/conntrack.h               |  4 ++
+ net/netfilter/Kconfig                       |  8 +++
+ net/netfilter/nf_conntrack_core.c           |  3 ++
+ net/netfilter/nf_conntrack_ecache.c         | 59 +++++++++++++++++++++
+ net/netfilter/nf_conntrack_netlink.c        | 18 +++++++
+ 6 files changed, 146 insertions(+), 1 deletion(-)
+
+diff --git a/include/net/netfilter/nf_conntrack_ecache.h b/include/net/netfilter/nf_conntrack_ecache.h
+index 57c88037..52e1337e 100644
+--- a/include/net/netfilter/nf_conntrack_ecache.h
++++ b/include/net/netfilter/nf_conntrack_ecache.h
+@@ -63,6 +63,10 @@ struct nf_ct_event {
+ 	int report;
+ };
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++extern int nf_conntrack_register_notifier(struct net *net, struct notifier_block *nb);
++extern int nf_conntrack_unregister_notifier(struct net *net, struct notifier_block *nb);
++#else
+ struct nf_ct_event_notifier {
+ 	int (*fcn)(unsigned int events, struct nf_ct_event *item);
+ };
+@@ -71,17 +75,20 @@ int nf_conntrack_register_notifier(struct net *net,
+ 				   struct nf_ct_event_notifier *nb);
+ void nf_conntrack_unregister_notifier(struct net *net,
+ 				      struct nf_ct_event_notifier *nb);
++#endif
+ 
+ void nf_ct_deliver_cached_events(struct nf_conn *ct);
+ 
+ static inline void
+ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
+-	struct net *net = nf_ct_net(ct);
+ 	struct nf_conntrack_ecache *e;
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	struct net *net = nf_ct_net(ct);
+ 
+ 	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
+ 		return;
++#endif
+ 
+ 	e = nf_ct_ecache_find(ct);
+ 	if (e == NULL)
+@@ -89,7 +96,38 @@ nf_conntrack_event_cache(enum ip_conntrack_events event, struct nf_conn *ct)
+ 
+ 	set_bit(event, &e->cache);
+ }
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++static inline int
++nf_conntrack_eventmask_report(unsigned int eventmask,
++			      struct nf_conn *ct,
++			      u32 portid,
++			      int report)
++{
++	struct nf_conntrack_ecache *e;
++	struct net *net = nf_ct_net(ct);
++
++	e = nf_ct_ecache_find(ct);
++	if (e == NULL)
++		return 0;
++
++	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct)) {
++		struct nf_ct_event item = {
++			.ct = ct,
++			.portid	= e->portid ? e->portid : portid,
++			.report = report
++		};
++		/* This is a resent of a destroy event? If so, skip missed */
++		unsigned long missed = e->portid ? 0 : e->missed;
++
++		if (!((eventmask | missed) & e->ctmask))
++			return 0;
++
++		atomic_notifier_call_chain(&net->ct.nf_conntrack_chain, eventmask | missed, &item);
++	}
+ 
++	return 0;
++}
++#else
+ static inline int
+ nf_conntrack_eventmask_report(unsigned int eventmask,
+ 			      struct nf_conn *ct,
+@@ -143,17 +181,32 @@ out_unlock:
+ 	rcu_read_unlock();
+ 	return ret;
+ }
++#endif
+ 
+ static inline int
+ nf_conntrack_event_report(enum ip_conntrack_events event, struct nf_conn *ct,
+ 			  u32 portid, int report)
+ {
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	const struct net *net = nf_ct_net(ct);
++
++	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
++		return 0;
++#endif
+ 	return nf_conntrack_eventmask_report(1 << event, ct, portid, report);
+ }
+ 
+ static inline int
+ nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
++#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	const struct net *net = nf_ct_net(ct);
++
++	if (!rcu_access_pointer(net->ct.nf_conntrack_event_cb))
++		return 0;
++
++#endif
++
+ 	return nf_conntrack_eventmask_report(1 << event, ct, 0, 0);
+ }
+ 
+diff --git a/include/net/netns/conntrack.h b/include/net/netns/conntrack.h
+index 723b61c8..fbb9c160 100644
+--- a/include/net/netns/conntrack.h
++++ b/include/net/netns/conntrack.h
+@@ -100,7 +100,11 @@ struct netns_ct {
+ 	struct hlist_head	*expect_hash;
+ 	struct ct_pcpu __percpu *pcpu_lists;
+ 	struct ip_conntrack_stat __percpu *stat;
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	struct atomic_notifier_head nf_conntrack_chain;
++#else
+ 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
++#endif
+ 	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
+ 	struct nf_ip_net	nf_ct_proto;
+ #if defined(CONFIG_NF_CONNTRACK_LABELS)
+diff --git a/net/netfilter/Kconfig b/net/netfilter/Kconfig
+index 7da6cef2..2117a686 100644
+--- a/net/netfilter/Kconfig
++++ b/net/netfilter/Kconfig
+@@ -126,6 +126,14 @@ config NF_CONNTRACK_RTCACHE
+ 	  To compile it as a module, choose M here.  If unsure, say N.
+ 	  The module will be called nf_conntrack_rtcache.
+ 
++config NF_CONNTRACK_CHAIN_EVENTS
++	bool "Register multiple callbacks to ct events"
++	depends on NF_CONNTRACK_EVENTS
++	help
++	  Support multiple registrations.
++
++	  If unsure, say `N'.
++
+ config NF_CONNTRACK_TIMEOUT
+ 	bool  'Connection tracking timeout'
+ 	depends on NETFILTER_ADVANCED
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index de0aad12..2fe3345d 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1859,6 +1859,9 @@ int nf_conntrack_init_net(struct net *net)
+ 	ret = nf_conntrack_proto_pernet_init(net);
+ 	if (ret < 0)
+ 		goto err_proto;
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	ATOMIC_INIT_NOTIFIER_HEAD(&net->ct.nf_conntrack_chain);
++#endif
+ 	return 0;
+ 
+ err_proto:
+diff --git a/net/netfilter/nf_conntrack_ecache.c b/net/netfilter/nf_conntrack_ecache.c
+index f3b92ce4..a538f393 100644
+--- a/net/netfilter/nf_conntrack_ecache.c
++++ b/net/netfilter/nf_conntrack_ecache.c
+@@ -18,6 +18,9 @@
+ #include <linux/stddef.h>
+ #include <linux/err.h>
+ #include <linux/percpu.h>
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++#include <linux/notifier.h>
++#endif
+ #include <linux/kernel.h>
+ #include <linux/netdevice.h>
+ #include <linux/slab.h>
+@@ -115,6 +118,47 @@ static void ecache_work(struct work_struct *work)
+ 
+ /* deliver cached events and clear cache entry - must be called with locally
+  * disabled softirqs */
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++void nf_ct_deliver_cached_events(struct nf_conn *ct)
++{
++	unsigned long events, missed;
++	struct nf_conntrack_ecache *e;
++	struct nf_ct_event item;
++	struct net *net = nf_ct_net(ct);
++
++	e = nf_ct_ecache_find(ct);
++	if (e == NULL)
++		return;
++
++	events = xchg(&e->cache, 0);
++
++	if (!nf_ct_is_confirmed(ct) || nf_ct_is_dying(ct) || !events)
++		return;
++
++	/* We make a copy of the missed event cache without taking
++	 * the lock, thus we may send missed events twice. However,
++	 * this does not harm and it happens very rarely. */
++	missed = e->missed;
++
++	if (!((events | missed) & e->ctmask))
++		return;
++
++	item.ct = ct;
++	item.portid = 0;
++	item.report = 0;
++
++	atomic_notifier_call_chain(&net->ct.nf_conntrack_chain,
++			events | missed,
++			&item);
++
++	if (likely(!missed))
++		return;
++
++	spin_lock_bh(&ct->lock);
++	e->missed &= ~missed;
++	spin_unlock_bh(&ct->lock);
++}
++#else
+ void nf_ct_deliver_cached_events(struct nf_conn *ct)
+ {
+ 	struct net *net = nf_ct_net(ct);
+@@ -165,8 +209,15 @@ void nf_ct_deliver_cached_events(struct nf_conn *ct)
+ out_unlock:
+ 	rcu_read_unlock();
+ }
++#endif
+ EXPORT_SYMBOL_GPL(nf_ct_deliver_cached_events);
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++int nf_conntrack_register_notifier(struct net *net, struct notifier_block *nb)
++{
++	return atomic_notifier_chain_register(&net->ct.nf_conntrack_chain, nb);
++}
++#else
+ int nf_conntrack_register_notifier(struct net *net,
+ 				   struct nf_ct_event_notifier *new)
+ {
+@@ -187,8 +238,15 @@ out_unlock:
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+ 	return ret;
+ }
++#endif
+ EXPORT_SYMBOL_GPL(nf_conntrack_register_notifier);
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++int nf_conntrack_unregister_notifier(struct net *net, struct notifier_block *nb)
++{
++	return atomic_notifier_chain_unregister(&net->ct.nf_conntrack_chain, nb);
++}
++#else
+ void nf_conntrack_unregister_notifier(struct net *net,
+ 				      struct nf_ct_event_notifier *new)
+ {
+@@ -202,6 +260,7 @@ void nf_conntrack_unregister_notifier(struct net *net,
+ 	mutex_unlock(&nf_ct_ecache_mutex);
+ 	/* synchronize_rcu() is called from ctnetlink_exit. */
+ }
++#endif
+ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+ 
+ int nf_ct_expect_register_notifier(struct net *net,
+diff --git a/net/netfilter/nf_conntrack_netlink.c b/net/netfilter/nf_conntrack_netlink.c
+index 3a24c01c..c5fbafc0 100644
+--- a/net/netfilter/nf_conntrack_netlink.c
++++ b/net/netfilter/nf_conntrack_netlink.c
+@@ -31,6 +31,10 @@
+ #include <linux/slab.h>
+ #include <linux/siphash.h>
+ 
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++#include <linux/notifier.h>
++#endif
++
+ #include <linux/netfilter.h>
+ #include <net/netlink.h>
+ #include <net/sock.h>
+@@ -634,14 +638,22 @@ ctnetlink_nlmsg_size(const struct nf_conn *ct)
+ }
+ 
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++static int ctnetlink_conntrack_event(struct notifier_block *this,
++                           unsigned long events, void *ptr)
++#else
+ static int
+ ctnetlink_conntrack_event(unsigned int events, struct nf_ct_event *item)
++#endif
+ {
+ 	const struct nf_conntrack_zone *zone;
+ 	struct net *net;
+ 	struct nlmsghdr *nlh;
+ 	struct nfgenmsg *nfmsg;
+ 	struct nlattr *nest_parms;
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++	struct nf_ct_event *item = (struct nf_ct_event *)ptr;
++#endif
+ 	struct nf_conn *ct = item->ct;
+ 	struct sk_buff *skb;
+ 	unsigned int type;
+@@ -3290,9 +3302,15 @@ ctnetlink_stat_exp_cpu(struct sock *ctnl, struct sk_buff *skb,
+ }
+ 
+ #ifdef CONFIG_NF_CONNTRACK_EVENTS
++#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
++static struct notifier_block ctnl_notifier = {
++	.notifier_call = ctnetlink_conntrack_event,
++};
++#else
+ static struct nf_ct_event_notifier ctnl_notifier = {
+ 	.fcn = ctnetlink_conntrack_event,
+ };
++#endif
+ 
+ static struct nf_exp_event_notifier ctnl_notifier_exp = {
+ 	.fcn = ctnetlink_expect_event,
+-- 
+2.25.1
+
