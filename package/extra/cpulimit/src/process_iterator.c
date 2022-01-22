@@ -30,15 +30,15 @@
 
 //See this link to port to other systems: http://www.steve.org.uk/Reference/Unix/faq_8.html#SEC85
 
-#ifdef __linux__
+#if defined(__linux__)
 
 #include "process_iterator_linux.c"
 
-#elif defined __FreeBSD__
+#elif defined(__FreeBSD__)
 
 #include "process_iterator_freebsd.c"
 
-#elif defined __APPLE__
+#elif defined(__APPLE__)
 
 #include "process_iterator_apple.c"
 
