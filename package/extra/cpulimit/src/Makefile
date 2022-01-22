@@ -1,12 +1,11 @@
-CC?=gcc
-CFLAGS?=-Wall
-TARGETS=cpulimit
-OBJS=cpulimit.o list.o process_iterator.o process_group.o
+CC ?= gcc
+CFLAGS ?= -Wall
+TARGETS := cpulimit
+OBJS := cpulimit.o list.o process_iterator.o process_group.o
 
-CFLAGS += -D_GNU_SOURCE -ffunction-sections -fdata-sections -flto
-LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
+CFLAGS += -D_GNU_SOURCE
 
-UNAME?=$(shell uname)
+UNAME ?= $(shell uname)
 
 ifeq ($(UNAME), FreeBSD)
 	LDFLAGS += -lkvm

@@ -29,20 +29,19 @@
 
 //USER_HZ detection, from openssl code
 #ifndef HZ
-# if defined(_SC_CLK_TCK) \
-     && (!defined(OPENSSL_SYS_VMS) || __CTRL_VER >= 70000000)
-#  define HZ ((double)sysconf(_SC_CLK_TCK))
-# else
-#  ifndef CLK_TCK
-#   ifndef _BSD_CLK_TCK_ /* FreeBSD hack */
-#    define HZ  100.0
-#   else /* _BSD_CLK_TCK_ */
-#    define HZ ((double)_BSD_CLK_TCK_)
-#   endif
-#  else /* CLK_TCK */
-#   define HZ ((double)CLK_TCK)
-#  endif
-# endif
+#if defined(_SC_CLK_TCK) && (!defined(OPENSSL_SYS_VMS) || __CTRL_VER >= 70000000)
+#define HZ ((double)sysconf(_SC_CLK_TCK))
+#else
+#ifndef CLK_TCK
+#ifndef _BSD_CLK_TCK_ /* FreeBSD hack */
+#define HZ 100.0
+#else /* _BSD_CLK_TCK_ */
+#define HZ ((double)_BSD_CLK_TCK_)
+#endif
+#else /* CLK_TCK */
+#define HZ ((double)CLK_TCK)
+#endif
+#endif
 #endif
 
 #ifdef __FreeBSD__
@@ -50,7 +49,8 @@
 #endif
 
 // process descriptor
-struct process {
+struct process
+{
 	//pid of the process
 	pid_t pid;
 	//ppid of the process
@@ -62,24 +62,26 @@ struct process {
 	//actual cpu usage estimation (value in range 0-1)
 	double cpu_usage;
 	//absolute path of the executable file
-	char command[PATH_MAX+1];
+	char command[PATH_MAX + 1];
 };
 
-struct process_filter {
+struct process_filter
+{
 	int pid;
 	int include_children;
-	char program_name[PATH_MAX+1];
+	char program_name[PATH_MAX + 1];
 };
 
-struct process_iterator {
-#ifdef __linux__
+struct process_iterator
+{
+#if defined(__linux__)
 	DIR *dip;
-#elif defined __FreeBSD__
+#elif defined(__FreeBSD__)
 	kvm_t *kd;
 	struct kinfo_proc *procs;
 	int count;
 	int i;
-#elif defined __APPLE__
+#elif defined(__APPLE__)
 	int i;
 	int count;
 	int *pidlist;

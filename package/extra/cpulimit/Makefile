@@ -14,6 +14,9 @@ define Package/cpulimit
   URL:=https://github.com/opsengine/cpulimit.git
 endef
 
+TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -flto
+
 define Package/cpulimit/install
 	$(INSTALL_DIR) $(1)/usr/bin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/cpulimit $(1)/usr/bin
