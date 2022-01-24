@@ -1,7 +1,7 @@
 From 966471712184cfb3b067f2ae8dad9d8e2a896cae Mon Sep 17 00:00:00 2001
 From: Bearice Ren <bearice@icybear.net>
 Date: Tue, 20 Sep 2016 11:52:08 +0800
-Subject: [PATCH] add filter-aaaa option
+Subject: [PATCH] add filter-AAAA option
 
 ---
  src/dnsmasq.h | 3 ++-
@@ -35,7 +35,7 @@ Subject: [PATCH] add filter-aaaa option
      { "log-debug", 0, 0, LOPT_LOG_DEBUG },
  	{ "umbrella", 2, 0, LOPT_UMBRELLA },
      { "quiet-tftp", 0, 0, LOPT_QUIET_TFTP },
-+    { "filter-aaaa", 0, 0, LOPT_FILTER_AAAA },
++    { "filter-AAAA", 0, 0, LOPT_FILTER_AAAA },
      { NULL, 0, 0, 0 }
    };
  
