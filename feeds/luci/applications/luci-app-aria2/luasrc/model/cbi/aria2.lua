@@ -76,6 +76,13 @@ o = s:taboption("general", Value, "rpc_secret", translate("RPC Token"), "<br/>" 
 o:depends("rpc_auth_method", "token")
 o.rmempty = true
 
+o = s:taboption("general", ListValue, "nice", translate("Nice value"), translate("The range of nice value is -20 to 19, where -20 is the highest, 0 is the default, and 19 is the lowest."))
+o.default = "0"
+o.rmempty = true
+for niceness = -20, 19 do
+	o:value(niceness)
+end
+
 o = s:taboption("file", Value, "config_dir", translate("Config file directory"))
 o.placeholder = "/var/etc/aria2"
 
