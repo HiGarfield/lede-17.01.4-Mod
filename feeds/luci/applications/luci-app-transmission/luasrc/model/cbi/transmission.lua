@@ -30,6 +30,13 @@ for _, p_user in luci.util.vspairs(luci.util.split(luci.sys.exec("cat /etc/passw
 end
 cache_size_mb=s:option(Value, "cache_size_mb", translate("Cache size in MB"))
 
+nice = s:option(ListValue, "nice", translate("Nice value"), translate("The range of nice value is -20 to 19, where -20 is the highest, 0 is the default, and 19 is the lowest."))
+nice.default = "0"
+nice.rmempty = true
+for niceness = -20, 19 do
+	nice:value(niceness)
+end
+
 bandwidth=m:section(TypedSection, "transmission", translate("Bandwidth settings"))
 bandwidth.anonymous=true
 alt_speed_enabled=bandwidth:option(Flag, "alt_speed_enabled", translate("Alternative speed enabled"))

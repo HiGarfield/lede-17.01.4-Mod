@@ -299,3 +299,9 @@ msgstr "启用transmission前请务必创建下载目录"
 
 msgid "Please create the incomplete directory before enabling transmission."
 msgstr "启用transmission前请务必创建未完成任务目录"
+
+msgid "Nice value"
+msgstr "Nice优先级"
+
+msgid "The range of nice value is -20 to 19, where -20 is the highest, 0 is the default, and 19 is the lowest."
+msgstr "Nice优先级范围为-20到19, 其中-20为最高优先级, 0为默认优先级, 19为最低优先级"
