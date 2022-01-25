@@ -24,16 +24,10 @@ end
 limit = s:option(Value, "limit", translate("limit (%)"))
 limit.optional = false
 limit.rmempty = false
+limit.datatype = "and(uinteger,range(0,100))"
 limit.default = "50"
-limit:value("100")
-limit:value("90")
-limit:value("80")
-limit:value("70")
-limit:value("60")
-limit:value("50")
-limit:value("40")
-limit:value("30")
-limit:value("20")
-limit:value("10")
+for percentage = 10, 100, 10 do
+	limit:value(percentage)
+end
 
 return m
