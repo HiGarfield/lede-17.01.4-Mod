@@ -7,6 +7,7 @@ cpulimit_get() {
 	local enabled
 	local limit
 	local exename
+	local numcores
 	config_get enabled $1 enabled
 	[ $enabled -gt 0 ] || return 1
 	config_get limit $1 limit
@@ -15,9 +16,10 @@ cpulimit_get() {
 	config_get exename $1 exename
 	[ -z "$exename" ] && return 1
 	exename="$(basename "$exename")"
+	numcores="$(cpulimit -h | awk -F 'percentage of cpu allowed from 0 to ' '/^[[:space:]]*-l, --limit=N/{print $2; exit}' | awk '{print $1/100; exit}')"
 	procd_open_instance
 	procd_set_param command cpulimit
-	procd_append_param command -l $limit
+	procd_append_param command -l $((limit * numcores))
 	procd_append_param command -e "$exename"
 	procd_set_param stderr 1
 	procd_set_param nice -20
@@ -30,6 +32,6 @@ start_service() {
 	config_foreach cpulimit_get list
 }
 
-service_triggers(){
+service_triggers() {
 	procd_add_reload_trigger "cpulimit"
 }
