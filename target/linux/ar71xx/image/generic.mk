@@ -762,7 +762,7 @@ TARGET_DEVICES += domywifi-dw33d
 
 define Device/phicomm-k2t
   DEVICE_TITLE := Phicomm K2T
-  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9888
+  DEVICE_PACKAGES := kmod-ath10k-smallbuffers ath10k-firmware-qca9888
   BOARDNAME = K2T
   IMAGE_SIZE := 15744k
   CONSOLE = ttyS0,115200
