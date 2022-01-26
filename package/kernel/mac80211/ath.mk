@@ -1,5 +1,5 @@
 PKG_DRIVERS += \
-	ath ath5k ath6kl ath6kl-sdio ath6kl-usb ath9k ath9k-common ath9k-htc ath10k \
+	ath ath5k ath6kl ath6kl-sdio ath6kl-usb ath9k ath9k-common ath9k-htc ath10k ath10k-smallbuffers \
 	carl9170
 
 PKG_CONFIG_DEPENDS += \
@@ -46,6 +46,7 @@ config-$(CONFIG_ATH9K_UBNTHSR) += ATH9K_UBNTHSR
 
 config-$(call config_package,ath9k-htc) += ATH9K_HTC
 config-$(call config_package,ath10k) += ATH10K ATH10K_PCI
+config-$(call config_package,ath10k-smallbuffers) += ATH10K ATH10K_PCI ATH10K_SMALLBUFFERS
 
 config-$(call config_package,ath5k) += ATH5K
 ifdef CONFIG_TARGET_ath25
@@ -240,12 +241,19 @@ define KernelPackage/ath10k
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_core.ko \
 	$(PKG_BUILD_DIR)/drivers/net/wireless/ath/ath10k/ath10k_pci.ko
   AUTOLOAD:=$(call AutoProbe,ath10k_pci)
+  VARIANT:=regular
 endef
 
 define KernelPackage/ath10k/description
 This module adds support for wireless adapters based on
 Atheros IEEE 802.11ac family of chipsets. For now only
 PCI is supported.
+endef
+
+define KernelPackage/ath10k-smallbuffers
+  $(call KernelPackage/ath10k)
+  TITLE+= (small buffers for low-RAM devices)
+  VARIANT:=smallbuffers
 endef
 
 define KernelPackage/carl9170
