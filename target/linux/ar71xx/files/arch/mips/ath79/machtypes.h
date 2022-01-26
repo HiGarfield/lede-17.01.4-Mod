@@ -83,6 +83,7 @@ enum ath79_mach_type {
 	ATH79_MACH_DLAN_PRO_1200_AC,		/* devolo dLAN pro 1200+ WiFi ac*/
 	ATH79_MACH_DLAN_PRO_500_WP,		/* devolo dLAN pro 500 Wireless+ */
 	ATH79_MACH_DOMYWIFI_DW33D,		/* DomyWifi DW33D */
+	ATH79_MACH_PHICOMM_K2T,		/* Phicomm K2T */
 	ATH79_MACH_DR344,			/* Wallys DR344 */
 	ATH79_MACH_DR531,			/* Wallys DR531 */
 	ATH79_MACH_DRAGINO2,			/* Dragino Version 2 */

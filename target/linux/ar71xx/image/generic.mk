@@ -760,6 +760,18 @@ define Device/domywifi-dw33d
 endef
 TARGET_DEVICES += domywifi-dw33d
 
+define Device/phicomm-k2t
+  DEVICE_TITLE := Phicomm K2T
+  DEVICE_PACKAGES := kmod-ath10k ath10k-firmware-qca9888
+  BOARDNAME = K2T
+  IMAGE_SIZE := 15744k
+  CONSOLE = ttyS0,115200
+  MTDPARTS := spi0.0:192k(u-boot),64k(config),320k(permanent),15744k(firmware),64k(art)
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(BLOCKSIZE) | \
+	append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
+endef
+TARGET_DEVICES += phicomm-k2t
+
 define Device/csac
   DEVICE_TITLE := CSAC
   BOARDNAME := CSAC
