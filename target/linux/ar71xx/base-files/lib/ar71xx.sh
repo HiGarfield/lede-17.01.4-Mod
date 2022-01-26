@@ -621,6 +621,9 @@ ar71xx_board_detect() {
 	*"DW33D")
 		name="dw33d"
 		;;
+	*"K2T")
+		name="k2t"
+		;;
 	*E2100L)
 		name="e2100l"
 		;;

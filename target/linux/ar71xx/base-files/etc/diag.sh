@@ -163,6 +163,9 @@ get_status_led() {
 	dw33d)
 		status_led="$board:blue:status"
 		;;
+	k2t)
+		status_led="$board:red:lan"
+		;;
 	eap120)
 		status_led="$(ar71xx_board_name):green:system"
 		;;
