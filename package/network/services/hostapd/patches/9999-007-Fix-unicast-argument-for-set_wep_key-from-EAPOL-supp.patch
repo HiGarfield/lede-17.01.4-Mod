@@ -1,0 +1,32 @@
+From df025035ccbc1d85203eff4b2b6b7438c20ab7a3 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 28 Jan 2022 03:59:28 +0800
+Subject: [PATCH 2/2] Fix unicast argument for set_wep_key() from EAPOL
+ supplicant
+
+The unicast parameter in set_wep_key() is only expected to be set to 0
+or 1. Without this patch we set unicast to 0x80 instead of 1. Since
+unicast is used as boolean that is working fine but violates the
+documented API.
+
+Signed-off-by: Alexander Wetzel <alexander@wetzel-home.de>
+---
+ src/eapol_supp/eapol_supp_sm.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/eapol_supp/eapol_supp_sm.c b/src/eapol_supp/eapol_supp_sm.c
+index f1ca0a8..7c3b83f 100644
+--- a/src/eapol_supp/eapol_supp_sm.c
++++ b/src/eapol_supp/eapol_supp_sm.c
+@@ -828,7 +828,7 @@ static void eapol_sm_processKey(struct eapol_sm *sm)
+ 
+ 	if (sm->ctx->set_wep_key &&
+ 	    sm->ctx->set_wep_key(sm->ctx->ctx,
+-				 key->key_index & IEEE8021X_KEY_INDEX_FLAG,
++				 !!(key->key_index & IEEE8021X_KEY_INDEX_FLAG),
+ 				 key->key_index & IEEE8021X_KEY_INDEX_MASK,
+ 				 datakey, key_len) < 0) {
+ 		wpa_printf(MSG_WARNING, "EAPOL: Failed to set WEP key to the "
+-- 
+2.25.1
+

@@ -1,0 +1,65 @@
+From 72e162f2cb9019a203c3ed7af0e126920c0c0228 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 28 Jan 2022 03:54:55 +0800
+Subject: [PATCH 1/2] Skip GTK rekeying request if rekeying already in process
+
+Do not start yet another rekeying of GTK when receiving an EAPOL-Key
+request frame at the point when the GTK is already being rekeyed. This
+fixes issues where the AP might end up configuring a different GTK than
+the one it sends to the associated stations.
+
+Signed-off-by: Jouni Malinen <jouni@codeaurora.org>
+---
+ src/ap/wpa_auth.c    | 16 +++++++++++++++-
+ src/utils/includes.h |  1 +
+ 2 files changed, 16 insertions(+), 1 deletion(-)
+
+diff --git a/src/ap/wpa_auth.c b/src/ap/wpa_auth.c
+index cb6595f..d1ca58b 100644
+--- a/src/ap/wpa_auth.c
++++ b/src/ap/wpa_auth.c
+@@ -940,6 +940,16 @@ static int wpa_try_alt_snonce(struct wpa_state_machine *sm, u8 *data,
+ 	return 0;
+ }
+ 
++static bool wpa_auth_gtk_rekey_in_process(struct wpa_authenticator *wpa_auth)
++{
++	struct wpa_group *group;
++
++	for (group = wpa_auth->group; group; group = group->next) {
++		if (group->GKeyDoneStations)
++			return true;
++	}
++	return false;
++}
+ 
+ void wpa_receive(struct wpa_authenticator *wpa_auth,
+ 		 struct wpa_state_machine *sm,
+@@ -1322,7 +1332,11 @@ continue_processing:
+ 					"received EAPOL-Key Request for GTK "
+ 					"rekeying");
+ 			eloop_cancel_timeout(wpa_rekey_gtk, wpa_auth, NULL);
+-			wpa_rekey_gtk(wpa_auth, NULL);
++			if (wpa_auth_gtk_rekey_in_process(wpa_auth))
++				wpa_auth_logger(wpa_auth, NULL, LOGGER_DEBUG,
++						"skip new GTK rekey - already in process");
++			else
++				wpa_rekey_gtk(wpa_auth, NULL);
+ 		}
+ 	} else {
+ 		/* Do not allow the same key replay counter to be reused. */
+diff --git a/src/utils/includes.h b/src/utils/includes.h
+index 75513fc..741fc9c 100644
+--- a/src/utils/includes.h
++++ b/src/utils/includes.h
+@@ -18,6 +18,7 @@
+ 
+ #include <stdlib.h>
+ #include <stddef.h>
++#include <stdbool.h>
+ #include <stdio.h>
+ #include <stdarg.h>
+ #include <string.h>
+-- 
+2.25.1
+
