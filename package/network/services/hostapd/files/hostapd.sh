@@ -301,10 +301,6 @@ hostapd_set_bss_options() {
 
 	append bss_conf "bss_load_update_period=$bss_load_update_period" "$N"
 	append bss_conf "chan_util_avg_period=$chan_util_avg_period" "$N"
-
-	# setting disassoc_low_ack to 0 makes wifi more stable
-	disassoc_low_ack=0
-
 	append bss_conf "disassoc_low_ack=$disassoc_low_ack" "$N"
 	append bss_conf "preamble=$short_preamble" "$N"
 	append bss_conf "wmm_enabled=$wmm" "$N"

@@ -573,8 +573,8 @@ if hwtype == "mac80211" then
 	max_listen_interval.placeholder = 65535
 	max_listen_interval.datatype = "uinteger"
 
-	-- disassoc_low_ack = s:taboption("advanced", Flag, "disassoc_low_ack", translate("Disassociate On Low Acknowledgement"), translate("Allow AP mode to disconnect STAs based on low ACK condition"))
-	-- disassoc_low_ack.default = disassoc_low_ack.enabled
+	disassoc_low_ack = s:taboption("advanced", Flag, "disassoc_low_ack", translate("Disassociate On Low Acknowledgement"), translate("Allow AP mode to disconnect STAs based on low ACK condition"))
+	disassoc_low_ack.default = disassoc_low_ack.enabled
 end
 
 
