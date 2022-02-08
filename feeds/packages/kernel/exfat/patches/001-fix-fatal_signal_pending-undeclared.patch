@@ -1,0 +1,29 @@
+From eb1f2f5859188f482ff445f3b5ff7d8d323da4b4 Mon Sep 17 00:00:00 2001
+From: Chukun Pan <amadeus@jmu.edu.cn>
+Date: Sat, 2 Oct 2021 12:06:26 +0800
+Subject: [PATCH] exfat: further fix 'fatal_signal_pending' undeclared
+
+Make sure to include the header file that defines this function.
+
+Fixes: 19b7087 ("exfat: fix build on x86 with 4.19 kernel")
+Signed-off-by: Chukun Pan <amadeus@jmu.edu.cn>
+---
+ balloc.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/balloc.c b/balloc.c
+index a7a24ac..a4054cd 100644
+--- a/balloc.c
++++ b/balloc.c
+@@ -7,8 +7,10 @@
+ #include <linux/blkdev.h>
+ #include <linux/slab.h>
+ #include <linux/buffer_head.h>
+-#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
++#if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)
+ #include <linux/sched/signal.h>
++#else
++#include <linux/sched.h>
+ #endif
+ 
+ #include "exfat_raw.h"
