@@ -87,8 +87,12 @@ aria2_start() {
 	dht_file="$config_dir/dht.dat"
 	log_file="$config_dir/aria2.log"
 
+	[ -d "$config_dir" ] || is_in_mounted_dir "$config_dir" ||
+		config_dir='/var/etc/aria2'
+
 	[ -d "$config_dir" ] || {
-		mkdir -m 0755 -p "$config_dir"
+		mkdir -p "$config_dir"
+		chmod 0755 "$config_dir"
 		touch "$config_file"
 	}
 
