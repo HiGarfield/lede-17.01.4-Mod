@@ -134,7 +134,8 @@ transmission() {
 		USE=$(expr $MEM \* $mem_percentage \* 10)
 	fi
 
-	[ -d "$config_dir" ] || config_dir='/var/etc/transmission'
+	[ -d "$config_dir" ] || is_in_mounted_dir "$config_dir" ||
+		config_dir='/var/etc/transmission'
 
 	config_file="$config_dir/settings.json"
 	[ -d $config_dir ] || {
