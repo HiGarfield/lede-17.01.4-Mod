@@ -33,22 +33,14 @@ define KernelPackage/fast-classifier/description
 $(call KernelPackage/fast-classifier/Default/description)
 endef
 
-TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
 SFE_MAKE_OPTS := SFE_SUPPORT_IPV6=y
 
-define Build/Compile/kmod
-	$(MAKE) -C "$(LINUX_DIR)" \
-		$(strip $(SFE_MAKE_OPTS)) \
-		CONFIG_FAST_CLASSIFIER=m \
-		CROSS_COMPILE="$(TARGET_CROSS)" \
-		ARCH="$(LINUX_KARCH)" \
-		SUBDIRS="$(PKG_BUILD_DIR)" \
-		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
-		modules
-endef
-
 define Build/Compile
-	$(Build/Compile/kmod)
+	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
+		$(strip $(SFE_MAKE_OPTS)) \
+		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
+		CONFIG_FAST_CLASSIFIER=m \
+		modules
 endef
 
 define Build/InstallDev
