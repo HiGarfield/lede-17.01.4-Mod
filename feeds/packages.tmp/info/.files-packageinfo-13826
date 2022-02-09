@@ -21,7 +21,7 @@ devel/patch
 devel/pkg-config
 ipv6/aiccu
 ipv6/tayga
-kernel/exfat-nofuse
+kernel/exfat
 kernel/mtd-rw
 lang/chardet
 lang/django
