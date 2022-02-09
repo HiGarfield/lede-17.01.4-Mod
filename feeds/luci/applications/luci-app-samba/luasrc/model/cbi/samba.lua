@@ -23,6 +23,38 @@ auto_share_ro = s:taboption("general", Flag, "auto_share_ro",
 auto_share_ro.default = 0
 auto_share_ro:depends("auto_share", "1")
 
+local auto_share_enabled = 0
+luci.model.uci.cursor():foreach("samba", "samba", function(section)
+    if section.auto_share == "1" then auto_share_enabled = 1 end
+end)
+
+if auto_share_enabled == 1 then
+    local auto_shared_paths = {}
+    luci.model.uci.cursor("/var/run/config"):foreach("samba", "sambashare",
+                                                     function(section)
+        table.insert(auto_shared_paths, {
+            name = section.name,
+            path = section.path,
+            read_only = translate(section.read_only),
+            guest_ok = translate(section.guest_ok),
+            create_mask = section.create_mask,
+            dir_mask = section.dir_mask
+        })
+    end)
+    table.sort(auto_shared_paths, function(a, b) return a.name < b.name end)
+
+    v =
+        m:section(Table, auto_shared_paths, translate("Auto Shared Directories"))
+    v:option(DummyValue, "name", translate("Name"))
+    v:option(DummyValue, "path", translate("Path"))
+    v:option(DummyValue, "read_only", translate("Read-only"))
+    v:option(DummyValue, "guest_ok", translate("Allow guests"))
+    v:option(DummyValue, "create_mask", translate("Create mask"),
+             translate("Mask for new files"))
+    v:option(DummyValue, "dir_mask", translate("Directory mask"),
+             translate("Mask for new directories"))
+end
+
 tmpl = s:taboption("template", Value, "_tmpl",
 	translate("Edit the template that is used for generating the samba configuration."), 
 	translate("This is the content of the file '/etc/samba/smb.conf.template' from which your samba configuration will be generated. " ..
