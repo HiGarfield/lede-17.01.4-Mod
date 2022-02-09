@@ -66,15 +66,11 @@ define KernelPackage/shortcut-fe-cm/Description
 Simple connection manager for the Shortcut forwarding engine.
 endef
 
-TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS)) -O3
 SFE_MAKE_OPTS := SFE_SUPPORT_IPV6=y
 
 define Build/Compile
-	$(MAKE) -C "$(LINUX_DIR)" \
+	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
 		$(strip $(SFE_MAKE_OPTS)) \
-		CROSS_COMPILE="$(TARGET_CROSS)" \
-		ARCH="$(LINUX_KARCH)" \
-		SUBDIRS="$(PKG_BUILD_DIR)" \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		modules
 endef
