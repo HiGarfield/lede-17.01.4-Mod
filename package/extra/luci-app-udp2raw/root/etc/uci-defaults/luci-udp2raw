@@ -5,12 +5,6 @@ uci -q batch <<-EOF > /dev/null
 	add ucitrack udp2raw
 	set ucitrack.@udp2raw[-1].init=udp2raw
 	commit ucitrack
-	delete firewall.udp2raw
-	set firewall.udp2raw=include
-	set firewall.udp2raw.type=script
-	set firewall.udp2raw.path=/var/etc/udp2raw.include
-	set firewall.udp2raw.reload=1
-	commit firewall
 EOF
 
 general=$(uci -q get udp2raw.@general[-1])

@@ -47,7 +47,7 @@ o.placeholder = "8080"
 
 o = s:option(Value, "listen_addr", translate("Local Listen Host"))
 o.datatype = "ipaddr"
-o.placeholder = "127.0.0.1"
+o.placeholder = "0.0.0.0"
 
 o = s:option(Value, "listen_port", translate("Local Listen Port"))
 o.datatype = "port"
@@ -68,12 +68,6 @@ o.default = "aes128cbc"
 o = s:option(ListValue, "auth_mode", translate("Auth Mode"))
 for _, v in ipairs(auth_modes) do o:value(v, v:lower()) end
 o.default = "md5"
-
-o = s:option(Flag, "auto_rule", translate("Auto Rule"), translate("Auto add (and delete) iptables rule."))
-o.default = "1"
-
-o = s:option(Flag, "keep_rule", translate("Keep Rule"), translate("Monitor iptables and auto re-add if necessary."))
-o:depends("auto_rule", "1")
 
 o = s:option(Value, "seq_mode", translate("seq Mode"), translate("seq increase mode for faketcp."))
 o.datatype = "range(0,4)"

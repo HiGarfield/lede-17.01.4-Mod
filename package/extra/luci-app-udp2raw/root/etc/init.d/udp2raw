@@ -18,33 +18,8 @@ has_valid_server() {
 	return 1
 }
 
-add_ipt_rule() {
-	if [ -z "$ipt_cmd" ]; then
-		command -v iptables >/dev/null 2>&1 || return 1
-		ipt_cmd='iptables'
-		[ -n "$(iptables -h 2>/dev/null | grep -e '--wait')" ] && ipt_cmd="$ipt_cmd --wait"
-		echo "# firewall include file" >"/var/etc/$NAME.include"
-	else
-		echo "$ipt_cmd" | grep -q -e '--wait'
-		[ $? -ne 0 ] && sleep 2
-	fi
-
-	$ipt_cmd -I INPUT -s "$server_addr"/32 -p tcp -m tcp --sport "$server_port" -m comment --comment "${NAME}DwrW" -j DROP
-}
-
 flush_ipt_rules() {
-	iptables-save -c | grep -v "${NAME}DwrW" | iptables-restore -c
-	[ -f "/var/etc/$NAME.include" ] && rm -f "/var/etc/$NAME.include"
-}
-
-export_ipt_rules() {
-	[ -f "/var/etc/$NAME.include" ] || return
-	cat <<-CAT >>"/var/etc/$NAME.include"
-		iptables-save -c | grep -v "${NAME}DwrW" | iptables-restore -c
-		iptables-restore -n <<-EOF
-		$(iptables-save -t filter | grep -E "${NAME}DwrW|^\*|^COMMIT" | sed 's/^-A /-I /')
-		EOF
-	CAT
+	iptables-save -c | grep -v "\-j[[:space:]]\+${NAME}DwrW_" | iptables-restore -c
 }
 
 create_config() {
@@ -60,8 +35,8 @@ create_config() {
 	[ -n "$cipher_mode" ] && echo "--cipher-mode ${cipher_mode}" >>$config_file
 	[ -n "$auth_mode" ] && echo "--auth-mode ${auth_mode}" >>$config_file
 
-	[ $auto_rule -eq 1 ] && [ $keep_rule -eq 1 ] && echo "--auto-rule" >>$config_file
-	[ $auto_rule -eq 1 ] && [ $keep_rule -eq 1 ] && echo "--keep-rule" >>$config_file
+	echo "--auto-rule" >>$config_file
+	echo "--keep-rule" >>$config_file
 
 	[ -n "$seq_mode" ] && echo "--seq-mode ${seq_mode}" >>$config_file
 	[ -n "$lower_level" ] && echo "--lower-level ${lower_level}" >>$config_file
@@ -75,8 +50,7 @@ create_config() {
 
 validate_config_section() {
 	uci_validate_section "$NAME" general "$1" \
-		'server:uciname' \
-		'daemon_user:string:root'
+		'server:uciname'
 }
 
 validate_server_section() {
@@ -89,8 +63,6 @@ validate_server_section() {
 		'key:string' \
 		'cipher_mode:or("aes128cbc", "xor", "none"):aes128cbc' \
 		'auth_mode:or("md5", "crc32", "simple", "none"):md5' \
-		'auto_rule:bool:0' \
-		'keep_rule:bool:0' \
 		'seq_mode:range(0,4)' \
 		'lower_level:string' \
 		'source_ip:ipaddr' \
@@ -114,36 +86,9 @@ start_instance() {
 		return 1
 	}
 
-	# 若服务器地址为ip地址，则无需处理
-	# 若服务器地址为域名，尝试进行域名解析，获取ip地址
-	/sbin/validate_data "ipaddr" "$server_addr" >/dev/null 2>&1 || {
-		local server_hostname="$server_addr"
-		local retry_count
-		for retry_count in $(seq 1 3); do
-			server_addr=$(nslookup "$server_hostname" | sed -n 's/^Address[[:space:]]*[0-9]*:[[:space:]]*\(\([0-9]\{1,3\}\.\)\{3\}[0-9]\{1,3\}\)$/\1/p')
-			/sbin/validate_data "ipaddr" "$server_addr" >/dev/null 2>&1 && break
-			sleep 1
-		done
-		# 域名无法解析，报错退出
-		/sbin/validate_data "ipaddr" "$server_addr" >/dev/null 2>&1 || {
-			_log "err" "Server address validation failed."
-			_log "err" "Host name $server_hostname can not be resolved."
-			mkdir -p /var/run
-			touch "/var/run/udp2raw.hostname_not_resolved.err"
-			return 1
-		}
-	}
-
 	[ -d /var/etc ] || mkdir -p /var/etc
 	local config_file="/var/etc/${NAME}.${server}.conf"
 	create_config "$config_file" || return 1
-
-	if [ $auto_rule -eq 1 ] && [ $keep_rule -ne 1 ]; then
-		add_ipt_rule || {
-			_log "err" "added iptables rule failed."
-			return 1
-		}
-	fi
 
 	procd_open_instance
 	procd_set_param limits nofile="65535 65535"
@@ -153,26 +98,21 @@ start_instance() {
 
 	procd_set_param command /usr/bin/udp2raw
 	procd_append_param command --conf-file "$config_file"
-	procd_set_param respawn
+	procd_set_param respawn 3600 10 30
 	procd_set_param file "$config_file"
-	[ -n "$daemon_user" ] && procd_set_param user "$daemon_user" && _log "info" "running from ${daemon_user} user"
 	procd_set_param pidfile "/var/run/${NAME}.${server}.pid"
 	procd_close_instance
 }
 
 start_service() {
-	rm -f "/var/run/udp2raw.hostname_not_resolved.err"
-
 	if ! validate_config_section "general"; then
 		_log "err" "Config validate failed."
 		return 1
 	fi
 	has_valid_server $server || return 1
-	flush_ipt_rules
 	for srv in $server; do
 		start_instance $srv
 	done
-	export_ipt_rules
 }
 
 stop_service() {
