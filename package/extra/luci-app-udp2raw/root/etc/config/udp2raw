@@ -1,7 +1,6 @@
 
 config general 'general'
 	list server 'nil'
-	option daemon_user 'root'
 
 config servers 'default'
 	option server_addr ''
@@ -12,5 +11,3 @@ config servers 'default'
 	option key ''
 	option cipher_mode 'aes128cbc'
 	option auth_mode 'md5'
-	option auto_rule '0'
-

@@ -1,7 +1,5 @@
 #!/bin/sh
 
-[ "$ACTION" = "ifup" ] &&
-	[ "$INTERFACE" = "wan" ] &&
-	[ -e "/var/run/udp2raw.hostname_not_resolved.err" ] && {
+[ "$ACTION" = "ifup" ] && [ "$INTERFACE" = "wan" ] &&
+	! /etc/init.d/udp2raw running instance1 &&
 	/etc/init.d/udp2raw reload
-}

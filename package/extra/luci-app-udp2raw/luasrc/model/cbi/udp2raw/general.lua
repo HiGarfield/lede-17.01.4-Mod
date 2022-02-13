@@ -31,9 +31,4 @@ for _, s in ipairs(servers) do o:value(s.name, s.alias) end
 o.default = "nil"
 o.rmempty = false
 
-o = s:option(ListValue, "daemon_user", translate("Run Daemon as User"))
-for u in luci.util.execi("cat /etc/passwd | cut -d ':' -f1") do o:value(u) end
-o.default = "root"
-o.rmempty = false
-
 return m
