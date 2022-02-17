@@ -32,7 +32,7 @@ luci-app-accesscontrol luci-app-cpulimit \
 luci-app-wifischedule luci-app-uhttpd xl2tpd \
 luci-app-syncdial luci-app-easymesh
 
-ifneq ($(_CONF_ROUTER_WITHOUT_USB_PORT_),1)
+ifneq ($(CONFIG_DEFAULT_WITHOUT_NAS_PACKAGES),1)
 DEFAULT_PACKAGES += block-mount automount fdisk lsblk \
 luci-app-usb-printer luci-app-vsftpd \
 luci-app-hd-idle luci-app-aria2 ariang \

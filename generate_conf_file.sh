@@ -19,7 +19,7 @@ gen_conf() {
 
 	mkdir -p ./conf
 	# 文件不删空有可能导致配置错误
-	rm -rf tmp/ .config .config.old
+	rm -f .config .config.old
 	# LEDE源码有坑，以下这行是处理LEDE源码坑，避免make defconfig的时候出错。
 	make -C scripts/config clean >/dev/null 2>&1
 
@@ -31,6 +31,11 @@ gen_conf() {
 		CONFIG_CCACHE=y
 	EOF
 
+	if [ -n "$WITHOUT_NAS_PKG" ] && [ "$WITHOUT_NAS_PKG" -eq 1 ]; then
+		rm -f tmp/info/.targetinfo-*
+		make defconfig CONFIG_DEFAULT_WITHOUT_NAS_PACKAGES=1 >/dev/null
+	fi
+	rm -f tmp/info/.targetinfo-*
 	make defconfig >/dev/null
 
 	local line_str
@@ -60,10 +65,10 @@ process_devices() {
 ###################################################
 rm -rf conf/
 mkdir -p conf/
+rm -rf tmp/
 ###################################################
-
 ### ar71xx 74kc without USB
-export _CONF_ROUTER_WITHOUT_USB_PORT_=1
+WITHOUT_NAS_PKG=1
 
 devices=(
 	"ar71xx_generic_DEVICE_tl-wr841-v8"
@@ -88,10 +93,7 @@ devices=(
 )
 process_devices $devices
 
-export -n _CONF_ROUTER_WITHOUT_USB_PORT_
-
-./def_config.sh
-
+unset WITHOUT_NAS_PKG
 ###################################################
 
 ### ar71xx 74kc with USB
