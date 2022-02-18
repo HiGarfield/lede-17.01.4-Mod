@@ -93,6 +93,12 @@ devices=(
 )
 process_devices $devices
 
+### 7620 without USB
+devices=(
+	"ramips_mt7620_DEVICE_mw310r-v4"
+)
+process_devices $devices
+
 unset WITHOUT_NAS_PKG
 ###################################################
 
