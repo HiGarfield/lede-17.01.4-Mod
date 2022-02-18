@@ -104,7 +104,7 @@ input {
 
 select:not([multiple="multiple"]):focus,
 input:focus {
-    border-color: #0099CC;
+    border-color: #00CC99;
 }
 
 select[multiple="multiple"] {
@@ -112,11 +112,11 @@ select[multiple="multiple"] {
 }
 
 code {
-    color: #0099CC;
+    color: #00CC99;
 }
 
 abbr {
-    color: #005470;
+    color: #007054;
     text-decoration: underline;
     cursor: help;
 }
@@ -236,7 +236,7 @@ footer > a {
 }
 
 header {
-    background: #0099CC;
+    background: #00CC99;
     color: white;
 }
 
@@ -254,7 +254,7 @@ header > .container > .brand {
 }
 
 .warning {
-    background-color: #FF7D60 !important;
+    background-color: #FF607D !important;
     color: #FFF;
 }
 
@@ -276,8 +276,8 @@ header > .container > .brand {
 
 .errorbox {
     color: #fff;
-    background-color: #f0ad4e;
-    border-color: #eea236;
+    background-color: #f04ead;
+    border-color: #ee36a2;
 }
 
 .error {
@@ -306,8 +306,8 @@ header > .container > .brand {
     font-size: 0.9rem;
     line-height: 1.42857143;
     color: #fff;
-    background-color: #5bc0de;
-    border-color: #46b8da;
+    background-color: #5bdec0;
+    border-color: #46dab8;
     margin-top: 2rem;
     text-decoration: inherit;
 }
@@ -361,7 +361,7 @@ header > .container > .brand {
 }
 
 .main > .main-left > .nav > .slide > .slide-menu > .active {
-    background-color: #0099CC;
+    background-color: #00CC99;
 }
 
 .main > .main-left > .nav > .slide > .slide-menu > li > a {
@@ -378,7 +378,7 @@ header > .container > .brand {
 }
 
 .main > .main-left > .nav > .slide > .slide-menu > .active:hover {
-    background-color: #0099CC;
+    background-color: #00CC99;
     cursor: hand;
 }
 
@@ -501,7 +501,7 @@ fieldset > table > tbody > tr:nth-of-type(2n) {
 #conns > div > div,
 #memtotal > div > div {
     height: 100% !important;
-    background-color: #0099CC !important;
+    background-color: #00CC99 !important;
 }
 
 /* fix multiple table */
@@ -582,8 +582,8 @@ form.inline + form.inline,
 .cbi-button-reset,
 .cbi-input-remove {
     color: #fff !important;
-    background-color: #f0ad4e !important;
-    border-color: #eea236 !important;
+    background-color: #f04ead !important;
+    border-color: #ee36a2 !important;
 }
 
 .cbi-input-find,
@@ -594,24 +594,24 @@ form.inline + form.inline,
 .cbi-input-reload,
 .cbi-button-reload {
     color: #fff !important;
-    background-color: #337ab7 !important;
-    border-color: #2e6da4 !important;
+    background-color: #33b77a !important;
+    border-color: #2ea46d !important;
 }
 
 .cbi-input-apply,
 .cbi-button-apply,
 .cbi-button-edit {
     color: #fff !important;
-    background-color: #5bc0de !important;
-    border-color: #46b8da !important;
+    background-color: #5bdec0 !important;
+    border-color: #46dab8 !important;
 }
 
 .cbi-input-reset,
 .cbi-section-remove > .cbi-button,
 .cbi-button-remove {
     color: #fff !important;
-    background-color: #d9534f !important;
-    border-color: #d43f3a !important;
+    background-color: #d94f53 !important;
+    border-color: #d43a3f !important;
 }
 
 .a-to-btn {
@@ -642,13 +642,13 @@ form.inline + form.inline,
 .tabs > li[class~="active"],
 .tabs > li:hover {
     cursor: pointer;
-    border-bottom: 0.2rem solid #0099CC;
-    color: #0099CC;
+    border-bottom: 0.2rem solid #00CC99;
+    color: #00CC99;
     margin-bottom: -0.18751rem;
 }
 
 .tabs > li[class~="active"] > a {
-    color: #0099cc;
+    color: #00cc99;
 }
 
 .tabs > li:hover {
@@ -840,8 +840,8 @@ td > .ifacebadge {
 .uci-change-list ins,
 .uci-change-legend-label ins {
     text-decoration: none;
-    border: 1px solid #00FF00;
-    background-color: #CCFFCC;
+    border: 1px solid #0000FF;
+    background-color: #CCCCFF;
     display: block;
     padding: 2px;
 }
@@ -978,7 +978,7 @@ td > .ifacebadge {
 
 div.cbi-value var, td.cbi-value-field var {
     font-style: italic;
-    color: #0069D6;
+    color: #00D669;
 }
 
 small {
@@ -1026,7 +1026,7 @@ header > .container > .pull-right > * {
 }
 
 #xhr_poll_status > .label.success {
-    background-color: #14CE14;
+    background-color: #1414CE;
 }
 
 .label {
@@ -1045,7 +1045,7 @@ header > .container > .pull-right > * {
 }
 
 .notice {
-    background-color: #5BC0DE;
+    background-color: #5BDEC0;
 }
 
 .showSide {
