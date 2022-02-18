@@ -191,6 +191,7 @@ platform_check_image() {
 	zbt-wr8305rt|\
 	zte-q7|\
 	youku-yk1|\
+	mw310r-v4|\
 	hd51-n)
 		[ "$magic" != "27051956" ] && {
 			echo "Invalid image type."

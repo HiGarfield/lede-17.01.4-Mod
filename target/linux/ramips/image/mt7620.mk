@@ -391,6 +391,13 @@ define Device/youku-yk1
 endef
 TARGET_DEVICES += youku-yk1
 
+define Device/mw310r-v4
+  DTS := MW310R-V4
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := MERCURY MW310R v4
+endef
+TARGET_DEVICES += mw310r-v4
+
 define Device/zbt-ape522ii
   DTS := ZBT-APE522II
   DEVICE_TITLE := Zbtlink ZBT-APE522II
