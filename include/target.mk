@@ -15,7 +15,7 @@ DEVICE_TYPE?=router
 # Default packages - the really basic set
 DEFAULT_PACKAGES:=base-files libc libgcc busybox dropbear \
 mtd uci opkg netifd fstools uclient-fetch force-unmount \
-logd ca-bundle lede-info \
+logd ca-bundle lede-info luci-theme-argon \
 iptables-mod-nat-extra kmod-nf-nathelper \
 kmod-nf-nathelper-extra \
 default-settings ipset-lists luci \
