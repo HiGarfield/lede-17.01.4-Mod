@@ -18,9 +18,6 @@
  *  Licensed to the public under the Apache License 2.0
  */
 
-/*
- *  Font generate by Icomoon<icomoon.io>
- */
 @font-face {
     font-family: 'icomoon';
     src: url('../fonts/font.eot');
@@ -1270,6 +1267,10 @@ body.lang_pl.node-main-login .cbi-value-title {
 }
 
 @media screen and (max-width: 1280px) {
+    .page_loading {
+        height: 3.5rem;
+        line-height: 3.5rem;
+    }
     header {
         height: 3.5rem;
     }
