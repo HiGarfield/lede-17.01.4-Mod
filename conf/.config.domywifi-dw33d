@@ -433,6 +433,7 @@ CONFIG_DEFAULT_luci-app-vsftpd=y
 CONFIG_DEFAULT_luci-app-wifischedule=y
 CONFIG_DEFAULT_luci-app-wizard=y
 CONFIG_DEFAULT_luci-app-wol=y
+CONFIG_DEFAULT_luci-theme-argon=y
 CONFIG_DEFAULT_mtd=y
 CONFIG_DEFAULT_netifd=y
 CONFIG_DEFAULT_odhcp6c=y
@@ -4282,6 +4283,7 @@ CONFIG_PACKAGE_luci-app-wol=y
 #
 # 4. Themes
 #
+CONFIG_PACKAGE_luci-theme-argon=y
 # CONFIG_PACKAGE_luci-theme-bootstrap is not set
 # CONFIG_PACKAGE_luci-theme-darkmatter is not set
 # CONFIG_PACKAGE_luci-theme-freifunk-generic is not set
