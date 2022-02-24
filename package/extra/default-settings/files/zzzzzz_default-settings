@@ -41,7 +41,7 @@ sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/p910nd.lua
 sed -i 's/\"services\"/\"nas\"/g' /usr/lib/lua/luci/controller/usb_printer.lua
 
 uci -q batch <<-EOF >/dev/null
-	set luci.main.mediaurlbase=/luci-static/material
+	set luci.main.mediaurlbase=/luci-static/argon
 	commit luci
 EOF
 
