@@ -1509,7 +1509,7 @@ Gergely Kiss <mail.gery@gmail.com>
 Source-Makefile: feeds/packages/lang/golang/golang/Makefile
 Package: golang
 Submenu: Go
-Version: 1.17.7-1
+Version: 1.17.8-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64) +golang-src
 Conflicts: 
 Menu-Depends: 
@@ -1521,7 +1521,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (compiler)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.7.src.tar.gz
+Source: go1.17.8.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1547,7 +1547,7 @@ Config:
 
 Package: golang-doc
 Submenu: Go
-Version: 1.17.7-1
+Version: 1.17.8-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1559,7 +1559,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (documentation)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.7.src.tar.gz
+Source: go1.17.8.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1581,7 +1581,7 @@ Jeffery To <jeffery.to@gmail.com>
 
 Package: golang-src
 Submenu: Go
-Version: 1.17.7-1
+Version: 1.17.8-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1593,7 +1593,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (source files)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.7.src.tar.gz
+Source: go1.17.8.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -38725,7 +38725,7 @@ Rosen Penev <rosenp@gmail.com>
 Source-Makefile: feeds/packages/net/transmission-web-control/Makefile
 Package: transmission-web-control
 Submenu: BitTorrent
-Version: 2021-09-25-4b2e1858f7a46ee678d5d1f3fa1a6cf2c739b88a-1
+Version: 2022-02-24-0bbe64d28667a72130aded6e6d6826efa68566ad-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +transmission-daemon
 Conflicts: transmission-web
 Menu-Depends: 
@@ -38735,7 +38735,7 @@ Category: Network
 Repository: base
 Title: Transmission Web Control
 Maintainer: Richard Yu <yurichard3839@gmail.com>
-Source: transmission-web-control-2021-09-25-4b2e1858f7a46ee678d5d1f3fa1a6cf2c739b88a.tar.xz
+Source: transmission-web-control-2022-02-24-0bbe64d28667a72130aded6e6d6826efa68566ad.tar.xz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -46600,7 +46600,7 @@ Pushpal Sidhu <psidhu.devel@gmail.com>
 Source-Makefile: feeds/packages/utils/exfatprogs/Makefile
 Package: exfat-mkfs
 Submenu: Filesystem
-Version: 1.1.2-1
+Version: 1.1.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -46610,7 +46610,7 @@ Category: Utilities
 Repository: base
 Title: Utility for creating an exFAT File System
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: exfatprogs-1.1.2.tar.gz
+Source: exfatprogs-1.1.3.tar.gz
 License: GPL-2.0-only
 LicenseFiles: COPYING
 Type: ipkg
@@ -46621,7 +46621,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: exfat-fsck
 Submenu: Filesystem
-Version: 1.1.2-1
+Version: 1.1.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -46631,7 +46631,7 @@ Category: Utilities
 Repository: base
 Title: Utility for checking/repairing an exFAT File System
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: exfatprogs-1.1.2.tar.gz
+Source: exfatprogs-1.1.3.tar.gz
 License: GPL-2.0-only
 LicenseFiles: COPYING
 Type: ipkg
