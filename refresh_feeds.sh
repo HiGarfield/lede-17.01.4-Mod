@@ -1,9 +1,9 @@
 #!/bin/bash
 
-./scripts/feeds uninstall -a
+rm -rf feeds/*.index feeds/*.targetindex feeds/*.tmp packages/feeds
 ./scripts/feeds update -i
 ./scripts/feeds install -a
-git add .
+git add feeds package/feeds
 
 if [ -n "$(git diff --cached)" ]; then
     git commit -m "refresh feeds"
