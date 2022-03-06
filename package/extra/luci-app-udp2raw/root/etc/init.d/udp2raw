@@ -46,6 +46,15 @@ create_config() {
 
 	[ -n "$log_level" ] && echo "--log-level ${log_level}" >>$config_file
 	echo "--disable-color" >>$config_file
+
+	sock_buf="$(awk '/^MemTotal:/{print int($2/64); exit}' /proc/meminfo)"
+	if [ -z "$sock_buf" ] || [ "$sock_buf" -lt 1024 ]; then
+		sock_buf=1024
+	elif [ "$sock_buf" -gt 10240 ]; then
+		sock_buf=10240
+	fi
+	echo "--sock-buf $sock_buf" >>$config_file
+	echo "--force-sock-buf" >>$config_file
 }
 
 validate_config_section() {
