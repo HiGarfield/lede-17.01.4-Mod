@@ -1,0 +1,24 @@
+diff --git a/drivers/net/wireless/ath/ath9k/ath9k.h b/drivers/net/wireless/ath/ath9k/ath9k.h
+index 07106e7..ee9152c 100644
+--- a/drivers/net/wireless/ath/ath9k/ath9k.h
++++ b/drivers/net/wireless/ath/ath9k/ath9k.h
+@@ -44,7 +44,7 @@ extern int ath9k_use_chanctx;
+ /* Descriptor Management */
+ /*************************/
+ 
+-#define ATH_TXSTATUS_RING_SIZE 512
++#define ATH_TXSTATUS_RING_SIZE 1024
+ 
+ /* Macro to expand scalars to 64-bit objects */
+ #define	ito64(x) (sizeof(x) == 1) ?			\
+@@ -89,8 +89,8 @@ int ath_descdma_setup(struct ath_softc *sc, struct ath_descdma *dd,
+ 		(_l) &= ((_sz) - 1);		\
+ 	} while (0)
+ 
+-#define ATH_RXBUF               256
+-#define ATH_TXBUF               512
++#define ATH_RXBUF               1024
++#define ATH_TXBUF               1024
+ #define ATH_TXBUF_RESERVE       5
+ #define ATH_TXMAXTRY            13
+ #define ATH_MAX_SW_RETRIES      30
