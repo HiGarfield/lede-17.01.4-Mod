@@ -280,6 +280,7 @@ TAR:=tar
 FIND:=find
 PATCH:=patch
 PYTHON:=python
+UPX:=$(STAGING_DIR_HOST)/bin/upx --lzma --best
 
 INSTALL_BIN:=install -m0755
 INSTALL_SUID:=install -m4755
