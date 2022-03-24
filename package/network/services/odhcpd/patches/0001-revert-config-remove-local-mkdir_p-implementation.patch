@@ -1,0 +1,49 @@
+From 9ce7b3da4200d10e197b3d1b0301645fa27250d7 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 24 Mar 2022 20:46:07 +0800
+Subject: [PATCH] revert "config: remove local mkdir_p implementation"
+
+This reverts commit 2cf6232fd170a24b801d71d497947d7aabd12015.
+---
+ src/config.c | 25 +++++++++++++++++++++++++
+ 1 file changed, 25 insertions(+)
+
+diff --git a/src/config.c b/src/config.c
+index 4e3db86..79c8a6c 100644
+--- a/src/config.c
++++ b/src/config.c
+@@ -198,6 +198,31 @@ static const struct { const char *name; uint8_t flag; } ra_flags[] = {
+ 	{ .name = NULL, },
+ };
+ 
++static int mkdir_p(char *dir, mode_t mask)
++{
++	char *l = strrchr(dir, '/');
++	int ret;
++
++	if (!l)
++		return 0;
++
++	*l = '\0';
++
++	if (mkdir_p(dir, mask))
++		return -1;
++
++	*l = '/';
++
++	ret = mkdir(dir, mask);
++	if (ret && errno == EEXIST)
++		return 0;
++
++	if (ret)
++		syslog(LOG_ERR, "mkdir(%s, %d) failed: %m\n", dir, mask);
++
++	return ret;
++}
++
+ static void set_interface_defaults(struct interface *iface)
+ {
+ 	iface->ignore = true;
+-- 
+2.25.1
+
