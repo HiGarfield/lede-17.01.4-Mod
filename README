@@ -6,10 +6,12 @@ configuration for the toolchain and firmware.
 You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
 find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
 
-Run "./scripts/feeds update -a" to get all the latest package definitions
+Run "./scripts/feeds update -i" to recreate the index for all packages
 defined in feeds.conf / feeds.conf.default respectively
 and "./scripts/feeds install -a" to install symlinks of all of them into
 package/feeds/.
+* Do not run "./scripts/feeds update -a", since it will overwrite the
+modified package definitions.
 
 Use "make menuconfig" to configure your image.
 
