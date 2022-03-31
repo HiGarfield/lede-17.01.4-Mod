@@ -385,6 +385,7 @@ ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
   define Package/libstdcpp/install
 	$(INSTALL_DIR) $(1)/usr/lib
 	$(CP) $(TOOLCHAIN_DIR)/lib/libstdc++.so.* $(1)/usr/lib/
+	rm -rf $(1)/usr/lib/*-gdb.py
   endef
 
   define Package/glibc/install
