@@ -8,19 +8,22 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libsodium
-PKG_VERSION:=1.0.17
-PKG_RELEASE:=2
+PKG_VERSION:=1.0.18
+PKG_RELEASE:=4
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
-PKG_SOURCE_URL:=https://download.libsodium.org/libsodium/releases
-PKG_MD5SUM:=0f71e2680187a1558b5461e6879342c5
+PKG_SOURCE_URL:=https://download.libsodium.org/libsodium/releases \
+		https://github.com/jedisct1/libsodium/releases/download/$(PKG_VERSION)
+PKG_HASH:=6f504490b342a4f8a4c4a02fc9b866cbef8622d5df4e5452b46be121e46636c1
 
-PKG_FIXUP:=libtool autoreconf
-PKG_USE_MIPS16:=0
-PKG_INSTALL:=1
-
-PKG_MAINTAINER:=Damiano Renfer <damiano.renfer@gmail.com>
+PKG_MAINTAINER:=Damiano Renfer <x9w2n7xnu@relay.firefox.com>
 PKG_LICENSE:=ISC
+PKG_LICENSE_FILES:=LICENSE
+
+PKG_USE_MIPS16:=0
+PKG_FIXUP:=autoreconf
+PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -29,7 +32,6 @@ define Package/libsodium
   CATEGORY:=Libraries
   TITLE:=P(ortable|ackageable) NaCl-based crypto library
   URL:=https://github.com/jedisct1/libsodium
-  MAINTAINER:=Damiano Renfer <damiano.renfer@gmail.com>
 endef
 
 define Package/libsodium/description
@@ -52,7 +54,7 @@ endef
 
 CONFIGURE_ARGS+= \
 	--disable-ssp \
-	$(if $(CONFIG_LIBSODIUM_MINIMAL),--enable-minimal=yes,--enable-minimal=no)
+	$(if $(CONFIG_LIBSODIUM_MINIMAL),--enable,--disable)-minimal
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/sodium
