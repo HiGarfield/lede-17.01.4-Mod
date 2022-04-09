@@ -199,7 +199,6 @@ start_dnsforwarder() {
 		LogOn false
 		UDPLocal 127.0.0.1:$DNSFORWARDER_LOCAL_PORT
 		TCPGroup $tcp_dns_list * no
-		Hosts
 		UseCache true
 		MemoryCache true
 		IgnoreTTL false
@@ -224,20 +223,24 @@ stop_dnsforwarder() {
 }
 
 add_cron() {
-	sed -i '/up-gfwlist.sh/d' $CRON_FILE
-	sed -i '/shadowsocksr_watchdog.log/d' $CRON_FILE
-	if [ "$cron_mode" -eq 1 ]; then
-		echo '0 4 * * * /etc/shadowsocksr/up-gfwlist.sh > /tmp/gfwupdate.log 2>&1' >>$CRON_FILE
+	if [ "$cron_mode" -eq 0 ]; then
+		if grep -q "/etc/shadowsocksr/up-gfwlist.sh" $CRON_FILE; then
+			sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' $CRON_FILE
+			/etc/init.d/cron restart
+		fi
+	else
+		if ! grep -q "/etc/shadowsocksr/up-gfwlist.sh" $CRON_FILE; then
+			echo '0 4 * * * /etc/shadowsocksr/up-gfwlist.sh > /tmp/gfwupdate.log 2>&1' >>$CRON_FILE
+			/etc/init.d/cron restart
+		fi
 	fi
-	echo '*/30 * * * * /etc/shadowsocksr/ssr-watchdog >> /tmp/shadowsocksr_watchdog.log 2>&1' >>$CRON_FILE
-	echo '0 4 * * * echo "" > /tmp/shadowsocksr_watchdog.log' >>$CRON_FILE
-	/etc/init.d/cron restart
 }
 
 del_cron() {
-	sed -i '/up-gfwlist.sh/d' $CRON_FILE
-	sed -i '/shadowsocksr_watchdog.log/d' $CRON_FILE
-	/etc/init.d/cron restart
+	if grep -q '/etc/shadowsocksr/up-gfwlist.sh' $CRON_FILE; then
+		sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' $CRON_FILE
+		/etc/init.d/cron restart
+	fi
 }
 
 uci_get_by_name() {

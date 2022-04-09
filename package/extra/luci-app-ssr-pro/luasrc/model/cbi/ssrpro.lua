@@ -1,12 +1,9 @@
-
 local fs = require "nixio.fs"
 local NXFS = require "nixio.fs"
 local WLFS = require "nixio.fs"
 local SYS  = require "luci.sys"
 local ND = SYS.exec("cat /etc/gfwlist/china-banned | wc -l")
 local conf = "/etc/shadowsocksr/base-gfwlist.txt"
-local watch = "/tmp/shadowsocksr_watchdog.log"
-local dog = "/tmp/ssrpro.log"
 
 m = Map("ssrpro")
 m.title	= translate("Shadowsocksr Transparent Proxy")
@@ -56,7 +53,7 @@ safe_dns_tcp.rmempty = false
 safe_dns = s:taboption("basic",Value, "safe_dns", translate("Safe DNS"),
 	translate("8.8.4.4 is recommended"))
 safe_dns.datatype = "ip4addr"
-safe_dns.placeholder = "8.8.4.4"
+safe_dns.default = "8.8.4.4"
 safe_dns.optional = false
 
 safe_dns_port = s:taboption("basic",Value, "safe_dns_port", translate("Safe DNS Port"),
@@ -81,23 +78,32 @@ password = s:taboption("main",Value, "password", translate("Password"))
 password.password = true
 
 method = s:taboption("main",ListValue, "method", translate("Encryption Method"))
-method:value("none")
-method:value("aes-128-ctr")
-method:value("aes-192-ctr")
-method:value("aes-256-ctr")
+method:value("table")
+method:value("rc4")
+method:value("rc4-md5")
 method:value("aes-128-cfb")
 method:value("aes-192-cfb")
 method:value("aes-256-cfb")
-method:value("rc4")
-method:value("rc4-md5")
-method:value("rc4-md5-6")
+method:value("aes-128-ctr")
+method:value("aes-192-ctr")
+method:value("aes-256-ctr")
+method:value("bf-cfb")
+method:value("camellia-128-cfb")
+method:value("camellia-192-cfb")
+method:value("camellia-256-cfb")
+method:value("cast5-cfb")
+method:value("des-cfb")
+method:value("idea-cfb")
+method:value("rc2-cfb")
+method:value("seed-cfb")
 method:value("salsa20")
 method:value("chacha20")
 method:value("chacha20-ietf")
 
 protocol = s:taboption("main",ListValue, "protocol", translate("Protocol"))
-protocol:value("origin")
-protocol:value("verify_deflate")
+protocol:value("orgin")
+protocol:value("auth_sha1")
+protocol:value("auth_sha1_v2")
 protocol:value("auth_sha1_v4")
 protocol:value("auth_aes128_md5")
 protocol:value("auth_aes128_sha1")
@@ -116,16 +122,13 @@ obfs = s:taboption("main",ListValue, "obfs", translate("Obfs Param"))
 obfs:value("plain")
 obfs:value("http_simple")
 obfs:value("http_post")
-obfs:value("random_head")
 obfs:value("tls1.2_ticket_auth")
-obfs:value("tls1.2_ticket_fastauth")
 
 plugin_param = s:taboption("main",Flag, "plugin_param", translate("Plug-in parameters"),
 	translate("Incorrect use of this parameter will cause IP to be blocked. Please use it with care"))
 plugin_param:depends("obfs", "http_simple")
 plugin_param:depends("obfs", "http_post")
 plugin_param:depends("obfs", "tls1.2_ticket_auth")
-plugin_param:depends("obfs", "tls1.2_ticket_fastauth")
 
 obfs_param = s:taboption("main",Value, "obfs_param", translate("Confusing plug-in parameters"))
 obfs_param.rmempty = true
@@ -160,26 +163,6 @@ end
 s:tab("status",  translate("Status and Tools"))
 s:taboption("status", DummyValue,"opennewwindow" , 
 	translate("<input type=\"button\" class=\"cbi-button cbi-button-apply\" value=\"IP111.CN\" onclick=\"window.open('http://www.ip111.cn/')\" />"))
-
-
-s:tab("watchdog",  translate("Watchdog Log"))
-log = s:taboption("watchdog", TextValue, "sylogtext")
-log.template = "cbi/tvalue"
-log.rows = 13
-log.wrap = "off"
-log.readonly="readonly"
-
-function log.cfgvalue(self, section)
-  SYS.exec("[ -f /tmp/shadowsocksr_watchdog.log ] && sed '1!G;h;$!d' /tmp/shadowsocksr_watchdog.log > /tmp/ssrpro.log")
-	return nixio.fs.readfile(dog)
-end
-
-function log.write(self, section, value)
-	value = value:gsub("\r\n?", "\n")
-	nixio.fs.writefile(dog, value)
-end
-
-
 
 t=m:section(TypedSection,"acl_rule",translate("<strong>Client Proxy Mode Settings</strong>"),
 translate("Proxy mode settings can be set to specific LAN clients ( <font color=blue> No Proxy, Global Proxy, Game Mode</font>) . Does not need to be set by default."))
