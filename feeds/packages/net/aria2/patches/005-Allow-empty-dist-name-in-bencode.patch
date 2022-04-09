@@ -1,0 +1,160 @@
+From ba36a38a6c4be38fe4e09cc95a40b58a48daed79 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Fri, 8 Apr 2022 22:48:00 +0900
+Subject: [PATCH] Allow empty dist name in bencode which is needed for hybrid
+ torrent
+
+---
+ src/GenericParser.h                      |  9 +++++++--
+ src/ValueBaseBencodeParser.h             |  2 +-
+ src/ValueBaseStructParserStateMachine.cc |  5 +++++
+ src/ValueBaseStructParserStateMachine.h  |  2 ++
+ src/XmlRpcRequestParserController.cc     |  7 ++++++-
+ src/XmlRpcRequestParserController.h      | 11 ++++++++++-
+ test/ValueBaseBencodeParserTest.cc       | 10 ++++++++++
+ 7 files changed, 41 insertions(+), 5 deletions(-)
+
+diff --git a/src/GenericParser.h b/src/GenericParser.h
+index 86c6ca926..7373b0668 100644
+--- a/src/GenericParser.h
++++ b/src/GenericParser.h
+@@ -42,9 +42,14 @@
+ 
+ namespace aria2 {
+ 
+-template <typename Parser, typename ParserStateMachine> class GenericParser {
++template <typename Parser, typename ParserStateMachine,
++          bool allowEmptyName = false>
++class GenericParser {
+ public:
+-  GenericParser() : parser_{&psm_} {}
++  GenericParser() : parser_{&psm_}
++  {
++    psm_.setAllowEmptyMemberName(allowEmptyName);
++  }
+ 
+   ~GenericParser() = default;
+ 
+diff --git a/src/ValueBaseBencodeParser.h b/src/ValueBaseBencodeParser.h
+index cfc431452..91cfc37bf 100644
+--- a/src/ValueBaseBencodeParser.h
++++ b/src/ValueBaseBencodeParser.h
+@@ -43,7 +43,7 @@ namespace aria2 {
+ 
+ namespace bittorrent {
+ 
+-typedef GenericParser<BencodeParser, ValueBaseStructParserStateMachine>
++typedef GenericParser<BencodeParser, ValueBaseStructParserStateMachine, true>
+     ValueBaseBencodeParser;
+ 
+ } // namespace bittorrent
+diff --git a/src/ValueBaseStructParserStateMachine.cc b/src/ValueBaseStructParserStateMachine.cc
+index b026758aa..caf6296e6 100644
+--- a/src/ValueBaseStructParserStateMachine.cc
++++ b/src/ValueBaseStructParserStateMachine.cc
+@@ -213,4 +213,9 @@ void ValueBaseStructParserStateMachine::pushNullState()
+   stateStack_.push(nullState);
+ }
+ 
++void ValueBaseStructParserStateMachine::setAllowEmptyMemberName(bool b)
++{
++  ctrl_->setAllowEmptyMemberName(b);
++}
++
+ } // namespace aria2
+diff --git a/src/ValueBaseStructParserStateMachine.h b/src/ValueBaseStructParserStateMachine.h
+index a049de3a6..c309cfb69 100644
+--- a/src/ValueBaseStructParserStateMachine.h
++++ b/src/ValueBaseStructParserStateMachine.h
+@@ -106,6 +106,8 @@ class ValueBaseStructParserStateMachine : public StructParserStateMachine {
+   void pushBoolState();
+   void pushNullState();
+ 
++  void setAllowEmptyMemberName(bool b);
++
+ private:
+   std::unique_ptr<rpc::XmlRpcRequestParserController> ctrl_;
+   std::stack<ValueBaseStructParserState*> stateStack_;
+diff --git a/src/XmlRpcRequestParserController.cc b/src/XmlRpcRequestParserController.cc
+index 25a5addc1..a3c9a8570 100644
+--- a/src/XmlRpcRequestParserController.cc
++++ b/src/XmlRpcRequestParserController.cc
+@@ -54,7 +54,7 @@ void XmlRpcRequestParserController::popStructFrame()
+   Dict* dict = downcast<Dict>(parentFrame.value_);
+   assert(dict);
+   frameStack_.pop();
+-  if (currentFrame_.validMember()) {
++  if (currentFrame_.validMember(allowEmptyMemberName_)) {
+     dict->put(std::move(currentFrame_.name_), std::move(currentFrame_.value_));
+   }
+   currentFrame_ = std::move(parentFrame);
+@@ -110,6 +110,11 @@ void XmlRpcRequestParserController::setMethodName(std::string methodName)
+   methodName_ = std::move(methodName);
+ }
+ 
++void XmlRpcRequestParserController::setAllowEmptyMemberName(bool b)
++{
++  allowEmptyMemberName_ = b;
++}
++
+ } // namespace rpc
+ 
+ } // namespace aria2
+diff --git a/src/XmlRpcRequestParserController.h b/src/XmlRpcRequestParserController.h
+index 7892147ba..b84a7de13 100644
+--- a/src/XmlRpcRequestParserController.h
++++ b/src/XmlRpcRequestParserController.h
+@@ -52,7 +52,10 @@ class XmlRpcRequestParserController {
+     std::unique_ptr<ValueBase> value_;
+     std::string name_;
+ 
+-    bool validMember() const { return value_ && !name_.empty(); }
++    bool validMember(bool allowEmptyMemberName) const
++    {
++      return value_ && (allowEmptyMemberName || !name_.empty());
++    }
+ 
+     void reset()
+     {
+@@ -67,7 +70,11 @@ class XmlRpcRequestParserController {
+ 
+   std::string methodName_;
+ 
++  bool allowEmptyMemberName_;
++
+ public:
++  XmlRpcRequestParserController() : allowEmptyMemberName_(false) {}
++
+   void pushFrame();
+ 
+   // Pops StateFrame p from frameStack_ and set p[currentFrame_.name_]
+@@ -90,6 +97,8 @@ class XmlRpcRequestParserController {
+ 
+   const std::string& getMethodName() const { return methodName_; }
+ 
++  void setAllowEmptyMemberName(bool b);
++
+   void reset();
+ };
+ 
+diff --git a/test/ValueBaseBencodeParserTest.cc b/test/ValueBaseBencodeParserTest.cc
+index 30cca2f4a..2e12ec499 100644
+--- a/test/ValueBaseBencodeParserTest.cc
++++ b/test/ValueBaseBencodeParserTest.cc
+@@ -208,6 +208,16 @@ void ValueBaseBencodeParserTest::testParseUpdate()
+     // Get trailing garbage position
+     CPPUNIT_ASSERT_EQUAL((ssize_t)7, error);
+   }
++  {
++    // dict, empty member name
++    std::string src = "d0:i123ee";
++    std::shared_ptr<ValueBase> d =
++        parser.parseFinal(src.c_str(), src.size(), error);
++    Dict* dict = downcast<Dict>(d);
++    CPPUNIT_ASSERT(dict);
++    CPPUNIT_ASSERT(dict->get(""));
++    CPPUNIT_ASSERT_EQUAL((int64_t)123, downcast<Integer>(dict->get(""))->i());
++  }
+ }
+ 
+ } // namespace aria2
