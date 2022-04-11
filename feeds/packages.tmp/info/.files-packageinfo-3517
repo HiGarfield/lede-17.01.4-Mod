@@ -335,6 +335,7 @@ libs/tcp_wrappers
 libs/tdb
 libs/tiff
 libs/tinycdb
+libs/udns
 libs/unixodbc
 libs/vips
 libs/xmlrpc-c

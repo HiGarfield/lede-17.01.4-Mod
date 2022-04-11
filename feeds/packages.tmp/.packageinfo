@@ -827,7 +827,7 @@ Ondrej Caletka <ondrej@caletka.cz>
 Source-Makefile: feeds/packages/kernel/exfat/Makefile
 Package: kmod-fs-exfat
 Submenu: Filesystems
-Version: <LINUX_VERSION>+5.14.1-0
+Version: <LINUX_VERSION>+1d092fc3520025335ae4c7433b637e6000aa9bdd-0
 Depends: +kmod-nls-base
 Conflicts: 
 Menu-Depends: 
@@ -836,7 +836,7 @@ Section: kernel
 Category: Kernel modules
 Title: exFAT kernel module
 Maintainer: 
-Source: exfat-5.14.1.tar.gz
+Source: exfat-1d092fc3520025335ae4c7433b637e6000aa9bdd.tar.xz
 License: GPL-2.0-only
 Type: ipkg
 Description: exFAT kernel module
@@ -14609,7 +14609,7 @@ Dov Murik <dmurik@us.ibm.com>
 
 Source-Makefile: feeds/packages/libs/libev/Makefile
 Package: libev
-Version: 4.22-1
+Version: 4.33-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -14619,7 +14619,7 @@ Category: Libraries
 Repository: base
 Title: High-performance event loop
 Maintainer: Karl Palsson <karlp@tweak.net.au>
-Source: libev-4.22.tar.gz
+Source: libev-4.33.tar.gz
 License: BSD-2-Clause
 Type: ipkg
 Description:  A full-featured and high-performance event loop that is loosely modelled after
@@ -16644,19 +16644,19 @@ Peter Wagner <tripolar@gmx.at>
 
 Source-Makefile: feeds/packages/libs/libsodium/Makefile
 Package: libsodium
-Version: 1.0.17-2
+Version: 1.0.18-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libtool libintl libiconv
 Section: libs
 Category: Libraries
 Repository: base
 Title: P(ortable|ackageable) NaCl-based crypto library
-Maintainer: Damiano Renfer <damiano.renfer@gmail.com>
-Source: libsodium-1.0.17.tar.gz
+Maintainer: Damiano Renfer <x9w2n7xnu@relay.firefox.com>
+Source: libsodium-1.0.18.tar.gz
 License: ISC
+LicenseFiles: LICENSE
 Type: ipkg
 Description:   NaCl (pronounced "salt") is a new easy-to-use high-speed software library for network communication, encryption, decryption, signatures, etc.
   NaCl's goal is to provide all of the core operations needed to build higher-level cryptographic tools.
@@ -16665,7 +16665,7 @@ Description:   NaCl (pronounced "salt") is a new easy-to-use high-speed software
   The same cannot be said of NIST curves, where the specific origins of certain constants are not described by the standards.
   And despite the emphasis on higher security, primitives are faster across-the-board than most implementations of the NIST standards.
 https://github.com/jedisct1/libsodium
-Damiano Renfer <damiano.renfer@gmail.com>
+Damiano Renfer <x9w2n7xnu@relay.firefox.com>
 @@
 Config:
 menu "Configuration"
@@ -20543,6 +20543,85 @@ Type: ipkg
 Description:  TinyCDB is a very fast and simple package for creating and reading constant data bases
 http://www.corpit.ru/mjt/tinycdb.html
 Denis Shulyaka <Shulyaka@gmail.com>
+@@
+
+
+Source-Makefile: feeds/packages/libs/udns/Makefile
+Package: libudns
+Version: 0.4-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: libs
+Category: Libraries
+Repository: base
+Title: DNS Resolver Library
+Maintainer: Yousong Zhou <yszhou4tech@gmail.com>
+Source: udns-0.4.tar.gz
+License: LGPL-2.1
+Type: ipkg
+Description:   UDNS is a stub DNS resolver library with ability to perform both syncronous
+  and asyncronous DNS queries.
+http://www.corpit.ru/mjt/udns.html
+Yousong Zhou <yszhou4tech@gmail.com>
+@@
+
+Package: udns-dnsget
+Version: 0.4-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libudns
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: a simple DNS query tool
+Maintainer: Yousong Zhou <yszhou4tech@gmail.com>
+Source: udns-0.4.tar.gz
+License: LGPL-2.1
+Type: ipkg
+Description: a simple DNS query tool
+http://www.corpit.ru/mjt/udns.html
+Yousong Zhou <yszhou4tech@gmail.com>
+@@
+
+Package: udns-rblcheck
+Version: 0.4-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libudns
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: a simple DNSBL lookups tool
+Maintainer: Yousong Zhou <yszhou4tech@gmail.com>
+Source: udns-0.4.tar.gz
+License: LGPL-2.1
+Type: ipkg
+Description: a simple DNSBL lookups tool
+http://www.corpit.ru/mjt/udns.html
+Yousong Zhou <yszhou4tech@gmail.com>
+@@
+
+Package: udns-ex-rdns
+Version: 0.4-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libudns
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Section: utils
+Category: Utilities
+Repository: base
+Title: a parallel rDNS resolver
+Maintainer: Yousong Zhou <yszhou4tech@gmail.com>
+Source: udns-0.4.tar.gz
+License: LGPL-2.1
+Type: ipkg
+Description: a parallel rDNS resolver
+http://www.corpit.ru/mjt/udns.html
+Yousong Zhou <yszhou4tech@gmail.com>
 @@
 
 
@@ -39883,18 +39962,17 @@ http://www.xinetd.org/
 Source-Makefile: feeds/packages/net/xl2tpd/Makefile
 Package: xl2tpd
 Submenu: VPN
-Version: 1.3.12-1
+Version: 1.3.17-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ppp-mod-pppol2tp +resolveip
 Conflicts: 
 Menu-Depends: 
 Provides: 
-Build-Depends: libpcap
 Section: net
 Category: Network
 Repository: base
 Title: An L2TP (Layer 2 Tunneling Protocol) daemon
 Maintainer: Yousong Zhou <yszhou4tech@gmail.com>
-Source: xl2tpd-1.3.12.tar.gz
+Source: xl2tpd-1.3.17.tar.gz
 License: GPL-2.0
 LicenseFiles: LICENSE
 Type: ipkg
