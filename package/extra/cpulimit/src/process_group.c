@@ -2,7 +2,7 @@
  *
  * cpulimit - a CPU limiter for Linux
  *
- * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com> 
+ * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,11 +25,6 @@
 #include <sys/time.h>
 #include <signal.h>
 #include <errno.h>
-
-#if defined(__APPLE__) || defined(__FREEBSD__)
-#include <libgen.h>
-#endif
-
 #include <assert.h>
 
 #include "process_iterator.h"
@@ -45,6 +40,12 @@ int find_process_by_pid(pid_t pid)
 	return (kill(pid, 0) == 0) ? pid : -pid;
 }
 
+static inline char *basename(const char *filename)
+{
+	char *p = strrchr(filename, '/');
+	return p ? p + 1 : (char *)filename;
+}
+
 // look for a process with a given name
 // process: the name of the wanted process. it can be an absolute path name to the executable file
 //         or just the file name
@@ -53,10 +54,10 @@ int find_process_by_pid(pid_t pid)
 //         negative pid, if it is found but it's not possible to control it
 int find_process_by_name(const char *process_name)
 {
-	//pid of the target process
+	// pid of the target process
 	pid_t pid = -1;
 
-	//process iterator
+	// process iterator
 	struct process_iterator it;
 	struct process proc;
 	struct process_filter filter;
@@ -65,15 +66,15 @@ int find_process_by_name(const char *process_name)
 	init_process_iterator(&it, &filter);
 	while (get_next_process(&it, &proc) != -1)
 	{
-		//process found
-		if (strncmp(basename(proc.command), process_name, strlen(process_name)) == 0)
+		// process found
+		if (strcmp(basename(proc.command), process_name) == 0)
 		{
 			if (kill(proc.pid, 0) == -1 && errno == EPERM)
 			{
-				//do not have permission
+				// do not have permission
 				return -1;
 			}
-			//process is ok!
+			// process is ok!
 			pid = proc.pid;
 			break;
 		}
@@ -82,19 +83,19 @@ int find_process_by_name(const char *process_name)
 		exit(1);
 	if (pid >= 0)
 	{
-		//ok, the process was found
+		// ok, the process was found
 		return pid;
 	}
 	else
 	{
-		//process not found
+		// process not found
 		return 0;
 	}
 }
 
 int init_process_group(struct process_group *pgroup, int target_pid, int include_children)
 {
-	//hashtable initialization
+	// hashtable initialization
 	memset(&pgroup->proctable, 0, sizeof(pgroup->proctable));
 	pgroup->target_pid = target_pid;
 	pgroup->include_children = include_children;
@@ -113,7 +114,7 @@ int close_process_group(struct process_group *pgroup)
 	{
 		if (pgroup->proctable[i] != NULL)
 		{
-			//free() history for each process
+			// free() history for each process
 			destroy_list(pgroup->proctable[i]);
 			free(pgroup->proctable[i]);
 			pgroup->proctable[i] = NULL;
@@ -127,16 +128,16 @@ int close_process_group(struct process_group *pgroup)
 
 void remove_terminated_processes(struct process_group *pgroup)
 {
-	//TODO
+	// TODO
 }
 
-//return t1-t2 in microseconds (no overflow checks, so better watch out!)
+// return t1-t2 in microseconds (no overflow checks, so better watch out!)
 static inline unsigned long timediff(const struct timeval *t1, const struct timeval *t2)
 {
 	return (t1->tv_sec - t2->tv_sec) * 1000000 + (t1->tv_usec - t2->tv_usec);
 }
 
-//parameter in range 0-1
+// parameter in range 0-1
 #define ALFA 0.08
 #define MIN_DT 20
 
@@ -147,7 +148,7 @@ void update_process_group(struct process_group *pgroup)
 	struct process_filter filter;
 	struct timeval now;
 	gettimeofday(&now, NULL);
-	//time elapsed from previous sample (in ms)
+	// time elapsed from previous sample (in ms)
 	long dt = timediff(&now, &pgroup->last_update) / 1000;
 	filter.pid = pgroup->target_pid;
 	filter.include_children = pgroup->include_children;
@@ -163,7 +164,7 @@ void update_process_group(struct process_group *pgroup)
 		int hashkey = pid_hashfn(tmp_process.pid);
 		if (pgroup->proctable[hashkey] == NULL)
 		{
-			//empty bucket
+			// empty bucket
 			pgroup->proctable[hashkey] = malloc(sizeof(struct list));
 			struct process *new_process = malloc(sizeof(struct process));
 			tmp_process.cpu_usage = -1;
@@ -174,11 +175,11 @@ void update_process_group(struct process_group *pgroup)
 		}
 		else
 		{
-			//existing bucket
+			// existing bucket
 			struct process *p = (struct process *)locate_elem(pgroup->proctable[hashkey], &tmp_process);
 			if (p == NULL)
 			{
-				//process is new. add it
+				// process is new. add it
 				struct process *new_process = malloc(sizeof(struct process));
 				tmp_process.cpu_usage = -1;
 				memcpy(new_process, &tmp_process, sizeof(struct process));
@@ -192,16 +193,16 @@ void update_process_group(struct process_group *pgroup)
 				add_elem(pgroup->proclist, p);
 				if (dt < MIN_DT)
 					continue;
-				//process exists. update CPU usage
+				// process exists. update CPU usage
 				double sample = 1.0 * (tmp_process.cputime - p->cputime) / dt;
 				if (p->cpu_usage == -1)
 				{
-					//initialization
+					// initialization
 					p->cpu_usage = sample;
 				}
 				else
 				{
-					//usage adjustment
+					// usage adjustment
 					p->cpu_usage = (1.0 - ALFA) * p->cpu_usage + ALFA * sample;
 				}
 				p->cputime = tmp_process.cputime;
@@ -218,7 +219,7 @@ int remove_process(struct process_group *pgroup, int pid)
 {
 	int hashkey = pid_hashfn(pid);
 	if (pgroup->proctable[hashkey] == NULL)
-		return 1; //nothing to delete
+		return 1; // nothing to delete
 	struct list_node *node = (struct list_node *)locate_node(pgroup->proctable[hashkey], &pid);
 	if (node == NULL)
 		return 2;
