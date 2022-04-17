@@ -2,7 +2,7 @@
  *
  * cpulimit - a CPU limiter for Linux
  *
- * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com> 
+ * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -38,7 +38,7 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
 		fprintf(stderr, "procfs is not mounted!\nAborting\n");
 		exit(-2);
 	}
-	//open a directory stream to /proc directory
+	// open a directory stream to /proc directory
 	if ((it->dip = opendir("/proc")) == NULL)
 	{
 		perror("opendir");
@@ -55,7 +55,7 @@ static int read_process_info(pid_t pid, struct process *p)
 	static char exefile[1024];
 	p->pid = pid;
 	FILE *fd;
-	//read command line
+	// read command line
 	sprintf(exefile, "/proc/%d/cmdline", p->pid);
 	fd = fopen(exefile, "r");
 	if (fd == NULL)
@@ -68,7 +68,7 @@ static int read_process_info(pid_t pid, struct process *p)
 	fclose(fd);
 	strcpy(p->command, buffer);
 
-	//read stat file
+	// read stat file
 	sprintf(statfile, "/proc/%d/stat", p->pid);
 	fd = fopen(statfile, "r");
 	if (fd == NULL)
@@ -190,7 +190,7 @@ int get_next_process(struct process_iterator *it, struct process *p)
 {
 	if (it->dip == NULL)
 	{
-		//end of processes
+		// end of processes
 		return -1;
 	}
 	if (it->filter->pid != 0 && !it->filter->include_children)
@@ -203,7 +203,7 @@ int get_next_process(struct process_iterator *it, struct process *p)
 		return 0;
 	}
 	struct dirent *dit = NULL;
-	//read in from /proc and seek for process dirs
+	// read in from /proc and seek for process dirs
 	while ((dit = readdir(it->dip)) != NULL)
 	{
 		if (strtok(dit->d_name, "0123456789") != NULL)
@@ -224,7 +224,7 @@ int get_next_process(struct process_iterator *it, struct process *p)
 	}
 	if (dit == NULL)
 	{
-		//end of processes
+		// end of processes
 		closedir(it->dip);
 		it->dip = NULL;
 		return -1;

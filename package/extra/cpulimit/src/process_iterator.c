@@ -2,7 +2,7 @@
  *
  * cpulimit - a CPU limiter for Linux
  *
- * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com> 
+ * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -28,7 +28,7 @@
 #include <time.h>
 #include "process_iterator.h"
 
-//See this link to port to other systems: http://www.steve.org.uk/Reference/Unix/faq_8.html#SEC85
+// See this link to port to other systems: http://www.steve.org.uk/Reference/Unix/faq_8.html#SEC85
 
 #if defined(__linux__)
 

@@ -2,7 +2,7 @@
  *
  * cpulimit - a CPU limiter for Linux
  *
- * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com> 
+ * Copyright (C) 2005-2012, by:  Angelo Marletta <angelo dot marletta at gmail dot com>
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,7 +27,7 @@
 #include <limits.h>
 #include <dirent.h>
 
-//USER_HZ detection, from openssl code
+// USER_HZ detection, from openssl code
 #ifndef HZ
 #if defined(_SC_CLK_TCK) && (!defined(OPENSSL_SYS_VMS) || __CTRL_VER >= 70000000)
 #define HZ ((double)sysconf(_SC_CLK_TCK))
@@ -51,17 +51,17 @@
 // process descriptor
 struct process
 {
-	//pid of the process
+	// pid of the process
 	pid_t pid;
-	//ppid of the process
+	// ppid of the process
 	pid_t ppid;
-	//start time (unix timestamp)
+	// start time (unix timestamp)
 	time_t starttime;
-	//cputime used by the process (in milliseconds)
+	// cputime used by the process (in milliseconds)
 	int cputime;
-	//actual cpu usage estimation (value in range 0-1)
+	// actual cpu usage estimation (value in range 0-1)
 	double cpu_usage;
-	//absolute path of the executable file
+	// absolute path of the executable file
 	char command[PATH_MAX + 1];
 };
 
