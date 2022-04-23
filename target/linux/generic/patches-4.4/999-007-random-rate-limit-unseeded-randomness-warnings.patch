@@ -1,0 +1,71 @@
+--- a/drivers/char/random.c
++++ b/drivers/char/random.c
+@@ -258,6 +258,7 @@
+ #include <linux/kmemcheck.h>
+ #include <linux/workqueue.h>
+ #include <linux/irq.h>
++#include <linux/ratelimit.h>
+ #include <linux/syscalls.h>
+ #include <linux/completion.h>
+ 
+@@ -412,6 +413,16 @@ static struct fasync_struct *fasync;
+ static DEFINE_SPINLOCK(random_ready_list_lock);
+ static LIST_HEAD(random_ready_list);
+ 
++static struct ratelimit_state unseeded_warning =
++	RATELIMIT_STATE_INIT("warn_unseeded_randomness", HZ, 3);
++static struct ratelimit_state urandom_warning =
++	RATELIMIT_STATE_INIT("warn_urandom_randomness", HZ, 3);
++
++static int ratelimit_disable __read_mostly;
++
++module_param_named(ratelimit_disable, ratelimit_disable, int, 0644);
++MODULE_PARM_DESC(ratelimit_disable, "Disable random ratelimit suppression");
++
+ /**********************************************************************
+  *
+  * OS independent entropy store.   Here are the functions which handle
+@@ -682,6 +693,18 @@ retry:
+ 			process_random_ready_list();
+ 			wake_up_all(&urandom_init_wait);
+ 			pr_notice("random: %s pool is initialized\n", r->name);
++			if (unseeded_warning.missed) {
++				pr_notice("random: %d get_random_xx warning(s) missed "
++					"due to ratelimiting\n",
++					unseeded_warning.missed);
++				unseeded_warning.missed = 0;
++			}
++			if (urandom_warning.missed) {
++				pr_notice("random: %d urandom warning(s) missed "
++					"due to ratelimiting\n",
++					urandom_warning.missed);
++				urandom_warning.missed = 0;
++			}
+ 		}
+ 	}
+ 
+@@ -1404,6 +1427,10 @@ static int rand_initialize(void)
+ 	init_std_data(&input_pool);
+ 	init_std_data(&blocking_pool);
+ 	init_std_data(&nonblocking_pool);
++	if (ratelimit_disable) {
++		urandom_warning.interval = 0;
++		unseeded_warning.interval = 0;
++	}
+ 	return 0;
+ }
+ early_initcall(rand_initialize);
+@@ -1471,9 +1498,10 @@ urandom_read(struct file *file, char __user *buf, size_t nbytes, loff_t *ppos)
+ 	if (unlikely(nonblocking_pool.initialized == 0) &&
+ 	    maxwarn > 0) {
+ 		maxwarn--;
+-		printk(KERN_NOTICE "random: %s: uninitialized urandom read "
+-		       "(%zd bytes read, %d bits of entropy available)\n",
+-		       current->comm, nbytes, nonblocking_pool.entropy_total);
++		if (__ratelimit(&urandom_warning))
++			printk(KERN_NOTICE "random: %s: uninitialized urandom read "
++			       "(%zd bytes read, %d bits of entropy available)\n",
++			       current->comm, nbytes, nonblocking_pool.entropy_total);
+ 	}
+ 
+ 	nbytes = min_t(size_t, nbytes, INT_MAX >> (ENTROPY_SHIFT + 3));
