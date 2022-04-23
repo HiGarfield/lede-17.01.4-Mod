@@ -18,3 +18,6 @@ msgstr "可执行文件名。切勿包含路径！"
 
 msgid "limit (%)"
 msgstr "使用率限制 (%)"
+
+msgid "percentage of a single core (0-%d)"
+msgstr "占CPU单个核心的百分比 (0-%d)"
