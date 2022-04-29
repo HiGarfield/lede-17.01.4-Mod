@@ -30,7 +30,7 @@ that feels like a dynamically typed, interpreted language.
 
 This package provides an assembler, compiler, linker, and compiled
 libraries for the Go programming language.
-https://golang.org/
+https://go.dev/
 Jeffery To <jeffery.to@gmail.com>
 @@
 Config:
@@ -67,7 +67,7 @@ of run-time reflection. It's a fast, statically typed, compiled language
 that feels like a dynamically typed, interpreted language.
 
 This package provides the documentation for the Go programming language.
-https://golang.org/
+https://go.dev/
 Jeffery To <jeffery.to@gmail.com>
 @@
 
@@ -102,7 +102,7 @@ that feels like a dynamically typed, interpreted language.
 
 This package provides the Go programming language source files needed
 for cross-compilation.
-https://golang.org/
+https://go.dev/
 Jeffery To <jeffery.to@gmail.com>
 @@
 
