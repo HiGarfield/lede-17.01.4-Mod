@@ -14,8 +14,7 @@ PKG_NAME:=golang
 PKG_VERSION:=$(GO_VERSION_MAJOR_MINOR)$(if $(GO_VERSION_PATCH),.$(GO_VERSION_PATCH))
 PKG_RELEASE:=1
 
-GO_SOURCE_URLS:=https://go.dev/dl/ \
-                https://dl.google.com/go/ \
+GO_SOURCE_URLS:=https://dl.google.com/go/ \
                 https://mirrors.ustc.edu.cn/golang/ \
                 https://mirrors.nju.edu.cn/golang/
 
@@ -107,7 +106,7 @@ endif
 define Package/golang/Default
 $(call GoPackage/GoSubMenu)
   TITLE:=Go programming language
-  URL:=https://golang.org/
+  URL:=https://go.dev/
   DEPENDS:=$(GO_ARCH_DEPENDS)
 endef
 

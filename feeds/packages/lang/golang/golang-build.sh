@@ -130,13 +130,14 @@ build() {
 	retval="$?"
 	log
 
-	if [ "$retval" -eq 0 ]; then
-		if [ -z "$(find "$GO_BUILD_BIN_DIR" -maxdepth 0 -type d -not -empty 2>/dev/null)" ]; then
-			log_error "No binaries were built"
-			retval=1
-		else
-			"$STAGING_DIR_HOST/bin/upx" --lzma --best "$GO_BUILD_BIN_DIR"/*
-		fi
+	if [ "$retval" -eq 0 ] && [ -z "$(find "$GO_BUILD_BIN_DIR" -maxdepth 0 -type d -not -empty 2>/dev/null)" ]; then
+		log_error "No binaries were built"
+		retval=1
+	fi
+
+	if [ "$retval" -eq 0 ] && ! "$STAGING_DIR_HOST/bin/upx" --lzma --best "$GO_BUILD_BIN_DIR"/*; then
+		log_error "Fail to compress binaries with UPX"
+		retval=1
 	fi
 
 	if [ "$retval" -ne 0 ]; then
