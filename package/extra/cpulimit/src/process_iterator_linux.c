@@ -211,16 +211,8 @@ int get_next_process(struct process_iterator *it, struct process *p)
 		p->pid = atoi(dit->d_name);
 		if (it->filter->pid != 0 && it->filter->pid != p->pid && !is_child_of(p->pid, it->filter->pid))
 			continue;
-		if (it->filter->pid == 0)
-		{
-			read_process_info(p->pid, p);
-			break;
-		}
-		else
-		{
-			if (read_process_info(p->pid, p))
-				break;
-		}
+		read_process_info(p->pid, p);
+		break;
 	}
 	if (dit == NULL)
 	{
