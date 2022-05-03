@@ -55,42 +55,27 @@ o.rempty      = false
 o = s:taboption("settings", Flag, "tcp_server", translate("TCP Server"), translate("Enable TCP DNS Server"))
 o.rmempty     = false
 o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
-end
 
 ---- Support IPV6
 o = s:taboption("settings", Flag, "ipv6_server", translate("IPV6 Server"), translate("Enable IPV6 DNS Server"))
 o.rmempty     = false
 o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
-end
 
 ---- Support DualStack ip selection
 o = s:taboption("settings", Flag, "dualstack_ip_selection", translate("Dual-stack IP Selection"), translate("Enable IP selection between IPV4 and IPV6"))
 o.rmempty     = false
 o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- Domain prefetch load 
 o = s:taboption("settings", Flag, "prefetch_domain", translate("Domain prefetch"), translate("Enable domain prefetch, accelerate domain response speed."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- Domain Serve expired
 o = s:taboption("settings", Flag, "serve_expired", translate("Serve expired"), 
 	translate("Attempts to serve old responses from cache with a TTL of 0 in the response without waiting for the actual resolution to finish."))
 o.rmempty     = false
 o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- Redirect
 o = s:taboption("settings", ListValue, "redirect", translate("Redirect"), translate("SmartDNS redirect mode"))
@@ -141,9 +126,6 @@ o.rempty      = false
 o = s:taboption("seconddns", Flag, "seconddns_tcp_server", translate("TCP Server"), translate("Enable TCP DNS Server"))
 o.rmempty     = false
 o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
-end
 
 ---- dns server group
 o = s:taboption("seconddns", Value, "seconddns_server_group", translate("Server Group"), translate("Query DNS through specific dns server group, such as office, home."))
@@ -155,64 +137,40 @@ o.rempty      = true
 o = s:taboption("seconddns", Flag, "seconddns_no_speed_check", translate("Skip Speed Check"), translate("Do not check speed."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- skip address rules
 o = s:taboption("seconddns", Flag, "seconddns_no_rule_addr", translate("Skip Address Rules"), translate("Skip address rules."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- skip name server rules
 o = s:taboption("seconddns", Flag, "seconddns_no_rule_nameserver", translate("Skip Nameserver Rule"), translate("Skip nameserver rules."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- skip ipset rules
 o = s:taboption("seconddns", Flag, "seconddns_no_rule_ipset", translate("Skip Ipset Rule"), translate("Skip ipset rules."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- skip soa address rule
 o = s:taboption("seconddns", Flag, "seconddns_no_rule_soa", translate("Skip SOA Address Rule"), translate("Skip SOA address rules."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 o = s:taboption("seconddns", Flag, "seconddns_no_dualstack_selection", translate("Skip Dualstack Selection"), translate("Skip Dualstack Selection."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- skip cache
 o = s:taboption("seconddns", Flag, "seconddns_no_cache", translate("Skip Cache"), translate("Skip Cache."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ---- Force AAAA SOA
 o = s:taboption("seconddns", Flag, "force_aaaa_soa", translate("Force AAAA SOA"), translate("Force AAAA SOA."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 ----- custom settings
 custom = s:taboption("custom", Value, "Custom Settings",
@@ -234,9 +192,6 @@ end
 o = s:taboption("custom", Flag, "coredump", translate("Generate Coredump"), translate("Generate Coredump file when smartdns crash, coredump file is located at /tmp/smartdns.xxx.core."))
 o.rmempty     = false
 o.default     = o.disabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
-end
 
 -- Upstream servers
 s = m:section(TypedSection, "server", translate("Upstream Servers"), translate("Upstream Servers, support UDP, TCP protocol. " ..
@@ -251,9 +206,6 @@ s.extedit  = luci.dispatcher.build_url("admin/network/smartdns/upstream/%s")
 o = s:option(Flag, "enabled", translate("Enable"), translate("Enable"))
 o.rmempty     = false
 o.default     = o.enabled
-o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
-end
 
 ---- name
 s:option(Value, "name", translate("DNS Server Name"), translate("DNS Server Name"))
