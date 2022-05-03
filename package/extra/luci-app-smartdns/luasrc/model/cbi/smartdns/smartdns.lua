@@ -62,15 +62,15 @@ end
 ---- Support IPV6
 o = s:taboption("settings", Flag, "ipv6_server", translate("IPV6 Server"), translate("Enable IPV6 DNS Server"))
 o.rmempty     = false
-o.default     = o.disabled
+o.default     = o.enabled
 o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "0"
+    return Flag.cfgvalue(...) or "1"
 end
 
 ---- Support DualStack ip selection
 o = s:taboption("settings", Flag, "dualstack_ip_selection", translate("Dual-stack IP Selection"), translate("Enable IP selection between IPV4 and IPV6"))
 o.rmempty     = false
-o.default     = o.disabled
+o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "0"
 end
@@ -78,16 +78,16 @@ end
 ---- Domain prefetch load 
 o = s:taboption("settings", Flag, "prefetch_domain", translate("Domain prefetch"), translate("Enable domain prefetch, accelerate domain response speed."))
 o.rmempty     = false
-o.default     = o.enabled
+o.default     = o.disabled
 o.cfgvalue    = function(...)
-    return Flag.cfgvalue(...) or "1"
+    return Flag.cfgvalue(...) or "0"
 end
 
 ---- Domain Serve expired
 o = s:taboption("settings", Flag, "serve_expired", translate("Serve expired"), 
 	translate("Attempts to serve old responses from cache with a TTL of 0 in the response without waiting for the actual resolution to finish."))
 o.rmempty     = false
-o.default     = o.disabled
+o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "0"
 end
@@ -112,15 +112,19 @@ o.rempty      = true
 ---- rr-ttl-min
 o = s:taboption("settings", Value, "rr_ttl_min", translate("Domain TTL Min"), translate("Minimum TTL for all domain result."))
 o.rempty      = true
-o.placeholder = "300"
-o.default     = 300
+o.placeholder = "600"
+o.default     = 600
 o.optional    = true
 
----- second dns server
 ---- rr-ttl-max
 o = s:taboption("settings", Value, "rr_ttl_max", translate("Domain TTL Max"), translate("Maximum TTL for all domain result."))
 o.rempty      = true
 
+---- rr-ttl-reply-max
+o = s:taboption("settings", Value, "rr_ttl_reply_max", translate("Domain TTL Max"), translate("Maximum Reply TTL for all domain result."))
+o.rempty      = true
+
+---- second dns server
 ---- Eanble
 o = s:taboption("seconddns", Flag, "seconddns_enabled", translate("Enable"), translate("Enable or disable second DNS server."))
 o.default     = o.disabled
@@ -244,7 +248,7 @@ s.template = "cbi/tblsection"
 s.extedit  = luci.dispatcher.build_url("admin/network/smartdns/upstream/%s")
 
 ---- enable flag
-o = s:option(Flag, "enabled", translate("Enable"))
+o = s:option(Flag, "enabled", translate("Enable"), translate("Enable"))
 o.rmempty     = false
 o.default     = o.enabled
 o.cfgvalue    = function(...)
@@ -252,14 +256,14 @@ o.cfgvalue    = function(...)
 end
 
 ---- name
-s:option(Value, "name", translate("DNS Server Name"))
+s:option(Value, "name", translate("DNS Server Name"), translate("DNS Server Name"))
 
 ---- IP address
-o = s:option(Value, "ip", translate("DNS Server ip"))
+o = s:option(Value, "ip", translate("ip"), translate("DNS Server ip"))
 o.datatype = "or(ipaddr, string)"
 o.rmempty = false 
 ---- port
-o = s:option(Value, "port", translate("DNS Server port"))
+o = s:option(Value, "port", translate("port"), translate("DNS Server port"))
 o.placeholder = "default"
 o.datatype    = "port"
 o.rempty      = true
@@ -268,7 +272,7 @@ o:depends("type", "tcp")
 o:depends("type", "tls")
 
 ---- type
-o = s:option(ListValue, "type", translate("DNS Server type"))
+o = s:option(ListValue, "type", translate("type"), translate("DNS Server type"))
 o.placeholder = "udp"
 o:value("udp", translate("udp"))
 o:value("tcp", translate("tcp"))
