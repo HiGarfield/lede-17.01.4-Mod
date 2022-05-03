@@ -27,4 +27,6 @@ for percentage = 10, 100, 10 do
 	limit:value(percentage)
 end
 
+include_children = s:option(Flag, "include_children", translate("include children"), translate("also limit child processes"))
+
 return m

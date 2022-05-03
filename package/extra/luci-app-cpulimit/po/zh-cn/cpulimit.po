@@ -21,3 +21,9 @@ msgstr "使用率限制 (%)"
 
 msgid "percentage of a single core (0-%d)"
 msgstr "占CPU单个核心的百分比 (0-%d)"
+
+msgid "include children"
+msgstr "包含子进程"
+
+msgid "also limit child processes"
+msgstr "同时限制子进程"
