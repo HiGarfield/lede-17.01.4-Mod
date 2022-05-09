@@ -233,6 +233,14 @@ int fast_classifier_recv(struct sk_buff *skb)
 	prefetch(skb->data + 32);
 	barrier();
 
+	/*
+	 * Send packet to network stack without processing if VLAN TAG is present
+	 * Untagging VLAN packet is impossible here as it is private for the context
+	 * This will avoid untagging after v4-v6 recv functions execute, saving MIPS
+	 */
+	if (skb_vlan_tag_present(skb))
+		return 0;
+
 	dev = skb->dev;
 
 	/*
@@ -333,7 +341,7 @@ static bool fast_classifier_find_dev_and_mac_addr(struct sk_buff *skb, sfe_ip_ad
 {
 	struct neighbour *neigh;
 	struct rtable *rt;
-	struct rt6_info *rt6;
+	struct rt6_info *rt6 = NULL;
 	struct dst_entry *dst;
 	struct net_device *mac_dev;
 
@@ -850,6 +858,25 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 	if (unlikely(skb->pkt_type == PACKET_MULTICAST)) {
 		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_PACKET_MULTICAST);
 		DEBUG_TRACE("multicast, ignoring\n");
+		return NF_ACCEPT;
+	}
+
+#ifdef CONFIG_XFRM
+	/*
+	 * Packet to xfrm for encapsulation, we can't process it
+	 */
+	if (unlikely(skb_dst(skb)->xfrm)) {
+		DEBUG_TRACE("packet to xfrm, ignoring\n");
+		return NF_ACCEPT;
+	}
+#endif
+
+	/*
+	 * Don't process locally generated packets.
+	 */
+	if (skb->sk) {
+		fast_classifier_incr_exceptions(FAST_CL_EXCEPTION_LOCAL_OUT);
+		DEBUG_TRACE("skip local out packet\n");
 		return NF_ACCEPT;
 	}
 
@@ -1833,7 +1860,7 @@ static int __init fast_classifier_init(void)
 	/*
 	 * Register our netfilter hooks.
 	 */
-	result = nf_register_net_hooks(&init_net, fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
+	result = nf_register_hooks(fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
 	if (result < 0) {
 		DEBUG_ERROR("can't register nf post routing hook: %d\n", result);
 		goto exit3;
@@ -1923,7 +1950,7 @@ exit5:
 
 exit4:
 #endif
-	nf_unregister_net_hooks(&init_net, fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
+	nf_unregister_hooks(fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
 
 exit3:
 	unregister_inetaddr_notifier(&sc->inet_notifier);
@@ -1989,7 +2016,7 @@ static void __exit fast_classifier_exit(void)
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
 	nf_conntrack_unregister_notifier(&init_net, &fast_classifier_conntrack_notifier);
 #endif
-	nf_unregister_net_hooks(&init_net, fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
+	nf_unregister_hooks(fast_classifier_ops_post_routing, ARRAY_SIZE(fast_classifier_ops_post_routing));
 
 	unregister_inet6addr_notifier(&sc->inet6_notifier);
 	unregister_inetaddr_notifier(&sc->inet_notifier);

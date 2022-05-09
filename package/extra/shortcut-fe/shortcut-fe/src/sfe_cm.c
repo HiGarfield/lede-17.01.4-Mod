@@ -135,6 +135,14 @@ int sfe_cm_recv(struct sk_buff *skb)
 	prefetch(skb->data + 32);
 	barrier();
 
+	/*
+	 * Send packet to network stack without processing if VLAN TAG is present
+	 * Untagging VLAN packet is impossible here as it is private for the context
+	 * This will avoid untagging after v4-v6 recv functions execute, saving MIPS
+	 */
+	if (skb_vlan_tag_present(skb))
+		return 0;
+
 	dev = skb->dev;
 
 #ifdef CONFIG_NET_CLS_ACT
@@ -216,7 +224,7 @@ static bool sfe_cm_find_dev_and_mac_addr(struct sk_buff *skb, sfe_ip_addr_t *add
 {
 	struct neighbour *neigh;
 	struct rtable *rt;
-	struct rt6_info *rt6;
+	struct rt6_info *rt6 = NULL;
 	struct dst_entry *dst;
 	struct net_device *mac_dev;
 
@@ -336,6 +344,25 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 	if (unlikely(skb->pkt_type == PACKET_MULTICAST)) {
 		sfe_cm_incr_exceptions(SFE_CM_EXCEPTION_PACKET_MULTICAST);
 		DEBUG_TRACE("multicast, ignoring\n");
+		return NF_ACCEPT;
+	}
+
+#ifdef CONFIG_XFRM
+	/*
+	 * Packet to xfrm for encapsulation, we can't process it
+	 */
+	if (unlikely(skb_dst(skb)->xfrm)) {
+		DEBUG_TRACE("packet to xfrm, ignoring\n");
+		return NF_ACCEPT;
+	}
+#endif
+
+	/*
+	 * Don't process locally generated packets.
+	 */
+	if (skb->sk) {
+		sfe_cm_incr_exceptions(SFE_CM_EXCEPTION_LOCAL_OUT);
+		DEBUG_TRACE("skip local out packet\n");
 		return NF_ACCEPT;
 	}
 
@@ -960,7 +987,7 @@ static void sfe_cm_sync_rule(struct sfe_connection_sync *sis)
 #else
 				timeouts = nf_ct_timeout_lookup(ct);
 				if (!timeouts) {
-					timeouts = nf_udp_pernet(nf_ct_net(ct))->timeouts;
+					timeouts = udp_get_timeouts(nf_ct_net(ct));
 				}
 
 				spin_lock_bh(&ct->lock);
@@ -1111,12 +1138,17 @@ static int __init sfe_cm_init(void)
 	 * function always returns 0.
 	 */
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
+#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
+	(void)nf_conntrack_register_notifier(&init_net, &sfe_cm_conntrack_notifier);
+#else
 	result = nf_conntrack_register_notifier(&init_net, &sfe_cm_conntrack_notifier);
 	if (result < 0) {
 		DEBUG_ERROR("can't register nf notifier hook: %d\n", result);
 		goto exit4;
 	}
 #endif
+#endif
+
 	spin_lock_init(&sc->lock);
 
 	/*
@@ -1142,8 +1174,8 @@ static int __init sfe_cm_init(void)
 	return 0;
 
 #ifdef CONFIG_NF_CONNTRACK_EVENTS
+#ifndef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
 exit4:
-#ifdef CONFIG_NF_CONNTRACK_CHAIN_EVENTS
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0))
 	nf_unregister_hooks(sfe_cm_ops_post_routing, ARRAY_SIZE(sfe_cm_ops_post_routing));
 #else
