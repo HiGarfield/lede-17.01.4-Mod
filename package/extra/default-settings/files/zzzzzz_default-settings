@@ -110,7 +110,6 @@ uci -q batch <<-EOF >/dev/null
 	commit dhcp
 	set network.globals.ula_prefix="$ula_prefix"
 	set network.wan.mtu='1492'
-	set network.lan.stp='1'
 	commit network
 EOF
 
