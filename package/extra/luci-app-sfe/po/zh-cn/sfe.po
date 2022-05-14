@@ -22,12 +22,6 @@ msgstr "桥接加速"
 msgid "Enable bridge acceleration"
 msgstr "启用桥接加速"
 
-msgid "IPv6 acceleration"
-msgstr "IPv6 加速"
-
-msgid "Enable IPv6 acceleration"
-msgstr "启用IPv6加速"
-
 msgid "Accelerate at packets"
 msgstr "多少数据包后开始加速"
 
