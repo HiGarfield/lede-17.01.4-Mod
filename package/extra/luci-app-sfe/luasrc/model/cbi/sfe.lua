@@ -23,10 +23,6 @@ bridge = s:option(Flag, "bridge", translate("Bridge acceleration"))
 bridge.description = translate("Enable bridge acceleration")
 bridge:depends("enabled", "1")
 
-ipv6 = s:option(Flag, "ipv6", translate("IPv6 acceleration"))
-ipv6.description = translate("Enable IPv6 acceleration")
-ipv6:depends("enabled", "1")
-
 offload_at_pkts = s:option(Value, "offload_at_pkts", translate("Accelerate at packets"))
 offload_at_pkts.description = translate("Start acceleration after how many packets, defaultly 128, at least 4")
 offload_at_pkts.datatype = "and(uinteger,min(4))"

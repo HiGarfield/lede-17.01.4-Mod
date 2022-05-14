@@ -1,6 +1,5 @@
 
 config sfe 'config'
 	option enabled '1'
-	option ipv6 '1'
 	option bridge '1'
 	option offload_at_pkts '128'

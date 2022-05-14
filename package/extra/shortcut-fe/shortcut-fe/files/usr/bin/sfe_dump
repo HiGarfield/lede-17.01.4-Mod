@@ -15,21 +15,14 @@
 
 #@sfe_dump
 #@example : sfe_dump (ipv4|ipv6)
-sfe_dump(){
-	[ -e "/dev/sfe_ipv4" ] || {
-		dev_num=$(cat /sys/sfe_ipv4/debug_dev)
-		mknod /dev/sfe_ipv4 c $dev_num 0
-	}
-	[ -e "/dev/sfe_ipv6" ] || {
-		dev_num=$(cat /sys/sfe_ipv6/debug_dev)
-		mknod /dev/sfe_ipv6 c $dev_num 0
-	}
-	cat /dev/sfe_$1
+sfe_dump() {
+	[ -e "/dev/sfe_$1" ] &&
+		cat "/dev/sfe_$1"
 }
 
 if [ -z "$1" ]; then
 	sfe_dump ipv4
 	sfe_dump ipv6
 else
-	sfe_dump $1
+	sfe_dump "$1"
 fi

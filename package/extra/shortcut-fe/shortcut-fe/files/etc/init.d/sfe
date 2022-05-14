@@ -5,83 +5,62 @@
 
 START=99
 
-have_cm() {
-	if [ -d "/sys/kernel/debug/ecm" ]; then
-		echo 1
-	else
-		echo 0
-	fi
-}
-
 #load shortcut-fe connection manager
 load_sfe_cm() {
 	local kernel_version="$(uname -r)"
 
 	#shortcut-fe-drv.ko is not needed because other connection manager is not enabled
-	if [ -d "/sys/module/shortcut_fe_drv" ]; then
+	[ -d "/sys/module/shortcut_fe_drv" ] &&
 		rmmod shortcut_fe_drv
-	fi
 
-	if [ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] && [ ! -d /sys/module/shortcut_fe_cm ]; then
-		insmod "/lib/modules/$kernel_version/shortcut-fe-cm.ko" && return
-	fi
+	[ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] &&
+		[ ! -d /sys/module/shortcut_fe_cm ] &&
+		insmod "/lib/modules/$kernel_version/shortcut-fe-cm.ko" &&
+		return
 
-	if [ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] && [ ! -d /sys/module/fast_classifier ]; then
-		insmod "/lib/modules/$kernel_version/fast-classifier.ko" && return
-	fi
-}
-
-load_sfe() {
-	local enabled
-	local bridge
-	local ipv6
-	local sfe_ipv6
-	local offload_at_pkts
-
-	config_load sfe
-	config_get_bool enabled config enabled 0
-	config_get_bool bridge config bridge 0
-	config_get_bool ipv6 config ipv6 0
-	config_get offload_at_pkts config offload_at_pkts 128
-
-	if [ "$enabled" -eq 1 ]; then
-		if [ "$(have_cm)" -ne 1 ]; then
-			load_sfe_cm
-		fi
-
-		if [ -f "/sys/fast_classifier/skip_to_bridge_ingress" ]; then
-			echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
-		fi
-
-		if [ -f "/sys/fast_classifier/offload_at_pkts" ]; then
-			echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
-		fi
-
-		if [ "$ipv6" -eq 1 ]; then
-			sfe_ipv6=$(cat /sys/sfe_ipv6/debug_dev)
-			if [ ! -f /dev/sfe_ipv6 ]; then
-				mknod /dev/sfe_ipv6 c "$sfe_ipv6" 0
-			fi
-		else
-			rm -f /dev/sfe_ipv6
-		fi
-	fi
+	[ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] &&
+		[ ! -d /sys/module/fast_classifier ] &&
+		insmod "/lib/modules/$kernel_version/fast-classifier.ko" &&
+		return
 }
 
 unload_sfe() {
-	if [ -d /sys/module/shortcut_fe_cm ]; then
+	[ -d /sys/module/shortcut_fe_cm ] &&
 		rmmod shortcut_fe_cm
-	fi
 
-	if [ -d /sys/module/fast_classifier ]; then
+	[ -d /sys/module/fast_classifier ] &&
 		rmmod fast_classifier
-	fi
 
-	rm -f /dev/sfe_ipv6
+	rm -f /dev/sfe_ipv4 /dev/sfe_ipv6
+}
+
+load_sfe() {
+	local enabled bridge ipv4_dev_num ipv6_dev_num offload_at_pkts
+	config_load sfe
+	config_get_bool enabled config enabled 0
+	config_get_bool bridge config bridge 0
+	config_get offload_at_pkts config offload_at_pkts 128
+
+	unload_sfe
+
+	[ "$enabled" -eq 1 ] || return
+	[ -d "/sys/kernel/debug/ecm" ] && return
+
+	load_sfe_cm
+
+	echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
+	echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
+
+	ipv4_dev_num=$(cat /sys/sfe_ipv4/debug_dev)
+	[ -n "$ipv4_dev_num" ] &&
+		mknod /dev/sfe_ipv4 c "$ipv4_dev_num" 0
+
+	ipv6_dev_num=$(cat /sys/sfe_ipv6/debug_dev)
+	[ -n "$ipv6_dev_num" ] &&
+		mknod /dev/sfe_ipv6 c "$ipv6_dev_num" 0
 }
 
 start() {
-	unload_sfe
 	load_sfe
 }
 
