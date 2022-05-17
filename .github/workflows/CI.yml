@@ -112,13 +112,14 @@ jobs:
 
       - name: Upload images to Releases
         if: ${{ steps.compile.outputs.status == 'success' }}
-        uses: HiGarfield/upload-release-action@master
+        uses: HiGarfield/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ env.MY_TOKEN }}
         with:
-          repo_token: ${{ env.MY_TOKEN }}
           file: ${{ env.FIRMWARE }}/*
-          tag: ${{ env.LEDE_VERSION }}
           overwrite: true
-          file_glob: true
+          tag_name: ${{ env.LEDE_VERSION }}
+          draft: false
 
       - name: Remove old releases
         uses: HiGarfield/delete-older-releases@master
@@ -234,13 +235,14 @@ jobs:
 
       - name: Upload images to Releases
         if: ${{ steps.compile.outputs.status == 'success' }}
-        uses: HiGarfield/upload-release-action@master
+        uses: HiGarfield/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ env.MY_TOKEN }}
         with:
-          repo_token: ${{ env.MY_TOKEN }}
           file: ${{ env.FIRMWARE }}/*
-          tag: ${{ env.LEDE_VERSION }}
           overwrite: true
-          file_glob: true
+          tag_name: ${{ env.LEDE_VERSION }}
+          draft: false
 
       - name: Remove old releases
         uses: HiGarfield/delete-older-releases@master
@@ -320,13 +322,14 @@ jobs:
 
       - name: Upload assets to Releases
         if: ${{ steps.download.outputs.status == 'success' }}
-        uses: HiGarfield/upload-release-action@master
+        uses: HiGarfield/upload-to-github-release@v1
+        env:
+          GITHUB_TOKEN: ${{ env.MY_TOKEN }}
         with:
-          repo_token: ${{ env.MY_TOKEN }}
           file: ${{ env.OUTPUT_DIR }}/*
-          tag: ${{ env.LEDE_VERSION }}
           overwrite: true
-          file_glob: true
+          tag_name: ${{ env.LEDE_VERSION }}
+          draft: false
 
       - name: Remove old releases
         uses: HiGarfield/delete-older-releases@master
