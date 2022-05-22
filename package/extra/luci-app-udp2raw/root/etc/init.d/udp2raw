@@ -44,7 +44,7 @@ create_config() {
 	[ -n "$source_port" ] && echo "--source-port ${source_port}" >>$config_file
 	echo "--retry-on-error" >>$config_file
 
-	[ -n "$log_level" ] && echo "--log-level ${log_level}" >>$config_file
+	echo "--log-level 1" >>$config_file
 	echo "--disable-color" >>$config_file
 
 	sock_buf="$(awk '/^MemTotal:/{print int($2/64); exit}' /proc/meminfo)"
@@ -75,8 +75,7 @@ validate_server_section() {
 		'seq_mode:range(0,4)' \
 		'lower_level:string' \
 		'source_ip:ipaddr' \
-		'source_port:port' \
-		'log_level:range(0,6)'
+		'source_port:port'
 }
 
 start_instance() {
@@ -108,6 +107,8 @@ start_instance() {
 	procd_set_param command /usr/bin/udp2raw
 	procd_append_param command --conf-file "$config_file"
 	procd_set_param respawn 3600 10 30
+	procd_set_param stdout 1
+	procd_set_param stderr 1
 	procd_set_param file "$config_file"
 	procd_set_param pidfile "/var/run/${NAME}.${server}.pid"
 	procd_close_instance
