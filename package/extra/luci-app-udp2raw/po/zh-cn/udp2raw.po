@@ -114,7 +114,3 @@ msgstr "源端口"
 
 msgid "Force source-port for Raw Socket, TCP/UDP only."
 msgstr "在原始数据包中强制指定源端口，仅用于 TCP/UDP。"
-
-msgid "Log Level"
-msgstr "日志级别"
-
