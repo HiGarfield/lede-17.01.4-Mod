@@ -81,8 +81,4 @@ o.datatype = "ipaddr"
 o = s:option(Value, "source_port", translate("Source-Port"), translate("Force source-port for Raw Socket, TCP/UDP only."))
 o.datatype = "port"
 
-o = s:option(Value, "log_level", translate("Log Level"))
-o.datatype = "range(0,6)"
-o.placeholder = "4"
-
 return m
