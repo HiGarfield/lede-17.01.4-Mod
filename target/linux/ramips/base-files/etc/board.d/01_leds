@@ -298,7 +298,7 @@ pbr-m1)
 	;;
 newifi-d2)
 	set_usb_led "$board:blue:usb"
-	ucidef_set_led_netdev "internet" "internet" "$board:amber:internet" "eth0.2"
+	ucidef_set_led_netdev "internet" "internet" "$board:blue:internet" "eth0.2"
 	ucidef_set_led_netdev "wlan2g" "WiFi 2.4GHz" "$board:blue:wlan2g" "wlan0"
 	ucidef_set_led_netdev "wlan5g" "WiFi 5GHz" "$board:blue:wlan5g" "wlan1"
 	;;
