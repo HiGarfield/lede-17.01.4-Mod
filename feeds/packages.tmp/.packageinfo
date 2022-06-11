@@ -827,7 +827,7 @@ Ondrej Caletka <ondrej@caletka.cz>
 Source-Makefile: feeds/packages/kernel/exfat/Makefile
 Package: kmod-fs-exfat
 Submenu: Filesystems
-Version: <LINUX_VERSION>+2a594d44a08a2e4e341b543ff58402d027b2b086-0
+Version: <LINUX_VERSION>+c509458c2757e8f3d42be269b9b0f1b236d31572-0
 Depends: +kmod-nls-base
 Conflicts: 
 Menu-Depends: 
@@ -836,7 +836,7 @@ Section: kernel
 Category: Kernel modules
 Title: exFAT kernel module
 Maintainer: 
-Source: exfat-2a594d44a08a2e4e341b543ff58402d027b2b086.tar.xz
+Source: exfat-c509458c2757e8f3d42be269b9b0f1b236d31572.tar.xz
 License: GPL-2.0-only
 Type: ipkg
 Description: exFAT kernel module
@@ -1509,7 +1509,7 @@ Gergely Kiss <mail.gery@gmail.com>
 Source-Makefile: feeds/packages/lang/golang/golang/Makefile
 Package: golang
 Submenu: Go
-Version: 1.17.10-1
+Version: 1.17.11-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64) +golang-src
 Conflicts: 
 Menu-Depends: 
@@ -1521,7 +1521,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (compiler)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.10.src.tar.gz
+Source: go1.17.11.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1547,7 +1547,7 @@ Config:
 
 Package: golang-doc
 Submenu: Go
-Version: 1.17.10-1
+Version: 1.17.11-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1559,7 +1559,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (documentation)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.10.src.tar.gz
+Source: go1.17.11.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -1581,7 +1581,7 @@ Jeffery To <jeffery.to@gmail.com>
 
 Package: golang-src
 Submenu: Go
-Version: 1.17.10-1
+Version: 1.17.11-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread @(aarch64||arm||i386||i686||mips||mips64||mips64el||mipsel||powerpc64||x86_64)
 Conflicts: 
 Menu-Depends: 
@@ -1593,7 +1593,7 @@ Category: Languages
 Repository: base
 Title: Go programming language (source files)
 Maintainer: Jeffery To <jeffery.to@gmail.com>
-Source: go1.17.10.src.tar.gz
+Source: go1.17.11.src.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
@@ -49111,7 +49111,7 @@ Charles Lehner <celehner1@gmail.com>
 Source-Makefile: feeds/packages/utils/ntfs-3g/Makefile
 Package: ntfs-3g
 Submenu: Filesystem
-Version: 2021.8.22-1-fuseint
+Version: 2022.5.17-1-fuseint
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-fuse +PACKAGE_NTFS-3G_USE_LIBFUSE:libfuse +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -49121,7 +49121,7 @@ Category: Utilities
 Repository: base
 Title: Stable Read/Write NTFS Driver
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: ntfs-3g_ntfsprogs-2021.8.22.tgz
+Source: ntfs-3g_ntfsprogs-2022.5.17.tgz
 License: GPL-2.0-only LGPL-2.1-or-later
 LicenseFiles: COPYING COPYING.LIB
 Type: ipkg
@@ -49157,7 +49157,7 @@ config PACKAGE_NTFS-3G_HAS_PROBE
 
 Package: ntfs-3g-low
 Submenu: Filesystem
-Version: 2021.8.22-1-fuseint
+Version: 2022.5.17-1-fuseint
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ntfs-3g
 Conflicts: 
 Menu-Depends: 
@@ -49167,7 +49167,7 @@ Category: Utilities
 Repository: base
 Title: lowntfs-3g (alternative using the fuse low-level interface)
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: ntfs-3g_ntfsprogs-2021.8.22.tgz
+Source: ntfs-3g_ntfsprogs-2022.5.17.tgz
 License: GPL-2.0-only LGPL-2.1-or-later
 LicenseFiles: COPYING COPYING.LIB
 Type: ipkg
@@ -49185,7 +49185,7 @@ Ted Hess <thess@kitschensync.net>
 
 Package: ntfs-3g-utils
 Submenu: Filesystem
-Version: 2021.8.22-1-fuseint
+Version: 2022.5.17-1-fuseint
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ntfs-3g +libgcrypt +libuuid
 Conflicts: 
 Menu-Depends: 
@@ -49195,7 +49195,7 @@ Category: Utilities
 Repository: base
 Title: ntfs-3g utilities
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: ntfs-3g_ntfsprogs-2021.8.22.tgz
+Source: ntfs-3g_ntfsprogs-2022.5.17.tgz
 License: GPL-2.0-only LGPL-2.1-or-later
 LicenseFiles: COPYING COPYING.LIB
 Type: ipkg
