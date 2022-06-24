@@ -1,0 +1,68 @@
+From 48b2a96fe803e6d45984446ff30fe6759300ff78 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 25 Jun 2022 02:20:03 +0800
+Subject: [PATCH 1/8] usb: Don't disable Latency tolerance Messaging (LTM)
+ before port reset Disabing Latency Tolerance Messaging before port reset is
+ unnecessary. LTM is automatically disabled at port reset.
+
+If host can't communicate with the device the LTM message will fail, and
+the hub driver will unnecessarily do a logical disconnect.
+Broken communication is ofter the reason for a reset in the first place.
+
+Additionally we can't guarantee device is in a configured state,
+epecially in reset-resume case when root hub lost power.
+LTM can't be modified unless device is in a configured state.
+
+Just remove LTM disabling before port reset.
+
+Details about LTM and port reset in USB 3 specification:
+
+USB 3 spec section 9.4.5
+"The LTM Enable field can be modified by the SetFeature() and
+ClearFeature() requests using the LTM_ENABLE feature selector.
+This field is reset to zero when the device is reset."
+
+USB 3 spec section 9.4.1
+"The device shall process a Clear Feature (U1_Enable or U2_Enable or
+LTM_Enable) only if the device is in the configured state."
+
+Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+Acked-by: Alan Stern <stern@rowland.harvard.edu>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/usb/core/hub.c | 13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index 3c5c9c92..f5c0ea87 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -5462,22 +5462,15 @@ static int usb_reset_and_verify_device(struct usb_device *udev)
+ 	 */
+ 	usb_disable_usb2_hardware_lpm(udev);
+ 
+-	/* Disable LPM and LTM while we reset the device and reinstall the alt
+-	 * settings.  Device-initiated LPM settings, and system exit latency
+-	 * settings are cleared when the device is reset, so we have to set
+-	 * them up again.
++	/* Disable LPM while we reset the device and reinstall the alt settings.
++	 * Device-initiated LPM, and system exit latency settings are cleared
++	 * when the device is reset, so we have to set them up again.
+ 	 */
+ 	ret = usb_unlocked_disable_lpm(udev);
+ 	if (ret) {
+ 		dev_err(&udev->dev, "%s Failed to disable LPM\n.", __func__);
+ 		goto re_enumerate_no_bos;
+ 	}
+-	ret = usb_disable_ltm(udev);
+-	if (ret) {
+-		dev_err(&udev->dev, "%s Failed to disable LTM\n.",
+-				__func__);
+-		goto re_enumerate_no_bos;
+-	}
+ 
+ 	bos = udev->bos;
+ 	udev->bos = NULL;
+-- 
+2.25.1
+

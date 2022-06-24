@@ -1,0 +1,35 @@
+From 03140c8115b3b28e586bd87f33b83cc971880fed Mon Sep 17 00:00:00 2001
+From: Bixuan Cui <cuibixuan@huawei.com>
+Date: Thu, 8 Apr 2021 21:08:31 +0800
+Subject: [PATCH 7/8] usb: core: hub: Fix PM reference leak in
+ usb_port_resume()
+
+pm_runtime_get_sync will increment pm usage counter even it failed.
+thus a pairing decrement is needed.
+Fix it by replacing it with pm_runtime_resume_and_get to keep usage
+counter balanced.
+
+Reported-by: Hulk Robot <hulkci@huawei.com>
+Signed-off-by: Bixuan Cui <cuibixuan@huawei.com>
+Link: https://lore.kernel.org/r/20210408130831.56239-1-cuibixuan@huawei.com
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+---
+ drivers/usb/core/hub.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
+index a850d7e6..420e6035 100644
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -3383,7 +3383,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
+ 	u16		portchange, portstatus;
+ 
+ 	if (!test_and_set_bit(port1, hub->child_usage_bits)) {
+-		status = pm_runtime_get_sync(&port_dev->dev);
++		status = pm_runtime_resume_and_get(&port_dev->dev);
+ 		if (status < 0) {
+ 			dev_dbg(&udev->dev, "can't resume usb port, status %d\n",
+ 					status);
+-- 
+2.25.1
+
