@@ -243,18 +243,24 @@ del_cron() {
 	fi
 }
 
-uci_get_by_name() {
-	local ret=$(uci -q get "$CONFIG.$1.$2")
-	echo "${ret:=$3}"
-}
-
-uci_get_by_type() {
-	local index=0
-	if [ -n "$4" ]; then
-		index=$4
-	fi
-	local ret=$(uci -q get $CONFIG.@$1[$index].$2)
-	echo "${ret:=$3}"
+process_acl_rule() {
+	local ip
+	local mode
+	config_get ip "$1" ipaddr
+	config_get mode "$1" filter_mode
+	case "$mode" in
+	disable)
+		iptables -t nat -A shadowsocksr_pre -s $ip -j RETURN
+		;;
+	global)
+		iptables -t nat -A shadowsocksr_pre -s $ip -p tcp -j REDIRECT --to $SS_REDIR_PORT
+		iptables -t nat -A shadowsocksr_pre -s $ip -j RETURN
+		;;
+	game)
+		iptables -t nat -A shadowsocksr_pre -p tcp -s $ip -m set ! --match-set china dst -j REDIRECT --to $SS_REDIR_PORT
+		ipset -! add gameuser $ip
+		;;
+	esac
 }
 
 add_rule() {
@@ -279,23 +285,8 @@ add_rule() {
 	iptables -t mangle -A gameboost -p udp -j TPROXY --on-port $SS_REDIR_PORT --tproxy-mark 0x01/0x01
 	iptables -t mangle -A PREROUTING -m set --match-set gameuser src -j gameboost
 
-	for i in $(seq 0 100); do
-		local ip=$(uci_get_by_type acl_rule ipaddr '' $i)
-		local mode=$(uci_get_by_type acl_rule filter_mode '' $i)
-		case "$mode" in
-		disable)
-			iptables -t nat -A shadowsocksr_pre -s $ip -j RETURN
-			;;
-		global)
-			iptables -t nat -A shadowsocksr_pre -s $ip -p tcp -j REDIRECT --to $SS_REDIR_PORT
-			iptables -t nat -A shadowsocksr_pre -s $ip -j RETURN
-			;;
-		game)
-			iptables -t nat -A shadowsocksr_pre -p tcp -s $ip -m set ! --match-set china dst -j REDIRECT --to $SS_REDIR_PORT
-			ipset -! add gameuser $ip
-			;;
-		esac
-	done
+	config_load ssrpro
+	config_foreach process_acl_rule acl_rule
 
 	case "$vt_proxy_mode" in
 	G) : ;;
