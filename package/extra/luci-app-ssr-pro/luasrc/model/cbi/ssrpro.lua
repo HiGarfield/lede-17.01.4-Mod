@@ -101,7 +101,7 @@ method:value("chacha20")
 method:value("chacha20-ietf")
 
 protocol = s:taboption("main",ListValue, "protocol", translate("Protocol"))
-protocol:value("orgin")
+protocol:value("origin")
 protocol:value("auth_sha1")
 protocol:value("auth_sha1_v2")
 protocol:value("auth_sha1_v4")
