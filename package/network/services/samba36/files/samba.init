@@ -24,23 +24,23 @@ smb_header() {
 	local name workgroup description charset
 	local hostname="$(sed 's/\..*//' /proc/sys/kernel/hostname | tr -d '{};%?=#\n')"
 
-	config_get name        $1 name        "${hostname:-Lede}"
-	config_get workgroup   $1 workgroup   "WORKGROUP"
+	config_get name $1 name "${hostname:-Lede}"
+	config_get workgroup $1 workgroup "WORKGROUP"
 	config_get description $1 description "Samba on ${hostname:-Lede}"
-	config_get charset     $1 charset     "UTF-8"
+	config_get charset $1 charset "UTF-8"
 
 	mkdir -p /var/etc
 	sed -e "s#|NAME|#$name#g" \
-	    -e "s#|WORKGROUP|#$workgroup#g" \
-	    -e "s#|DESCRIPTION|#$description#g" \
-	    -e "s#|INTERFACES|#$interfaces#g" \
-	    -e "s#|CHARSET|#$charset#g" \
-	    /etc/samba/smb.conf.template > /var/etc/smb.conf
+		-e "s#|WORKGROUP|#$workgroup#g" \
+		-e "s#|DESCRIPTION|#$description#g" \
+		-e "s#|INTERFACES|#$interfaces#g" \
+		-e "s#|CHARSET|#$charset#g" \
+		/etc/samba/smb.conf.template >/var/etc/smb.conf
 
 	local homes
 	config_get_bool homes $1 homes 0
 	[ $homes -gt 0 ] && {
-		cat <<EOT >> /var/etc/smb.conf
+		cat <<EOT >>/var/etc/smb.conf
 
 [homes]
 	comment     = Home Directories
@@ -74,13 +74,13 @@ smb_add_share() {
 
 	[ -z "$name" -o -z "$path" ] && return
 
-	echo -e "\n[$name]\n\tpath = $path" >> /var/etc/smb.conf
-	[ -n "$users" ] && echo -e "\tvalid users = $users" >> /var/etc/smb.conf
-	[ -n "$read_only" ] && echo -e "\tread only = $read_only" >> /var/etc/smb.conf
-	[ -n "$guest_ok" ] && echo -e "\tguest ok = $guest_ok" >> /var/etc/smb.conf
-	[ -n "$create_mask" ] && echo -e "\tcreate mask = $create_mask" >> /var/etc/smb.conf
-	[ -n "$dir_mask" ] && echo -e "\tdirectory mask = $dir_mask" >> /var/etc/smb.conf
-	[ -n "$browseable" ] && echo -e "\tbrowseable = $browseable" >> /var/etc/smb.conf
+	echo -e "\n[$name]\n\tpath = $path" >>/var/etc/smb.conf
+	[ -n "$users" ] && echo -e "\tvalid users = $users" >>/var/etc/smb.conf
+	[ -n "$read_only" ] && echo -e "\tread only = $read_only" >>/var/etc/smb.conf
+	[ -n "$guest_ok" ] && echo -e "\tguest ok = $guest_ok" >>/var/etc/smb.conf
+	[ -n "$create_mask" ] && echo -e "\tcreate mask = $create_mask" >>/var/etc/smb.conf
+	[ -n "$dir_mask" ] && echo -e "\tdirectory mask = $dir_mask" >>/var/etc/smb.conf
+	[ -n "$browseable" ] && echo -e "\tbrowseable = $browseable" >>/var/etc/smb.conf
 }
 
 get_auto_share() {
@@ -102,6 +102,15 @@ process_read_only_opt() {
 	sed -i "/^[[:space:]]*option[[:space:]]\+[\"\']\{0,1\}read_only[\"\']\{0,1\}[[:space:]]\+[\"\']\{0,1\}\(yes\|no\)[\"\']\{0,1\}[[:space:]]*$/ s/[\"\']\{0,1\}\(yes\|no\)[\"\']\{0,1\}[[:space:]]*$/'$perm_ro'/g" /var/run/config/samba
 }
 
+autosamba_lock() {
+	mkdir -p /var/lock
+	lock /var/lock/autosamba.lock
+}
+
+autosamba_unlock() {
+	lock -u /var/lock/autosamba.lock
+}
+
 init_config() {
 	local auto_share=0
 	local auto_share_ro=0
@@ -109,14 +118,13 @@ init_config() {
 	config_foreach get_auto_share samba
 	config_foreach get_auto_share_ro samba
 	[ "$auto_share" -eq 1 ] && {
-		mkdir -p /var/lock
-		lock /var/lock/autosamba.lock
+		autosamba_lock
 		[ -f /var/run/config/samba ] || {
 			mkdir -p /var/run/config && touch /var/run/config/samba
 		}
 		process_read_only_opt $auto_share_ro
 		CONFIG_APPEND=1 UCI_CONFIG_DIR=/var/run/config config_load samba
-		lock -u /var/lock/autosamba.lock
+		autosamba_unlock
 	}
 
 	config_foreach smb_header samba
@@ -151,4 +159,9 @@ start_service() {
 	procd_set_param respawn
 	procd_set_param file /var/etc/smb.conf
 	procd_close_instance
+}
+
+reload_service() {
+	stop
+	start
 }
