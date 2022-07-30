@@ -37,6 +37,15 @@ get_auto_share_ro() {
 	[ "$auto_share_ro_value" -eq 1 ] && auto_share_ro=1
 }
 
+autosamba_lock() {
+	mkdir -p /var/lock
+	lock /var/lock/autosamba.lock
+}
+
+autosamba_unlock() {
+	lock -u /var/lock/autosamba.lock
+}
+
 auto_share=0
 auto_share_ro=0
 config_load samba
@@ -59,8 +68,7 @@ need_reload=0
 		share_name="$(echo "$mount" | sed -e 's#^/##g' -e 's#/#_#g')"
 		read_only="no"
 		[ "$auto_share_ro" -eq 1 ] && read_only="yes"
-		mkdir -p /var/lock
-		lock /var/lock/autosamba.lock
+		autosamba_lock
 		uci -q -c /var/run/config batch <<-EOF
 			set samba.$DEVICE="sambashare"
 			set samba.$DEVICE.name="$share_name"
@@ -72,14 +80,13 @@ need_reload=0
 			set samba.$DEVICE.dir_mask="0777"
 			commit samba
 		EOF
-		lock -u /var/lock/autosamba.lock
+		autosamba_unlock
 		[ "$auto_share" -eq 1 ] && need_reload=1
 	}
 }
 
 [ "$ACTION" = "remove" ] && {
-	mkdir -p /var/lock
-	lock /var/lock/autosamba.lock
+	autosamba_lock
 	[ "$(uci -q -c /var/run/config get "samba.$DEVICE")" = "sambashare" ] && {
 		uci -q -c /var/run/config batch <<-EOF
 			delete samba.$DEVICE
@@ -87,7 +94,7 @@ need_reload=0
 		EOF
 		[ "$auto_share" -eq 1 ] && need_reload=1
 	}
-	lock -u /var/lock/autosamba.lock
+	autosamba_unlock
 }
 
-[ "$need_reload" -eq 1 ] && /etc/init.d/samba running && /etc/init.d/samba reload
+[ "$need_reload" -eq 1 ] && /etc/init.d/samba reload
