@@ -106,7 +106,7 @@ start_instance() {
 
 	procd_set_param command /usr/bin/udp2raw
 	procd_append_param command --conf-file "$config_file"
-	procd_set_param respawn 3600 10 30
+	procd_set_param respawn
 	procd_set_param stdout 1
 	procd_set_param stderr 1
 	procd_set_param file "$config_file"
