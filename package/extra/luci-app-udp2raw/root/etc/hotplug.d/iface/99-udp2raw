@@ -1,5 +1,0 @@
-#!/bin/sh
-
-[ "$ACTION" = "ifup" ] && [ "$INTERFACE" = "wan" ] &&
-	! /etc/init.d/udp2raw running instance1 &&
-	/etc/init.d/udp2raw reload
