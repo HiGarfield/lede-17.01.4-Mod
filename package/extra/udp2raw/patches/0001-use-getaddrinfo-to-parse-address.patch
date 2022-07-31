@@ -1,4 +1,4 @@
-From f3127d77798d239fddf5ebb46b2c9d1eac83f6e5 Mon Sep 17 00:00:00 2001
+From 5dae8c1f16d9fbbf6bcc5b2f84ead14a95aa7f54 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Sat, 12 Feb 2022 03:10:58 +0800
 Subject: [PATCH] use getaddrinfo() to parse address
@@ -11,15 +11,16 @@ Ref:
 [1] https://stackoverflow.com/questions/2725255/create-statically-linked-binary-that-uses-getaddrinfo
 [2] https://www.linuxquestions.org/questions/programming-9/glibc-warning-concerning-use-of-getaddrinfo-in-static-library-734169
 ---
- common.cpp | 117 ++++++++---------------------------------------------
+ common.cpp | 116 +++++++++--------------------------------------------
  common.h   |   2 +
- 2 files changed, 19 insertions(+), 100 deletions(-)
+ misc.cpp   |  14 +++++--
+ 3 files changed, 32 insertions(+), 100 deletions(-)
 
 diff --git a/common.cpp b/common.cpp
-index 138d41e..63bd56b 100644
+index 138d41e..ea8ced6 100644
 --- a/common.cpp
 +++ b/common.cpp
-@@ -18,116 +18,33 @@ int force_socket_buf=0;
+@@ -18,116 +18,40 @@ int force_socket_buf=0;
  int address_t::from_str(char *str)
  {
  	clear();
@@ -41,25 +42,22 @@ index 138d41e..63bd56b 100644
 -	else
 -	{
 -		mylog(log_error,"failed to parse\n");
-+	char addr_str[256], port_str[6], drop[2];
-+	struct addrinfo *res;
-+	mylog(log_info, "parsing address: %s\n", str);
-+	if ((sscanf(str, "[%45[^]]]:%5[0-9]%1s", addr_str, port_str, drop) != 2 &&
-+		 sscanf(str, "%255[^:]:%5[0-9]%1s", addr_str, port_str, drop) != 2) ||
-+		strtoul(port_str, NULL, 10) > 65535 ||
-+		getaddrinfo(addr_str, port_str, NULL, &res))
-+	{
-+		mylog(log_error, "failed to parse: %s\n", str);
- 		myexit(-1);
- 	}
+-		myexit(-1);
+-	}
 -
 -	mylog(log_info,"ip_address is {%s}, port is {%u}\n",ip_addr_str,port);
 -
 -	if(port>65535)
--	{
++	char addr_str[256], port_str[6], drop[2];
++	mylog(log_info, "parsing address: %s\n", str);
++	if ((sscanf(str, "[%45[^]]]:%5[0-9]%1s", addr_str, port_str, drop) != 2 &&
++		 sscanf(str, "%255[^:]:%5[0-9]%1s", addr_str, port_str, drop) != 2) ||
++		strtoul(port_str, NULL, 10) > 65535)
+ 	{
 -		mylog(log_error,"invalid port: %d\n",port);
--		myexit(-1);
--	}
++		mylog(log_error, "invalid address: %s\n", str);
+ 		myexit(-1);
+ 	}
 -
 -	int ret=-100;
 -	if(is_ipv6)
@@ -82,7 +80,10 @@ index 138d41e..63bd56b 100644
 -		}
 -	}
 -	else
--	{
++	struct addrinfo *res;
++	int ret;
++	while ((ret = getaddrinfo(addr_str, port_str, NULL, &res)) != 0)
+ 	{
 -		ret=inet_pton(AF_INET, ip_addr_str,&(inner.ipv4.sin_addr));
 -		inner.ipv4.sin_port=htons(port);
 -
@@ -98,9 +99,12 @@ index 138d41e..63bd56b 100644
 -		else
 -		{
 -			mylog(log_error,"ip_addr %s is invalid, %d\n",ip_addr_str,ret);
--			myexit(-1);
++		mylog(log_error, "failed to parse: %s, %d\n", str, ret);
++		if (!retry_on_error || ret == EAI_MEMORY)
+ 			myexit(-1);
 -		}
--	}
++		sleep(retry_on_error_interval);
+ 	}
 -
 +	memcpy(&inner, res->ai_addr, res->ai_addrlen);
 +	freeaddrinfo(res);
@@ -123,7 +127,9 @@ index 138d41e..63bd56b 100644
 -
 -	int ret;
 -	if(type==AF_INET)
--	{
++	struct addrinfo hints = {AI_NUMERICHOST}, *res;
++	if (getaddrinfo(str, NULL, &hints, &res))
+ 	{
 -		ret=inet_pton(type, str,&inner.ipv4.sin_addr);
 -	}
 -	else
@@ -141,11 +147,9 @@ index 138d41e..63bd56b 100644
 -		//okay
 -	}
 -	else
-+	struct addrinfo hints = {AI_NUMERICHOST}, *res;
-+	if (getaddrinfo(str, NULL, &hints, &res))
- 	{
+-	{
 -		mylog(log_error,"ip_addr %s is invalid, %d\n",str,ret);
-+		mylog(log_error, "failed to parse: %s\n", str);
++		mylog(log_error, "invalid address: %s\n", str);
  		myexit(-1);
  	}
 +	memcpy(&inner, res->ai_addr, res->ai_addrlen);
@@ -173,6 +177,38 @@ index d01e5ca..8c4b4e7 100644
  #endif
  
  
+diff --git a/misc.cpp b/misc.cpp
+index 10656ed..7ee813c 100644
+--- a/misc.cpp
++++ b/misc.cpp
+@@ -696,10 +696,6 @@ if(is_udp2raw_mp)
+ }
+ 				force_socket_buf=1;
+ 			}
+-			else if(strcmp(long_options[option_index].name,"retry-on-error")==0)
+-			{
+-				retry_on_error=1;
+-			}
+ 			else if(strcmp(long_options[option_index].name,"wait-lock")==0)
+ 			{
+ 				wait_xtables_lock=1;
+@@ -976,6 +972,16 @@ void pre_process_arg(int argc, char *argv[])//mainly for load conf file
+ 		}
+ 		new_argv_char[new_argc++]=(char *)new_argv[i].c_str();
+ 	}
++
++	for (i = 0; i < new_argc; i++)
++	{
++		if (strcmp(new_argv_char[i], "--retry-on-error") == 0)
++		{
++			retry_on_error = 1;
++			break;
++		}
++	}
++
+ 	process_arg(new_argc,new_argv_char);
+ 
+ }
 -- 
 2.25.1
 
