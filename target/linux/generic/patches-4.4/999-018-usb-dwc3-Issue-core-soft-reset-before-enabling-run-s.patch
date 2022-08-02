@@ -1,0 +1,73 @@
+From e11d0d27e453dd5430f322b56ce623e3e02bf952 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Tue, 2 Aug 2022 16:46:35 +0800
+Subject: [PATCH] usb: dwc3: Issue core soft reset before enabling run/stop
+
+---
+ drivers/usb/dwc3/core.c   |  4 ++--
+ drivers/usb/dwc3/core.h   |  3 +++
+ drivers/usb/dwc3/gadget.c | 12 ++++++++++++
+ 3 files changed, 17 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
+index d8c45e81..8fd24c6d 100644
+--- a/drivers/usb/dwc3/core.c
++++ b/drivers/usb/dwc3/core.c
+@@ -64,7 +64,7 @@ void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
+  * dwc3_core_soft_reset - Issues core soft reset and PHY reset
+  * @dwc: pointer to our context structure
+  */
+-static int dwc3_core_soft_reset(struct dwc3 *dwc)
++int dwc3_core_soft_reset(struct dwc3 *dwc)
+ {
+ 	u32		reg;
+ 	int		ret;
+@@ -265,7 +265,7 @@ static int dwc3_alloc_event_buffers(struct dwc3 *dwc, unsigned length)
+  *
+  * Returns 0 on success otherwise negative errno.
+  */
+-static int dwc3_event_buffers_setup(struct dwc3 *dwc)
++int dwc3_event_buffers_setup(struct dwc3 *dwc)
+ {
+ 	struct dwc3_event_buffer	*evt;
+ 	int				n;
+diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
+index 8dfc94d3..32012084 100644
+--- a/drivers/usb/dwc3/core.h
++++ b/drivers/usb/dwc3/core.h
+@@ -1021,6 +1021,9 @@ struct dwc3_gadget_ep_cmd_params {
+ void dwc3_set_mode(struct dwc3 *dwc, u32 mode);
+ int dwc3_gadget_resize_tx_fifos(struct dwc3 *dwc);
+ 
++int dwc3_event_buffers_setup(struct dwc3 *dwc);
++int dwc3_core_soft_reset(struct dwc3 *dwc);
++
+ #if IS_ENABLED(CONFIG_USB_DWC3_HOST) || IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE)
+ int dwc3_host_init(struct dwc3 *dwc);
+ void dwc3_host_exit(struct dwc3 *dwc);
+diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
+index 5e015631..9869b1f5 100644
+--- a/drivers/usb/dwc3/gadget.c
++++ b/drivers/usb/dwc3/gadget.c
+@@ -1553,6 +1553,18 @@ static int dwc3_gadget_pullup(struct usb_gadget *g, int is_on)
+ 
+ 	is_on = !!is_on;
+ 
++	if (is_on) {
++		/*
++		 * In the Synopsys DWC_usb31 1.90a programming guide section
++		 * 4.1.9, it specifies that for a reconnect after a
++		 * device-initiated disconnect requires a core soft reset
++		 * (DCTL.CSftRst) before enabling the run/stop bit.
++		 */
++		dwc3_core_soft_reset(dwc);
++		dwc3_event_buffers_setup(dwc);
++	}
++		
++
+ 	spin_lock_irqsave(&dwc->lock, flags);
+ 	ret = dwc3_gadget_run_stop(dwc, is_on, false);
+ 	spin_unlock_irqrestore(&dwc->lock, flags);
+-- 
+2.25.1
+
