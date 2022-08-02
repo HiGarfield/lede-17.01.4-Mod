@@ -143,6 +143,14 @@ define Device/ghl-r-001-f
 endef
 TARGET_DEVICES += ghl-r-001-f
 
+define Device/yyets-le2
+  DTS := YYETS-LE2
+  IMAGE_SIZE := $(ralink_default_fw_size_32M)
+  DEVICE_TITLE := HOELXUN YYeTs-LE2
+  DEVICE_PACKAGES := kmod-usb3
+endef
+TARGET_DEVICES += yyets-le2
+
 define Device/pbr-m1
   DTS := PBR-M1
   IMAGE_SIZE := $(ralink_default_fw_size_16M)

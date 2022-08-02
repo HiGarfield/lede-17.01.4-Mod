@@ -197,6 +197,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "4:wan" "6@eth0"
 		;;
+	yyets-le2)
+		ucidef_add_switch "switch0" \
+			"2:lan:1" "3:lan:2" "4:wan" "6@eth0"
+		;;
 	cs-qr10|\
 	d105|\
 	dch-m225|\
