@@ -296,6 +296,9 @@ ghl-r-001-f|\
 pbr-m1)
 	ucidef_set_led_netdev "internet" "internet" "$board:blue:internet" "eth0.2"
 	;;
+yyets-le2)
+	ucidef_set_led_default "status" "STATUS" "$board:blue:status" "1"
+	;;
 newifi-d2)
 	set_usb_led "$board:blue:usb"
 	ucidef_set_led_netdev "internet" "internet" "$board:blue:internet" "eth0.2"

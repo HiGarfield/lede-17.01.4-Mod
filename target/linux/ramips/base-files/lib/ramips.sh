@@ -376,6 +376,9 @@ ramips_board_detect() {
 	*"GHL-R-001-F")
 		name="ghl-r-001-f"
 		;;
+	*"YYeTs-LE2")
+		name="yyets-le2"
+		;;
 	*"NCS601W")
 		name="ncs601w"
 		;;

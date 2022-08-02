@@ -181,6 +181,7 @@ get_status_led() {
 	nw718)
 		status_led="$board:amber:cpu"
 		;;
+	yyets-le2|\
 	newifi-d1)
 		status_led="$board:blue:status"
 		;;

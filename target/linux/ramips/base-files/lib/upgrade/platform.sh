@@ -104,6 +104,7 @@ platform_check_image() {
 	newifi-d2|\
 	ghl-r-001-e|\
 	ghl-r-001-f|\
+	yyets-le2|\
 	a3004ns|\
 	wr1200js|\
 	hw24g|\
