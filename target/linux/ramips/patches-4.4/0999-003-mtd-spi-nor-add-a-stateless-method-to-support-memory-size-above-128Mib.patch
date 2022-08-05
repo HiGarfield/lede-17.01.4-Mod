@@ -1,29 +1,3 @@
-From ba3ae6a1d4c78fce3b352b8bf026ada40b22117c Mon Sep 17 00:00:00 2001
-From: Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Date: Thu, 27 Oct 2016 12:03:57 +0200
-Subject: mtd: spi-nor: add a stateless method to support memory size above
- 128Mib
-
-This patch provides an alternative mean to support memory above 16MiB
-(128Mib) by replacing 3byte address op codes by their associated 4byte
-address versions.
-
-Using the dedicated 4byte address op codes doesn't change the internal
-state of the SPI NOR memory as opposed to using other means such as
-updating a Base Address Register (BAR) and sending command to enter/leave
-the 4byte mode.
-
-Hence when a CPU reset occurs, early bootloaders don't need to be aware
-of BAR value or 4byte mode being enabled: they can still access the first
-16MiB of the SPI NOR memory using the regular 3byte address op codes.
-
-Signed-off-by: Cyrille Pitchen <cyrille.pitchen@atmel.com>
-Tested-by: Vignesh R <vigneshr@ti.com>
-Acked-by: Marek Vasut <marek.vasut@gmail.com>
----
- drivers/mtd/spi-nor/spi-nor.c | 101 +++++++++++++++++++++++++++++++++---------
- 1 file changed, 80 insertions(+), 21 deletions(-)
-
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
 @@ -69,6 +69,10 @@ struct flash_info {
