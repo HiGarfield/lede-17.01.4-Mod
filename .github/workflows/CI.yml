@@ -7,9 +7,22 @@ on:
   workflow_dispatch:
 
 jobs:
+  do_repository_dispatch:
+    if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' }}
+    name: repository dispatch
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Repository dispatch
+        uses: HiGarfield/repository-dispatch@v2
+        with:
+          token: ${{ secrets.MY_TOKEN }}
+          repository: higarfield2/Actions-lede-17.01.4
+          event-type: ${{ github.event.head_commit.message }}
+
   build:
     name: build
     runs-on: ubuntu-20.04
+    needs: [ do_repository_dispatch ]
     env:
       TARGET_DEVICE: ${{ matrix.target }}
     strategy:
@@ -133,6 +146,7 @@ jobs:
   dl:
     name: dl
     runs-on: ubuntu-20.04
+    needs: [ do_repository_dispatch ]
     steps:
       - name: Initialize token
         env:
