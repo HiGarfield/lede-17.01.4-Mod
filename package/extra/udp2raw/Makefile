@@ -12,7 +12,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_DATE:=2022-01-26
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/wangyu-/udp2raw-tunnel.git
+PKG_SOURCE_URL:=https://github.com/wangyu-/udp2raw.git
 PKG_SOURCE_VERSION:=8ceaf27edaff70505948fbfaf8b9b864e3a11ee8
 PKG_MIRROR_HASH:=skip
 
@@ -58,11 +58,6 @@ endif
 
 MAKE_VARS += UDP2RAW_GIT_VER=$(PKG_SOURCE_VERSION)
 MAKE_FLAGS += $(UDP2RAW_TARGET)
-
-define Build/Prepare
-	$(call Build/Prepare/Default)
-	$(CP) ./files/makefile $(PKG_BUILD_DIR)/
-endef
 
 define Package/udp2raw-tunnel/install
 	$(INSTALL_DIR) $(1)/usr/bin

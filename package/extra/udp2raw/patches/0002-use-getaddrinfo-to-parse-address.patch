@@ -1,7 +1,7 @@
-From 5dae8c1f16d9fbbf6bcc5b2f84ead14a95aa7f54 Mon Sep 17 00:00:00 2001
+From 95ac2778d95e870f4e0c1c3f53d6f51b6b43030b Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Sat, 12 Feb 2022 03:10:58 +0800
-Subject: [PATCH] use getaddrinfo() to parse address
+Subject: [PATCH 2/2] use getaddrinfo() to parse address
 
 simplify implementation and support hostname as address
 
@@ -11,25 +11,32 @@ Ref:
 [1] https://stackoverflow.com/questions/2725255/create-statically-linked-binary-that-uses-getaddrinfo
 [2] https://www.linuxquestions.org/questions/programming-9/glibc-warning-concerning-use-of-getaddrinfo-in-static-library-734169
 ---
- common.cpp | 116 +++++++++--------------------------------------------
+ common.cpp | 121 ++++++++++++++---------------------------------------
  common.h   |   2 +
- misc.cpp   |  14 +++++--
- 3 files changed, 32 insertions(+), 100 deletions(-)
+ misc.cpp   |  10 ++---
+ 3 files changed, 38 insertions(+), 95 deletions(-)
 
 diff --git a/common.cpp b/common.cpp
-index 138d41e..ea8ced6 100644
+index 138d41e..f1518ef 100644
 --- a/common.cpp
 +++ b/common.cpp
-@@ -18,116 +18,40 @@ int force_socket_buf=0;
+@@ -18,116 +18,57 @@ int force_socket_buf=0;
  int address_t::from_str(char *str)
  {
  	clear();
--
++	char addr_str[256], port_str[6], drop[2];
++	bool is_ipv6, is_ipv4_or_domain, is_domain = false;
++	mylog(log_info, "parsing address: %s\n", str);
++	is_ipv6 = sscanf(str, "[%45[^]]]:%5[0-9]%1s", addr_str, port_str, drop) == 2;
++	is_ipv4_or_domain = !is_ipv6 &&
++						sscanf(str, "%255[^:]:%5[0-9]%1s", addr_str, port_str, drop) == 2;
+ 
 -	char ip_addr_str[100];u32_t port;
 -	mylog(log_info,"parsing address: %s\n",str);
 -	int is_ipv6=0;
 -	if(sscanf(str, "[%[^]]]:%u", ip_addr_str,&port)==2)
--	{
++	if ((!is_ipv6 && !is_ipv4_or_domain) || strtoul(port_str, NULL, 10) > 65535)
+ 	{
 -		mylog(log_info,"its an ipv6 adress\n");
 -		inner.ipv6.sin6_family=AF_INET6;
 -		is_ipv6=1;
@@ -42,22 +49,18 @@ index 138d41e..ea8ced6 100644
 -	else
 -	{
 -		mylog(log_error,"failed to parse\n");
--		myexit(-1);
--	}
--
--	mylog(log_info,"ip_address is {%s}, port is {%u}\n",ip_addr_str,port);
--
--	if(port>65535)
-+	char addr_str[256], port_str[6], drop[2];
-+	mylog(log_info, "parsing address: %s\n", str);
-+	if ((sscanf(str, "[%45[^]]]:%5[0-9]%1s", addr_str, port_str, drop) != 2 &&
-+		 sscanf(str, "%255[^:]:%5[0-9]%1s", addr_str, port_str, drop) != 2) ||
-+		strtoul(port_str, NULL, 10) > 65535)
- 	{
--		mylog(log_error,"invalid port: %d\n",port);
 +		mylog(log_error, "invalid address: %s\n", str);
  		myexit(-1);
  	}
+ 
+-	mylog(log_info,"ip_address is {%s}, port is {%u}\n",ip_addr_str,port);
+-
+-	if(port>65535)
++	if (is_ipv4_or_domain)
+ 	{
+-		mylog(log_error,"invalid port: %d\n",port);
+-		myexit(-1);
+-	}
 -
 -	int ret=-100;
 -	if(is_ipv6)
@@ -74,19 +77,23 @@ index 138d41e..ea8ced6 100644
 -			//okay
 -		}
 -		else
--		{
++		char *p;
++		for (p = addr_str; *p != '\0'; p++)
+ 		{
 -			mylog(log_error,"ip_addr %s is invalid, %d\n",ip_addr_str,ret);
 -			myexit(-1);
--		}
--	}
++			if (!isdigit(*p) && *p != '.')
++			{
++				is_domain = true;
++				break;
++			}
+ 		}
+ 	}
 -	else
-+	struct addrinfo *res;
-+	int ret;
-+	while ((ret = getaddrinfo(addr_str, port_str, NULL, &res)) != 0)
- 	{
+-	{
 -		ret=inet_pton(AF_INET, ip_addr_str,&(inner.ipv4.sin_addr));
 -		inner.ipv4.sin_port=htons(port);
--
+ 
 -		if(ret==0)
 -		{
 -			mylog(log_error,"ip_addr %s is not an ipv4 address, %d\n",ip_addr_str,ret);
@@ -99,8 +106,12 @@ index 138d41e..ea8ced6 100644
 -		else
 -		{
 -			mylog(log_error,"ip_addr %s is invalid, %d\n",ip_addr_str,ret);
++	struct addrinfo *res;
++	int ret;
++	while ((ret = getaddrinfo(addr_str, port_str, NULL, &res)) != 0)
++	{
 +		mylog(log_error, "failed to parse: %s, %d\n", str, ret);
-+		if (!retry_on_error || ret == EAI_MEMORY)
++		if (!is_domain || !retry_on_error || ret == EAI_MEMORY)
  			myexit(-1);
 -		}
 +		sleep(retry_on_error_interval);
@@ -127,13 +138,13 @@ index 138d41e..ea8ced6 100644
 -
 -	int ret;
 -	if(type==AF_INET)
-+	struct addrinfo hints = {AI_NUMERICHOST}, *res;
-+	if (getaddrinfo(str, NULL, &hints, &res))
- 	{
+-	{
 -		ret=inet_pton(type, str,&inner.ipv4.sin_addr);
 -	}
 -	else
--	{
++	struct addrinfo hints = {AI_NUMERICHOST}, *res;
++	if (getaddrinfo(str, NULL, &hints, &res))
+ 	{
 -		ret=inet_pton(type, str,&inner.ipv6.sin6_addr);
 -	}
 -
@@ -178,7 +189,7 @@ index d01e5ca..8c4b4e7 100644
  
  
 diff --git a/misc.cpp b/misc.cpp
-index 10656ed..7ee813c 100644
+index 10656ed..920df21 100644
 --- a/misc.cpp
 +++ b/misc.cpp
 @@ -696,10 +696,6 @@ if(is_udp2raw_mp)
@@ -192,19 +203,16 @@ index 10656ed..7ee813c 100644
  			else if(strcmp(long_options[option_index].name,"wait-lock")==0)
  			{
  				wait_xtables_lock=1;
-@@ -976,6 +972,16 @@ void pre_process_arg(int argc, char *argv[])//mainly for load conf file
+@@ -974,8 +970,12 @@ void pre_process_arg(int argc, char *argv[])//mainly for load conf file
+ 			mylog(log_fatal,"cant have --conf-file in a config file\n");
+ 			myexit(-1);
  		}
- 		new_argv_char[new_argc++]=(char *)new_argv[i].c_str();
- 	}
-+
-+	for (i = 0; i < new_argc; i++)
-+	{
-+		if (strcmp(new_argv_char[i], "--retry-on-error") == 0)
-+		{
+-		new_argv_char[new_argc++]=(char *)new_argv[i].c_str();
++		else if(strcmp(new_argv[i].c_str(),"--retry-on-error")==0)
 +			retry_on_error = 1;
-+			break;
-+		}
-+	}
++		else
++			new_argv_char[new_argc++]=(char *)new_argv[i].c_str();
+ 	}
 +
  	process_arg(new_argc,new_argv_char);
  
