@@ -4094,6 +4094,11 @@ CONFIG_PACKAGE_libuuid=y
 CONFIG_PACKAGE_zlib=y
 
 #
+# Configuration
+#
+# CONFIG_ZLIB_OPTIMIZE_SPEED is not set
+
+#
 # LuCI
 #
 
