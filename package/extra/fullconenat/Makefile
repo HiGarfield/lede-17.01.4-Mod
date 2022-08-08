@@ -43,25 +43,18 @@ define KernelPackage/ipt-fullconenat
   TITLE:=FULLCONENAT netfilter module
   DEPENDS:=+kmod-nf-ipt +kmod-nf-nat
   MAINTAINER:=Chion Tang <tech@chionlab.moe>
-  KCONFIG:=CONFIG_NF_CONNTRACK_EVENTS=y CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y
+  KCONFIG:= \
+    CONFIG_NF_CONNTRACK_EVENTS=y
+    CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y
   FILES:=$(PKG_BUILD_DIR)/xt_FULLCONENAT.ko
   AUTOLOAD:=$(call AutoLoad,09,xt_FULLCONENAT)
 endef
 
 include $(INCLUDE_DIR)/kernel-defaults.mk
 
-define Build/Prepare
-	$(call Build/Prepare/Default)
-	$(CP) ./files/Makefile $(PKG_BUILD_DIR)/
-endef
-
 define Build/Compile
-	+$(MAKE) $(PKG_JOBS) -C "$(LINUX_DIR)" \
-        CROSS_COMPILE="$(TARGET_CROSS)" \
-        ARCH="$(LINUX_KARCH)" \
-        SUBDIRS="$(PKG_BUILD_DIR)" \
-        EXTRA_CFLAGS="$(BUILDFLAGS)" \
-        modules
+	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
+		modules
 	$(call Build/Compile/Default)
 endef
 
