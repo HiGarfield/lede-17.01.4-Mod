@@ -392,7 +392,7 @@ endef
 TARGET_DEVICES += youku-yk1
 
 define Device/mw310r-v4
-  DTS := MW310R-V4
+  DTS := MW310R_V4
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := MERCURY MW310R v4
 endef
