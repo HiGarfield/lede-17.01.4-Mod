@@ -5,7 +5,7 @@
 #include <dt-bindings/input/input.h>
 
 / {
-	compatible = "MW310R-V4", "ralink,mt7620a-soc";
+	compatible = "MW310R_V4", "ralink,mt7620a-soc";
 	model = "MERCURY MW310R v4";
 
 	gpio-keys-polled {
@@ -46,8 +46,6 @@
 		compatible = "jedec,spi-nor";
 		reg = <0>;
 		spi-max-frequency = <10000000>;
-		m25p,fast-read;
-		broken-flash-reset;
 
 		partition@0 {
 			label = "u-boot";
