@@ -25,7 +25,7 @@
  					                    handle->family, false)) || first_dest;
  				     first_dest = false)
 -				{
-+				if (zone->fullcone && (access("/usr/lib/iptables/libipt_FULLCONENAT.so", 0) == 0)) {
++				if (zone->fullcone) {
 +					r = fw3_ipt_rule_new(handle);
 +					fw3_ipt_rule_src_dest(r, msrc, mdest);
 +					fw3_ipt_rule_target(r, "FULLCONENAT");
