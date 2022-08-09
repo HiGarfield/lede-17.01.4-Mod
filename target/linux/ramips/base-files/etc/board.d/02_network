@@ -114,10 +114,6 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "4:wan" "6@eth0"
 		;;
-	mw310r-v4)
-		ucidef_add_switch "switch0" \
-			"0:lan:4" "1:lan:3" "2:lan:2" "3:lan:1" "4:wan" "6@eth0"
-		;;
 	whr-300hp2|\
 	whr-600d|\
 	wsr-1166|\
