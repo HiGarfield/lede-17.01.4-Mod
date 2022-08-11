@@ -77,7 +77,6 @@ CONFIG_TARGET_ramips_mt7620=y
 # CONFIG_TARGET_ramips_mt7620_DEVICE_y1 is not set
 CONFIG_TARGET_ramips_mt7620_DEVICE_y1s=y
 # CONFIG_TARGET_ramips_mt7620_DEVICE_e1700 is not set
-# CONFIG_TARGET_ramips_mt7620_DEVICE_mw310r-v4 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_mt7620a_mt7530 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_mt7620a_mt7610e is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_mt7620a is not set
