@@ -1,0 +1,30 @@
+From e45da795e617a8b54f47bddbef8a1dcf682e3543 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 12 Aug 2022 19:25:23 +0800
+Subject: [PATCH] kernel: ct: size the hashtable more adequately
+
+To set the default size of the connection tracking hash table, a divider of
+16384 becomes inadequate for a router handling lots of connections. Divide by
+2048 instead, making the default size scale better with the available RAM.
+
+Signed-off-by: Rui Salvaterra <rsalvaterra@gmail.com>
+---
+ net/netfilter/nf_conntrack_core.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
+index b9c8264a..b9334101 100644
+--- a/net/netfilter/nf_conntrack_core.c
++++ b/net/netfilter/nf_conntrack_core.c
+@@ -1682,7 +1682,7 @@ int nf_conntrack_init_start(void)
+ 
+ 	if (!nf_conntrack_htable_size) {
+ 		nf_conntrack_htable_size
+-			= (((totalram_pages << PAGE_SHIFT) / 16384)
++			= (((totalram_pages << PAGE_SHIFT) / 2048)
+ 			   / sizeof(struct hlist_head));
+ 		if (BITS_PER_LONG >= 64 &&
+ 		    totalram_pages > (4 * (1024 * 1024 * 1024 / PAGE_SIZE)))
+-- 
+2.25.1
+
