@@ -1,6 +1,6 @@
 --- a/block.c
 +++ b/block.c
-@@ -715,6 +715,7 @@ static void check_filesystem(struct probe_info *pr)
+@@ -766,6 +766,7 @@ static void check_filesystem(struct probe_info *pr)
  	const char *fatfsck = "/usr/sbin/fsck.fat";
  	const char *btrfsck = "/usr/bin/btrfsck";
  	const char *ntfsck = "/usr/bin/ntfsfix";
@@ -8,7 +8,7 @@
  	const char *ckfs;
  
  	/* UBIFS does not need stuff like fsck */
-@@ -731,6 +732,8 @@ static void check_filesystem(struct probe_info *pr)
+@@ -782,6 +783,8 @@ static void check_filesystem(struct probe_info *pr)
  		ckfs = btrfsck;
  	} else if (!strncmp(pr->type, "ntfs", 4)) {
  		ckfs = ntfsck;

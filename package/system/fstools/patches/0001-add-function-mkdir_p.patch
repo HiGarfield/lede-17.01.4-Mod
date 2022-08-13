@@ -1,6 +1,6 @@
 --- a/block.c
 +++ b/block.c
-@@ -42,7 +42,7 @@
+@@ -40,7 +40,7 @@
  #include <libubox/blobmsg_json.h>
  #include <libubox/list.h>
  #include <libubox/ulog.h>
