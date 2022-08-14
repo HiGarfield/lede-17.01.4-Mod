@@ -14,18 +14,18 @@ jobs:
   do_repository_dispatch:
     if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' }}
     name: repository dispatch
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - name: Repository dispatch
         uses: HiGarfield/repository-dispatch@v2
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: higarfield2/Actions-lede-17.01.4
-          event-type: ${{ github.event.head_commit.message }}
+          event-type: repository_dispatch-${{ github.event.head_commit.message }}
 
   build:
     name: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [ do_repository_dispatch ]
     env:
       TARGET_DEVICE: ${{ matrix.target }}
@@ -61,9 +61,11 @@ jobs:
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install aria2
           sudo cp -f "${GITHUB_WORKSPACE}/.github/backup/apt-fast" /usr/local/sbin/apt-fast
-          sudo -E apt-fast -y -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync coreutils
+          sudo -E apt-fast -y -qq install build-essential gcc-9 g++-9 asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync coreutils
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
+          sudo -E update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
+          sudo -E update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
 
           WORKING_DIR="$GITHUB_WORKSPACE"
           echo "WORKING_DIR=${WORKING_DIR}" >>$GITHUB_ENV
@@ -120,6 +122,12 @@ jobs:
           for f in *.bin; do sha256sum "$f" | awk '{print $1}' >"${f}.sha256sum"; done
           echo "::set-output name=status::success"
 
+      - name: Cancel Workflow on failure
+        if: failure()
+        uses: HiGarfield/cancel-action@master
+        with:
+          token: ${{ env.MY_TOKEN }}
+
       - name: Upload images to Releases
         if: ${{ steps.compile.outputs.status == 'success' }}
         uses: HiGarfield/upload-to-github-release@v1
@@ -142,7 +150,7 @@ jobs:
 
   dl:
     name: dl
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [ do_repository_dispatch ]
     steps:
       - name: Initialize token
@@ -172,9 +180,11 @@ jobs:
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install aria2
           sudo cp -f "${GITHUB_WORKSPACE}/.github/backup/apt-fast" /usr/local/sbin/apt-fast
-          sudo -E apt-fast -y -qq install build-essential asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync coreutils
+          sudo -E apt-fast -y -qq install build-essential gcc-9 g++-9 asciidoc binutils bzip2 gawk gettext git libncurses5-dev libz-dev patch python3 python2.7 unzip zlib1g-dev lib32gcc-s1 libc6-dev-i386 subversion flex uglifyjs git-core gcc-multilib p7zip p7zip-full msmtp libssl-dev texinfo libglib2.0-dev xmlto qemu-utils upx libelf-dev autoconf automake libtool autopoint device-tree-compiler g++-multilib antlr3 gperf wget curl swig rsync coreutils
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
+          sudo -E update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
+          sudo -E update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
 
           WORKING_DIR="$GITHUB_WORKSPACE"
           echo "WORKING_DIR=${WORKING_DIR}" >>$GITHUB_ENV
