@@ -121,7 +121,7 @@ jobs:
 
       - name: Cache
         if: ${{ env.TARGET_DEVICE != 'dl' }}
-        uses: HiGarfield/cachewrtbuild@test
+        uses: HiGarfield/cachewrtbuild@main
         with:
           ccache: 'true'
           mixkey: ${{ steps.gen_cache_mixkey.outputs.mixkey }}
