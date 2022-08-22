@@ -1,0 +1,32 @@
+From 29dfca30deb3fa5f411179918dcc393a07d4e9d5 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 22 Aug 2022 11:55:47 +0800
+Subject: [PATCH] revert "compat: backport skb_try_make_writable"
+
+---
+ cobalt_compat.h | 9 ---------
+ 1 file changed, 9 deletions(-)
+
+diff --git a/cobalt_compat.h b/cobalt_compat.h
+index ca2a28d..30a9121 100644
+--- a/cobalt_compat.h
++++ b/cobalt_compat.h
+@@ -95,15 +95,6 @@ static inline unsigned int __tcp_hdrlen(const struct tcphdr *th)
+ }
+ #endif
+ 
+-#if KERNEL_VERSION(4, 6, 0) > LINUX_VERSION_CODE
+-static inline int skb_try_make_writable(struct sk_buff *skb,
+-					unsigned int write_len)
+-{
+-	return skb_cloned(skb) && !skb_clone_writable(skb, write_len) &&
+-	       pskb_expand_head(skb, 0, 0, GFP_ATOMIC);
+-}
+-#endif
+-
+ #if KERNEL_VERSION(4, 11, 0) > LINUX_VERSION_CODE
+ static inline int skb_mac_offset(const struct sk_buff *skb)
+ {
+-- 
+2.25.1
+
