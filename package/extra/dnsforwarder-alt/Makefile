@@ -1,10 +1,15 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsforwarder-alt
-PKG_VERSION:=6.1.15
-PKG_RELEASE:=10
+PKG_VERSION:=6.4.0
+PKG_RELEASE:=$(AUTORELEASE)
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/lifenjoiner/dnsforwarder.git
+PKG_SOURCE_VERSION:=497f9ae4b9ab242e583fb679251ad2b40d47b197
+PKG_MIRROR_HASH:=skip
+
+PKG_FIXUP:=autoreconf
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -12,7 +17,7 @@ define Package/$(PKG_NAME)
   SECTION:=net
   CATEGORY:=Network
   TITLE:=A simple DNS forwarder
-  URL:=https://github.com/holmium/dnsforwarder
+  URL:=https://github.com/lifenjoiner/dnsforwarder
   DEPENDS:=+libpthread +coreutils-base64
 endef
 
@@ -23,7 +28,7 @@ endef
 CONFIGURE_ARGS += --enable-downloader=no
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -flto
 
 define Package/$(PKG_NAME)/install
 	$(INSTALL_DIR) $(1)/usr/sbin
