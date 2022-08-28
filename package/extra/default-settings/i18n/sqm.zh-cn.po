@@ -67,10 +67,9 @@ msgstr "上传速度(kbit/s)(出口)<br />设置为0关闭出口控制："
 
 msgid ""
 "Create log file for this SQM instance under /var/run/sqm/${Interface_name}."
-"debug.log. Make sure to delete log files manually."
+"[start|stop]-sqm.log."
 msgstr ""
-"创建日志文件到/var/run/sqm/<br />${Interface_name}.debug.log。<br />请务必手动"
-"删除日志文件。"
+"为此SQM实例创建日志文件/var/run/sqm/${Interface_name}.[start|stop]-sqm.log。"
 
 msgid "Verbosity of SQM's output into the system log."
 msgstr "SQM输出到系统日志的详细程度。"
