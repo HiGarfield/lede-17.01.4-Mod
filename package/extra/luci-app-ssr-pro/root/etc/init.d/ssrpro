@@ -16,6 +16,7 @@ DNSFORWARDER_PATH=/var/dnsfwd-ssrpro
 DNSFORWARDER_BIN=dnsfwd-ssrpro
 DNSFORWARDER=${DNSFORWARDER_PATH}/${DNSFORWARDER_BIN}
 DNSFORWARDER_CONF=${DNSFORWARDER_PATH}/dnsfwd-ssrpro.conf
+IPTABLES="iptables -w"
 
 get_config() {
 	config_get_bool vt_enabled "$1" enabled '0'
@@ -38,7 +39,7 @@ get_config() {
 # -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 # Get LAN settings as default parameters
-[ -f /lib/functions/network.sh ] && . /lib/functions/network.sh
+. /lib/functions/network.sh
 network_get_subnet covered_subnets lan
 network_get_ipaddr local_addresses lan
 
@@ -55,7 +56,7 @@ start() {
 	config_load ssrpro
 	config_foreach get_config ssrpro
 
-	if [ "$vt_enabled" = 0 ]; then
+	if [ "$vt_enabled" -eq 0 ]; then
 		echo "WARNING: Shadowsocksr is disabled."
 		exit 0
 	fi
@@ -100,7 +101,7 @@ start() {
 	mkdir -p /var/etc/dnsmasq-go.d
 	###### Anti-pollution configuration ######
 	if [ -n "$vt_safe_dns" ]; then
-		if [ "$vt_safe_dns_tcp" = 1 ]; then
+		if [ "$vt_safe_dns_tcp" -eq 1 ]; then
 			start_dnsforwarder "$vt_safe_dns" "$vt_safe_dns_port"
 			awk -vs="127.0.0.1#$DNSFORWARDER_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
 				/etc/gfwlist/$vt_gfwlist >/var/etc/dnsmasq-go.d/01-pollution.conf
@@ -156,7 +157,7 @@ stop() {
 }
 
 reload_rule() {
-	config_load ssrpro
+	config_load $CONFIG
 	config_foreach get_config ssrpro
 
 	local vt_gfwlist=$(__gfwlist_by_mode $vt_proxy_mode)
@@ -206,17 +207,17 @@ start_dnsforwarder() {
 	$DNSFORWARDER -d -f $DNSFORWARDER_CONF >/dev/null 2>&1
 
 	# Access TCP DNS server through Shadowsocksr tunnel
-	if iptables -t nat -N dnsforwarder_output; then
-		iptables -t nat -A dnsforwarder_output -m set --match-set $vt_np_ipset dst -j RETURN
-		iptables -t nat -A dnsforwarder_output -p tcp -j REDIRECT --to $SS_REDIR_PORT
+	if $IPTABLES -t nat -N dnsforwarder_output; then
+		$IPTABLES -t nat -A dnsforwarder_output -m set --match-set $vt_np_ipset dst -j RETURN
+		$IPTABLES -t nat -A dnsforwarder_output -p tcp -j REDIRECT --to $SS_REDIR_PORT
 	fi
-	iptables -t nat -I OUTPUT -p tcp --dport 53 -j dnsforwarder_output
+	$IPTABLES -t nat -I OUTPUT -p tcp --dport 53 -j dnsforwarder_output
 }
 
 stop_dnsforwarder() {
-	if iptables -t nat -F dnsforwarder_output 2>/dev/null; then
-		while iptables -t nat -D OUTPUT -p tcp --dport 53 -j dnsforwarder_output 2>/dev/null; do :; done
-		iptables -t nat -X dnsforwarder_output
+	if $IPTABLES -t nat -F dnsforwarder_output 2>/dev/null; then
+		while $IPTABLES -t nat -D OUTPUT -p tcp --dport 53 -j dnsforwarder_output 2>/dev/null; do :; done
+		$IPTABLES -t nat -X dnsforwarder_output
 	fi
 	killall -9 $DNSFORWARDER_BIN >/dev/null 2>&1
 	rm -rf $DNSFORWARDER_PATH
@@ -250,40 +251,40 @@ process_acl_rule() {
 	config_get mode "$1" filter_mode
 	case "$mode" in
 	disable)
-		iptables -t nat -A shadowsocksr_pre -s $ip -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -s $ip -j RETURN
 		;;
 	global)
-		iptables -t nat -A shadowsocksr_pre -s $ip -p tcp -j REDIRECT --to $SS_REDIR_PORT
-		iptables -t nat -A shadowsocksr_pre -s $ip -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -s $ip -p tcp -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A shadowsocksr_pre -s $ip -j RETURN
 		;;
 	game)
-		iptables -t nat -A shadowsocksr_pre -p tcp -s $ip -m set ! --match-set china dst -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A shadowsocksr_pre -p tcp -s $ip -m set ! --match-set china dst -j REDIRECT --to $SS_REDIR_PORT
 		ipset -! add gameuser $ip
 		;;
 	esac
 }
 
 add_rule() {
-	iptables -t nat -N shadowsocksr_pre
-	iptables -t nat -F shadowsocksr_pre
-	iptables -t nat -A shadowsocksr_pre -m set --match-set local dst -j RETURN || {
-		iptables -t nat -A shadowsocksr_pre -d 10.0.0.0/8 -j RETURN
-		iptables -t nat -A shadowsocksr_pre -d 127.0.0.0/8 -j RETURN
-		iptables -t nat -A shadowsocksr_pre -d 172.16.0.0/12 -j RETURN
-		iptables -t nat -A shadowsocksr_pre -d 192.168.0.0/16 -j RETURN
-		iptables -t nat -A shadowsocksr_pre -d 224.0.0.0/3 -j RETURN
+	$IPTABLES -t nat -N shadowsocksr_pre
+	$IPTABLES -t nat -F shadowsocksr_pre
+	$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set local dst -j RETURN || {
+		$IPTABLES -t nat -A shadowsocksr_pre -d 10.0.0.0/8 -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -d 127.0.0.0/8 -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -d 172.16.0.0/12 -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -d 192.168.0.0/16 -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -d 224.0.0.0/3 -j RETURN
 	}
-	iptables -t nat -A shadowsocksr_pre -d $vt_server_addr -j RETURN
+	$IPTABLES -t nat -A shadowsocksr_pre -d $vt_server_addr -j RETURN
 
-	iptables -N gameboost -t mangle
+	$IPTABLES -N gameboost -t mangle
 	ipset -! create gameuser hash:ip maxelem 65536 2>/dev/null
 	/usr/bin/ip rule add fwmark 0x01/0x01 table 100
 	/usr/bin/ip route add local 0.0.0.0/0 dev lo table 100
-	iptables -t mangle -A gameboost -p udp -m set --match-set local dst -j RETURN
-	iptables -t mangle -A gameboost -p udp -m set --match-set china dst -j RETURN
-	iptables -t mangle -A gameboost -p udp --dport 53 -j RETURN
-	iptables -t mangle -A gameboost -p udp -j TPROXY --on-port $SS_REDIR_PORT --tproxy-mark 0x01/0x01
-	iptables -t mangle -A PREROUTING -m set --match-set gameuser src -j gameboost
+	$IPTABLES -t mangle -A gameboost -p udp -m set --match-set local dst -j RETURN
+	$IPTABLES -t mangle -A gameboost -p udp -m set --match-set china dst -j RETURN
+	$IPTABLES -t mangle -A gameboost -p udp --dport 53 -j RETURN
+	$IPTABLES -t mangle -A gameboost -p udp -j TPROXY --on-port $SS_REDIR_PORT --tproxy-mark 0x01/0x01
+	$IPTABLES -t mangle -A PREROUTING -m set --match-set gameuser src -j gameboost
 
 	config_load ssrpro
 	config_foreach process_acl_rule acl_rule
@@ -291,45 +292,45 @@ add_rule() {
 	case "$vt_proxy_mode" in
 	G) : ;;
 	S)
-		iptables -t nat -A shadowsocksr_pre -m set --match-set $vt_np_ipset dst -j RETURN
-		iptables -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set $vt_np_ipset dst -j RETURN
+		$IPTABLES -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT
 		;;
 	M)
 		ipset -! create $vt_gfwlist hash:ip maxelem 65536 2>/dev/null
 		awk '!/^$/&&!/^#/{printf("add vt_gfwlist %s'" "'\n",$0)}' /etc/shadowsocksr/addinip.txt >/tmp/addinip.ipset
 		sed -i "s/vt_gfwlist/$vt_gfwlist/g" /tmp/addinip.ipset
 		ipset -! restore </tmp/addinip.ipset
-		iptables -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
-		iptables -t nat -A shadowsocksr_pre -m set --match-set $vt_np_ipset dst -j RETURN
-		iptables -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set $vt_gfwlist dst -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set $vt_np_ipset dst -j RETURN
+		$IPTABLES -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set $vt_gfwlist dst -j REDIRECT --to $SS_REDIR_PORT
 		;;
 	V)
 		vt_np_ipset=""
 		ipset -! create $vt_gfwlist hash:ip maxelem 65536 2>/dev/null
-		iptables -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
 		;;
 	esac
 	local subnet
 	for subnet in $covered_subnets; do
-		iptables -t nat -A shadowsocksr_pre -s $subnet -p tcp -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A shadowsocksr_pre -s $subnet -p tcp -j REDIRECT --to $SS_REDIR_PORT
 	done
-	iptables -t nat -I PREROUTING -p tcp -j shadowsocksr_pre
+	$IPTABLES -t nat -I PREROUTING -p tcp -j shadowsocksr_pre
 }
 
 del_rule() {
-	if iptables -t nat -F shadowsocksr_pre 2>/dev/null; then
-		while iptables -t nat -D PREROUTING -p tcp -j shadowsocksr_pre 2>/dev/null; do :; done
-		iptables -t nat -X shadowsocksr_pre 2>/dev/null
+	if $IPTABLES -t nat -F shadowsocksr_pre 2>/dev/null; then
+		while $IPTABLES -t nat -D PREROUTING -p tcp -j shadowsocksr_pre 2>/dev/null; do :; done
+		$IPTABLES -t nat -X shadowsocksr_pre 2>/dev/null
 	fi
 
-	iptables -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null
-	iptables -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null
+	$IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null
+	$IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null
 
 	/usr/bin/ip rule del fwmark 0x01/0x01 table 100
 	/usr/bin/ip route del local 0.0.0.0/0 dev lo table 100
-	if iptables -t mangle -F gameboost 2>/dev/null; then
-		while iptables -t mangle -D PREROUTING -m set --match-set gameuser src -j gameboost 2>/dev/null; do :; done
-		iptables -t mangle -X gameboost 2>/dev/null
+	if $IPTABLES -t mangle -F gameboost 2>/dev/null; then
+		while $IPTABLES -t mangle -D PREROUTING -m set --match-set gameuser src -j gameboost 2>/dev/null; do :; done
+		$IPTABLES -t mangle -X gameboost 2>/dev/null
 	fi
 
 	ipset destroy gameuser 2>/dev/null
