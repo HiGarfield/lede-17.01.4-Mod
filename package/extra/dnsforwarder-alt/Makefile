@@ -1,12 +1,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=dnsforwarder-alt
-PKG_VERSION:=6.4.0
+PKG_VERSION:=6.4.1
 PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/lifenjoiner/dnsforwarder.git
-PKG_SOURCE_VERSION:=497f9ae4b9ab242e583fb679251ad2b40d47b197
+PKG_SOURCE_VERSION:=a2cf519cc597aa927a7ef1d223f96d308f2fa311
 PKG_MIRROR_HASH:=skip
 
 PKG_FIXUP:=autoreconf
