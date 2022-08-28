@@ -1,0 +1,40 @@
+From 80dbf8a1827b0ba6dfa28d208502ba2f25858cf5 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
+Date: Sat, 23 May 2020 23:33:58 +0200
+Subject: [PATCH 1/5] verify_qdisc: Use a random IFB name to prevent collisions
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+With parallel startup of SQM instances, always using the same name for
+testing if an IFB works leads to collisions and failures. Instead, use a
+random IFB name each time, which should hopefully be enough to avoid
+collisions.
+
+Fixes #120.
+
+Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
+---
+ src/functions.sh | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/src/functions.sh b/src/functions.sh
+index c40f9ff..815a3e2 100644
+--- a/src/functions.sh
++++ b/src/functions.sh
+@@ -384,9 +384,11 @@ verify_qdisc() {
+     local args
+     local IFB_MTU
+     local found
++    local randnum
+     qdisc=$1
+     supported="$2"
+-    ifb=TMP_IFB_4_SQM
++    randnum=$(tr -cd 0-9a-f < /dev/urandom 2>/dev/null | head -c 5)
++    ifb=SQM_IFB_$randnum
+     root_string="root" # this works for most qdiscs
+     args=""
+     IFB_MTU=1514
+-- 
+2.25.1
+

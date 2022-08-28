@@ -1,0 +1,38 @@
+From 61968cdc9c4d06e27c03f9f792ecf086cec226a4 Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Toke=20H=C3=B8iland-J=C3=B8rgensen?= <toke@toke.dk>
+Date: Fri, 29 May 2020 12:08:20 +0200
+Subject: [PATCH] sqm_stop: Don't attempt to delete IFB and ingress qdisc
+ if downlink=0
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
+---
+ src/functions.sh | 10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/src/functions.sh b/src/functions.sh
+index b643cc7..11bdf48 100644
+--- a/src/functions.sh
++++ b/src/functions.sh
+@@ -531,10 +531,12 @@ sqm_start_default() {
+ 
+ 
+ sqm_stop() {
+-    $TC qdisc del dev $IFACE ingress
+-    $TC qdisc del dev $IFACE root
+-    [ -n "$CUR_IFB" ] && $TC qdisc del dev $CUR_IFB root
+-    [ -n "$CUR_IFB" ] && sqm_debug "${0}: ${CUR_IFB} shaper deleted"
++    if [ "${DOWNLINK}" -ne 0 ]; then
++       $TC qdisc del dev $IFACE ingress
++       $TC qdisc del dev $IFACE root
++       [ -n "$CUR_IFB" ] && $TC qdisc del dev $CUR_IFB root
++       [ -n "$CUR_IFB" ] && sqm_debug "${0}: ${CUR_IFB} shaper deleted"
++    fi
+ 
+     # undo accumulated ipt commands during shutdown
+     ipt_log_rewind
+-- 
+2.25.1
+
