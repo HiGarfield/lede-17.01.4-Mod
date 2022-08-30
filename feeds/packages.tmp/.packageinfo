@@ -16726,7 +16726,7 @@ Ted Hess <thess@kitschensync.net>, Mike Brady <mikebrady@eircom.net>
 
 Source-Makefile: feeds/packages/libs/libssh2/Makefile
 Package: libssh2
-Version: 1.8.1-1
+Version: 1.10.0-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libopenssl +zlib
 Conflicts: 
 Menu-Depends: 
@@ -16736,8 +16736,8 @@ Category: Libraries
 Repository: base
 Title: SSH2 library
 Maintainer: Jiri Slachta <jiri@slachta.eu>
-Source: libssh2-1.8.1.tar.gz
-License: BSD
+Source: libssh2-1.10.0.tar.gz
+License: BSD-3-Clause
 LicenseFiles: COPYING
 Type: ipkg
 Description:  libssh2 is a client-side C library implementing the SSH2 protocol.
@@ -36371,7 +36371,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Source-Makefile: feeds/packages/net/sqm-scripts/Makefile
 Package: sqm-scripts
-Version: 1.2.4-1
+Version: 1.4.0-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +tc +kmod-sched-core +kmod-sched-cake +kmod-ifb +iptables +iptables-mod-ipopt +iptables-mod-conntrack-extra
 Conflicts: 
 Menu-Depends: 
@@ -36381,7 +36381,7 @@ Category: Base system
 Repository: base
 Title: SQM Scripts (QoS)
 Maintainer: Toke Høiland-Jørgensen <toke@toke.dk>
-Source: sqm-scripts-1.2.4-1.tar.xz
+Source: sqm-scripts-1.4.0-1.tar.xz
 License: GPLv2
 Type: ipkg
 Description:  A set of scripts that does simple SQM configuration.
@@ -36390,8 +36390,8 @@ Toke Høiland-Jørgensen <toke@toke.dk>
 
 Package: luci-app-sqm
 Submenu: 3. Applications
-Version: 1.2.4-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread lua luci-base +sqm-scripts
+Version: 1.4.0-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +lua +luci-base +sqm-scripts
 Conflicts: 
 Menu-Depends: 
 Provides: 
@@ -36400,7 +36400,7 @@ Category: LuCI
 Repository: base
 Title: SQM Scripts - LuCI interface
 Maintainer: Toke Høiland-Jørgensen <toke@toke.dk>
-Source: sqm-scripts-1.2.4-1.tar.xz
+Source: sqm-scripts-1.4.0-1.tar.xz
 License: GPLv2
 Type: ipkg
 Description: 	Luci interface for the SQM scripts queue management configuration package.
