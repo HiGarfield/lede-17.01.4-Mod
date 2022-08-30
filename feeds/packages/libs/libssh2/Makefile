@@ -8,19 +8,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libssh2
-PKG_VERSION:=1.8.1
+PKG_VERSION:=1.10.0
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=https://www.libssh2.org/download
-PKG_HASH:=40b517f35b1bb869d0075b15125c7a015557f53a5a3a6a8bffb89b69fd70f159
+PKG_HASH:=2d64e90f3ded394b91d3a2e774ca203a4179f69aebee03003e5a6fa621e41d51
 
-PKG_INSTALL:=1
-
-PKG_LICENSE:=BSD
+PKG_MAINTAINER:=Jiri Slachta <jiri@slachta.eu>
+PKG_LICENSE:=BSD-3-Clause
 PKG_LICENSE_FILES:=COPYING
 
+CMAKE_INSTALL:=1
+
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/cmake.mk
 
 define Package/libssh2
   SECTION:=libs
@@ -28,27 +30,18 @@ define Package/libssh2
   TITLE:=SSH2 library
   URL:=https://www.libssh2.org/
   DEPENDS:=+libopenssl +zlib
-  MAINTAINER:=Jiri Slachta <jiri@slachta.eu>
 endef
 
 define Package/libssh2/description
  libssh2 is a client-side C library implementing the SSH2 protocol.
 endef
 
-CONFIGURE_ARGS += \
-	--disable-examples-build \
-	--with-libssl-prefix=$(STAGING_DIR)/usr \
-	--with-libz-prefix=$(STAGING_DIR)/usr \
-	--with-openssl
-
-define Build/InstallDev
-	$(INSTALL_DIR) $(1)/usr/include
-	$(INSTALL_DIR) $(1)/usr/lib
-	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
-	$(CP) $(PKG_INSTALL_DIR)/usr/include/*.h $(1)/usr/include/
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/libssh2.so* $(1)/usr/lib/
-	$(CP) $(PKG_INSTALL_DIR)/usr/lib/pkgconfig/libssh2.pc $(1)/usr/lib/pkgconfig/
-endef
+CMAKE_OPTIONS += \
+	-DBUILD_SHARED_LIBS=ON \
+	-DBUILD_TESTING=OFF \
+	-DENABLE_ZLIB_COMPRESSION=ON \
+	-DCLEAR_MEMORY=ON \
+	-DCRYPTO_BACKEND=OpenSSL
 
 define Package/libssh2/install
 	$(INSTALL_DIR) $(1)/usr/lib
