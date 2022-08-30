@@ -516,7 +516,8 @@ hostapd_set_bss_options() {
 
 			set_default mobility_domain "$(echo "$ssid" | md5sum | head -c 4)"
 			set_default ft_psk_generate_local 1
-			set_default ft_over_ds 0
+			# set_default ft_over_ds 0
+			ft_over_ds=0
 			set_default reassociation_deadline 1000
 
 			append bss_conf "mobility_domain=$mobility_domain" "$N"
