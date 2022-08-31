@@ -5,6 +5,8 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
+permissions: {}
+
 concurrency: 
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -26,6 +28,8 @@ jobs:
     name: build
     needs: [ do_repository_dispatch ]
     runs-on: ubuntu-22.04
+    permissions:
+      contents: write
     env:
       TARGET_DEVICE: ${{ matrix.target }}
       SOURCE_REPO: 'HiGarfield/lede-17.01.4-Mod'
@@ -48,15 +52,8 @@ jobs:
           git clone "https://github.com/$SOURCE_REPO" -b master source
 
       - name: Set environment variables
-        env:
-          MY_TOKEN_SECRET: ${{ secrets.MY_TOKEN }}
-          GITHUB_TOKEN_SECRET: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          if [ -n "${MY_TOKEN_SECRET}" ]; then
-            echo "MY_TOKEN=${MY_TOKEN_SECRET}" >> $GITHUB_ENV
-          else
-            echo "MY_TOKEN=${GITHUB_TOKEN_SECRET}" >> $GITHUB_ENV
-          fi
+          echo "MY_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
 
           if [ "$GITHUB_REPOSITORY" == "$SOURCE_REPO" ]; then
             WORKING_DIR="$GITHUB_WORKSPACE"

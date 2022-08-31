@@ -1,5 +1,7 @@
 name: fetch cache
 
+permissions: {}
+
 on:
   workflow_dispatch:
   schedule:
