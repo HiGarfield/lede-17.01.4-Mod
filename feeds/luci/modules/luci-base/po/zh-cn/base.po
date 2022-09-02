@@ -4192,3 +4192,6 @@ msgstr ""
 
 #~ msgid "VLAN Interface"
 #~ msgstr "VLAN接口"
+
+msgid "Swapoff"
+msgstr "关闭交换区"

@@ -256,4 +256,27 @@ dev.cfgvalue = function(self, section)
 	end
 end
 
+swapoff = swap:option(Button, "swapoff", translate("Swapoff"))
+swapoff.render = function(self, section, scope)
+    local v, e
+    v = self.map:get(section, "device")
+    e = v and devices[v]
+    if v and e and e.size then
+        self.inputstyle = "remove"
+        self.template = "cbi/button"
+    else
+        self.template = "cbi/dvalue"
+    end
+    Button.render(self, section, scope)
+end
+
+swapoff.write = function(self, section)
+    local v
+    v = self.map:get(section, "device")
+    if v then
+        luci.sys.call("/usr/sbin/swapoff '%s'" % v)
+        return luci.http.redirect(luci.dispatcher.build_url("admin/system", "fstab"))
+    end
+end
+
 return m
