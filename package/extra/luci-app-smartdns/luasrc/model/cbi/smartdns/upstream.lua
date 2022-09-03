@@ -66,6 +66,9 @@ o.rempty      = true
 o = s:option(Flag, "blacklist_ip", translate("IP Blacklist Filtering"), translate("Filtering IP with blacklist"))
 o.rmempty     = false
 o.default     = o.disabled
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "0"
+end
 
 ---- TLS host verify
 o = s:option(Value, "tls_host_verify", translate("TLS Hostname Verify"), translate("Set TLS hostname to verify."))
@@ -79,6 +82,9 @@ o:depends("type", "https")
 o = s:option(Flag, "no_check_certificate", translate("No check certificate"), translate("Do not check certificate."))
 o.rmempty     = false
 o.default     = o.disabled
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "0"
+end
 o:depends("type", "tls")
 o:depends("type", "https")
 
@@ -102,6 +108,9 @@ o:depends("type", "https")
 -- o.rmempty     = false
 -- o.default     = o.disabled
 -- o:depends("type", "udp")
+-- o.cfgvalue    = function(...)
+--     return Flag.cfgvalue(...) or "0"
+-- end
 
 ---- SPKI pin
 o = s:option(Value, "spki_pin", translate("TLS SPKI Pinning"), translate("Used to verify the validity of the TLS server, The value is Base64 encoded SPKI fingerprint, leaving blank to indicate that the validity of TLS is not verified."))
