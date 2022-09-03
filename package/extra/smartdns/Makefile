@@ -6,6 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=smartdns
+
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://www.github.com/pymumu/smartdns.git
 PKG_SOURCE_VERSION:=8532205844fbb9034a4473a02cfcda6584a203af
@@ -49,11 +50,11 @@ endef
 
 define Package/smartdns/install
 	$(INSTALL_DIR) $(1)/usr/sbin $(1)/etc/config $(1)/etc/init.d $(1)/etc/smartdns
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/smartdns $(1)/usr/sbin/
-	$(INSTALL_BIN) files/smartdns.init $(1)/etc/init.d/smartdns
-	$(INSTALL_CONF) files/address.conf $(1)/etc/smartdns/
-	$(INSTALL_CONF) files/blacklist-ip.conf $(1)/etc/smartdns/
-	$(INSTALL_CONF) files/custom.conf $(1)/etc/smartdns/
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/smartdns $(1)/usr/sbin/smartdns
+	$(INSTALL_BIN) $(PKG_BUILD_DIR)/package/openwrt/files/etc/init.d/smartdns $(1)/etc/init.d/smartdns
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/package/openwrt/address.conf $(1)/etc/smartdns/address.conf
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/package/openwrt/blacklist-ip.conf $(1)/etc/smartdns/blacklist-ip.conf
+	$(INSTALL_CONF) $(PKG_BUILD_DIR)/package/openwrt/custom.conf $(1)/etc/smartdns/custom.conf
 	$(INSTALL_CONF) files/smartdns.conf $(1)/etc/config/smartdns
 endef
 
