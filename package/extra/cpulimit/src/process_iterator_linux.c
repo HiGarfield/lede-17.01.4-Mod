@@ -50,9 +50,9 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
 
 static int read_process_info(pid_t pid, struct process *p)
 {
-	static char buffer[1024];
-	static char statfile[32];
-	static char exefile[1024];
+	char buffer[PATH_MAX + 1];
+	char statfile[64];
+	char exefile[64];
 	p->pid = pid;
 	FILE *fd;
 	// read command line
