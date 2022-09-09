@@ -35,7 +35,7 @@ define Package/samba36-server
   CATEGORY:=Network
   TITLE:=Samba 3.6 SMB/CIFS server
   URL:=https://www.samba.org/
-  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS) +wsdd2 +lsblk
+  DEPENDS:=+USE_GLIBC:librt $(ICONV_DEPENDS) +wsdd2 +lsblk +zlib
 endef
 
 define Package/samba36-client
@@ -43,7 +43,7 @@ define Package/samba36-client
   CATEGORY:=Network
   TITLE:=Samba 3.6 SMB/CIFS client
   URL:=https://www.samba.org/
-  DEPENDS:=+libreadline +libncurses
+  DEPENDS:=+libreadline +libncurses +zlib
 endef
 
 define Package/samba36-server/config
@@ -61,8 +61,10 @@ define Package/samba36-server/description
  to as the LanManager or Netbios protocol.
 endef
 
-TARGET_CFLAGS += -DMAX_DEBUG_LEVEL=$(CONFIG_PACKAGE_SAMBA_MAX_DEBUG_LEVEL) -D__location__=\\\"\\\" -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
+TARGET_CFLAGS += -DMAX_DEBUG_LEVEL=$(CONFIG_PACKAGE_SAMBA_MAX_DEBUG_LEVEL) \
+					-D__location__=\\\"\\\" \
+					-ffunction-sections -fdata-sections -flto
+TARGET_LDFLAGS += -Wl,--gc-sections -flto
 
 CONFIGURE_VARS += \
 	ac_cv_lib_attr_getxattr=no \
@@ -84,8 +86,8 @@ CONFIGURE_VARS += \
 	samba_cv_have_setreuid=yes \
 	samba_cv_have_setresuid=yes \
 	ac_cv_header_libunwind_h=no \
-	ac_cv_header_zlib_h=no \
-	samba_cv_zlib_1_2_3=no \
+	ac_cv_header_zlib_h=yes \
+	samba_cv_zlib_1_2_3=yes \
 	ac_cv_path_PYTHON="" \
 	ac_cv_path_PYTHON_CONFIG=""
 
@@ -94,14 +96,18 @@ CONFIGURE_ARGS += \
 	--prefix=/ \
 	--disable-avahi \
 	--disable-cups \
+	--disable-debug \
+	--disable-dmalloc \
 	--disable-external-libtalloc \
 	--disable-external-libtdb \
 	--disable-external-libtevent \
+	--disable-iprint \
 	--disable-pie \
 	--disable-relro \
 	--disable-static \
 	--disable-swat \
 	--disable-shared-libs \
+	--enable-as-needed \
 	--with-libiconv="$(ICONV_PREFIX)" \
 	--with-codepagedir=/etc/samba \
 	--with-configdir=/etc/samba \
