@@ -1,0 +1,38 @@
+From 7e447905a6e09ec0f2cfd97b8f77cb91df3ccf8f Mon Sep 17 00:00:00 2001
+From: Wan Jiabing <wanjiabing@vivo.com>
+Date: Wed, 27 Apr 2022 10:37:32 +0300
+Subject: [PATCH 1/4] ath9k: hif_usb: simplify if-if to if-else
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Use if and else instead of if(A) and if (!A).
+
+Signed-off-by: Wan Jiabing <wanjiabing@vivo.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://lore.kernel.org/r/20220424094441.104937-1-wanjiabing@vivo.com
+---
+ drivers/net/wireless/ath/ath9k/hif_usb.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/hif_usb.c b/drivers/net/wireless/ath/ath9k/hif_usb.c
+index eb333c9..7ef4de6 100644
+--- a/drivers/net/wireless/ath/ath9k/hif_usb.c
++++ b/drivers/net/wireless/ath/ath9k/hif_usb.c
+@@ -368,10 +368,9 @@ static int __hif_usb_tx(struct hif_device_usb *hif_dev)
+ 		__skb_queue_head_init(&tx_buf->skb_queue);
+ 		list_move_tail(&tx_buf->list, &hif_dev->tx.tx_buf);
+ 		hif_dev->tx.tx_buf_cnt++;
+-	}
+-
+-	if (!ret)
++	} else {
+ 		TX_STAT_INC(buf_queued);
++	}
+ 
+ 	return ret;
+ }
+-- 
+2.25.1
+

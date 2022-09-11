@@ -1,0 +1,37 @@
+From b28f5174597a0df0da493227b0a0fed45cc48788 Mon Sep 17 00:00:00 2001
+From: Guo Zhengkui <guozhengkui@vivo.com>
+Date: Tue, 17 May 2022 10:41:06 +0800
+Subject: [PATCH 2/4] ath9k: replace ternary operator with max()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Fix the following coccicheck warning:
+
+drivers/net/wireless/ath/ath9k/dfs.c:249:28-30: WARNING
+opportunity for max()
+
+Signed-off-by: Guo Zhengkui <guozhengkui@vivo.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://lore.kernel.org/r/20220517024106.77050-1-guozhengkui@vivo.com
+---
+ drivers/net/wireless/ath/ath9k/dfs.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/dfs.c b/drivers/net/wireless/ath/ath9k/dfs.c
+index acb9602..1134921 100644
+--- a/drivers/net/wireless/ath/ath9k/dfs.c
++++ b/drivers/net/wireless/ath/ath9k/dfs.c
+@@ -246,7 +246,7 @@ ath9k_postprocess_radar_event(struct ath_softc *sc,
+ 		DFS_STAT_INC(sc, dc_phy_errors);
+ 
+ 		/* when both are present use stronger one */
+-		rssi = (ard->rssi < ard->ext_rssi) ? ard->ext_rssi : ard->rssi;
++		rssi = max(ard->rssi, ard->ext_rssi);
+ 		break;
+ 	default:
+ 		/*
+-- 
+2.25.1
+
