@@ -1,0 +1,143 @@
+From 1a62d302e2f9ff9119d691964074ce30a5d26358 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 12 Sep 2022 01:46:41 +0800
+Subject: [PATCH] Fixed wrong ipv6 addr used in announces.
+
+---
+ libtransmission/announcer-http.c |  2 +-
+ libtransmission/net.c            | 21 +++++++++++++++++++--
+ libtransmission/net.h            |  2 +-
+ libtransmission/peer-msgs.c      |  4 ++--
+ libtransmission/tr-udp.c         | 12 ++----------
+ 5 files changed, 25 insertions(+), 16 deletions(-)
+
+diff --git a/libtransmission/announcer-http.c b/libtransmission/announcer-http.c
+index dbeee1d..2fdfe3a 100644
+--- a/libtransmission/announcer-http.c
++++ b/libtransmission/announcer-http.c
+@@ -115,7 +115,7 @@ static char* announce_url_new(tr_session const* session, tr_announce_request con
+        announce twice. At any rate, we're already computing our IPv6
+        address (for the LTEP handshake), so this comes for free. */
+ 
+-    ipv6 = tr_globalIPv6();
++    ipv6 = tr_globalIPv6(session);
+ 
+     if (ipv6 != NULL)
+     {
+diff --git a/libtransmission/net.c b/libtransmission/net.c
+index 567de25..40420bf 100644
+--- a/libtransmission/net.c
++++ b/libtransmission/net.c
+@@ -691,12 +691,14 @@ static int tr_globalAddress(int af, void* addr, int* addr_len)
+ }
+ 
+ /* Return our global IPv6 address, with caching. */
+-unsigned char const* tr_globalIPv6(void)
++unsigned char const* tr_globalIPv6(tr_session const* session)
+ {
+     static unsigned char ipv6[16];
+     static time_t last_time = 0;
+     static bool have_ipv6 = false;
+     time_t const now = tr_time();
++    bool is_default;
++    tr_address const* ipv6_bindaddr;
+ 
+     /* Re-check every half hour */
+     if (last_time < now - 1800)
+@@ -707,7 +709,22 @@ unsigned char const* tr_globalIPv6(void)
+         last_time = now;
+     }
+ 
+-    return have_ipv6 ? ipv6 : NULL;
++    if (!have_ipv6)
++        return NULL; /* No IPv6 address at all. */
++
++    /* Return the default address. This is useful for checking
++       for connectivity in general. */
++    if (session == NULL)
++        return ipv6;
++
++    /* We have some sort of address, now make sure that we return
++       our bound address if non-default. */
++    ipv6_bindaddr = tr_sessionGetPublicAddress(session, TR_AF_INET6, &is_default);
++    if (ipv6_bindaddr != NULL && !is_default)
++        /* Explicitly bound. Return that address. */
++        memcpy(ipv6, ipv6_bindaddr->addr.addr6.s6_addr, 16);
++
++    return ipv6;
+ }
+ 
+ /***
+diff --git a/libtransmission/net.h b/libtransmission/net.h
+index 1e43610..c8c169e 100644
+--- a/libtransmission/net.h
++++ b/libtransmission/net.h
+@@ -153,4 +153,4 @@ bool tr_net_hasIPv6(tr_port);
+  */
+ char* tr_net_strerror(char* buf, size_t buflen, int err);
+ 
+-unsigned char const* tr_globalIPv6(void);
++unsigned char const* tr_globalIPv6(tr_session const* session);
+diff --git a/libtransmission/peer-msgs.c b/libtransmission/peer-msgs.c
+index 4799475..589f2b4 100644
+--- a/libtransmission/peer-msgs.c
++++ b/libtransmission/peer-msgs.c
+@@ -867,7 +867,7 @@ static void sendLtepHandshake(tr_peerMsgs* msgs)
+     bool allow_metadata_xfer;
+     struct evbuffer* payload;
+     struct evbuffer* out = msgs->outMessages;
+-    unsigned char const* ipv6 = tr_globalIPv6();
++    unsigned char const* ipv6 = tr_globalIPv6(msgs->io->session);
+     static tr_quark version_quark = 0;
+ 
+     if (msgs->clientSentLtepHandshake)
+@@ -2755,7 +2755,7 @@ tr_peerMsgs* tr_peerMsgsNew(struct tr_torrent* torrent, struct tr_peerIo* io, tr
+         /* Only send PORT over IPv6 when the IPv6 DHT is running (BEP-32). */
+         struct tr_address const* addr = tr_peerIoGetAddress(m->io, NULL);
+ 
+-        if (addr->type == TR_AF_INET || tr_globalIPv6() != NULL)
++        if (addr->type == TR_AF_INET || tr_globalIPv6(NULL) != NULL)
+         {
+             protocolSendPort(m, tr_dhtPort(torrent->session));
+         }
+diff --git a/libtransmission/tr-udp.c b/libtransmission/tr-udp.c
+index f04ab87..b4b1149 100644
+--- a/libtransmission/tr-udp.c
++++ b/libtransmission/tr-udp.c
+@@ -130,10 +130,8 @@ void tr_udpSetSocketBuffers(tr_session* session)
+ 
+ static void rebind_ipv6(tr_session* ss, bool force)
+ {
+-    bool is_default;
+-    struct tr_address const* public_addr;
+     struct sockaddr_in6 sin6;
+-    unsigned char const* ipv6 = tr_globalIPv6();
++    unsigned char const* ipv6 = tr_globalIPv6(ss);
+     tr_socket_t s = TR_BAD_SOCKET;
+     int rc;
+     int one = 1;
+@@ -178,12 +176,6 @@ static void rebind_ipv6(tr_session* ss, bool force)
+     }
+ 
+     sin6.sin6_port = htons(ss->udp_port);
+-    public_addr = tr_sessionGetPublicAddress(ss, TR_AF_INET6, &is_default);
+-
+-    if (public_addr != NULL && !is_default)
+-    {
+-        sin6.sin6_addr = public_addr->addr.addr6;
+-    }
+ 
+     rc = bind(s, (struct sockaddr*)&sin6, sizeof(sin6));
+ 
+@@ -346,7 +338,7 @@ void tr_udpInit(tr_session* ss)
+     }
+ 
+ ipv6:
+-    if (tr_globalIPv6() != NULL)
++    if (tr_globalIPv6(NULL) != NULL)
+     {
+         rebind_ipv6(ss, true);
+     }
+-- 
+2.25.1
+
