@@ -169,7 +169,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  	if (dropped)
 @@ -530,7 +531,7 @@ static void ieee80211_report_used_skb(st
  			skb->dev = NULL;
- 		} else {
+ 		} else if (!dropped) {
  			unsigned int hdr_size =
 -				ieee80211_hdrlen(hdr->frame_control);
 +				ieee80211_padded_hdrlen(hw, hdr->frame_control);
