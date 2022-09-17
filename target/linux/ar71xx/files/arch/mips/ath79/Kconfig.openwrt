@@ -1466,6 +1466,18 @@ config ATH79_MACH_TL_WDR6500_V2
 	select ATH79_DEV_USB
 	select ATH79_DEV_WMAC
 
+config ATH79_MACH_ACU100
+    bool "ACU-100 board support"
+    select SOC_QCA953X
+	select ATH79_DEV_AP9X_PCI if PCI
+    select ATH79_DEV_GPIO_BUTTONS
+    select ATH79_DEV_LEDS_GPIO
+    select ATH79_DEV_SPI
+    select ATH79_DEV_USB
+    select ATH79_DEV_WMAC
+    select ATH79_DEV_ETH
+    select ATH79_DEV_M25P80
+
 config ATH79_MACH_CSAC
 	bool "CSAC board support"
 	select SOC_QCA956X

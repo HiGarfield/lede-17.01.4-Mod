@@ -296,6 +296,7 @@ ar71xx_setup_interfaces()
 	tl-wr940n-v4|\
 	tl-wr941nd-v5|\
 	tl-wr941nd-v6|\
+	acu100|\
 	wnr1000-v2|\
 	wnr2000-v4|\
 	wnr2200|\

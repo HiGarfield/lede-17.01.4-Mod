@@ -772,6 +772,19 @@ define Device/phicomm-k2t
 endef
 TARGET_DEVICES += phicomm-k2t
 
+define Device/acu100
+  DEVICE_TITLE := ACU-100
+  BOARDNAME := ACU100
+  DEVICE_PACKAGES += kmod-ath10k ath10k-firmware-qca9888 kmod-usb-core kmod-usb2
+  KERNEL_SIZE := 1408k
+  ROOTFS_SIZE := 14528k
+  IMAGE_SIZE := 15936k
+  CONSOLE = ttyS0,115200
+  MTDPARTS := spi0.0:256k(u-boot),64k(u-boot-env),1408k(kernel),14528k(rootfs),64k(ditel),64k(art),15936k@0x50000(firmware)
+  IMAGE/sysupgrade.bin := append-kernel | pad-to $$$$(KERNEL_SIZE) | append-rootfs | pad-rootfs | check-size $$$$(IMAGE_SIZE)
+endef
+TARGET_DEVICES += acu100
+
 define Device/csac
   DEVICE_TITLE := CSAC
   BOARDNAME := CSAC

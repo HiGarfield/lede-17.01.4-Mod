@@ -179,6 +179,7 @@ obj-$(CONFIG_ATH79_MACH_TL_WAX50RE)		+= mach-tl-wax50re.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR3320_V2)		+= mach-tl-wdr3320-v2.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR3500)		+= mach-tl-wdr3500.o
 obj-$(CONFIG_ATH79_MACH_HQ55)		+= mach-hq55.o
+obj-$(CONFIG_ATH79_MACH_ACU100)		+= mach-acu100.o
 obj-$(CONFIG_ATH79_MACH_CSAC)		+= mach-csac.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR4300)		+= mach-tl-wdr4300.o
 obj-$(CONFIG_ATH79_MACH_TL_WDR6500_V2)		+= mach-tl-wdr6500-v2.o

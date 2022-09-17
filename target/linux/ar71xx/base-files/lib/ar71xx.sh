@@ -318,6 +318,9 @@ tplink_board_detect() {
 	"005500"*)
 		model="100MI NETBOX HQ55"
 		;;
+	"999100"*)
+		model="ACU-100"
+		;;
 	"999900"*)
 		model="CSAC"
 		;;
@@ -1048,6 +1051,9 @@ ar71xx_board_detect() {
 		;;
 	*"100MI NETBOX HQ55")
 		name="hq55"
+		;;
+	*"ACU-100")
+		name="acu100"
 		;;
 	*"CSAC")
 		name="csac"
