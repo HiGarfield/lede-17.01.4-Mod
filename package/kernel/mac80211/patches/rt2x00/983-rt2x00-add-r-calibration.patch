@@ -6,9 +6,9 @@
  
 +int rt2800_calcrcalibrationcode(struct rt2x00_dev *rt2x00dev, int d1, int d2)
 +{
-+	int calcode;
-+	calcode = ((d2 - d1) * 1000) / 43;
-+	if ((calcode%10) >= 5)
++	int calcode = ((d2 - d1) * 1000) / 43;
++
++	if ((calcode % 10) >= 5)
 +		calcode += 10;
 +	calcode = (calcode / 10);
 +
@@ -59,7 +59,7 @@
 +	for (i = 0; i < 10000; i++) {
 +		macstatus = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
 +		if (macstatus & 0x1)
-+			udelay(50);
++			usleep_range(50, 100);
 +		else
 +			break;
 +		}
@@ -74,7 +74,7 @@
 +	for (i = 0; i < 10000; i++) {
 +		macstatus = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
 +		if (macstatus & 0x2)
-+			udelay(50);
++			usleep_range(50, 100);
 +		else
 +			break;
 +		}
@@ -102,7 +102,7 @@
 +
 +	rt2800_bbp_write(rt2x00dev, 47, 0x04);
 +	rt2800_bbp_write(rt2x00dev, 22, 0x80);
-+	udelay(100);
++	usleep_range(100, 200);
 +	bytevalue = rt2800_bbp_read(rt2x00dev, 49);
 +	if (bytevalue > 128)
 +		d1 = bytevalue - 256;
@@ -112,7 +112,7 @@
 +	rt2800_rfcsr_write_bank(rt2x00dev, 0, 35, 0x01);
 +
 +	rt2800_bbp_write(rt2x00dev, 22, 0x80);
-+	udelay(100);
++	usleep_range(100, 200);
 +	bytevalue = rt2800_bbp_read(rt2x00dev, 49);
 +	if (bytevalue > 128)
 +		d2 = bytevalue - 256;

@@ -1,26 +1,28 @@
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -8704,6 +8704,386 @@ void rt2800_rxdcoc_calibration(struct rt
+@@ -8704,6 +8704,390 @@ void rt2800_rxdcoc_calibration(struct rt
  }
  EXPORT_SYMBOL_GPL(rt2800_rxdcoc_calibration);
  
-+static u32 rt2800_do_sqrt_accumulation(u32 si) {
++static u32 rt2800_do_sqrt_accumulation(u32 si)
++{
 +	u32 root, root_pre, bit;
 +	char i;
++
 +	bit = 1 << 15;
 +	root = 0;
 +	for (i = 15; i >= 0; i = i - 1) {
 +		root_pre = root + bit;
-+		if ((root_pre*root_pre) <= si)
++		if ((root_pre * root_pre) <= si)
 +			root = root_pre;
 +		bit = bit >> 1;
 +	}
 +
 +	return root;
 +}
-+EXPORT_SYMBOL_GPL(rt2800_do_sqrt_accumulation);
 +
-+void rt2800_rxiq_calibration(struct rt2x00_dev *rt2x00dev) {
++void rt2800_rxiq_calibration(struct rt2x00_dev *rt2x00dev)
++{
 +	u8 rfb0r1, rfb0r2, rfb0r42;
 +	u8 rfb4r0, rfb4r19;
 +	u8 rfb5r3, rfb5r4, rfb5r17, rfb5r18, rfb5r19, rfb5r20;
@@ -63,7 +65,7 @@
 +	for (i = 0; i < 10000; i++) {
 +		macstatus = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
 +		if (macstatus & 0x3)
-+			udelay(50);
++			usleep_range(50, 100);
 +		else
 +			break;
 +	}
@@ -83,11 +85,11 @@
 +
 +	rt2800_register_write(rt2x00dev, RF_CONTROL1, 0x00000202);
 +	rt2800_register_write(rt2x00dev, RF_BYPASS1, 0x00000303);
-+	if (test_bit(CAPABILITY_EXTERNAL_PA_TX0, &rt2x00dev->cap_flags)) {
++	if (test_bit(CAPABILITY_EXTERNAL_PA_TX0, &rt2x00dev->cap_flags))
 +		rt2800_register_write(rt2x00dev, RF_CONTROL3, 0x0101);
-+	} else {
++	else
 +		rt2800_register_write(rt2x00dev, RF_CONTROL3, 0x0000);
-+	}
++
 +	rt2800_register_write(rt2x00dev, RF_BYPASS3, 0xf1f1);
 +
 +	rfb0r1 = rt2800_rfcsr_read_bank(rt2x00dev, 0, 1);
@@ -166,7 +168,7 @@
 +			rt2800_register_write(rt2x00dev, RF_CONTROL0, 0x00001006);
 +			udelay(1);
 +
-+			bbpval = bbp1 & (~ 0x18);
++			bbpval = bbp1 & (~0x18);
 +			bbpval = bbpval | 0x00;
 +			rt2800_bbp_write(rt2x00dev, 1, bbpval);
 +
@@ -185,13 +187,13 @@
 +			rt2800_register_write(rt2x00dev, RF_CONTROL0, 0x00002006);
 +			udelay(1);
 +
-+			bbpval = bbp1 & (~ 0x18);
++			bbpval = bbp1 & (~0x18);
 +			bbpval = bbpval | 0x08;
 +			rt2800_bbp_write(rt2x00dev, 1, bbpval);
 +
 +			rt2800_bbp_dcoc_write(rt2x00dev, 1, 0x01);
 +		}
-+		udelay(500);
++		usleep_range(500, 1500);
 +
 +		vga_idx = 0;
 +			while (vga_idx < 11) {
@@ -203,7 +205,7 @@
 +				for (i = 0; i < 10000; i++) {
 +					bbpval = rt2800_bbp_read(rt2x00dev, 159);
 +					if ((bbpval & 0xff) == 0x93)
-+						udelay(50);
++						usleep_range(50, 100);
 +					else
 +						break;
 +					}
@@ -233,7 +235,7 @@
 +					value = rt2800_bbp_read(rt2x00dev, 159);
 +					bbptemp = bbptemp + value;
 +
-+					if ((i < 2) && (bbptemp & 0x800000))
++					if (i < 2 && (bbptemp & 0x800000))
 +						result = (bbptemp & 0xffffff) - 0x1000000;
 +					else if (i == 4)
 +						result = bbptemp;
@@ -241,21 +243,23 @@
 +						result = bbptemp;
 +
 +					if (i == 0)
-+						mi = result/4096;
++						mi = result / 4096;
 +					else if (i == 1)
-+						mq = result/4096;
++						mq = result / 4096;
 +					else if (i == 2)
-+						si = bbptemp/4096;
++						si = bbptemp / 4096;
 +					else if (i == 3)
-+						sq = bbptemp/4096;
++						sq = bbptemp / 4096;
 +					else
-+						riq = result/4096;
++						riq = result / 4096;
 +				}
 +
-+				bbpval1 = si - mi*mi;
-+				rt2x00_dbg(rt2x00dev, "RXIQ si=%d, sq=%d, riq=%d, bbpval %d, vga_idx %d", si, sq, riq, bbpval1, vga_idx);
++				bbpval1 = si - mi * mi;
++				rt2x00_dbg(rt2x00dev,
++					   "RXIQ si=%d, sq=%d, riq=%d, bbpval %d, vga_idx %d",
++					   si, sq, riq, bbpval1, vga_idx);
 +
-+				if (bbpval1 >= (100*100))
++				if (bbpval1 >= (100 * 100))
 +					break;
 +
 +				if (bbpval1 <= 100)
@@ -278,39 +282,39 @@
 +					vga_idx = vga_idx + 1;
 +			}
 +
-+		sigma_i = rt2800_do_sqrt_accumulation(100*(si - mi*mi));
-+		sigma_q = rt2800_do_sqrt_accumulation(100*(sq - mq*mq));
-+		r_iq = 10*(riq-(mi*mq));
++		sigma_i = rt2800_do_sqrt_accumulation(100 * (si - mi * mi));
++		sigma_q = rt2800_do_sqrt_accumulation(100 * (sq - mq * mq));
++		r_iq = 10 * (riq - (mi * mq));
 +
 +		rt2x00_dbg(rt2x00dev, "Sigma_i=%d, Sigma_q=%d, R_iq=%d", sigma_i, sigma_q, r_iq);
 +
-+		if (((sigma_i <= 1400 ) && (sigma_i >= 1000))
-+			&& ((sigma_i - sigma_q) <= 112)
-+			&& ((sigma_i - sigma_q) >= -112)
-+			&& ((mi <= 32) && (mi >= -32))
-+			&& ((mq <= 32) && (mq >= -32))) {
-+				r_iq = 10*(riq-(mi*mq));
-+				rt2x00_dbg(rt2x00dev, "RXIQ Sigma_i=%d, Sigma_q=%d, R_iq=%d\n", sigma_i, sigma_q, r_iq);
++		if (sigma_i <= 1400 && sigma_i >= 1000 &&
++		    (sigma_i - sigma_q) <= 112 &&
++		    (sigma_i - sigma_q) >= -112 &&
++		    mi <= 32 && mi >= -32 &&
++		    mq <= 32 && mq >= -32) {
++			r_iq = 10 * (riq - (mi * mq));
++			rt2x00_dbg(rt2x00dev, "RXIQ Sigma_i=%d, Sigma_q=%d, R_iq=%d\n",
++				   sigma_i, sigma_q, r_iq);
 +
-+				g_rx = (1000 * sigma_q) / sigma_i;
-+				g_imb = ((-2) * 128 * (1000 - g_rx)) / (1000 + g_rx);
-+				ph_rx = (r_iq * 2292) / (sigma_i * sigma_q);
-+				rt2x00_info(rt2x00dev, "RXIQ G_imb=%d, Ph_rx=%d\n", g_imb, ph_rx);
++			g_rx = (1000 * sigma_q) / sigma_i;
++			g_imb = ((-2) * 128 * (1000 - g_rx)) / (1000 + g_rx);
++			ph_rx = (r_iq * 2292) / (sigma_i * sigma_q);
 +
-+				if ((ph_rx > 20) || (ph_rx < -20)) {
-+					ph_rx = 0;
-+					rt2x00_warn(rt2x00dev, "RXIQ calibration FAIL");
-+				}
-+
-+				if ((g_imb > 12) || (g_imb < -12)) {
-+					g_imb = 0;
-+					rt2x00_warn(rt2x00dev, "RXIQ calibration FAIL");
-+				}
++			if (ph_rx > 20 || ph_rx < -20) {
++				ph_rx = 0;
++				rt2x00_warn(rt2x00dev, "RXIQ calibration FAIL");
 +			}
-+		else {
++
++			if (g_imb > 12 || g_imb < -12) {
++				g_imb = 0;
++				rt2x00_warn(rt2x00dev, "RXIQ calibration FAIL");
++			}
++		} else {
 +			g_imb = 0;
 +			ph_rx = 0;
-+			rt2x00_dbg(rt2x00dev, "RXIQ Sigma_i=%d, Sigma_q=%d, R_iq=%d\n", sigma_i, sigma_q, r_iq);
++			rt2x00_dbg(rt2x00dev, "RXIQ Sigma_i=%d, Sigma_q=%d, R_iq=%d\n",
++				   sigma_i, sigma_q, r_iq);
 +			rt2x00_warn(rt2x00dev, "RXIQ calibration FAIL");
 +		}
 +
@@ -341,10 +345,10 @@
 +
 +	rt2800_bbp_write(rt2x00dev, 244, 0x00);
 +	bbpval = rt2800_bbp_read(rt2x00dev, 21);
-+	bbpval = (bbpval | 0x1);
++	bbpval |= 0x1;
 +	rt2800_bbp_write(rt2x00dev, 21, bbpval);
 +	usleep_range(10, 200);
-+	bbpval = (bbpval & 0xfe);
++	bbpval &= 0xfe;
 +	rt2800_bbp_write(rt2x00dev, 21, bbpval);
 +
 +	rt2800_rfcsr_write_bank(rt2x00dev, 0, 1, rfb0r1);
