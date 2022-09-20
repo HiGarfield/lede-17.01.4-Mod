@@ -1,6 +1,21 @@
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800.h b/drivers/net/wireless/ralink/rt2x00/rt2800.h
+index eeaa93e..feeaf5d 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800.h
+@@ -1027,6 +1027,8 @@
+  */
+ #define MAC_STATUS_CFG			0x1200
+ #define MAC_STATUS_CFG_BBP_RF_BUSY	FIELD32(0x00000003)
++#define MAC_STATUS_CFG_BBP_RF_BUSY_TX	FIELD32(0x00000001)
++#define MAC_STATUS_CFG_BBP_RF_BUSY_RX	FIELD32(0x00000002)
+ 
+ /*
+  * PWR_PIN_CFG:
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+index 057fae4..82e2044 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -8485,6 +8485,160 @@ void rt2800_rf_self_txdc_cal(struct rt2x
+@@ -8479,6 +8479,140 @@ void rt2800_rf_self_txdc_cal(struct rt2x00_dev *rt2x00dev)
  }
  EXPORT_SYMBOL_GPL(rt2800_rf_self_txdc_cal);
  
@@ -29,6 +44,7 @@
 +	char d1 = 0, d2 = 0;
 +	u8 rfvalue;
 +	u32 MAC_RF_BYPASS0, MAC_RF_CONTROL0, MAC_PWR_PIN_CFG;
++	u32 maccfg;
 +
 +	saverfb0r1 = rt2800_rfcsr_read_bank(rt2x00dev, 0, 1);
 +	saverfb0r34 = rt2800_rfcsr_read_bank(rt2x00dev, 0, 34);
@@ -48,40 +64,19 @@
 +	MAC_RF_CONTROL0 = rt2800_register_read(rt2x00dev, RF_CONTROL0);
 +	MAC_PWR_PIN_CFG = rt2800_register_read(rt2x00dev, PWR_PIN_CFG);
 +
-+	{
-+	u32 maccfg, macstatus;
-+	int i;
-+
 +	maccfg = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
 +	maccfg &= (~0x04);
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, maccfg);
 +
-+	for (i = 0; i < 10000; i++) {
-+		macstatus = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
-+		if (macstatus & 0x1)
-+			usleep_range(50, 100);
-+		else
-+			break;
-+		}
-+
-+	if (i == 10000)
++	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_TX)))
 +		rt2x00_warn(rt2x00dev, "Wait MAC Tx Status to MAX !!!\n");
 +
 +	maccfg = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
 +	maccfg &= (~0x04);
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, maccfg);
 +
-+	for (i = 0; i < 10000; i++) {
-+		macstatus = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
-+		if (macstatus & 0x2)
-+			usleep_range(50, 100);
-+		else
-+			break;
-+		}
-+
-+	if (i == 10000)
++	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_RX)))
 +		rt2x00_warn(rt2x00dev, "Wait MAC Rx Status to MAX !!!\n");
-+	}
 +
 +	rfvalue = (MAC_RF_BYPASS0 | 0x3004);
 +	rt2800_register_write(rt2x00dev, RF_BYPASS0, rfvalue);
@@ -161,7 +156,7 @@
  static void rt2800_bbp_core_soft_reset(struct rt2x00_dev *rt2x00dev,
  				       bool set_bw, bool is_ht40)
  {
-@@ -9092,6 +9246,7 @@ static void rt2800_init_rfcsr_6352(struc
+@@ -9086,6 +9220,7 @@ static void rt2800_init_rfcsr_6352(struct rt2x00_dev *rt2x00dev)
  	rt2800_rfcsr_write_dccal(rt2x00dev, 5, 0x00);
  	rt2800_rfcsr_write_dccal(rt2x00dev, 17, 0x7C);
  
@@ -169,9 +164,11 @@
  	rt2800_rf_self_txdc_cal(rt2x00dev);
  	rt2800_bw_filter_calibration(rt2x00dev, true);
  	rt2800_bw_filter_calibration(rt2x00dev, false);
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
+index c3b04f7..b3d11f9 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-@@ -254,6 +254,8 @@ void rt2800_link_tuner(struct rt2x00_dev
+@@ -254,6 +254,8 @@ void rt2800_link_tuner(struct rt2x00_dev *rt2x00dev, struct link_qual *qual,
  void rt2800_gain_calibration(struct rt2x00_dev *rt2x00dev);
  void rt2800_vco_calibration(struct rt2x00_dev *rt2x00dev);
  void rt2800_rf_self_txdc_cal(struct rt2x00_dev *rt2x00dev);
@@ -180,6 +177,8 @@
  
  int rt2800_enable_radio(struct rt2x00_dev *rt2x00dev);
  void rt2800_disable_radio(struct rt2x00_dev *rt2x00dev);
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
+index e13ac57..bfd1ca8 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 @@ -575,6 +575,8 @@ struct rt2x00lib_ops {
