@@ -26,7 +26,7 @@
 +	rfb7r1_org = rt2800_rfcsr_read_bank(rt2x00dev, 7, 1);
 +
 +	rt2800_rfcsr_write_bank(rt2x00dev, 5, 1, 0x4);
-+	for (i = 0; i < 100; i = i + 1) {
++	for (i = 0; i < 100; ++i) {
 +		usleep_range(50, 100);
 +		rfvalue = rt2800_rfcsr_read_bank(rt2x00dev, 5, 1);
 +		if ((rfvalue & 0x04) != 0x4)
@@ -35,7 +35,7 @@
 +	rt2800_rfcsr_write_bank(rt2x00dev, 5, 1, rfb5r1_org);
 +
 +	rt2800_rfcsr_write_bank(rt2x00dev, 7, 1, 0x4);
-+	for (i = 0; i < 100; i = i + 1) {
++	for (i = 0; i < 100; ++i) {
 +		usleep_range(50, 100);
 +		rfvalue = rt2800_rfcsr_read_bank(rt2x00dev, 7, 1);
 +		if ((rfvalue & 0x04) != 0x4)

@@ -1,6 +1,8 @@
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+index dd7b215..7487bba 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -9084,6 +9084,937 @@ restore_value:
+@@ -9054,6 +9054,918 @@ restore_value:
  }
  EXPORT_SYMBOL_GPL(rt2800_rxiq_calibration);
  
@@ -222,7 +224,7 @@
 +{
 +	u32 macvalue = 0;
 +	int fftout_i = 0, fftout_q = 0;
-+	u32 ptmp=0, pint = 0;
++	u32 ptmp = 0, pint = 0;
 +
 +	rt2800_bbp_write(rt2x00dev, 158, 0xBA);
 +	rt2800_bbp_write(rt2x00dev, 159, tidx);
@@ -277,8 +279,6 @@
 +
 +	for (bidx = 5; bidx >= 0; bidx--) {
 +		for (iorq = 0; iorq <= 1; iorq++) {
-+			rt2x00_dbg(rt2x00dev, "\n========================================================\n");
-+
 +			if (idxf[iorq] == 0x20) {
 +				idx0 = 0x20;
 +				p0 = pf;
@@ -337,8 +337,6 @@
 +
 +	for (bidx = 5; bidx >= 1; bidx--) {
 +		for (gop = 0; gop < 2; gop++) {
-+			rt2x00_dbg(rt2x00dev, "\n==============================================\n");
-+
 +			if (gop == 1 || bidx < 4) {
 +				if (gop == 0)
 +					iq_err = gerr;
@@ -367,7 +365,7 @@
 +				idx1 = (gop == 0) ? (idx1 & 0x0F) : (idx1 & 0x3F);
 +
 +				bbp = (ch_idx == 0) ? (gop == 0) ? 0x28 : 0x29 :
-+						      (gop == 0) ? 0x46 : 0x47;
++				      (gop == 0) ? 0x46 : 0x47;
 +
 +				rt2800_bbp_write(rt2x00dev, 158, bbp);
 +				rt2800_bbp_write(rt2x00dev, 159, idx1);
@@ -494,7 +492,7 @@
 +	u32 orig528 = 0;
 +	u32 orig52c = 0;
 +
-+	u32 savemacsysctrl = 0, mtxcycle = 0;
++	u32 savemacsysctrl = 0;
 +	u32 macvalue = 0;
 +	u32 mac13b8 = 0;
 +	u32 p0 = 0, p1 = 0;
@@ -503,17 +501,19 @@
 +	u8 rfvalue;
 +	u8 loft_dc_search_result[CHAIN_NUM][RF_ALC_NUM][2];
 +	u8 ger[CHAIN_NUM], per[CHAIN_NUM];
-+	u8 rf_gain[] = {0x00, 0x01, 0x02, 0x04, 0x08, 0x0c};
-+	u8 rfvga_gain_table[] = {0x24, 0x25, 0x26, 0x27, 0x28, 0x2c, 0x2d, 0x2e, 0x2f, 0x30,
-+				 0x31, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3F};
++
 +	u8 vga_gain[] = {14, 14};
-+	u8 bbp_2324gain[] = {0x16, 0x14, 0x12, 0x10, 0x0c, 0x08};
 +	u8 bbp = 0, ch_idx = 0, rf_alc_idx = 0, idx = 0;
 +	u8 bbpr30, rfb0r39, rfb0r42;
 +	u8 bbpr1;
 +	u8 bbpr4;
 +	u8 bbpr241, bbpr242;
 +	u8 count_step;
++
++	static const u8 rf_gain[] = {0x00, 0x01, 0x02, 0x04, 0x08, 0x0c};
++	static const u8 rfvga_gain_table[] = {0x24, 0x25, 0x26, 0x27, 0x28, 0x2c, 0x2d, 0x2e, 0x2f, 0x30,
++					      0x31, 0x38, 0x39, 0x3a, 0x3b, 0x3c, 0x3d, 0x3e, 0x3F};
++	static const u8 bbp_2324gain[] = {0x16, 0x14, 0x12, 0x10, 0x0c, 0x08};
 +
 +	savemacsysctrl = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
 +	macorg1 = rt2800_register_read(rt2x00dev, TX_PIN_CFG);
@@ -529,25 +529,15 @@
 +	macvalue &= (~0x04);
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, macvalue);
 +
-+	for (mtxcycle = 0; mtxcycle < 10000; mtxcycle++) {
-+		macvalue = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
-+		if (macvalue & 0x01)
-+			usleep_range(50, 100);
-+		else
-+			break;
-+	}
++	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_TX)))
++		rt2x00_warn(rt2x00dev, "RF TX busy in LOFT IQ calibration\n");
 +
 +	macvalue = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
 +	macvalue &= (~0x08);
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, macvalue);
 +
-+	for (mtxcycle = 0; mtxcycle < 10000; mtxcycle++) {
-+		macvalue = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
-+		if (macvalue & 0x02)
-+			usleep_range(50, 100);
-+		else
-+			break;
-+	}
++	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_RX)))
++		rt2x00_warn(rt2x00dev, "RF RX busy in LOFT IQ calibration\n");
 +
 +	for (ch_idx = 0; ch_idx < 2; ch_idx++)
 +		rt2800_rf_configstore(rt2x00dev, rf_store, ch_idx);
@@ -579,6 +569,7 @@
 +			rt2800_rf_aux_tx0_loopback(rt2x00dev);
 +		else
 +			rt2800_rf_aux_tx1_loopback(rt2x00dev);
++
 +		udelay(1);
 +
 +		if (ch_idx == 0)
@@ -633,7 +624,7 @@
 +
 +				if (vga_gain[ch_idx] < 0)
 +					vga_gain[ch_idx] = 0;
-+		 	}
++			}
 +
 +			rfvalue = rfvga_gain_table[vga_gain[ch_idx]];
 +
@@ -724,24 +715,16 @@
 +	macvalue = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
 +	macvalue &= (~0x04);
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, macvalue);
-+	for (mtxcycle = 0; mtxcycle < 10000; mtxcycle++) {
-+		macvalue = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
-+		if (macvalue & 0x01)
-+			usleep_range(50, 100);
-+		else
-+			break;
-+	}
++
++	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_TX)))
++		rt2x00_warn(rt2x00dev, "RF TX busy in LOFT IQ calibration\n");
 +
 +	macvalue = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
 +	macvalue &= (~0x08);
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, macvalue);
-+	for (mtxcycle = 0; mtxcycle < 10000; mtxcycle++) {
-+		macvalue = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
-+		if (macvalue & 0x02)
-+			usleep_range(50, 100);
-+		else
-+			break;
-+	}
++
++	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_RX)))
++		rt2x00_warn(rt2x00dev, "RF RX busy in LOFT IQ calibration\n");
 +
 +	if (test_bit(CAPABILITY_EXTERNAL_PA_TX0, &rt2x00dev->cap_flags)) {
 +		rt2800_register_write(rt2x00dev, RF_CONTROL3, 0x00000101);
@@ -938,7 +921,7 @@
  static void rt2800_bbp_core_soft_reset(struct rt2x00_dev *rt2x00dev,
  				       bool set_bw, bool is_ht40)
  {
-@@ -9696,6 +10644,7 @@ static void rt2800_init_rfcsr_6352(struc
+@@ -9666,6 +10578,7 @@ static void rt2800_init_rfcsr_6352(struct rt2x00_dev *rt2x00dev)
  	rt2800_rxdcoc_calibration(rt2x00dev);
  	rt2800_bw_filter_calibration(rt2x00dev, true);
  	rt2800_bw_filter_calibration(rt2x00dev, false);
@@ -946,6 +929,8 @@
  	rt2800_rxiq_calibration(rt2x00dev);
  }
  
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
+index 60fe373..38ec841 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
 @@ -28,6 +28,16 @@
@@ -965,7 +950,7 @@
  
  /* RT2800 driver data structure */
  struct rt2800_drv_data {
-@@ -258,6 +268,7 @@ int rt2800_calcrcalibrationcode(struct r
+@@ -258,6 +268,7 @@ int rt2800_calcrcalibrationcode(struct rt2x00_dev *rt2x00dev, int d1, int d2);
  void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev);
  void rt2800_rxdcoc_calibration(struct rt2x00_dev *rt2x00dev);
  void rt2800_rxiq_calibration(struct rt2x00_dev *rt2x00dev);
@@ -973,6 +958,8 @@
  
  int rt2800_enable_radio(struct rt2x00_dev *rt2x00dev);
  void rt2800_disable_radio(struct rt2x00_dev *rt2x00dev);
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
+index f965d17..00c5e57 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 @@ -579,6 +579,7 @@ struct rt2x00lib_ops {

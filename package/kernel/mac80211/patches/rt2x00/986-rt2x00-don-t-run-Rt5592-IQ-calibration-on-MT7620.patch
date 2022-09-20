@@ -28,7 +28,7 @@ Signed-off-by: Daniel Golle <daniel@makrotopia.org>
  		rt2800_bbp_write_with_rx_chain(rt2x00dev, 66, reg);
  
 -		rt2800_iq_calibrate(rt2x00dev, rf->channel);
-+		if (!rt2x00_rt(rt2x00dev, RT6352))
++		if (rt2x00_rt(rt2x00dev, RT5592))
 +			rt2800_iq_calibrate(rt2x00dev, rf->channel);
  	}
  
