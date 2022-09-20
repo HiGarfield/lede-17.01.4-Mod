@@ -30,6 +30,9 @@
 
 /* size of the vlan table */
 #define AR8X16_MAX_VLANS	128
+#define AR83X7_MAX_VLANS	4096
+#define AR8XXX_MAX_VLANS	AR83X7_MAX_VLANS
+
 #define AR8X16_PROBE_RETRIES	10
 #define AR8X16_MAX_PORTS	8
 
@@ -112,6 +115,7 @@
 
 #define AR8216_REG_ATU_FUNC2		0x0058
 #define   AR8216_ATU_PORTS		BITS(0, 6)
+#define   AR8216_ATU_PORTS_S		0
 #define   AR8216_ATU_PORT0		BIT(0)
 #define   AR8216_ATU_PORT1		BIT(1)
 #define   AR8216_ATU_PORT2		BIT(2)
@@ -367,7 +371,7 @@ enum arl_op {
 };
 
 struct arl_entry {
-	u8 port;
+	u16 portmap;
 	u8 mac[6];
 };
 
@@ -451,8 +455,9 @@ struct ar8xxx_priv {
 
 	/* all fields below are cleared on reset */
 	bool vlan;
-	u16 vlan_id[AR8X16_MAX_VLANS];
-	u8 vlan_table[AR8X16_MAX_VLANS];
+
+	u16 vlan_id[AR8XXX_MAX_VLANS];
+	u8 vlan_table[AR8XXX_MAX_VLANS];
 	u8 vlan_tagged;
 	u16 pvid[AR8X16_MAX_PORTS];
 	int arl_age_time;

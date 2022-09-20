@@ -1033,8 +1033,10 @@ ar8327_wait_atu_ready(struct ar8xxx_priv *priv, u16 r2, u16 r1)
 {
 	int timeout = 20;
 
-	while (ar8xxx_mii_read32(priv, r2, r1) & AR8327_ATU_FUNC_BUSY && --timeout)
-                udelay(10);
+	while (ar8xxx_mii_read32(priv, r2, r1) & AR8327_ATU_FUNC_BUSY && --timeout) {
+		udelay(10);
+		cond_resched();
+	}
 
 	if (!timeout)
 		pr_err("ar8327: timeout waiting for atu to become ready\n");
@@ -1046,8 +1048,7 @@ static void ar8327_get_arl_entry(struct ar8xxx_priv *priv,
 	struct mii_bus *bus = priv->mii_bus;
 	u16 r2, page;
 	u16 r1_data0, r1_data1, r1_data2, r1_func;
-	u32 t, val0, val1, val2;
-	int i;
+	u32 val0, val1, val2;
 
 	split_addr(AR8327_REG_ATU_DATA0, &r1_data0, &r2, &page);
 	r2 |= 0x10;
@@ -1084,12 +1085,7 @@ static void ar8327_get_arl_entry(struct ar8xxx_priv *priv,
 		if (!*status)
 			break;
 
-		i = 0;
-		t = AR8327_ATU_PORT0;
-		while (!(val1 & t) && ++i < AR8327_NUM_PORTS)
-			t <<= 1;
-
-		a->port = i;
+		a->portmap = (val1 & AR8327_ATU_PORTS) >> AR8327_ATU_PORTS_S;
 		a->mac[0] = (val0 & AR8327_ATU_ADDR0) >> AR8327_ATU_ADDR0_S;
 		a->mac[1] = (val0 & AR8327_ATU_ADDR1) >> AR8327_ATU_ADDR1_S;
 		a->mac[2] = (val0 & AR8327_ATU_ADDR2) >> AR8327_ATU_ADDR2_S;
@@ -1379,7 +1375,7 @@ const struct ar8xxx_chip ar8327_chip = {
 
 	.name = "Atheros AR8327",
 	.ports = AR8327_NUM_PORTS,
-	.vlans = AR8X16_MAX_VLANS,
+	.vlans = AR83X7_MAX_VLANS,
 	.swops = &ar8327_sw_ops,
 
 	.reg_port_stats_start = 0x1000,
@@ -1414,7 +1410,7 @@ const struct ar8xxx_chip ar8337_chip = {
 
 	.name = "Atheros AR8337",
 	.ports = AR8327_NUM_PORTS,
-	.vlans = AR8X16_MAX_VLANS,
+	.vlans = AR83X7_MAX_VLANS,
 	.swops = &ar8327_sw_ops,
 
 	.reg_port_stats_start = 0x1000,
