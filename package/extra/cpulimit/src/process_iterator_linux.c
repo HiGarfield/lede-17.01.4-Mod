@@ -50,82 +50,40 @@ int init_process_iterator(struct process_iterator *it, struct process_filter *fi
 
 static int read_process_info(pid_t pid, struct process *p)
 {
-	char buffer[PATH_MAX + 1];
-	char statfile[64];
-	char exefile[64];
-	p->pid = pid;
+	char statfile[32], exefile[32], state;
+	unsigned long long utime, stime, start_time;
 	FILE *fd;
+
+	p->pid = pid;
+
 	// read command line
 	sprintf(exefile, "/proc/%d/cmdline", p->pid);
 	fd = fopen(exefile, "r");
 	if (fd == NULL)
 		goto error_out1;
-	if (fgets(buffer, sizeof(buffer), fd) == NULL)
+	if (fgets(p->command, sizeof(p->command), fd) == NULL)
 	{
 		fclose(fd);
 		goto error_out1;
 	}
 	fclose(fd);
-	strcpy(p->command, buffer);
 
 	// read stat file
 	sprintf(statfile, "/proc/%d/stat", p->pid);
 	fd = fopen(statfile, "r");
 	if (fd == NULL)
 		goto error_out2;
-	if (fgets(buffer, sizeof(buffer), fd) == NULL)
+
+	if (fscanf(fd, "%*d (%*[^)]) %c %d %*d %*d %*d %*d %*d %*d %*d %*d %*d %llu %llu %*d %*d %*d %*d %*d %*d %llu",
+			   &state, &p->ppid, &utime, &stime, &start_time) != 5 ||
+		state == 'Z' || state == 'X')
 	{
 		fclose(fd);
 		goto error_out2;
 	}
 	fclose(fd);
-	// pid
-	char *token = strtok(buffer, " ");
-	if (token == NULL)
-		goto error_out2;
-	// comm
-	token = strtok(NULL, " ");
-	if (token == NULL)
-		goto error_out2;
-	if (token[0] == '(')
-	{
-		while (token[strlen(token) - 1] != ')')
-		{
-			token = strtok(NULL, " ");
-			if (token == NULL)
-				goto error_out2;
-		}
-	}
-	// state
-	token = strtok(NULL, " ");
-	if (token == NULL)
-		goto error_out2;
-	if (strcmp(token, "Z") == 0 || strcmp(token, "X") == 0)
-		goto error_out2;
-	// ppid
-	token = strtok(NULL, " ");
-	if (token == NULL)
-		goto error_out2;
-	p->ppid = atoi(token);
-	int i;
-	for (i = 0; i < 10; i++)
-	{
-		token = strtok(NULL, " ");
-		if (token == NULL)
-			goto error_out2;
-	}
-	p->cputime = atoi(token) * 1000 / HZ;
-	token = strtok(NULL, " ");
-	if (token == NULL)
-		goto error_out2;
-	p->cputime += atoi(token) * 1000 / HZ;
-	for (i = 0; i < 7; i++)
-	{
-		token = strtok(NULL, " ");
-		if (token == NULL)
-			goto error_out2;
-	}
-	p->starttime = atoi(token) / sysconf(_SC_CLK_TCK);
+	p->cputime = (int)((utime + stime) * 1000 / HZ);
+	p->starttime = (long)(start_time / sysconf(_SC_CLK_TCK));
 	return 0;
 
 error_out1:
@@ -136,44 +94,16 @@ error_out2:
 
 static pid_t getppid_of(pid_t pid)
 {
-	char statfile[20];
-	char buffer[1024];
+	char statfile[32];
+	FILE *fd;
+	pid_t parent_pid = -1;
 	sprintf(statfile, "/proc/%d/stat", pid);
-	FILE *fd = fopen(statfile, "r");
-	if (fd == NULL)
-		return -1;
-	if (fgets(buffer, sizeof(buffer), fd) == NULL)
+	if ((fd = fopen(statfile, "r")) != NULL)
 	{
+		fscanf(fd, "%*d (%*[^)]) %*c %d", &parent_pid);
 		fclose(fd);
-		return -1;
 	}
-	fclose(fd);
-	// pid
-	char *token = strtok(buffer, " ");
-	if (token == NULL)
-		return -1;
-	// comm
-	token = strtok(NULL, " ");
-	if (token == NULL)
-		return -1;
-	if (token[0] == '(')
-	{
-		while (token[strlen(token) - 1] != ')')
-		{
-			token = strtok(NULL, " ");
-			if (token == NULL)
-				return -1;
-		}
-	}
-	// state
-	token = strtok(NULL, " ");
-	if (token == NULL)
-		return -1;
-	// ppid
-	token = strtok(NULL, " ");
-	if (token == NULL)
-		return -1;
-	return atoi(token);
+	return parent_pid;
 }
 
 static int is_child_of(pid_t child_pid, pid_t parent_pid)

@@ -25,6 +25,9 @@
 
 #include <unistd.h>
 #include <limits.h>
+#if defined(__linux__)
+#include <linux/limits.h>
+#endif
 #include <dirent.h>
 
 // USER_HZ detection, from openssl code
