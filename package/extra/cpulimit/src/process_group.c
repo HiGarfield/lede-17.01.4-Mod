@@ -19,10 +19,13 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
  */
 
+#define _POSIX_SOURCE
+
 #include <string.h>
 #include <stdlib.h>
 #include <limits.h>
 #include <sys/time.h>
+#include <sys/types.h>
 #include <signal.h>
 #include <libgen.h>
 #include <errno.h>
