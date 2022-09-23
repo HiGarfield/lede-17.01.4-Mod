@@ -256,12 +256,25 @@ dev.cfgvalue = function(self, section)
 	end
 end
 
+function isswapon(dev)
+    local file, line
+    file = io.open("/proc/swaps", "r")
+    for line in file:lines() do
+        if line:match("^" .. dev .. "%s") ~= nil then
+            file:close()
+            return true
+        end
+    end
+    file:close()
+    return false
+end
+
 swapoff = swap:option(Button, "swapoff", translate("Swapoff"))
 swapoff.render = function(self, section, scope)
     local v, e
     v = self.map:get(section, "device")
     e = v and devices[v]
-    if v and e and e.size then
+    if v and e and e.size and isswapon(e.dev) then
         self.inputstyle = "remove"
         self.template = "cbi/button"
     else
