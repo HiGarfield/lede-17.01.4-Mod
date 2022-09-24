@@ -7,7 +7,7 @@ BOARDNAME:=MT7621 based boards
 FEATURES+=nand ramdisk rtc usb
 CPU_TYPE:=24kc
 
-DEFAULT_PACKAGES += kmod-mt76
+DEFAULT_PACKAGES += kmod-mt76 irqbalance
 
 KERNEL_PATCHVER:=4.4
 
