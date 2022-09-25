@@ -5421,7 +5421,6 @@ CONFIG_PACKAGE_wpad-mesh-openssl=y
 # CONFIG_PACKAGE_fconfig is not set
 # CONFIG_PACKAGE_rbcfg is not set
 CONFIG_PACKAGE_uboot-envtools=y
-# CONFIG_UBOOT_ENVTOOLS_UBI is not set
 
 #
 # Compression
