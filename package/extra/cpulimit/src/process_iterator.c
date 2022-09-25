@@ -29,7 +29,7 @@
 #include <time.h>
 #include "process_iterator.h"
 
-// See this link to port to other systems: http://www.steve.org.uk/Reference/Unix/faq_8.html#SEC85
+/* See this link to port to other systems: http://www.steve.org.uk/Reference/Unix/faq_8.html#SEC85 */
 
 #if defined(__linux__)
 
