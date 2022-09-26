@@ -73,8 +73,7 @@ sub download_cmd {
 	my $have_aria2 = 0;
 	my $have_curl = 0;
 	my $fn = shift;
-	my @mrs = @_;
-	my $murl = "'$url'";
+	my $additional_mirrors = join(" ", map "$_/$fn", @_);
 
 	my @chArray = ('a'..'z', 'A'..'Z', 0..9);
 	my $rfn = join '', map{ $chArray[int rand @chArray] } 0..9;
@@ -92,12 +91,17 @@ sub download_cmd {
 		close CURL;
 	}
 
-	for my $el (@mrs) {
-		$murl = $murl." '$el/$fn'";
-	}
-
 	if ($have_aria2) {
-		return ("aria2c --stderr $murl -c -x2 -s10 -j10 -k1M --server-stat-of=/dev/shm/spp --server-stat-if=/dev/shm/spp -d /dev/shm -o $rfn; cat /dev/shm/$rfn; rm /dev/shm/$rfn");
+		return join(" ", "touch /dev/shm/${rfn}_spp",
+			"&&",
+			qw(aria2c --stderr -c -x2 -s10 -j10 -k1M --check-certificate=false), $url, $additional_mirrors,
+			"--server-stat-of=/dev/shm/${rfn}_spp",
+			"--server-stat-if=/dev/shm/${rfn}_spp",
+			"-d /dev/shm -o $rfn",
+			"&&",
+			"cat /dev/shm/$rfn",
+			"&&",
+			"rm -f /dev/shm/$rfn /dev/shm/${rfn}_spp");
 	} elsif ($have_curl) {
 		return (qw(curl -f --connect-timeout 20 --retry 5 --location --insecure), shellwords($ENV{CURL_OPTIONS} || ''), $url);
 	} else {
@@ -106,7 +110,7 @@ sub download_cmd {
 }
 
 my $hash_cmd = hash_cmd();
-$hash_cmd or ($file_hash eq "skip") or die "Cannot find appropriate hash command, ensure the provided hash is either a MD5 or SHA256 checksum.\n";
+$hash_cmd or ($file_hash eq "skip") or ($file_hash eq "") or die "Cannot find appropriate hash command, ensure the provided hash is either a MD5 or SHA256 checksum.\n";
 
 sub download
 {
