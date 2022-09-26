@@ -28,7 +28,7 @@ jobs:
 
       - name: Set environment variable
         run: |
-          if [ "$GITHUB_REPOSITORY" == "$SOURCE_REPO" ]; then
+          if [ "$GITHUB_REPOSITORY" = "$SOURCE_REPO" ]; then
             WORKING_DIR="$GITHUB_WORKSPACE"
           else
             WORKING_DIR="$GITHUB_WORKSPACE/source"
