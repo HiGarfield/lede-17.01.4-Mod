@@ -13,16 +13,16 @@ concurrency:
 
 jobs:
   do_repository_dispatch:
-    if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' }} && ${{ github.event_name == 'push' }}
     name: repository dispatch
     runs-on: ubuntu-22.04
     steps:
       - name: Repository dispatch
+        if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push' }}
         uses: HiGarfield/repository-dispatch@v2
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ secrets.SECOND_REPO }}
-          event-type: sync-${{ github.event.head_commit.message }}
+          event-type: ${{ github.event.head_commit.message }}
 
   build:
     name: build
