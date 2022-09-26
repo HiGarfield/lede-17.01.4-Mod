@@ -88,8 +88,6 @@ jobs:
           sudo -E update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
           sudo -E update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
 
-          cp -f ".github/backup/download.pl" "scripts/download.pl"
-
           sed -i 's/HOST_BUILD_PARALLEL ?=/HOST_BUILD_PARALLEL ?= 1/g' include/host-build.mk
           sed -i 's/PKG_BUILD_PARALLEL ?=/PKG_BUILD_PARALLEL ?= 1/g' include/package.mk
 
@@ -136,8 +134,8 @@ jobs:
         id: package
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          for i in $(seq 6 -1 1); do
-            make download -j${i} && break
+          for i in $(seq 3); do
+            make download -j6 && break
           done
           find dl -size -1024c -exec rm -f {} \;
 
