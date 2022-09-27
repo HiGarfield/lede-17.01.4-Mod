@@ -18,6 +18,8 @@ DNSFORWARDER=${DNSFORWARDER_PATH}/${DNSFORWARDER_BIN}
 DNSFORWARDER_CONF=${DNSFORWARDER_PATH}/dnsfwd-ssrpro.conf
 IPTABLES="iptables -w"
 
+. /lib/functions/network.sh
+
 get_config() {
 	config_get_bool vt_enabled "$1" enabled '0'
 	config_get vt_server_addr "$1" server
@@ -35,15 +37,6 @@ get_config() {
 	config_get vt_safe_dns_port "$1" safe_dns_port '53'
 	config_get_bool cron_mode "$1" cron_mode '0'
 }
-
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
-
-# Get LAN settings as default parameters
-. /lib/functions/network.sh
-network_get_subnet covered_subnets lan
-network_get_ipaddr local_addresses lan
-
-# -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-
 
 __gfwlist_by_mode() {
 	case "$1" in
@@ -152,7 +145,6 @@ stop() {
 		kill -9 $(cat $SS_REDIR_PIDFILE)
 		rm -f $SS_REDIR_PIDFILE
 	fi
-	killall -9 ssr-redir 2>/dev/null
 	del_cron
 }
 
@@ -310,7 +302,8 @@ add_rule() {
 		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
 		;;
 	esac
-	local subnet
+	local subnet covered_subnets
+	network_get_subnet covered_subnets lan
 	for subnet in $covered_subnets; do
 		$IPTABLES -t nat -A shadowsocksr_pre -s $subnet -p tcp -j REDIRECT --to $SS_REDIR_PORT
 	done
