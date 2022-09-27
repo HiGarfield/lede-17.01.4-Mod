@@ -37,7 +37,7 @@ end
 
 function act_status()
 	local e={}
-	local dnsmasq_server = smartdns.get_config_option("dhcp", "dnsmasq", "server", nil)
+	local dnsmasq_server = smartdns.get_config_option("dhcp", "dnsmasq", "server", {nil})[1]
 	local auto_set_dnsmasq = smartdns.get_config_option("smartdns", "smartdns", "auto_set_dnsmasq", nil)
 	
 	e.auto_set_dnsmasq = auto_set_dnsmasq
