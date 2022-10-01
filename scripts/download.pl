@@ -117,7 +117,6 @@ sub download_cmd {
 }
 
 my $hash_cmd = hash_cmd();
-$hash_cmd or ($file_hash eq "skip") or ($file_hash eq "") or die "Cannot find appropriate hash command, ensure the provided hash is either a MD5 or SHA256 checksum.\n";
 
 sub download
 {
