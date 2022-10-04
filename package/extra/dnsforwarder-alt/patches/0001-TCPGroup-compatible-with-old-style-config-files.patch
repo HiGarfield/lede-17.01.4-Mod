@@ -1,0 +1,39 @@
+From e8967c2544b34090e35954fabbfeff0c410771da Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 6 Oct 2022 23:27:27 +0800
+Subject: [PATCH] TCPGroup: compatible with old-style config files
+
+Due to the usage with old programs (e.g., luci-app-dnsforwarder in
+OpenWrt), dnsforwarder needs to be compatible with old-style config
+files.
+
+old-style format:
+TCPGroup <IP1[:PORT],IP2[:PORT],...> <DOMAIN1,DOMAIN2,...> <no|PROXY1[:PORT],PROXY2[:PORT],...>
+---
+ mmgr.c | 10 +++++++++-
+ 1 file changed, 9 insertions(+), 1 deletion(-)
+
+diff --git a/mmgr.c b/mmgr.c
+index 129a0d9..ab6518c 100755
+--- a/mmgr.c
++++ b/mmgr.c
+@@ -255,7 +255,15 @@ static int Tcp_Init(ModuleMap *ModuleMap, StringListIterator *i)
+     Services = i->Next(i);
+     Domains = i->Next(i);
+     Parallel = i->Next(i);
+-    Proxies = i->Next(i);
++    if ( strcmp(Parallel, "on") != 0 && strcmp(Parallel, "off") != 0 )
++    {
++        Proxies = Parallel;
++        Parallel = "off";
++    }
++    else
++    {
++        Proxies = i->Next(i);
++    }
+ 
+     if( Domains == NULL )
+     {
+-- 
+2.25.1
+
