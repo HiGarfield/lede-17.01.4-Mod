@@ -38,6 +38,9 @@ get_config() {
 	config_get_bool cron_mode "$1" cron_mode '0'
 }
 
+config_load $CONFIG
+config_foreach get_config ssrpro
+
 __gfwlist_by_mode() {
 	case "$1" in
 	V) echo unblock-youku ;;
@@ -46,9 +49,6 @@ __gfwlist_by_mode() {
 }
 
 start() {
-	config_load ssrpro
-	config_foreach get_config ssrpro
-
 	if [ "$vt_enabled" -eq 0 ]; then
 		echo "WARNING: Shadowsocksr is disabled."
 		exit 0
@@ -64,6 +64,8 @@ start() {
 	}
 
 	local vt_gfwlist=$(__gfwlist_by_mode $vt_proxy_mode)
+
+	killall -9 ssr-redir >/dev/null 2>&1
 
 	# -----------------------------------------------------------------
 	###### shadowsocksr ######
@@ -88,6 +90,7 @@ start() {
 	/usr/bin/ssr-redir -u -c "$SSRCONF" -f $SS_REDIR_PIDFILE || return 1
 
 	# IPv4 firewall rules
+	del_rule
 	add_rule
 
 	# -----------------------------------------------------------------
@@ -95,7 +98,7 @@ start() {
 	###### Anti-pollution configuration ######
 	if [ -n "$vt_safe_dns" ]; then
 		if [ "$vt_safe_dns_tcp" -eq 1 ]; then
-			start_dnsforwarder "$vt_safe_dns" "$vt_safe_dns_port"
+			start_dnsforwarder
 			awk -vs="127.0.0.1#$DNSFORWARDER_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
 				/etc/gfwlist/$vt_gfwlist >/var/etc/dnsmasq-go.d/01-pollution.conf
 		else
@@ -141,17 +144,13 @@ stop() {
 	del_rule
 
 	# -----------------------------------------------------
-	if [ -f $SS_REDIR_PIDFILE ]; then
-		kill -9 $(cat $SS_REDIR_PIDFILE)
-		rm -f $SS_REDIR_PIDFILE
-	fi
+	killall -9 ssr-redir >/dev/null 2>&1
+	rm -f $SS_REDIR_PIDFILE
+
 	del_cron
 }
 
 reload_rule() {
-	config_load $CONFIG
-	config_foreach get_config ssrpro
-
 	local vt_gfwlist=$(__gfwlist_by_mode $vt_proxy_mode)
 
 	KEEP_GFWLIST=Y
@@ -159,7 +158,7 @@ reload_rule() {
 	add_rule
 	[ "$vt_safe_dns_tcp" -eq 1 ] && {
 		stop_dnsforwarder
-		start_dnsforwarder "$vt_safe_dns" "$vt_safe_dns_port"
+		start_dnsforwarder
 	}
 }
 
@@ -169,29 +168,17 @@ restart() {
 	start
 }
 
-# $1: upstream DNS server ip addr
-# $2: upstream DNS server port
 start_dnsforwarder() {
-	local safe_dns_ip_addr="$1"
-	local safe_dns_port="$2"
+	local safe_dns="${vt_safe_dns}:${vt_safe_dns_port}"
 
-	local safe_dns=''
-	[ -n "$safe_dns_ip_addr" ] && {
-		safe_dns="$safe_dns_ip_addr"
-		[ -n "$safe_dns_port" ] && safe_dns="${safe_dns}:${safe_dns_port}"
-	}
-
-	local tcp_dns_list="208.67.222.222:5353,208.67.220.220:5353,8.8.8.8"
-	[ -n "$safe_dns" ] && tcp_dns_list="$safe_dns,$tcp_dns_list"
-
-	killall -9 $DNSFORWARDER_BIN >/dev/null 2>&1
+	stop_dnsforwarder >/dev/null 2>&1
 	mkdir -p $DNSFORWARDER_PATH
 	rm -rf $DNSFORWARDER_PATH/*
 	ln -s /usr/sbin/dnsforwarder $DNSFORWARDER
 	cat >$DNSFORWARDER_CONF <<-EOF
 		LogOn false
 		UDPLocal 127.0.0.1:$DNSFORWARDER_LOCAL_PORT
-		TCPGroup $tcp_dns_list * no
+		TCPGroup $safe_dns * no
 		UseCache true
 		MemoryCache true
 		IgnoreTTL false
@@ -203,12 +190,16 @@ start_dnsforwarder() {
 		$IPTABLES -t nat -A dnsforwarder_output -m set --match-set $vt_np_ipset dst -j RETURN
 		$IPTABLES -t nat -A dnsforwarder_output -p tcp -j REDIRECT --to $SS_REDIR_PORT
 	fi
-	$IPTABLES -t nat -I OUTPUT -p tcp --dport 53 -j dnsforwarder_output
+	$IPTABLES -t nat -I OUTPUT -p tcp --dport $vt_safe_dns_port -j dnsforwarder_output
 }
 
 stop_dnsforwarder() {
+	local cur_safe_dns_port="$(grep "^TCPGroup" $DNSFORWARDER_CONF 2>/dev/null | grep -o ":\d\+[[:space:]]\+" | grep -o "[[:digit:]]\+")"
 	if $IPTABLES -t nat -F dnsforwarder_output 2>/dev/null; then
-		while $IPTABLES -t nat -D OUTPUT -p tcp --dport 53 -j dnsforwarder_output 2>/dev/null; do :; done
+		if [ -n $safe_dns_port ]; then
+			while $IPTABLES -t nat -D OUTPUT -p tcp --dport $cur_safe_dns_port -j dnsforwarder_output 2>/dev/null; do :; done
+		fi
+		while $IPTABLES -t nat -D OUTPUT -p tcp --dport $vt_safe_dns_port -j dnsforwarder_output 2>/dev/null; do :; done
 		$IPTABLES -t nat -X dnsforwarder_output
 	fi
 	killall -9 $DNSFORWARDER_BIN >/dev/null 2>&1
@@ -278,7 +269,6 @@ add_rule() {
 	$IPTABLES -t mangle -A gameboost -p udp -j TPROXY --on-port $SS_REDIR_PORT --tproxy-mark 0x01/0x01
 	$IPTABLES -t mangle -A PREROUTING -m set --match-set gameuser src -j gameboost
 
-	config_load ssrpro
 	config_foreach process_acl_rule acl_rule
 
 	case "$vt_proxy_mode" in
@@ -316,8 +306,8 @@ del_rule() {
 		$IPTABLES -t nat -X shadowsocksr_pre 2>/dev/null
 	fi
 
-	$IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null
-	$IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null
+	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null; do :; done
+	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null; do :; done
 
 	/usr/bin/ip rule del fwmark 0x01/0x01 table 100
 	/usr/bin/ip route del local 0.0.0.0/0 dev lo table 100
