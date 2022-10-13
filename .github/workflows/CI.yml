@@ -101,7 +101,7 @@ jobs:
           mkdir -p "${OUTPUT_DIR}"
           zip -j "${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip" dl/*
           sha256sum "${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip" | awk '{print $1}' >"${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip.sha256sum"
-          echo "::set-output name=status::success"
+          echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Generate cache mixkey
         id: gen_cache_mixkey
@@ -112,7 +112,7 @@ jobs:
           gcc_hash=$(gcc --version | sha256sum | awk '{print substr($1,1,8)}')
           ldd_hash=$(ldd --version | sha256sum | awk '{print substr($1,1,8)}')
           mixkey="${target_device_arch}-${gcc_hash}-${ldd_hash}"
-          echo "::set-output name=mixkey::$mixkey"
+          echo "mixkey=$mixkey" >> $GITHUB_OUTPUT
 
       - name: Cache
         if: ${{ env.TARGET_DEVICE != 'dl' }}
@@ -156,10 +156,10 @@ jobs:
           for f in *.bin; do
             sha256sum "$f" | awk '{print $1}' >"${f}.sha256sum"
           done
-          echo "::set-output name=status::success"
+          echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Upload assets to releases
-        if: ${{ steps.compile.outputs.status == 'success' }} || ${{ steps.download_dl.outputs.status == 'success' }}
+        if: ${{ steps.compile.outputs.status == 'success' || steps.download_dl.outputs.status == 'success' }}
         uses: HiGarfield/upload-to-github-release@v1
         env:
           GITHUB_TOKEN: ${{ env.MY_TOKEN }}
