@@ -60,8 +60,8 @@ jobs:
           mixkey1="${target_device_arch_1}-${gcc_hash}-${ldd_hash}"
           mixkey2="${target_device_arch_2}-${gcc_hash}-${ldd_hash}"
 
-          echo "::set-output name=mixkey1::$mixkey1"
-          echo "::set-output name=mixkey2::$mixkey2"
+          echo "mixkey1=$mixkey1" >> $GITHUB_OUTPUT
+          echo "mixkey2=$mixkey2" >> $GITHUB_OUTPUT
 
       - name: Cache1
         uses: HiGarfield/cachewrtbuild@main
