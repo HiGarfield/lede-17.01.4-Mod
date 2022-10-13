@@ -99,6 +99,11 @@
 			device_type = "pci";
 			mediatek,mtd-eeprom = <&factory 0x0000>;
 			ieee80211-freq-limit = <2400000 2500000>;
+
+			led {
+				led-sources = <0>;
+				led-active-low;
+			};
 		};
 	};
 
