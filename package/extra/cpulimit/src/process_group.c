@@ -21,9 +21,7 @@
 
 #include <string.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <sys/time.h>
-#include <sys/types.h>
 #include <signal.h>
 #include <libgen.h>
 #include <errno.h>
