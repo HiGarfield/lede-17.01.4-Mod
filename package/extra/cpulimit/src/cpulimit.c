@@ -28,7 +28,6 @@
  */
 
 #include <stdio.h>
-#include <unistd.h>
 #include <stdlib.h>
 #include <getopt.h>
 #include <time.h>
@@ -38,19 +37,9 @@
 #include <sys/resource.h>
 #include <sys/wait.h>
 #include <libgen.h>
-#if defined(__linux__)
-#include <linux/limits.h>
-#endif
-#if defined(__FreeBSD__) || defined(__APPLE__)
-#include <sys/sysctl.h>
-#endif
 
 #include "process_group.h"
 #include "list.h"
-
-#ifdef HAVE_SYS_SYSINFO_H
-#include <sys/sysinfo.h>
-#endif
 
 /* some useful macro */
 #ifndef MIN
