@@ -2652,6 +2652,7 @@ CONFIG_PACKAGE_usign=y
 # Extra packages
 #
 # CONFIG_PACKAGE_automount is not set
+CONFIG_PACKAGE_libiwinfo-data=y
 
 #
 # Firmware
