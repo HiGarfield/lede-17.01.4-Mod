@@ -160,14 +160,13 @@ jobs:
 
       - name: Upload assets to releases
         if: ${{ steps.compile.outputs.status == 'success' || steps.download_dl.outputs.status == 'success' }}
-        uses: HiGarfield/upload-to-github-release@v1
-        env:
-          GITHUB_TOKEN: ${{ env.MY_TOKEN }}
+        uses: HiGarfield/release-action@main
         with:
-          file: ${{ env.OUTPUT_DIR }}/*
-          overwrite: true
-          tag_name: ${{ env.LEDE_VERSION }}
-          draft: false
+          artifacts: ${{ env.OUTPUT_DIR }}/*
+          allowUpdates: true
+          tag: ${{ env.LEDE_VERSION }}
+          token: ${{ env.MY_TOKEN }}
+          omitBody: true
 
       - name: Remove old releases
         uses: HiGarfield/delete-older-releases@master
