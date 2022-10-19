@@ -22,7 +22,7 @@ start_service() {
 
 	[ -z "$SMB_CONF" ] && {
 		logger -p daemon.error -t 'wsdd2' "samba is not running, can't start wsdd2!"
-		exit 1
+		return 1
 	}
 	
 	# cleanup comments
