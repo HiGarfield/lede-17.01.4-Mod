@@ -1,6 +1,6 @@
-From 435c9245abf907c779f5a5959330c6b947ea137a Mon Sep 17 00:00:00 2001
+From a2fe05ac6cab12d6a6795f502383e4598a2dd346 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
-Date: Mon, 3 Oct 2022 01:58:57 +0800
+Date: Thu, 20 Oct 2022 00:38:53 +0800
 Subject: [PATCH] dnsmasq: filter https and unknown
 
 ---
@@ -12,10 +12,10 @@ Subject: [PATCH] dnsmasq: filter https and unknown
  5 files changed, 46 insertions(+), 1 deletion(-)
 
 diff --git a/src/cache.c b/src/cache.c
-index 8ed4740..dc7e4d9 100644
+index f8c4b2c..f2c1927 100644
 --- a/src/cache.c
 +++ b/src/cache.c
-@@ -1862,6 +1862,20 @@ char *record_source(unsigned int index)
+@@ -1911,6 +1911,20 @@ char *record_source(unsigned int index)
    return "<unknown>";
  }
  
@@ -49,21 +49,21 @@ index 8558c33..82e947c 100644
  #define	T_TSIG		250
  #define T_AXFR          252
 diff --git a/src/dnsmasq.h b/src/dnsmasq.h
-index 293278a..1c3efd0 100644
+index 7274e61..530896a 100644
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -279,7 +279,9 @@ struct event_desc {
- #define OPT_FILTER_AAAA    68
- #define OPT_STRIP_ECS      69
+@@ -281,7 +281,9 @@ struct event_desc {
  #define OPT_STRIP_MAC      70
--#define OPT_LAST           71
-+#define OPT_FILTER_HTTPS   71
-+#define OPT_FILTER_UNKNOWN 72
-+#define OPT_LAST           73
+ #define OPT_STALE_CACHE    71
+ #define OPT_NORR           72
+-#define OPT_LAST           73
++#define OPT_FILTER_HTTPS   73
++#define OPT_FILTER_UNKNOWN 74
++#define OPT_LAST           75
  
  #define OPTION_BITS (sizeof(unsigned int)*8)
  #define OPTION_SIZE ( (OPT_LAST/OPTION_BITS)+((OPT_LAST%OPTION_BITS)!=0) )
-@@ -1280,6 +1282,10 @@ void cache_init(void);
+@@ -1297,6 +1299,10 @@ void cache_init(void);
  void next_uid(struct crec *crecp);
  void log_query(unsigned int flags, char *name, union all_addr *addr, char *arg, unsigned short type); 
  char *record_source(unsigned int index);
@@ -75,19 +75,19 @@ index 293278a..1c3efd0 100644
  struct crec *cache_find_by_addr(struct crec *crecp,
  				union all_addr *addr, time_t now, 
 diff --git a/src/option.c b/src/option.c
-index c5e8cb4..360ed0f 100644
+index 811d31f..586ad9c 100644
 --- a/src/option.c
 +++ b/src/option.c
-@@ -181,6 +181,8 @@ struct myoption {
- #define LOPT_STRIP_MAC     372
- #define LOPT_CONF_OPT      373
- #define LOPT_CONF_SCRIPT   374
-+#define LOPT_FILTER_HTTPS  375
-+#define LOPT_FILTER_UNKNOWN 376
+@@ -185,6 +185,8 @@ struct myoption {
+ #define LOPT_FAST_RETRY    376
+ #define LOPT_STALE_CACHE   377
+ #define LOPT_NORR          378
++#define LOPT_FILTER_HTTPS  379
++#define LOPT_FILTER_UNKNOWN 380
  
  #ifdef HAVE_GETOPT_LONG
  static const struct option opts[] =  
-@@ -220,6 +222,8 @@ static const struct myoption opts[] =
+@@ -224,6 +226,8 @@ static const struct myoption opts[] =
      { "filterwin2k", 0, 0, 'f' },
      { "filter-A", 0, 0, LOPT_FILTER_A },
      { "filter-AAAA", 0, 0, LOPT_FILTER_AAAA },
@@ -96,7 +96,7 @@ index c5e8cb4..360ed0f 100644
      { "pid-file", 2, 0, 'x' },
      { "strict-order", 0, 0, 'o' },
      { "server", 1, 0, 'S' },
-@@ -395,6 +399,8 @@ static struct {
+@@ -403,6 +407,8 @@ static struct {
    { 'f', OPT_FILTER, NULL, gettext_noop("Don't forward spurious DNS requests from Windows hosts."), NULL },
    { LOPT_FILTER_A, OPT_FILTER_A, NULL, gettext_noop("Don't include IPv4 addresses in DNS answers."), NULL },
    { LOPT_FILTER_AAAA, OPT_FILTER_AAAA, NULL, gettext_noop("Don't include IPv6 addresses in DNS answers."), NULL },
@@ -106,10 +106,10 @@ index c5e8cb4..360ed0f 100644
    { 'g', ARG_ONE, "<groupname>", gettext_noop("Change to this group after startup (defaults to %s)."), CHGRP },
    { 'G', ARG_DUP, "<hostspec>", gettext_noop("Set address or hostname for a specified machine."), NULL },
 diff --git a/src/rfc1035.c b/src/rfc1035.c
-index dc83cac..07d9d0c 100644
+index 0a066fa..53b8f0c 100644
 --- a/src/rfc1035.c
 +++ b/src/rfc1035.c
-@@ -2093,6 +2093,24 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
+@@ -2147,6 +2147,24 @@ size_t answer_request(struct dns_header *header, char *limit, size_t qlen,
  	    }
  	}
  

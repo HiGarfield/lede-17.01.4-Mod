@@ -1,0 +1,108 @@
+From a5cbe6d1127927e762a38bfde0c5822b11eda87a Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Fri, 16 Sep 2022 12:58:41 +0100
+Subject: [PATCH 22/31] Add ClearMetrics Dbus method.
+
+---
+ dbus/DBus-interface |  4 ++++
+ src/dbus.c          | 12 +++++++++---
+ src/metrics.c       | 20 ++++++++++++++++++++
+ src/metrics.h       |  1 +
+ 4 files changed, 34 insertions(+), 3 deletions(-)
+
+diff --git a/dbus/DBus-interface b/dbus/DBus-interface
+index 7b083dc..59b41b1 100644
+--- a/dbus/DBus-interface
++++ b/dbus/DBus-interface
+@@ -257,6 +257,10 @@ GetServerMetrics
+ 
+ Returns per-DNS-server metrics.
+ 
++ClearMetrics
++------------
++
++Clear call metric counters, global and per-server.
+ 
+ 2. SIGNALS
+ ----------
+diff --git a/src/dbus.c b/src/dbus.c
+index 65b7221..4fdad46 100644
+--- a/src/dbus.c
++++ b/src/dbus.c
+@@ -94,6 +94,8 @@ const char* introspection_xml_template =
+ "    <method name=\"GetServerMetrics\">\n"
+ "      <arg name=\"metrics\" direction=\"out\" type=\"a{ss}\"/>\n"
+ "    </method>\n"
++"    <method name=\"ClearMetrics\">\n"
++"    </method>\n"
+ "  </interface>\n"
+ "</node>\n";
+ 
+@@ -708,13 +710,13 @@ static DBusMessage *dbus_get_server_metrics(DBusMessage* message)
+ 	add_dict_int(&dict_array, "failed_queries", serv->failed_queries);
+ 	add_dict_int(&dict_array, "nxdomain", serv->nxdomain_replies);
+ 	add_dict_int(&dict_array, "retries", serv->retrys);
+-	add_dict_int(&dict_array, "latency", sigma_latency/count_latency;
+-		     
++	add_dict_int(&dict_array, "latency", sigma_latency/count_latency);
++	
+ 	dbus_message_iter_close_container(&server_array, &dict_array);
+       }
+   
+   dbus_message_iter_close_container(&server_iter, &server_array);
+-
++  
+   return reply;
+ }
+ 
+@@ -797,6 +799,10 @@ DBusHandlerResult message_handler(DBusConnection *connection,
+     {
+       reply = dbus_get_server_metrics(message);
+     }
++  else if (strcmp(method, "ClearMetrics") == 0)
++    {
++      clear_metrics();
++    }
+   else if (strcmp(method, "ClearCache") == 0)
+     clear_cache = 1;
+   else
+diff --git a/src/metrics.c b/src/metrics.c
+index 68fe7c6..f3e6728 100644
+--- a/src/metrics.c
++++ b/src/metrics.c
+@@ -44,3 +44,23 @@ const char * metric_names[] = {
+ const char* get_metric_name(int i) {
+     return metric_names[i];
+ }
++
++void clear_metrics(void)
++{
++  int i;
++  struct server *serv;
++  
++  for (i = 0; i < __METRIC_MAX; i++)
++    daemon->metrics[i] = 0;
++
++  for (serv = daemon->servers; serv; serv = serv->next)
++    {
++      serv->queries = 0;
++      serv->failed_queries = 0;
++      serv->failed_queries = 0;
++      serv->retrys = 0;
++      serv->nxdomain_replies = 0;
++      serv->query_latency = 0;
++    }
++}
++	
+diff --git a/src/metrics.h b/src/metrics.h
+index bc91adf..6f62a40 100644
+--- a/src/metrics.h
++++ b/src/metrics.h
+@@ -43,3 +43,4 @@ enum {
+ };
+ 
+ const char* get_metric_name(int);
++void clear_metrics(void);
+-- 
+2.25.1
+

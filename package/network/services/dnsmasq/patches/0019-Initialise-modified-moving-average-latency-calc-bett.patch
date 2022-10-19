@@ -1,0 +1,30 @@
+From fa45e06431ff0e96d3840f2180666dfabbd2c972 Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Fri, 16 Sep 2022 00:16:18 +0100
+Subject: [PATCH 19/31] Initialise modified-moving-average latency calc better.
+
+Use the first value, rather than initialising at zero,
+which takes many queries to converge.
+---
+ src/forward.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/src/forward.c b/src/forward.c
+index 52d5b8e..14d9421 100644
+--- a/src/forward.c
++++ b/src/forward.c
+@@ -1241,7 +1241,10 @@ void reply_query(int fd, time_t now)
+   free_rfds(&forward->rfds);
+ 
+   /* calculate modified moving average of server latency */
+-  server->mma_latency += dnsmasq_milliseconds() - forward->forward_timestamp - server->query_latency;
++  if (server->query_latency == 0)
++    server->mma_latency = (dnsmasq_milliseconds() - forward->forward_timestamp) * 128; /* init */
++  else
++    server->mma_latency += dnsmasq_milliseconds() - forward->forward_timestamp - server->query_latency;
+   /* denominator controls how many queries we average over. */
+   server->query_latency = server->mma_latency/128;
+   
+-- 
+2.25.1
+

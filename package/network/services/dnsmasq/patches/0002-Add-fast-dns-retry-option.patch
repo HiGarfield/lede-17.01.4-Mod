@@ -1,0 +1,427 @@
+From d21438a7df78f64810fa1ebec1fe64478444fa80 Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Sun, 21 Aug 2022 18:07:17 +0100
+Subject: [PATCH 02/31] Add --fast-dns-retry option.
+
+This gives dnsmasq the ability to originate retries for upstream DNS
+queries itself, rather than relying on the downstream client. This is
+most useful when doing DNSSEC over unreliable upstream network. It
+comes with some cost in memory usage and network bandwidth.
+---
+ CHANGELOG     |   6 ++
+ man/dnsmasq.8 |   7 +++
+ src/dnsmasq.c |  13 +++--
+ src/dnsmasq.h |   8 ++-
+ src/forward.c | 153 ++++++++++++++++++++++++++++++++++++++------------
+ src/option.c  |  14 ++++-
+ src/util.c    |   9 +++
+ 7 files changed, 166 insertions(+), 44 deletions(-)
+
+diff --git a/CHANGELOG b/CHANGELOG
+index 48ce2dd..deb82d1 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -84,6 +84,12 @@ version 2.87
+ 	client facing network. Thanks to Luis Thomas for spotting this
+ 	and initial patch.
+ 
++	Add --fast-dns-retry option. This gives dnsmasq the ability
++	to originate retries for upstream DNS queries itself, rather
++	than relying on the downstream client. This is most useful
++	when doing DNSSEC over unreliable upstream network. It comes
++	with some cost in memory usage and network bandwidth.
++
+ 	
+ version 2.86
+ 	Handle DHCPREBIND requests in the DHCPv6 server code.
+diff --git a/man/dnsmasq.8 b/man/dnsmasq.8
+index e0a1117..e4b2e56 100644
+--- a/man/dnsmasq.8
++++ b/man/dnsmasq.8
+@@ -105,6 +105,13 @@ Dnsmasq limits the value of this option to one hour, unless recompiled.
+ .B --auth-ttl=<time>
+ Set the TTL value returned in answers from the authoritative server.
+ .TP
++.B --fast-dns-retry=<time in ms>
++Under normal circumstances, dnsmasq relies on DNS clients to do retries; it
++does not generate timeouts itself. Setting this option
++instructs dnsmasq to generate its own retries after the specified time, which
++must be greater than 500ms. Using this option increases memory usage and
++network bandwidth.
++.TP
+ .B \-k, --keep-in-foreground
+ Do not go into the background at startup but otherwise run as
+ normal. This is intended for use when dnsmasq is run under daemontools
+diff --git a/src/dnsmasq.c b/src/dnsmasq.c
+index 858c731..bfd1f16 100644
+--- a/src/dnsmasq.c
++++ b/src/dnsmasq.c
+@@ -1055,19 +1055,20 @@ int main (int argc, char **argv)
+   
+   while (1)
+     {
+-      int timeout = -1;
++      int timeout = fast_retry(now);
+       
+       poll_reset();
+       
+       /* Whilst polling for the dbus, or doing a tftp transfer, wake every quarter second */
+-      if (daemon->tftp_trans ||
+-	  (option_bool(OPT_DBUS) && !daemon->dbus))
++      if ((daemon->tftp_trans || (option_bool(OPT_DBUS) && !daemon->dbus)) &&
++	  (timeout == -1 || timeout > 250))
+ 	timeout = 250;
+-
++      
+       /* Wake every second whilst waiting for DAD to complete */
+-      else if (is_dad_listeners())
++      else if (is_dad_listeners() &&
++	       (timeout == -1 || timeout > 1000))
+ 	timeout = 1000;
+-
++      
+       set_dns_listeners();
+ 
+ #ifdef HAVE_DBUS
+diff --git a/src/dnsmasq.h b/src/dnsmasq.h
+index a1bbdc0..a455a77 100644
+--- a/src/dnsmasq.h
++++ b/src/dnsmasq.h
+@@ -755,11 +755,12 @@ struct frec {
+   unsigned short new_id;
+   int forwardall, flags;
+   time_t time;
++  u32 forward_timestamp;
+   unsigned char *hash[HASH_SIZE];
+-#ifdef HAVE_DNSSEC 
+-  int class, work_counter;
+   struct blockdata *stash; /* Saved reply, whilst we validate */
+   size_t stash_len;
++#ifdef HAVE_DNSSEC 
++  int class, work_counter;
+   struct frec *dependent; /* Query awaiting internally-generated DNSKEY or DS query */
+   struct frec *next_dependent; /* list of above. */
+   struct frec *blocking_query; /* Query which is blocking us. */
+@@ -1184,6 +1185,7 @@ extern struct daemon {
+   int dump_mask;
+   unsigned long soa_sn, soa_refresh, soa_retry, soa_expiry;
+   u32 metrics[__METRIC_MAX];
++  int fast_retry_time;
+ #ifdef HAVE_DNSSEC
+   struct ds_config *ds;
+   char *timestamp_file;
+@@ -1404,6 +1406,7 @@ int hostname_order(const char *a, const char *b);
+ int hostname_isequal(const char *a, const char *b);
+ int hostname_issubdomain(char *a, char *b);
+ time_t dnsmasq_time(void);
++u32 dnsmasq_milliseconds(void);
+ int netmask_length(struct in_addr mask);
+ int is_same_net(struct in_addr a, struct in_addr b, struct in_addr mask);
+ int is_same_net_prefix(struct in_addr a, struct in_addr b, int prefix);
+@@ -1463,6 +1466,7 @@ int send_from(int fd, int nowild, char *packet, size_t len,
+ void resend_query(void);
+ int allocate_rfd(struct randfd_list **fdlp, struct server *serv);
+ void free_rfds(struct randfd_list **fdlp);
++int fast_retry(time_t now);
+ 
+ /* network.c */
+ int indextoname(int fd, int index, char *name);
+diff --git a/src/forward.c b/src/forward.c
+index 801e93a..0c9b962 100644
+--- a/src/forward.c
++++ b/src/forward.c
+@@ -305,6 +305,13 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
+ 	goto reply;
+       /* table full - flags == 0, return REFUSED */
+       
++      /* Keep copy of query if we're doing fast retry. */
++      if (daemon->fast_retry_time != 0)
++	{
++	  forward->stash = blockdata_alloc((char *)header, plen);
++	  forward->stash_len = plen;
++	}
++      
+       forward->frec_src.log_id = daemon->log_id;
+       forward->frec_src.source = *udpaddr;
+       forward->frec_src.orig_id = ntohs(header->id);
+@@ -352,14 +359,14 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
+ #ifdef HAVE_DNSSEC
+       /* If we've already got an answer to this query, but we're awaiting keys for validation,
+ 	 there's no point retrying the query, retry the key query instead...... */
+-      if (forward->blocking_query)
++      while (forward->blocking_query)
++	forward = forward->blocking_query;
++
++      if (forward->flags & (FREC_DNSKEY_QUERY | FREC_DS_QUERY))
+ 	{
+ 	  int is_sign;
+ 	  unsigned char *pheader;
+ 	  
+-	  while (forward->blocking_query)
+-	    forward = forward->blocking_query;
+-
+ 	  /* log_id should match previous DNSSEC query. */
+ 	  daemon->log_display_id = forward->frec_src.log_id;
+ 	  
+@@ -545,7 +552,11 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
+     }
+   
+   if (forwarded || is_dnssec)
+-    return 1;
++    {
++      if (daemon->fast_retry_time != 0)
++	forward->forward_timestamp = dnsmasq_milliseconds();
++      return 1;
++    }
+   
+   /* could not send on, prepare to return */ 
+   header->id = htons(forward->frec_src.orig_id);
+@@ -584,6 +595,64 @@ static int forward_query(int udpfd, union mysockaddr *udpaddr,
+   return 0;
+ }
+ 
++/* Check if any frecs need to do a retry, and action that if so. 
++   Return time in milliseconds until he next retyr will be required,
++   or -1 if none. */
++int fast_retry(time_t now)
++{
++  struct frec *f;
++  int ret = -1;
++  
++  if (daemon->fast_retry_time != 0)
++    {
++      u32 millis = dnsmasq_milliseconds();
++      
++      for (f = daemon->frec_list; f; f = f->next)
++	if (f->sentto && f->stash && difftime(now, f->time) < TIMEOUT)
++	  {
++#ifdef HAVE_DNSSEC
++	    if (f->blocking_query)
++	      continue;
++#endif
++	    /* t is milliseconds since last query sent. */ 
++	    int to_run, t = (int)(millis - f->forward_timestamp);
++	    
++	    if (t < daemon->fast_retry_time)
++	      to_run = daemon->fast_retry_time - t;
++	    else
++	      {
++		unsigned char *udpsz;
++		unsigned short udp_size =  PACKETSZ; /* default if no EDNS0 */
++		struct dns_header *header = (struct dns_header *)daemon->packet;
++		
++		/* packet buffer overwritten */
++		daemon->srv_save = NULL;
++		
++		blockdata_retrieve(f->stash, f->stash_len, (void *)header);
++		
++		/* UDP size already set in saved query. */
++		if (find_pseudoheader(header, f->stash_len, NULL, &udpsz, NULL, NULL))
++		  GETSHORT(udp_size, udpsz);
++		
++		daemon->log_display_id = f->frec_src.log_id;
++		
++		if (option_bool(OPT_LOG))
++		  my_syslog(LOG_INFO, _("fast retry"), NULL);
++		
++		forward_query(-1, NULL, NULL, 0, header, f->stash_len, ((char *) header) + udp_size, now, f,
++			      f->flags & FREC_AD_QUESTION, f->flags & FREC_DO_QUESTION);
++
++		to_run = daemon->fast_retry_time;
++	      }
++
++	    if (ret == -1 || ret > to_run)
++	      ret = to_run;
++	  }
++      
++    }
++  return ret;
++}
++
+ static struct ipsets *domain_find_sets(struct ipsets *setlist, const char *domain) {
+   /* Similar algorithm to search_servers. */
+   struct ipsets *ipset_pos, *ret = NULL;
+@@ -941,6 +1010,8 @@ static void dnssec_validate(struct frec *forward, struct dns_header *header,
+ 		  /* Save query for retransmission and de-dup */
+ 		  new->stash = blockdata_alloc((char *)header, nn);
+ 		  new->stash_len = nn;
++		  if (daemon->fast_retry_time != 0)
++		    new->forward_timestamp = dnsmasq_milliseconds();
+ 		  
+ 		  /* Don't resend this. */
+ 		  daemon->srv_save = NULL;
+@@ -1058,7 +1129,7 @@ void reply_query(int fd, time_t now)
+   if (daemon->ignore_addr && RCODE(header) == NOERROR &&
+       check_for_ignored_address(header, n))
+     return;
+-
++  
+   /* Note: if we send extra options in the EDNS0 header, we can't recreate
+      the query from the reply. */
+   if ((RCODE(header) == REFUSED || RCODE(header) == SERVFAIL) &&
+@@ -1089,34 +1160,46 @@ void reply_query(int fd, time_t now)
+       else
+ #endif
+ 	{
+-	  /* recreate query from reply */
+-	  if ((pheader = find_pseudoheader(header, (size_t)n, &plen, &udpsz, &is_sign, NULL)))
+-	    GETSHORT(udp_size, udpsz);
+-	  
+-	  /* If the client provides an EDNS0 UDP size, use that to limit our reply.
+-	     (bounded by the maximum configured). If no EDNS0, then it
+-	     defaults to 512 */
+-	  if (udp_size > daemon->edns_pktsz)
+-	    udp_size = daemon->edns_pktsz;
+-	  else if (udp_size < PACKETSZ)
+-	    udp_size = PACKETSZ; /* Sanity check - can't reduce below default. RFC 6891 6.2.3 */
+-	  
+-	  if (!is_sign &&
+-	      (nn = resize_packet(header, (size_t)n, pheader, plen)) &&
+-	      (forward->flags & FREC_DO_QUESTION))
+-	    add_do_bit(header, nn,  (unsigned char *)pheader + plen);
+-
+-	  header->ancount = htons(0);
+-	  header->nscount = htons(0);
+-	  header->arcount = htons(0);
+-	  header->hb3 &= ~(HB3_QR | HB3_AA | HB3_TC);
+-	  header->hb4 &= ~(HB4_RA | HB4_RCODE | HB4_CD | HB4_AD);
+-	  if (forward->flags & FREC_CHECKING_DISABLED)
+-	    header->hb4 |= HB4_CD;
+-	  if (forward->flags & FREC_AD_QUESTION)
+-	    header->hb4 |= HB4_AD;
++	  /* in fast retry mode, we have a copy of the query. */
++	  if (daemon->fast_retry_time != 0 && forward->stash)
++	    {
++	      blockdata_retrieve(forward->stash, forward->stash_len, (void *)header);
++	      nn = forward->stash_len;
++	      /* UDP size already set in saved query. */
++	      if (find_pseudoheader(header, (size_t)n, NULL, &udpsz, NULL, NULL))
++		GETSHORT(udp_size, udpsz);
++	    }
++	  else
++	    {
++	      /* recreate query from reply */
++	      if ((pheader = find_pseudoheader(header, (size_t)n, &plen, &udpsz, &is_sign, NULL)))
++		GETSHORT(udp_size, udpsz);
++	      
++	      /* If the client provides an EDNS0 UDP size, use that to limit our reply.
++		 (bounded by the maximum configured). If no EDNS0, then it
++		 defaults to 512 */
++	      if (udp_size > daemon->edns_pktsz)
++		udp_size = daemon->edns_pktsz;
++	      else if (udp_size < PACKETSZ)
++		udp_size = PACKETSZ; /* Sanity check - can't reduce below default. RFC 6891 6.2.3 */
++	      
++	      if (!is_sign &&
++		  (nn = resize_packet(header, (size_t)n, pheader, plen)) &&
++		  (forward->flags & FREC_DO_QUESTION))
++		add_do_bit(header, nn,  (unsigned char *)pheader + plen);
++	      
++	      header->ancount = htons(0);
++	      header->nscount = htons(0);
++	      header->arcount = htons(0);
++	      header->hb3 &= ~(HB3_QR | HB3_AA | HB3_TC);
++	      header->hb4 &= ~(HB4_RA | HB4_RCODE | HB4_CD | HB4_AD);
++	      if (forward->flags & FREC_CHECKING_DISABLED)
++		header->hb4 |= HB4_CD;
++	      if (forward->flags & FREC_AD_QUESTION)
++		header->hb4 |= HB4_AD;
++	    }
+ 	}
+-
++      
+       if (nn)
+ 	{
+ 	  forward_query(-1, NULL, NULL, 0, header, nn, ((char *) header) + udp_size, now, forward,
+@@ -2504,13 +2587,13 @@ static void free_frec(struct frec *f)
+   f->sentto = NULL;
+   f->flags = 0;
+ 
+-#ifdef HAVE_DNSSEC
+   if (f->stash)
+     {
+       blockdata_free(f->stash);
+       f->stash = NULL;
+     }
+-
++  
++#ifdef HAVE_DNSSEC
+   /* Anything we're waiting on is pointless now, too */
+   if (f->blocking_query)
+     {
+diff --git a/src/option.c b/src/option.c
+index 4030465..8614f51 100644
+--- a/src/option.c
++++ b/src/option.c
+@@ -182,6 +182,7 @@ struct myoption {
+ #define LOPT_CONF_OPT      373
+ #define LOPT_CONF_SCRIPT   374
+ #define LOPT_RANDPORT_LIM  375
++#define LOPT_FAST_RETRY    376
+ 
+ #ifdef HAVE_GETOPT_LONG
+ static const struct option opts[] =  
+@@ -368,6 +369,7 @@ static const struct myoption opts[] =
+     { "umbrella", 2, 0, LOPT_UMBRELLA },
+     { "quiet-tftp", 0, 0, LOPT_QUIET_TFTP },
+     { "port-limit", 1, 0, LOPT_RANDPORT_LIM },
++    { "fast-dns-retry", 1, 0, LOPT_FAST_RETRY },
+     { NULL, 0, 0, 0 }
+   };
+ 
+@@ -446,6 +448,7 @@ static struct {
+   { LOPT_MAXTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live in seconds for maximum TTL to send to clients."), NULL },
+   { LOPT_MAXCTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live ceiling for cache."), NULL },
+   { LOPT_MINCTTL, ARG_ONE, "<integer>", gettext_noop("Specify time-to-live floor for cache."), NULL },
++  { LOPT_FAST_RETRY, ARG_ONE, "<milliseconds>", gettext_noop("Retry DNS queries after this many milliseconds."), NULL},
+   { 'u', ARG_ONE, "<username>", gettext_noop("Change to this user after startup. (defaults to %s)."), CHUSER }, 
+   { 'U', ARG_DUP, "set:<tag>,<class>", gettext_noop("Map DHCP vendor class to tag."), NULL },
+   { 'v', 0, NULL, gettext_noop("Display dnsmasq version and copyright information."), NULL },
+@@ -3222,6 +3225,15 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
+ 	  daemon->local_ttl = (unsigned long)ttl;
+ 	break;
+       }
++
++    case LOPT_FAST_RETRY:
++      {
++	int retry;
++      	if (!atoi_check(arg, &retry) || retry < 500)
++	  ret_err(gen_err);
++	daemon->fast_retry_time = retry;
++	break;
++      }
+       
+ #ifdef HAVE_DHCP
+     case 'X': /* --dhcp-lease-max */
+@@ -5503,7 +5515,7 @@ void read_opts(int argc, char **argv, char *compile_opts)
+   daemon->soa_retry = SOA_RETRY;
+   daemon->soa_expiry = SOA_EXPIRY;
+   daemon->randport_limit = 1;
+-  
++    
+ #ifndef NO_ID
+   add_txt("version.bind", "dnsmasq-" VERSION, 0 );
+   add_txt("authors.bind", "Simon Kelley", 0);
+diff --git a/src/util.c b/src/util.c
+index 140a354..5165fd6 100644
+--- a/src/util.c
++++ b/src/util.c
+@@ -457,6 +457,15 @@ time_t dnsmasq_time(void)
+ #endif
+ }
+ 
++u32 dnsmasq_milliseconds(void)
++{
++  struct timeval tv;
++
++  gettimeofday(&tv, NULL);
++
++  return (tv.tv_sec) * 1000 + (tv.tv_usec / 1000);
++}
++
+ int netmask_length(struct in_addr mask)
+ {
+   int zero_count = 0;
+-- 
+2.25.1
+

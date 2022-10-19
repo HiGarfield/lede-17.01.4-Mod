@@ -1,0 +1,40 @@
+From b87d7aa0411f267a7e0fb1184643a14d4b54a59b Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Thu, 13 Oct 2022 15:02:54 +0100
+Subject: [PATCH 25/31] Fix bug in --dynamic-host when interface has /16 IPv4
+ address.
+
+---
+ CHANGELOG     | 5 +++++
+ src/network.c | 2 +-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/CHANGELOG b/CHANGELOG
+index 48ce2dd..891caff 100644
+--- a/CHANGELOG
++++ b/CHANGELOG
+@@ -1,3 +1,8 @@
++version 2.88
++	Fix bug in --dynamic-host when an interface has /16 IPv4
++	address. Thanks to Mark Dietzer for spotting this.
++	
++
+ version 2.87
+         Allow arbitrary prefix lengths in --rev-server and
+ 	--domain=....,local
+diff --git a/src/network.c b/src/network.c
+index 6166484..b8dcc75 100644
+--- a/src/network.c
++++ b/src/network.c
+@@ -360,7 +360,7 @@ static int iface_allowed(struct iface_param *param, int if_index, char *label,
+ 		
+ 		if (int_name->flags & INP4)
+ 		  {
+-		    if (netmask.s_addr == 0xffff)
++		    if (netmask.s_addr == 0xffffffff)
+ 		      continue;
+ 
+ 		    newaddr.s_addr = (addr->in.sin_addr.s_addr & netmask.s_addr) |
+-- 
+2.25.1
+
