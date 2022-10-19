@@ -1,0 +1,25 @@
+From 8f2d432799280bd895a29159c38150a5c0f1ed3a Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Tue, 13 Sep 2022 09:36:08 +0100
+Subject: [PATCH 11/31] Remove unused vars.
+
+---
+ src/dbus.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/dbus.c b/src/dbus.c
+index c0770f3..e0089fc 100644
+--- a/src/dbus.c
++++ b/src/dbus.c
+@@ -667,7 +667,7 @@ static void add_dict_int(DBusMessageIter *container, const char *key, const unsi
+ static DBusMessage *dbus_get_server_metrics(DBusMessage* message)
+ {
+   DBusMessage *reply = dbus_message_new_method_return(message);
+-  DBusMessageIter server_array, dict_array, dict, server_iter, dict_iter;
++  DBusMessageIter server_array, dict_array, server_iter;
+   struct server *serv;
+   
+   dbus_message_iter_init_append(reply, &server_iter);
+-- 
+2.25.1
+

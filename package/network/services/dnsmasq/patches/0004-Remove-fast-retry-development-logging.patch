@@ -1,0 +1,26 @@
+From 1d53d958bb2f06f7a42036b95ba704f1f77ffe66 Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Tue, 6 Sep 2022 22:09:21 +0100
+Subject: [PATCH 04/31] Remove fast-retry development logging.
+
+---
+ src/forward.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/src/forward.c b/src/forward.c
+index 9cfdf8a..aa9ace0 100644
+--- a/src/forward.c
++++ b/src/forward.c
+@@ -636,9 +636,6 @@ int fast_retry(time_t now)
+ 		
+ 		daemon->log_display_id = f->frec_src.log_id;
+ 		
+-		if (option_bool(OPT_LOG))
+-		  my_syslog(LOG_INFO, _("fast retry"), NULL);
+-		
+ 		forward_query(-1, NULL, NULL, 0, header, f->stash_len, ((char *) header) + udp_size, now, f,
+ 			      f->flags & FREC_AD_QUESTION, f->flags & FREC_DO_QUESTION);
+ 
+-- 
+2.25.1
+

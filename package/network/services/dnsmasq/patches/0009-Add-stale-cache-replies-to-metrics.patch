@@ -1,0 +1,65 @@
+From 1ba4ae28303b90ebd14b2dd9cda7a01f79e370ee Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Mon, 12 Sep 2022 14:50:17 +0100
+Subject: [PATCH 09/31] Add stale cache replies to metrics.
+
+---
+ src/cache.c   | 2 ++
+ src/forward.c | 2 +-
+ src/metrics.c | 1 +
+ src/metrics.h | 1 +
+ 4 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/src/cache.c b/src/cache.c
+index 404147b..dde4580 100644
+--- a/src/cache.c
++++ b/src/cache.c
+@@ -1729,6 +1729,8 @@ void dump_cache(time_t now)
+ 	    daemon->cachesize, daemon->metrics[METRIC_DNS_CACHE_LIVE_FREED], daemon->metrics[METRIC_DNS_CACHE_INSERTED]);
+   my_syslog(LOG_INFO, _("queries forwarded %u, queries answered locally %u"), 
+ 	    daemon->metrics[METRIC_DNS_QUERIES_FORWARDED], daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]);
++  if (option_bool(OPT_STALE_CACHE))
++    my_syslog(LOG_INFO, _("queries answered from stale cache %u"), daemon->metrics[METRIC_DNS_STALE_ANSWERED]);
+ #ifdef HAVE_AUTH
+   my_syslog(LOG_INFO, _("queries for authoritative zones %u"), daemon->metrics[METRIC_DNS_AUTH_ANSWERED]);
+ #endif
+diff --git a/src/forward.c b/src/forward.c
+index f2dbbc1..f1d8f7d 100644
+--- a/src/forward.c
++++ b/src/forward.c
+@@ -1799,7 +1799,7 @@ void receive_query(struct listener *listen, time_t now)
+ #endif
+ 	  send_from(listen->fd, option_bool(OPT_NOWILD) || option_bool(OPT_CLEVERBIND),
+ 		    (char *)header, m, &source_addr, &dst_addr, if_index);
+-	  daemon->metrics[METRIC_DNS_LOCAL_ANSWERED]++;
++	  daemon->metrics[stale ? METRIC_DNS_STALE_ANSWERED : METRIC_DNS_LOCAL_ANSWERED]++;
+ 	}
+       
+       if (m == 0 || stale)
+diff --git a/src/metrics.c b/src/metrics.c
+index 6873529..eeea074 100644
+--- a/src/metrics.c
++++ b/src/metrics.c
+@@ -22,6 +22,7 @@ const char * metric_names[] = {
+     "dns_queries_forwarded",
+     "dns_auth_answered",
+     "dns_local_answered",
++    "dns_stale_answered",
+     "bootp",
+     "pxe",
+     "dhcp_ack",
+diff --git a/src/metrics.h b/src/metrics.h
+index df72ec6..f7c817b 100644
+--- a/src/metrics.h
++++ b/src/metrics.h
+@@ -21,6 +21,7 @@ enum {
+   METRIC_DNS_QUERIES_FORWARDED,
+   METRIC_DNS_AUTH_ANSWERED,
+   METRIC_DNS_LOCAL_ANSWERED,
++  METRIC_DNS_STALE_ANSWERED,
+   METRIC_BOOTP,
+   METRIC_PXE,
+   METRIC_DHCPACK,
+-- 
+2.25.1
+
