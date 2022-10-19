@@ -169,7 +169,7 @@ start_service() {
 
 	chown -hR ${RUNAS_USER}:${RUNAS_GROUP} ${ZNC_CONFIG_PATH} || {
 		logger -s -t ZNC -p daemon.err "Invalid UID/GID. Aborting startup"
-		exit 1
+		return 1
 	}
 
 	procd_open_instance
