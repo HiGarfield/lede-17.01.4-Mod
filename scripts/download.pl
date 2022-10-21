@@ -100,6 +100,7 @@ sub download_cmd {
 			qw(aria2c --stderr -c -x2 -s10 -j10 -k1M --check-certificate=false), $url, $additional_mirrors,
 			"--server-stat-of=$ENV{'TMPDIR'}/aria2c/${rfn}_spp",
 			"--server-stat-if=$ENV{'TMPDIR'}/aria2c/${rfn}_spp",
+			"--daemon=false --no-conf",
 			"-d $ENV{'TMPDIR'}/aria2c -o $rfn",
 			"&&",
 			"cat $ENV{'TMPDIR'}/aria2c/$rfn",
