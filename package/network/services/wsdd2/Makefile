@@ -1,15 +1,14 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wsdd2
-PKG_RELEASE:=1
+PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Netgear/wsdd2.git
-PKG_SOURCE_DATE:=2022-04-27
+PKG_SOURCE_DATE:=2022-04-25
 PKG_SOURCE_VERSION:=e37443ac4c757dbf14167ec3f754ebe88244ad4b
-PKG_MIRROR_HASH:=21e972cbe2178b46437a2f6d98b36ab3ba734e488a2b52b18c9f24c21c956d50
+PKG_MIRROR_HASH:=45e0c37b8e275c8d088506f953aa25b30a31600ce67ccb4f60b1eda6688a5a8b
 
-PKG_MAINTAINER:=Andy Walsh <andy.walsh44+github@gmail.com>
 PKG_LICENSE:=GPL-3.0-only
 PKG_LICENSE_FILES:=COPYING
 
@@ -31,9 +30,6 @@ define Package/wsdd2/description
   This daemon advertises and responds to probe requests from Windows clients looking for file shares.
   It also implements LLMNR multicast name lookup services.
 endef
-
-TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto 
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
 
 define Build/Compile
   $(TARGET_CC) $(TARGET_CFLAGS) $(TARGET_LDFLAGS) $(PKG_BUILD_DIR)/{wsdd2.c,wsd.c,llmnr.c} -o $(PKG_BUILD_DIR)/wsdd2
