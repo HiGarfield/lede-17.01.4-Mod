@@ -47645,7 +47645,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: 1.9.0-0
+Version: 1.9.1-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -47656,8 +47656,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-1.9.0.tar.xz
-License: GPLv2
+Source: irqbalance-1.9.1.tar.xz
 Type: ipkg
 Description:  The purpose of irqbalance is to distribute hardware interrupts across
  processors/cores on a multiprocessor/multicore system in order to
@@ -49112,7 +49111,7 @@ Charles Lehner <celehner1@gmail.com>
 Source-Makefile: feeds/packages/utils/ntfs-3g/Makefile
 Package: ntfs-3g
 Submenu: Filesystem
-Version: 2022.5.17-1-fuseint
+Version: 2022.10.3-1-fuseint
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +kmod-fuse +PACKAGE_NTFS-3G_USE_LIBFUSE:libfuse +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -49122,7 +49121,7 @@ Category: Utilities
 Repository: base
 Title: Stable Read/Write NTFS Driver
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: ntfs-3g_ntfsprogs-2022.5.17.tgz
+Source: ntfs-3g_ntfsprogs-2022.10.3.tgz
 License: GPL-2.0-only LGPL-2.1-or-later
 LicenseFiles: COPYING COPYING.LIB
 Type: ipkg
@@ -49158,7 +49157,7 @@ config PACKAGE_NTFS-3G_HAS_PROBE
 
 Package: ntfs-3g-low
 Submenu: Filesystem
-Version: 2022.5.17-1-fuseint
+Version: 2022.10.3-1-fuseint
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ntfs-3g
 Conflicts: 
 Menu-Depends: 
@@ -49168,7 +49167,7 @@ Category: Utilities
 Repository: base
 Title: lowntfs-3g (alternative using the fuse low-level interface)
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: ntfs-3g_ntfsprogs-2022.5.17.tgz
+Source: ntfs-3g_ntfsprogs-2022.10.3.tgz
 License: GPL-2.0-only LGPL-2.1-or-later
 LicenseFiles: COPYING COPYING.LIB
 Type: ipkg
@@ -49186,7 +49185,7 @@ Ted Hess <thess@kitschensync.net>
 
 Package: ntfs-3g-utils
 Submenu: Filesystem
-Version: 2022.5.17-1-fuseint
+Version: 2022.10.3-1-fuseint
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +ntfs-3g +libgcrypt +libuuid
 Conflicts: 
 Menu-Depends: 
@@ -49196,7 +49195,7 @@ Category: Utilities
 Repository: base
 Title: ntfs-3g utilities
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: ntfs-3g_ntfsprogs-2022.5.17.tgz
+Source: ntfs-3g_ntfsprogs-2022.10.3.tgz
 License: GPL-2.0-only LGPL-2.1-or-later
 LicenseFiles: COPYING COPYING.LIB
 Type: ipkg
