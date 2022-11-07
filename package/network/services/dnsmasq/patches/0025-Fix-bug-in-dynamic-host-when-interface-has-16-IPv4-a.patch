@@ -1,7 +1,7 @@
 From b87d7aa0411f267a7e0fb1184643a14d4b54a59b Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Thu, 13 Oct 2022 15:02:54 +0100
-Subject: [PATCH 25/31] Fix bug in --dynamic-host when interface has /16 IPv4
+Subject: [PATCH 25/39] Fix bug in --dynamic-host when interface has /16 IPv4
  address.
 
 ---

@@ -1,7 +1,7 @@
 From 7a74037267c481d6dddda8b6aa214763ec2c3475 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Thu, 15 Sep 2022 22:06:39 +0100
-Subject: [PATCH 13/31] Add metric for queries which never see an answer.
+Subject: [PATCH 13/39] Add metric for queries which never see an answer.
 
 ---
  src/forward.c | 2 ++

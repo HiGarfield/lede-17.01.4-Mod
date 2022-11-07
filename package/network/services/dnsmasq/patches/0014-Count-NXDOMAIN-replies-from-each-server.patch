@@ -1,7 +1,7 @@
 From 271790685adfb5917c9e410cb6b3d86052618af7 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Thu, 15 Sep 2022 22:29:44 +0100
-Subject: [PATCH 14/31] Count NXDOMAIN replies from each server.
+Subject: [PATCH 14/39] Count NXDOMAIN replies from each server.
 
 ---
  src/cache.c   | 11 +++++++----

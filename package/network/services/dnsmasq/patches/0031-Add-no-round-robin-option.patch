@@ -1,7 +1,7 @@
 From fe9a134baf0c3b62e1076120b7b7ea428103cf3e Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Tue, 18 Oct 2022 16:06:48 +0100
-Subject: [PATCH 31/31] Add --no-round-robin option.
+Subject: [PATCH 31/39] Add --no-round-robin option.
 
 ---
  CHANGELOG     |  2 ++

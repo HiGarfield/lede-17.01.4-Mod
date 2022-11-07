@@ -1,7 +1,7 @@
 From d21438a7df78f64810fa1ebec1fe64478444fa80 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Sun, 21 Aug 2022 18:07:17 +0100
-Subject: [PATCH 02/31] Add --fast-dns-retry option.
+Subject: [PATCH 02/39] Add --fast-dns-retry option.
 
 This gives dnsmasq the ability to originate retries for upstream DNS
 queries itself, rather than relying on the downstream client. This is

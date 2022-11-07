@@ -1,7 +1,7 @@
 From 24c3b5b3d49b52d4bc954b4a820a4c3ec8947b2c Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Wed, 17 Aug 2022 15:33:15 +0100
-Subject: [PATCH 01/31] Add --port-limit option.
+Subject: [PATCH 01/39] Add --port-limit option.
 
 By default, when sending a query via random ports to multiple upstream servers or
 retrying a query dnsmasq will use a single random port for all the tries/retries.

@@ -1,7 +1,7 @@
 From d334e7c34fcb6955a9c4fd856c54fa815ca0452d Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Mon, 29 Aug 2022 21:44:05 +0100
-Subject: [PATCH 03/31] Add --use-stale-cache option.
+Subject: [PATCH 03/39] Add --use-stale-cache option.
 
 ---
  CHANGELOG     |  10 +++
