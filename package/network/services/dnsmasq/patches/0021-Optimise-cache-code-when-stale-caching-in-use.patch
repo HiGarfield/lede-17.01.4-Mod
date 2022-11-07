@@ -1,7 +1,7 @@
 From 9403664616ab8ce9d735b254056be79cf14eeb31 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 16 Sep 2022 12:07:01 +0100
-Subject: [PATCH 21/31] Optimise cache code when stale caching in use.
+Subject: [PATCH 21/39] Optimise cache code when stale caching in use.
 
 Exclude DNSSEC entries from stale caching.
 ---

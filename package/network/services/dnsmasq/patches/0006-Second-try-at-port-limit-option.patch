@@ -1,7 +1,7 @@
 From 3f56bb8ba195f72a6bf1d572f8add07b4fc44ec0 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 9 Sep 2022 17:09:32 +0100
-Subject: [PATCH 06/31] Second try at port-limit option.
+Subject: [PATCH 06/39] Second try at port-limit option.
 
 1) It's expected to fail to bind a new source port when they
    are scarce, suppress warning in log in this case.

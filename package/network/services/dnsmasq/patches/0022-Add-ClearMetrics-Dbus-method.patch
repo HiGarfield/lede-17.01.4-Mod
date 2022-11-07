@@ -1,7 +1,7 @@
 From a5cbe6d1127927e762a38bfde0c5822b11eda87a Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 16 Sep 2022 12:58:41 +0100
-Subject: [PATCH 22/31] Add ClearMetrics Dbus method.
+Subject: [PATCH 22/39] Add ClearMetrics Dbus method.
 
 ---
  dbus/DBus-interface |  4 ++++

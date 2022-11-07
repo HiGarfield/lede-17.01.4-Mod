@@ -1,7 +1,7 @@
 From 84bd46ddd7a639b457daf74722f3bcc0c11e65df Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Thu, 15 Sep 2022 22:43:08 +0100
-Subject: [PATCH 15/31] Combine server stats from all records for the same
+Subject: [PATCH 15/39] Combine server stats from all records for the same
  server in DBUS method.
 
 The DBUS per-server stats method should combine the stats from

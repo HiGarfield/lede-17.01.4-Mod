@@ -1,7 +1,7 @@
 From 930428fb970f4991e5c2933fd5a5d2504c18a551 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Mon, 17 Oct 2022 21:15:43 +0100
-Subject: [PATCH 30/31] Fix loss of DNS servers on config reload.
+Subject: [PATCH 30/39] Fix loss of DNS servers on config reload.
 
 A bug, introduced in 2.87, which could result in DNS
 servers being removed from the configuration when reloading

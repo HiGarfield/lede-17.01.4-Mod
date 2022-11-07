@@ -1,0 +1,45 @@
+From 5b868c213bc2eadfa286db9cbc48c686b105263a Mon Sep 17 00:00:00 2001
+From: Simon Kelley <simon@thekelleys.org.uk>
+Date: Sun, 6 Nov 2022 20:18:27 +0000
+Subject: [PATCH 38/39] Fix breakage of --local=/domain.name/1.2.3.4 in
+ immediately previous commit.
+
+---
+ src/option.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/src/option.c b/src/option.c
+index 163421a..53df70a 100644
+--- a/src/option.c
++++ b/src/option.c
+@@ -2977,9 +2977,9 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
+ 	if (servers_only && option == 'S')
+ 	  flags |= SERV_FROM_FILE;
+ 	
+-	while (parse_server_next(&sdetails))
++	while ((flags & SERV_LITERAL_ADDRESS) || parse_server_next(&sdetails))
+ 	  {
+-	    if ((err = parse_server_addr(&sdetails)))
++	    if (!(flags & SERV_LITERAL_ADDRESS) && (err = parse_server_addr(&sdetails)))
+ 	      ret_err(err);
+ 
+ 	    /* When source is set only use DNS records of the same type and skip all others */
+@@ -3009,9 +3009,13 @@ static int one_opt(int option, char *arg, char *errstr, char *gen_err, int comma
+ 
+ 		domain += strlen(domain) + 1;
+ 	      }
++
++	    if (flags & SERV_LITERAL_ADDRESS)
++	      break;
+ 	  }
+-	  if (sdetails.resolved)
+-	    freeaddrinfo(sdetails.hostinfo);
++
++	if (sdetails.resolved)
++	  freeaddrinfo(sdetails.hostinfo);
+ 	
+      	break;
+       }
+-- 
+2.25.1
+

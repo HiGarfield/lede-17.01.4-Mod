@@ -1,7 +1,7 @@
 From 0ba25a05122e86e14c3b00e54fa76ea9421eeeab Mon Sep 17 00:00:00 2001
 From: Dominik Derigs <dl6er@dl6er.de>
 Date: Sun, 16 Oct 2022 21:08:30 +0100
-Subject: [PATCH 27/31] Improve logging of DNS record source from --hostsdir
+Subject: [PATCH 27/39] Improve logging of DNS record source from --hostsdir
  files.
 
 Patch author Dominik Derigs <dl6er@dl6er.de> with subsequent bugfixes

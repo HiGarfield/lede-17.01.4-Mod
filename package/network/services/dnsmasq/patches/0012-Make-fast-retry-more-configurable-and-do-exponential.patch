@@ -1,7 +1,7 @@
 From 9a9f6e147cb5489faeb3ea220ab08cf81be7b72c Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Wed, 14 Sep 2022 16:16:08 +0100
-Subject: [PATCH 12/31] Make fast-retry more configurable and do exponential
+Subject: [PATCH 12/39] Make fast-retry more configurable and do exponential
  backoff.
 
 ---

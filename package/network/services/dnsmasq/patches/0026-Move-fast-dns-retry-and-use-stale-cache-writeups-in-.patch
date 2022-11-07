@@ -1,7 +1,7 @@
 From a176cf1bc32727b438b2c1d9f6f1e4cb868c2f6f Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 14 Oct 2022 11:46:13 +0100
-Subject: [PATCH 26/31] Move fast-dns-retry and use-stale-cache writeups in the
+Subject: [PATCH 26/39] Move fast-dns-retry and use-stale-cache writeups in the
  CHANGELOG.
 
 These are 2.88 changes, but the branch merge put them unde 2.87.

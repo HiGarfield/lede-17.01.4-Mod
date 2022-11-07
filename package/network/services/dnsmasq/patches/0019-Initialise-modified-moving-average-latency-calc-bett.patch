@@ -1,7 +1,7 @@
 From fa45e06431ff0e96d3840f2180666dfabbd2c972 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 16 Sep 2022 00:16:18 +0100
-Subject: [PATCH 19/31] Initialise modified-moving-average latency calc better.
+Subject: [PATCH 19/39] Initialise modified-moving-average latency calc better.
 
 Use the first value, rather than initialising at zero,
 which takes many queries to converge.

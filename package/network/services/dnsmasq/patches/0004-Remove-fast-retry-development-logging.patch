@@ -1,7 +1,7 @@
 From 1d53d958bb2f06f7a42036b95ba704f1f77ffe66 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Tue, 6 Sep 2022 22:09:21 +0100
-Subject: [PATCH 04/31] Remove fast-retry development logging.
+Subject: [PATCH 04/39] Remove fast-retry development logging.
 
 ---
  src/forward.c | 3 ---

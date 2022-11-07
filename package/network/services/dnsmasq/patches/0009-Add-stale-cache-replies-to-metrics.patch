@@ -1,7 +1,7 @@
 From 1ba4ae28303b90ebd14b2dd9cda7a01f79e370ee Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Mon, 12 Sep 2022 14:50:17 +0100
-Subject: [PATCH 09/31] Add stale cache replies to metrics.
+Subject: [PATCH 09/39] Add stale cache replies to metrics.
 
 ---
  src/cache.c   | 2 ++

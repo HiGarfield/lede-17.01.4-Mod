@@ -1,7 +1,7 @@
 From f753e7eba66889a9af75f3861207a09c09be1ea0 Mon Sep 17 00:00:00 2001
 From: Temuri Doghonadze <temuri.doghonadze@gmail.com>
 Date: Thu, 13 Oct 2022 14:33:01 +0100
-Subject: [PATCH 24/31] Add Georgian translation.
+Subject: [PATCH 24/39] Add Georgian translation.
 
 ---
  po/ka.po | 2802 ++++++++++++++++++++++++++++++++++++++++++++++++++++++

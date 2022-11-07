@@ -1,7 +1,7 @@
 From 0017dd74d519d6d963fb8c0b4f07e69e55a46a13 Mon Sep 17 00:00:00 2001
 From: Dominik Derigs <dl6er@dl6er.de>
 Date: Sun, 16 Oct 2022 22:08:45 +0100
-Subject: [PATCH 28/31] Enhance --hostdir so that records are automatically
+Subject: [PATCH 28/39] Enhance --hostdir so that records are automatically
  removed when re-reading.
 
 Initial patch from Dominik Derigs, re-written by Simon Kelley.

@@ -1,7 +1,7 @@
 From 0076481dfd05ca074b24f62bee6a48c590640d87 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Mon, 12 Sep 2022 14:35:40 +0100
-Subject: [PATCH 08/31] Add GetServerMetrics method to DBus interface.
+Subject: [PATCH 08/39] Add GetServerMetrics method to DBus interface.
 
 ---
  dbus/DBus-interface |  5 ++++

@@ -1,7 +1,7 @@
 From c0e731d5456338c2756b975af81f7f3d445d1a0d Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 9 Sep 2022 18:18:46 +0100
-Subject: [PATCH 07/31] Further optimisation of --port-limit.
+Subject: [PATCH 07/39] Further optimisation of --port-limit.
 
 No longer try and fail to open every port when the port range
 is in complete use; go straight to re-using an existing socket.

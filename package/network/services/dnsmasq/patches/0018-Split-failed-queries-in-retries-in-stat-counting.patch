@@ -1,7 +1,7 @@
 From 6722ec6c78b96b82956e67b60a8cfc5b155c6659 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 16 Sep 2022 00:07:36 +0100
-Subject: [PATCH 18/31] Split failed queries in retries in stat counting.
+Subject: [PATCH 18/39] Split failed queries in retries in stat counting.
 
 ---
  src/cache.c   | 7 ++++---

@@ -1,7 +1,7 @@
 From 936be022d956882c3a980d15e8fa70f8858751d9 Mon Sep 17 00:00:00 2001
 From: Dominik Derigs <dl6er@dl6er.de>
 Date: Sun, 16 Oct 2022 22:30:08 +0100
-Subject: [PATCH 29/31] Handle multiple addresses when removing duplicates in
+Subject: [PATCH 29/39] Handle multiple addresses when removing duplicates in
  host files.
 
 ---

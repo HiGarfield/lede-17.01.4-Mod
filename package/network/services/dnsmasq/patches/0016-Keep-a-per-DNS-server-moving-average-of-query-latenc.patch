@@ -1,7 +1,7 @@
 From a2ee2426bfd244e7f401fe3260f696a33104bfaa Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Thu, 15 Sep 2022 23:22:02 +0100
-Subject: [PATCH 16/31] Keep a per-DNS-server moving average of query latency.
+Subject: [PATCH 16/39] Keep a per-DNS-server moving average of query latency.
 
 ---
  src/cache.c   | 13 ++++++++-----

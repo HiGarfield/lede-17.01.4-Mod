@@ -1,7 +1,7 @@
 From f32498465dfb1f885c83b52576f5afa6f701e211 Mon Sep 17 00:00:00 2001
 From: Simon Kelley <simon@thekelleys.org.uk>
 Date: Fri, 16 Sep 2022 09:35:44 +0100
-Subject: [PATCH 20/31] Don't exclude stale-cache answers from "local answered"
+Subject: [PATCH 20/39] Don't exclude stale-cache answers from "local answered"
  metric.
 
 ---
