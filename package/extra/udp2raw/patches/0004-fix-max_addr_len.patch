@@ -1,0 +1,25 @@
+From 4d65a90d32f106a8f51f540b7231cc51742e17dd Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 7 Nov 2022 13:18:03 +0800
+Subject: [PATCH 4/6] fix max_addr_len
+
+---
+ common.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/common.h b/common.h
+index 8c4b4e7..5dbc57a 100644
+--- a/common.h
++++ b/common.h
+@@ -167,7 +167,7 @@ typedef u64_t anti_replay_seq_t;
+ 
+ typedef u64_t my_time_t;
+ 
+-const int max_addr_len=100;
++const int max_addr_len=300;
+ 
+ extern int force_socket_buf;
+ 
+-- 
+2.25.1
+
