@@ -1,0 +1,46 @@
+From 4eaeb36478474a79d17a56fc1e9d720dfa84a1c2 Mon Sep 17 00:00:00 2001
+From: Hans de Goede <hdegoede@redhat.com>
+Date: Thu, 8 Sep 2022 19:36:18 +0200
+Subject: [PATCH] wifi: rt2x00: Fix "Error - Attempt to send packet over
+ invalid queue 2"
+
+Even though ieee80211_hw.queues is set to 2, the ralink rt2x00 driver
+is seeing tx skbs submitted to it with the queue-id set to 2 / set to
+IEEE80211_AC_BE on a rt2500 card when associating with an access-point.
+
+This causes rt2x00queue_get_tx_queue() to return NULL and the following
+error to be logged: "ieee80211 phy0: rt2x00mac_tx: Error - Attempt to
+send packet over invalid queue 2", after which association with the AP
+fails.
+
+This patch works around this by mapping QID_AC_BE and QID_AC_BK
+to QID_AC_VI when there are only 2 tx_queues.
+
+Signed-off-by: Hans de Goede <hdegoede@redhat.com>
+Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20220908173618.155291-2-hdegoede@redhat.com
+---
+ drivers/net/wireless/ralink/rt2x00/rt2x00.h | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
+index ffbe1d5..6b446a3 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
+@@ -1341,8 +1341,11 @@ void rt2x00queue_unmap_skb(struct queue_entry *entry);
+  */
+ static inline struct data_queue *
+ rt2x00queue_get_tx_queue(struct rt2x00_dev *rt2x00dev,
+-			 const enum data_queue_qid queue)
++			 enum data_queue_qid queue)
+ {
++	if (queue >= rt2x00dev->ops->tx_queues && queue < IEEE80211_NUM_ACS)
++		queue = rt2x00dev->ops->tx_queues - 1;
++
+ 	if (queue < rt2x00dev->ops->tx_queues && rt2x00dev->tx)
+ 		return &rt2x00dev->tx[queue];
+ 
+-- 
+2.25.1
+
