@@ -1,20 +1,20 @@
-From 1ba9e6b78c26a4ec53639f817eda0fd6e5ab655a Mon Sep 17 00:00:00 2001
+From ff98f601580b460c41024ba1cc59bef41aae424e Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Sun, 9 Oct 2022 03:33:30 +0800
 Subject: [PATCH 5/6] update makefile
 
 ---
- makefile | 205 ++++++++++++++++++++-----------------------------------
- 1 file changed, 73 insertions(+), 132 deletions(-)
+ makefile | 226 +++++++++++++++++++++++--------------------------------
+ 1 file changed, 94 insertions(+), 132 deletions(-)
  mode change 100755 => 100644 makefile
 
 diff --git a/makefile b/makefile
 old mode 100755
 new mode 100644
-index 7c4e0fb..dbe1a79
+index 7c4e0fb..2cf5721
 --- a/makefile
 +++ b/makefile
-@@ -1,134 +1,75 @@
+@@ -1,134 +1,96 @@
 -cc_cross=/home/wangyu/Desktop/arm-2014.05/bin/arm-none-linux-gnueabi-g++
 -cc_local=g++
 -cc_mips24kc_be=/toolchains/lede-sdk-17.01.2-ar71xx-generic_gcc-5.4.0_musl-1.1.16.Linux-x86_64/staging_dir/toolchain-mips_24kc_gcc-5.4.0_musl-1.1.16/bin/mips-openwrt-linux-musl-g++
@@ -147,12 +147,33 @@ index 7c4e0fb..dbe1a79
 -	rm -f ${NAME}_mp_binaries.tar.gz ${NAME}_mp.exe ${NAME}_mp_wepoll.exe ${NAME}_mp_mac
 -	rm -f git_version.h
 +ifeq ($(OS),Windows_NT)
-+  DETECTED_OS:= Windows
++  HOST_OS:= Windows
 +else
-+  DETECTED_OS:= $(shell uname -s)
++  HOST_OS:= $(shell uname -s)
 +endif
++$(info HOST_OS = $(HOST_OS))
 +
-+ifeq ($(DETECTED_OS),Windows)
++CXX_TARGET:=$(shell $(CXX) -dumpmachine 2>&1)
++ifneq (,$(findstring -w32,$(CXX_TARGET)))
++  TARGET_OS:=Windows
++else
++  ifneq (,$(findstring -w64,$(CXX_TARGET)))
++    TARGET_OS:=Windows
++  else
++    ifneq (,$(findstring -linux,$(CXX_TARGET)))
++      TARGET_OS:=Linux
++    else
++      ifneq (,$(findstring -apple,$(CXX_TARGET)))
++        TARGET_OS:=MacOS
++      else
++        $(error "Target OS not supported.")
++      endif
++    endif
++  endif
++endif
++$(info TARGET_OS = $(TARGET_OS))
++
++ifeq ($(HOST_OS),Windows)
 +  UDP2RAW_GIT_VER?=$(shell git rev-parse HEAD 2>nul)
 +else
 +  UDP2RAW_GIT_VER?=$(shell git rev-parse HEAD 2>/dev/null)
@@ -169,13 +190,13 @@ index 7c4e0fb..dbe1a79
 +	-Wno-missing-field-initializers
 +EXTRA_FLAGS:= \
 +	-Os -flto
-+ifeq ($(DETECTED_OS),Windows)
++ifeq ($(TARGET_OS),Windows)
 +  EXTRA_FLAGS+= -static
 +endif
 +
 +NAME:=udp2raw
 +
-+ifeq ($(DETECTED_OS),Windows)
++ifeq ($(TARGET_OS),Windows)
 +  PCAP:= pcap_wrapper.cpp
 +else
 +  PCAP:= -lpcap
@@ -183,7 +204,7 @@ index 7c4e0fb..dbe1a79
 +MP:=-DUDP2RAW_MP
 +COMMON:=$(filter-out pcap_wrapper.cpp, $(wildcard *.cpp lib/*.cpp))
 +LIBS:= -lpthread -isystem libev
-+ifeq ($(DETECTED_OS),Windows)
++ifeq ($(TARGET_OS),Windows)
 +  LIBS+= -lws2_32
 +endif
 +SOURCES:=$(COMMON) $(wildcard lib/aes_faster_c/*.cpp)
@@ -193,7 +214,7 @@ index 7c4e0fb..dbe1a79
 +
 +.PHONY: linux $(AES_ACC_TARGETS) pcap git_version clean
 +
-+ifeq ($(DETECTED_OS),Linux)
++ifeq ($(TARGET_OS),Linux)
 +.DEFAULT_GOAL:= linux
 +else
 +.DEFAULT_GOAL:= pcap
@@ -210,14 +231,14 @@ index 7c4e0fb..dbe1a79
  
  git_version:
 -	    echo "const char *gitversion = \"$(shell git rev-parse HEAD)\";" > git_version.h
-+ifeq ($(DETECTED_OS),Windows)
++ifeq ($(HOST_OS),Windows)
 +	echo const char *gitversion = "$(UDP2RAW_GIT_VER)"; >git_version.h
 +else
 +	echo "const char *gitversion = \"$(UDP2RAW_GIT_VER)\";" >git_version.h
 +endif
 +
 +clean:
-+ifeq ($(DETECTED_OS),Windows)
++ifeq ($(HOST_OS),Windows)
 +	-del /f /q $(NAME).exe git_version.h
 +else
 +	-rm -f $(NAME) git_version.h
