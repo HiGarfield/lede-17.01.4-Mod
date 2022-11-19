@@ -32,8 +32,10 @@ load_sfe() {
 
 	load_sfe_cm
 
-	echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
-	echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
+	grep -qw "^fast_classifier" /proc/modules && {
+		echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
+		echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
+	}
 
 	ipv4_dev_num=$(cat /sys/sfe_ipv4/debug_dev)
 	[ -n "$ipv4_dev_num" ] &&
