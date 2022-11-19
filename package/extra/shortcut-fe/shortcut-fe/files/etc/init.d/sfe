@@ -7,18 +7,7 @@ START=99
 
 #load shortcut-fe connection manager
 load_sfe_cm() {
-	local kernel_version="$(uname -r)"
-
-	[ -d "/sys/module/shortcut_fe" ] ||
-		insmod "/lib/modules/$kernel_version/shortcut-fe.ko"
-	[ -d "/sys/module/shortcut_fe_ipv6" ] ||
-		insmod "/lib/modules/$kernel_version/shortcut-fe-ipv6.ko"
-	[ -e "/lib/modules/$kernel_version/fast-classifier.ko" ] &&
-		insmod "/lib/modules/$kernel_version/fast-classifier.ko" &&
-		return
-	[ -e "/lib/modules/$kernel_version/shortcut-fe-cm.ko" ] &&
-		insmod "/lib/modules/$kernel_version/shortcut-fe-cm.ko" &&
-		return
+	modprobe -q fast-classifier || modprobe -q shortcut-fe-cm
 }
 
 unload_sfe() {
