@@ -10,11 +10,15 @@ load_sfe_cm() {
 	modprobe -q fast-classifier || modprobe -q shortcut-fe-cm
 }
 
+unload_kmod() {
+	grep -qw "^$1" /proc/modules && rmmod "$1"
+}
+
 unload_sfe() {
-	[ -d "/sys/module/shortcut_fe_cm" ] && rmmod shortcut_fe_cm
-	[ -d "/sys/module/fast_classifier" ] && rmmod fast_classifier
-	[ -d "/sys/module/shortcut_fe_ipv6" ] && rmmod shortcut_fe_ipv6
-	[ -d "/sys/module/shortcut_fe" ] && rmmod shortcut_fe
+	unload_kmod shortcut_fe_cm
+	unload_kmod fast_classifier
+	unload_kmod shortcut_fe_ipv6
+	unload_kmod shortcut_fe
 	rm -f /dev/sfe_ipv4 /dev/sfe_ipv6
 }
 
