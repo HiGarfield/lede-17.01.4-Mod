@@ -10,10 +10,10 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=udp2raw-tunnel
 PKG_RELEASE:=1
 
-PKG_SOURCE_DATE:=2022-01-26
+PKG_SOURCE_DATE:=2022-11-24
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/wangyu-/udp2raw.git
-PKG_SOURCE_VERSION:=8ceaf27edaff70505948fbfaf8b9b864e3a11ee8
+PKG_SOURCE_URL:=https://github.com/HiGarfield/udp2raw.git
+PKG_SOURCE_VERSION:=fe7a20f54d0289cc24302e191e99da9f31ef00b5
 PKG_MIRROR_HASH:=skip
 
 PKG_LICENSE:=MIT
