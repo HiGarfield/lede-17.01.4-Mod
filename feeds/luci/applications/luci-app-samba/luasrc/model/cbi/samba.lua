@@ -41,7 +41,11 @@ if auto_share_enabled == 1 then
             dir_mask = section.dir_mask
         })
     end)
-    table.sort(auto_shared_paths, function(a, b) return a.name < b.name end)
+    if next(auto_shared_paths) then
+        table.sort(auto_shared_paths, function(a, b)
+            return a.name < b.name
+        end)
+    end
 
     v =
         m:section(Table, auto_shared_paths, translate("Auto Shared Directories"))
