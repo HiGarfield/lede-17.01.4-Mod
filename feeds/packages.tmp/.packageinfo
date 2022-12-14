@@ -46488,7 +46488,7 @@ Category: Utilities
 Repository: base
 Title: Utilities for making and checking MS-DOS FAT filesystems
 Maintainer: Álvaro Fernández Rojas <noltari@gmail.com>
-Source: dosfstools-4.2.tar.xz
+Source: dosfstools-4.2.tar.gz
 License: GPL-3.0-or-later
 LicenseFiles: COPYING
 Type: ipkg
