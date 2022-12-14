@@ -63,15 +63,15 @@ filter_aaaa = s:taboption("advanced", Flag, "filter_aaaa",
 	translate("Filter IPv6 (AAAA) DNS query name resolve"))
 filter_aaaa.optional = true
 
-filter_https = s:taboption("advanced", Flag, "filter_https",
-	translate("Disable HTTPS DNS Type forwards"),
-	translate("Filter HTTPS DNS Query Type Name Resolve"))
-filter_https.optional = true
+-- filter_https = s:taboption("advanced", Flag, "filter_https",
+-- 	translate("Disable HTTPS DNS Type forwards"),
+-- 	translate("Filter HTTPS DNS Query Type Name Resolve"))
+-- filter_https.optional = true
 
-filter_unknown = s:taboption("advanced", Flag, "filter_unknown",
-	translate("Disable Unknown DNS Type forwards"),
-	translate("Filter Unknown DNS Query Type Name Resolve"))
-filter_unknown.optional = true
+-- filter_unknown = s:taboption("advanced", Flag, "filter_unknown",
+-- 	translate("Disable Unknown DNS Type forwards"),
+-- 	translate("Filter Unknown DNS Query Type Name Resolve"))
+-- filter_unknown.optional = true
 
 qu = s:taboption("advanced", Flag, "quietdhcp",
 	translate("Suppress logging"),
