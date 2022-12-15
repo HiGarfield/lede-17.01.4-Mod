@@ -36,7 +36,8 @@ endef
 SFE_MAKE_OPTS := SFE_SUPPORT_IPV6=y
 
 define Build/Compile
-	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
+	$(KERNEL_MAKE) \
+		M="$(PKG_BUILD_DIR)" \
 		$(strip $(SFE_MAKE_OPTS)) \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		CONFIG_FAST_CLASSIFIER=m \
