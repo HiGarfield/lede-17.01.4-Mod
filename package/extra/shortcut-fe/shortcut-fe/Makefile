@@ -68,7 +68,8 @@ endef
 SFE_MAKE_OPTS := SFE_SUPPORT_IPV6=y
 
 define Build/Compile
-	$(KERNEL_MAKE) M="$(PKG_BUILD_DIR)" \
+	$(KERNEL_MAKE) \
+		M="$(PKG_BUILD_DIR)" \
 		$(strip $(SFE_MAKE_OPTS)) \
 		EXTRA_CFLAGS="$(EXTRA_CFLAGS)" \
 		modules
@@ -77,7 +78,7 @@ endef
 ifneq ($(CONFIG_PACKAGE_kmod-shortcut-fe)$(CONFIG_PACKAGE_kmod-shortcut-fe-cm),)
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include/shortcut-fe
-	$(CP) -rf $(PKG_BUILD_DIR)/sfe.h $(1)/usr/include/shortcut-fe
+	$(CP) $(PKG_BUILD_DIR)/sfe.h $(1)/usr/include/shortcut-fe
 endef
 endif
 
