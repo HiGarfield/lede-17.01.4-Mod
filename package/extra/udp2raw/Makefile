@@ -53,7 +53,7 @@ else ifeq ($(ARCH),arm)
 else ifeq ($(ARCH),aarch64)
   UDP2RAW_TARGET:=arm64
 else
-  UDP2RAW_TARGET:=udp2raw
+  UDP2RAW_TARGET:=linux
 endif
 
 MAKE_VARS += UDP2RAW_GIT_VER=$(PKG_SOURCE_VERSION)
