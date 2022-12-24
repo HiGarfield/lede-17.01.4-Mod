@@ -23,6 +23,7 @@
 
 #define __PROCESS_ITERATOR_H
 
+#include <sys/types.h>
 #include <unistd.h>
 #include <limits.h>
 #if defined(__linux__)
@@ -58,8 +59,6 @@ struct process
 	pid_t pid;
 	/* ppid of the process */
 	pid_t ppid;
-	/* start time (unix timestamp) */
-	time_t starttime;
 	/* cputime used by the process (in milliseconds) */
 	int cputime;
 	/* actual cpu usage estimation (value in range 0-1) */
@@ -70,7 +69,7 @@ struct process
 
 struct process_filter
 {
-	int pid;
+	pid_t pid;
 	int include_children;
 	char program_name[PATH_MAX + 1];
 };

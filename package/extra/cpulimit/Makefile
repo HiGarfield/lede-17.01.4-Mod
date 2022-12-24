@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cpulimit
-PKG_VERSION:=2e2dc2a
+PKG_VERSION:=0dcf4d2317dde34c08f910626bc3e27d35695fa0
 PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
@@ -12,10 +12,11 @@ define Package/cpulimit
   CATEGORY:=Utilities
   TITLE:=cpulimit
   URL:=https://github.com/opsengine/cpulimit.git
+  DEPENDS:= +librt
 endef
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -flto
+TARGET_LDFLAGS += -lrt -Wl,--gc-sections,--as-needed -flto
 
 define Package/cpulimit/install
 	$(INSTALL_DIR) $(1)/usr/bin
