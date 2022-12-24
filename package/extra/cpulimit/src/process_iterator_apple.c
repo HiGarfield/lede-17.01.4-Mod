@@ -26,7 +26,7 @@
 #include <stdio.h>
 #include <libproc.h>
 
-int unique_nonzero_ints(int *arr_in, int len_in, int *arr_out)
+static int unique_nonzero_ints(int *arr_in, int len_in, int *arr_out)
 {
 	int *source = arr_in;
 	int len_out = 0;
@@ -89,7 +89,6 @@ static int pti2proc(struct proc_taskallinfo *ti, struct process *process)
 	int bytes;
 	process->pid = ti->pbsd.pbi_pid;
 	process->ppid = ti->pbsd.pbi_ppid;
-	process->starttime = ti->pbsd.pbi_start_tvsec;
 	process->cputime = (ti->ptinfo.pti_total_user + ti->ptinfo.pti_total_system) / 1000000;
 	bytes = strlen(ti->pbsd.pbi_comm);
 	memcpy(process->command, ti->pbsd.pbi_comm, (bytes < PATH_MAX ? bytes : PATH_MAX) + 1);

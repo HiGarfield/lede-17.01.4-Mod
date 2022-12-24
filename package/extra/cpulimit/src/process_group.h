@@ -23,6 +23,8 @@
 
 #define __PROCESS_GROUP_H
 
+#include <time.h>
+
 #include "process_iterator.h"
 
 #include "list.h"
@@ -37,7 +39,7 @@ struct process_group
 	struct list *proclist;
 	pid_t target_pid;
 	int include_children;
-	struct timeval last_update;
+	struct timespec last_update;
 };
 
 int init_process_group(struct process_group *pgroup, int target_pid, int include_children);
@@ -46,9 +48,9 @@ void update_process_group(struct process_group *pgroup);
 
 int close_process_group(struct process_group *pgroup);
 
-int find_process_by_pid(pid_t pid);
+pid_t find_process_by_pid(pid_t pid);
 
-int find_process_by_name(const char *process_name);
+pid_t find_process_by_name(const char *process_name);
 
 int remove_process(struct process_group *pgroup, int pid);
 

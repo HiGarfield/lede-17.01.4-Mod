@@ -49,6 +49,14 @@
 #define MAX(a, b) (((a) > (b)) ? (a) : (b))
 #endif
 
+/* inline void nsec2timespec(double nsec, struct timespec *t); */
+#define nsec2timespec(nsec, t)                             \
+	do                                                     \
+	{                                                      \
+		(t)->tv_sec = (time_t)((nsec) / 1e9);              \
+		(t)->tv_nsec = (long)((nsec) - (t)->tv_sec * 1e9); \
+	} while (0)
+
 #ifndef EPSILON
 #define EPSILON 1e-12
 #endif
@@ -116,7 +124,7 @@ static void print_usage(FILE *stream, int exit_code)
 	exit(exit_code);
 }
 
-static void increase_priority()
+static void increase_priority(void)
 {
 	/* find the best available nice value */
 	int old_priority = getpriority(PRIO_PROCESS, 0);
@@ -138,7 +146,7 @@ static void increase_priority()
 }
 
 /* Get the number of CPUs */
-static int get_ncpu()
+static int get_ncpu(void)
 {
 	int ncpu;
 #if defined(_SC_NPROCESSORS_ONLN)
@@ -155,22 +163,22 @@ static int get_ncpu()
 	return ncpu;
 }
 
-int get_pid_max()
+pid_t get_pid_max(void)
 {
 #if defined(__linux__)
 	/* read /proc/sys/kernel/pid_max */
-	int pid_max = -1;
+	long pid_max = -1;
 	FILE *fd;
 	if ((fd = fopen("/proc/sys/kernel/pid_max", "r")) != NULL)
 	{
-		fscanf(fd, "%d", &pid_max);
+		fscanf(fd, "%ld", &pid_max);
 		fclose(fd);
 	}
-	return pid_max;
+	return (pid_t)pid_max;
 #elif defined(__FreeBSD__)
-	return 99998;
+	return (pid_t)99999;
 #elif defined(__APPLE__)
-	return 99998;
+	return (pid_t)99998;
 #endif
 }
 
@@ -180,10 +188,6 @@ void limit_process(pid_t pid, double limit, int include_children)
 	struct timespec twork;
 	/* slice of the slot in which the process is stopped */
 	struct timespec tsleep;
-	/* when the last twork has started */
-	struct timeval startwork;
-	/* when the last twork has finished */
-	struct timeval endwork;
 	/* generic list item */
 	struct list_node *node;
 	/* counter */
@@ -193,12 +197,6 @@ void limit_process(pid_t pid, double limit, int include_children)
 	/* 1 means that the process are using all the twork slice */
 	double workingrate = -1;
 
-	/* initialization */
-	memset(&twork, 0, sizeof(struct timespec));
-	memset(&tsleep, 0, sizeof(struct timespec));
-	memset(&startwork, 0, sizeof(struct timeval));
-	memset(&endwork, 0, sizeof(struct timeval));
-
 	/* get a better priority */
 	increase_priority();
 
@@ -206,7 +204,8 @@ void limit_process(pid_t pid, double limit, int include_children)
 	init_process_group(&pgroup, pid, include_children);
 
 	if (verbose)
-		printf("Members in the process group owned by %d: %d\n", pgroup.target_pid, pgroup.proclist->count);
+		printf("Members in the process group owned by %ld: %d\n",
+			   (long)pgroup.target_pid, pgroup.proclist->count);
 
 	while (1)
 	{
@@ -248,19 +247,17 @@ void limit_process(pid_t pid, double limit, int include_children)
 		else
 		{
 			/* adjust workingrate */
-			workingrate = (workingrate + EPSILON) /
-						  (pcpu + EPSILON) *
-						  (limit + EPSILON);
+			workingrate = limit *
+						  workingrate /
+						  (pcpu + EPSILON);
 		}
 		workingrate = MAX(MIN(workingrate, 1 - EPSILON), EPSILON);
 
 		twork_total_nsec = (double)TIME_SLOT * 1000 * workingrate;
-		twork.tv_sec = (time_t)(twork_total_nsec / 1e9);
-		twork.tv_nsec = (long)(twork_total_nsec - twork.tv_sec * 1e9);
+		nsec2timespec(twork_total_nsec, &twork);
 
 		tsleep_total_nsec = (double)TIME_SLOT * 1000 - twork_total_nsec;
-		tsleep.tv_sec = (time_t)(tsleep_total_nsec / 1e9);
-		tsleep.tv_nsec = (long)(tsleep_total_nsec - tsleep.tv_sec * 1e9);
+		nsec2timespec(tsleep_total_nsec, &tsleep);
 
 		if (verbose)
 		{
@@ -280,7 +277,7 @@ void limit_process(pid_t pid, double limit, int include_children)
 			{
 				/* process is dead, remove it from family */
 				if (verbose)
-					fprintf(stderr, "SIGCONT failed. Process %d dead!\n", proc->pid);
+					fprintf(stderr, "SIGCONT failed. Process %ld dead!\n", (long)proc->pid);
 				/* remove process from group */
 				delete_node(pgroup.proclist, node);
 				remove_process(&pgroup, proc->pid);
@@ -289,9 +286,7 @@ void limit_process(pid_t pid, double limit, int include_children)
 		}
 
 		/* now processes are free to run (same working slice for all) */
-		gettimeofday(&startwork, NULL);
 		nanosleep(&twork, NULL);
-		gettimeofday(&endwork, NULL);
 
 		if (tsleep.tv_nsec > 0 || tsleep.tv_sec > 0)
 		{
@@ -305,7 +300,7 @@ void limit_process(pid_t pid, double limit, int include_children)
 				{
 					/* process is dead, remove it from family */
 					if (verbose)
-						fprintf(stderr, "SIGSTOP failed. Process %d dead!\n", proc->pid);
+						fprintf(stderr, "SIGSTOP failed. Process %ld dead!\n", (long)proc->pid);
 					/* remove process from group */
 					delete_node(pgroup.proclist, node);
 					remove_process(&pgroup, proc->pid);
@@ -315,7 +310,7 @@ void limit_process(pid_t pid, double limit, int include_children)
 			/* now the processes are sleeping */
 			nanosleep(&tsleep, NULL);
 		}
-		c++;
+		c = (c + 1) % 200;
 	}
 	close_process_group(&pgroup);
 }
@@ -365,7 +360,7 @@ int main(int argc, char **argv)
 		switch (next_option)
 		{
 		case 'p':
-			pid = atoi(optarg);
+			pid = (pid_t)atol(optarg);
 			pid_ok = 1;
 			break;
 		case 'e':
@@ -508,17 +503,18 @@ int main(int argc, char **argv)
 				if (WIFEXITED(status_process))
 				{
 					if (verbose)
-						printf("Process %d terminated with exit status %d\n", child, (int)WEXITSTATUS(status_process));
+						printf("Process %ld terminated with exit status %d\n",
+							   (long)child, (int)WEXITSTATUS(status_process));
 					exit(WEXITSTATUS(status_process));
 				}
-				printf("Process %d terminated abnormally\n", child);
+				printf("Process %ld terminated abnormally\n", (long)child);
 				exit(status_process);
 			}
 			else
 			{
 				/* limiter code */
 				if (verbose)
-					printf("Limiting process %d\n", child);
+					printf("Limiting process %ld\n", (long)child);
 				limit_process(child, limit, include_children);
 				exit(0);
 			}
@@ -563,10 +559,11 @@ int main(int argc, char **argv)
 		{
 			if (ret == cpulimit_pid)
 			{
-				printf("Target process %d is cpulimit itself! Aborting because it makes no sense\n", ret);
+				printf("Target process %ld is cpulimit itself! Aborting because it makes no sense\n",
+					   (long)ret);
 				exit(1);
 			}
-			printf("Process %d found\n", pid);
+			printf("Process %ld found\n", (long)pid);
 			/* control */
 			limit_process(pid, limit, include_children);
 		}
