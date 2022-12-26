@@ -1,0 +1,24 @@
+From c651d563d079f54c47ab8dd87061f662881a2e19 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Sun, 3 Apr 2022 18:53:56 +0900
+Subject: [PATCH 08/23] Fix a failed test
+
+---
+ test/BittorrentHelperTest.cc | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/test/BittorrentHelperTest.cc b/test/BittorrentHelperTest.cc
+index 2ad44808..4b3f0646 100644
+--- a/test/BittorrentHelperTest.cc
++++ b/test/BittorrentHelperTest.cc
+@@ -329,6 +329,7 @@ void BittorrentHelperTest::testGetPeerId()
+ 
+ void BittorrentHelperTest::testGetPeerAgent()
+ {
++  setStaticPeerAgent("");
+   std::string peerAgent = generateStaticPeerAgent("aria2/-1.-1.-1");
+   CPPUNIT_ASSERT_EQUAL(std::string("aria2/-1.-1.-1"), peerAgent);
+   CPPUNIT_ASSERT_EQUAL(std::string("aria2/-1.-1.-1"),
+-- 
+2.25.1
+

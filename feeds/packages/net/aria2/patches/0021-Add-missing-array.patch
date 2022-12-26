@@ -1,0 +1,25 @@
+From 182f4f9ca2c2512b930937ce5ebfd7af80a2d991 Mon Sep 17 00:00:00 2001
+From: Hernan Martinez <hernan.c.martinez@gmail.com>
+Date: Thu, 23 Jun 2022 00:00:25 -0600
+Subject: [PATCH 21/23] Add missing <array>
+
+---
+ src/WinTLSSession.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/WinTLSSession.h b/src/WinTLSSession.h
+index 21c74624..14e9beee 100644
+--- a/src/WinTLSSession.h
++++ b/src/WinTLSSession.h
+@@ -37,7 +37,7 @@
+ #define WIN_TLS_SESSION_H
+ 
+ #include <vector>
+-
++#include <array>
+ #include "common.h"
+ #include "TLSSession.h"
+ #include "WinTLSContext.h"
+-- 
+2.25.1
+

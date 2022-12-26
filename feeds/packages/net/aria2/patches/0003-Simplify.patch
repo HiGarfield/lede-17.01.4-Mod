@@ -1,0 +1,28 @@
+From c197373db788320c169ae2e83b2e767be84a369e Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Sat, 30 Oct 2021 18:25:29 +0900
+Subject: [PATCH 03/23] Simplify
+
+---
+ src/LibsslARC4Encryptor.cc | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/src/LibsslARC4Encryptor.cc b/src/LibsslARC4Encryptor.cc
+index 656242e2..50bd6290 100644
+--- a/src/LibsslARC4Encryptor.cc
++++ b/src/LibsslARC4Encryptor.cc
+@@ -69,10 +69,8 @@ void ARC4Encryptor::init(const unsigned char* key, size_t keyLength)
+ 
+   ctx_ = EVP_CIPHER_CTX_new();
+ 
+-  unsigned int keylen = keyLength;
+-
+   OSSL_PARAM params[] = {
+-      OSSL_PARAM_construct_uint(OSSL_CIPHER_PARAM_KEYLEN, &keylen),
++      OSSL_PARAM_construct_size_t(OSSL_CIPHER_PARAM_KEYLEN, &keyLength),
+       OSSL_PARAM_construct_end(),
+   };
+ 
+-- 
+2.25.1
+

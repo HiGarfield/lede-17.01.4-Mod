@@ -1,0 +1,27 @@
+From 42038422f6f43926d4103c27587b5db60ebde747 Mon Sep 17 00:00:00 2001
+From: Nikita Ofitserov <himikof@gmail.com>
+Date: Wed, 24 Aug 2022 17:28:04 +0300
+Subject: [PATCH 23/23] Fix undefined behavior/crash in GZipEncoder
+
+When the output buffer is full, outbuf[produced] references past the buffer end, leading to UB and a possible assertion failure.
+Fixes #1968, #1964
+---
+ src/GZipEncoder.cc | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/src/GZipEncoder.cc b/src/GZipEncoder.cc
+index 884485ee..41cfce5a 100644
+--- a/src/GZipEncoder.cc
++++ b/src/GZipEncoder.cc
+@@ -87,7 +87,7 @@ std::string GZipEncoder::encode(const unsigned char* in, size_t length,
+       throw DL_ABORT_EX(fmt("libz::deflate() failed. cause:%s", strm_->msg));
+     }
+     size_t produced = outbuf.size() - strm_->avail_out;
+-    out.append(&outbuf[0], &outbuf[produced]);
++    out.append(outbuf.data(), outbuf.data() + produced);
+     if (strm_->avail_out > 0) {
+       break;
+     }
+-- 
+2.25.1
+
