@@ -1,0 +1,118 @@
+From c546fa492c752d0594312ee1a2ac8bb4763c40f2 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Sat, 30 Oct 2021 19:04:29 +0900
+Subject: [PATCH 05/23] clang-format-12
+
+---
+ src/AbstractDiskWriter.cc     | 2 +-
+ src/BtLeecherStateChoke.cc    | 8 ++++----
+ src/BtSeederStateChoke.cc     | 4 ++--
+ src/DHTPeerAnnounceStorage.cc | 6 +++---
+ src/DiskAdaptor.h             | 2 +-
+ src/FileEntry.cc              | 6 +++---
+ 6 files changed, 14 insertions(+), 14 deletions(-)
+
+diff --git a/src/AbstractDiskWriter.cc b/src/AbstractDiskWriter.cc
+index f21c5261..52efc012 100644
+--- a/src/AbstractDiskWriter.cc
++++ b/src/AbstractDiskWriter.cc
+@@ -597,7 +597,7 @@ void AbstractDiskWriter::flushOSBuffers()
+   }
+ #ifdef __MINGW32__
+   FlushFileBuffers(fd_);
+-#else // !__MINGW32__
++#else  // !__MINGW32__
+   fsync(fd_);
+ #endif // __MINGW32__
+ }
+diff --git a/src/BtLeecherStateChoke.cc b/src/BtLeecherStateChoke.cc
+index 7dd2126e..a2a159ac 100644
+--- a/src/BtLeecherStateChoke.cc
++++ b/src/BtLeecherStateChoke.cc
+@@ -72,8 +72,8 @@ void BtLeecherStateChoke::PeerEntry::swap(PeerEntry& c)
+   swap(regularUnchoker_, c.regularUnchoker_);
+ }
+ 
+-BtLeecherStateChoke::PeerEntry& BtLeecherStateChoke::PeerEntry::
+-operator=(const PeerEntry& c)
++BtLeecherStateChoke::PeerEntry&
++BtLeecherStateChoke::PeerEntry::operator=(const PeerEntry& c)
+ {
+   if (this != &c) {
+     peer_ = c.peer_;
+@@ -130,8 +130,8 @@ void swap(BtLeecherStateChoke::PeerEntry& a, BtLeecherStateChoke::PeerEntry& b)
+   a.swap(b);
+ }
+ 
+-bool BtLeecherStateChoke::PeerFilter::
+-operator()(const PeerEntry& peerEntry) const
++bool BtLeecherStateChoke::PeerFilter::operator()(
++    const PeerEntry& peerEntry) const
+ {
+   return peerEntry.getPeer()->amChoking() == amChoking_ &&
+          peerEntry.getPeer()->peerInterested() == peerInterested_;
+diff --git a/src/BtSeederStateChoke.cc b/src/BtSeederStateChoke.cc
+index e80291a2..0252a696 100644
+--- a/src/BtSeederStateChoke.cc
++++ b/src/BtSeederStateChoke.cc
+@@ -79,8 +79,8 @@ void BtSeederStateChoke::PeerEntry::swap(PeerEntry& c)
+   swap(uploadSpeed_, c.uploadSpeed_);
+ }
+ 
+-BtSeederStateChoke::PeerEntry& BtSeederStateChoke::PeerEntry::
+-operator=(const PeerEntry& c)
++BtSeederStateChoke::PeerEntry&
++BtSeederStateChoke::PeerEntry::operator=(const PeerEntry& c)
+ {
+   if (this != &c) {
+     peer_ = c.peer_;
+diff --git a/src/DHTPeerAnnounceStorage.cc b/src/DHTPeerAnnounceStorage.cc
+index 37b4bf82..79465caa 100644
+--- a/src/DHTPeerAnnounceStorage.cc
++++ b/src/DHTPeerAnnounceStorage.cc
+@@ -57,9 +57,9 @@ DHTPeerAnnounceStorage::DHTPeerAnnounceStorage()
+ {
+ }
+ 
+-bool DHTPeerAnnounceStorage::InfoHashLess::
+-operator()(const std::shared_ptr<DHTPeerAnnounceEntry>& lhs,
+-           const std::shared_ptr<DHTPeerAnnounceEntry>& rhs) const
++bool DHTPeerAnnounceStorage::InfoHashLess::operator()(
++    const std::shared_ptr<DHTPeerAnnounceEntry>& lhs,
++    const std::shared_ptr<DHTPeerAnnounceEntry>& rhs) const
+ {
+   return memcmp(lhs->getInfoHash(), rhs->getInfoHash(), DHT_ID_LENGTH) < 0;
+ }
+diff --git a/src/DiskAdaptor.h b/src/DiskAdaptor.h
+index 9287b3ec..9ff46792 100644
+--- a/src/DiskAdaptor.h
++++ b/src/DiskAdaptor.h
+@@ -115,7 +115,7 @@ public:
+   virtual void writeCache(const WrDiskCacheEntry* entry) = 0;
+ 
+   // Force physical write of data from OS buffer cache.
+-  virtual void flushOSBuffers() {};
++  virtual void flushOSBuffers(){};
+ 
+   void setFileAllocationMethod(FileAllocationMethod method)
+   {
+diff --git a/src/FileEntry.cc b/src/FileEntry.cc
+index 5e976085..0de16443 100644
+--- a/src/FileEntry.cc
++++ b/src/FileEntry.cc
+@@ -51,9 +51,9 @@
+ 
+ namespace aria2 {
+ 
+-bool FileEntry::RequestFaster::
+-operator()(const std::shared_ptr<Request>& lhs,
+-           const std::shared_ptr<Request>& rhs) const
++bool FileEntry::RequestFaster::operator()(
++    const std::shared_ptr<Request>& lhs,
++    const std::shared_ptr<Request>& rhs) const
+ {
+   if (!lhs->getPeerStat()) {
+     return false;
+-- 
+2.25.1
+
