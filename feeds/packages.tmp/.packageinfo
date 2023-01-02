@@ -827,7 +827,7 @@ Ondrej Caletka <ondrej@caletka.cz>
 Source-Makefile: feeds/packages/kernel/exfat/Makefile
 Package: kmod-fs-exfat
 Submenu: Filesystems
-Version: <LINUX_VERSION>+118b6d539df2e5c46a642583149d43fcc69f996d-0
+Version: <LINUX_VERSION>+17d8731ce12502b50b468d443ed5fa2094a80132-0
 Depends: +kmod-nls-base
 Conflicts: 
 Menu-Depends: 
@@ -836,7 +836,7 @@ Section: kernel
 Category: Kernel modules
 Title: exFAT kernel module
 Maintainer: 
-Source: exfat-118b6d539df2e5c46a642583149d43fcc69f996d.tar.xz
+Source: exfat-17d8731ce12502b50b468d443ed5fa2094a80132.tar.xz
 License: GPL-2.0-only
 Type: ipkg
 Description: exFAT kernel module
