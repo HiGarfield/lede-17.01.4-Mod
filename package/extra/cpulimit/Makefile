@@ -1,7 +1,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cpulimit
-PKG_VERSION:=0dcf4d2317dde34c08f910626bc3e27d35695fa0
+PKG_VERSION:=95c20b7830720f5c355e50a96f9868c7749396b5
 PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
