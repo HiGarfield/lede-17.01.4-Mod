@@ -232,7 +232,7 @@ enable_domain() {
 describe_domain() {
 	local value
 	local ret=0
-	aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=${__HOST}.${__DOMAIN}" "Type=${__TYPE}" || write_log 14 "服务器通信失败"
+	aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=${__HOST}.${__DOMAIN}" "DomainName=${__DOMAIN}" "Type=${__TYPE}" || write_log 14 "服务器通信失败"
 	json_init
 	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
 	json_get_var value "TotalCount"
