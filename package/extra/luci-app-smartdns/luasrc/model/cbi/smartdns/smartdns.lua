@@ -34,6 +34,7 @@ s.anonymous = true
 s:tab("settings", translate("General Settings"))
 s:tab("advanced", translate('Advanced Settings'))
 s:tab("seconddns", translate("Second Server Settings"))
+s:tab("proxy", translate("Proxy Server Settings"))
 s:tab("custom", translate("Custom Settings"))
 
 ---- Eanble
@@ -116,6 +117,20 @@ o.default     = o.enabled
 o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "1"
 end
+
+---- bind to device;
+o = s:taboption("advanced", Flag, "bind_device", translate("Bind Device"), translate("Listen only on the specified interfaces."))
+o.rmempty     = false
+o.default     = o.enabled
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "1"
+end
+
+---- bind device name;
+o = s:taboption("advanced", Value, "bind_device_name", translate("Bind Device Name"), translate("Name of device name listen on."))
+o.placeholder = "default"
+o.rempty      = true
+o.datatype    = "string"
 
 ---- Support DualStack ip selection
 o = s:taboption("advanced", Flag, "dualstack_ip_selection", translate("Dual-stack IP Selection"), translate("Enable IP selection between IPV4 and IPV6"))
@@ -298,6 +313,21 @@ o.cfgvalue    = function(...)
     return Flag.cfgvalue(...) or "0"
 end
 
+----- Proxy server settings
+o = s:taboption("proxy", Value, "proxy_server", translate("Proxy Server"), translate("Proxy Server URL, format: [socks5|http]://user:pass@ip:port."));
+o.datatype = 'string';
+function o.validate(self, value)
+    if (value == "") then
+        return true
+    end
+
+    if (not value:match("^http://") and not value:match("^socks5://")) then
+        return nil, translate("Proxy server URL format error, format: [socks5|http]://user:pass@ip:port.")
+    end
+
+    return value
+end
+
 ----- custom settings
 custom = s:taboption("custom", Value, "Custom Settings",
 	translate(""), 
@@ -431,6 +461,22 @@ o = s:taboption("forwarding", Value, "ipset_name", translate("IPset Name"), tran
 o.rmempty = true
 o.datatype = "hostname"
 o.rempty = true
+
+o = s:taboption("forwarding", Value, "nftset_name", translate("NFTset Name"), translate("NFTset name, format: [#[4|6]:[family#table#set]]"))
+o.rmempty = true
+o.datatype = "string"
+o.rempty = true
+function o.validate(self, value) 
+    if (value == "") then
+        return value
+    end
+
+    if (value:match("#[4|6]:[a-zA-Z0-9%-_]+#[a-zA-Z0-9%-_]+#[a-zA-Z0-9%-_]+$")) then
+        return value
+    end
+
+    return nil, translate("NFTset name format error, format: [#[4|6]:[family#table#set]]")
+end
 
 ---- other args
 o = s:taboption("forwarding", Value, "addition_flag", translate("Additional Rule Flag"), translate("Additional Flags for rules, read help on domain-rule for more information."))
@@ -589,3 +635,4 @@ o.rmempty = true
 o.datatype = 'string'
 
 return m
+
