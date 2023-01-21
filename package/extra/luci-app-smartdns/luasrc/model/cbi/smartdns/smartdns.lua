@@ -1,5 +1,5 @@
 --
--- Copyright (C) 2018-2020 Ruilin Peng (Nick) <pymumu@gmail.com>.
+-- Copyright (C) 2018-2023 Ruilin Peng (Nick) <pymumu@gmail.com>.
 --
 -- smartdns is free software: you can redistribute it and/or modify
 -- it under the terms of the GNU General Public License as published by
@@ -160,6 +160,14 @@ end
 ---- cache-size
 o = s:taboption("advanced", Value, "cache_size", translate("Cache Size"), translate("DNS domain result cache size"))
 o.rempty      = true
+
+---- cache-persist;
+o = s:taboption("advanced", Flag, "cache_persist", translate("Cache Persist"), translate("Write cache to disk on exit and load on startup."))
+o.rmempty      = false;
+o.default     = o.enabled;
+o.cfgvalue    = function(...)
+    return Flag.cfgvalue(...) or "1"
+end
 
 -- cache-size
 o = s:taboption("advanced", Flag, "resolve_local_hostnames", translate("Resolve Local Hostnames"), translate("Resolve local hostnames by reading Dnsmasq lease file."))
