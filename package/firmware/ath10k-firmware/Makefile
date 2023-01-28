@@ -20,6 +20,9 @@ PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
 include $(INCLUDE_DIR)/package.mk
 
+RSTRIP:=:
+STRIP:=:
+
 define Package/ath10k-firmware-default
   SECTION:=firmware
   CATEGORY:=Firmware
