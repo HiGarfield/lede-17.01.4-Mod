@@ -7,15 +7,19 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=sstrip
+PKG_VERSION:=3.2
+
+HOST_BUILD_DIR:=$(BUILD_DIR_HOST)/ELFkickers-$(PKG_VERSION)
+PKG_SOURCE_URL:=https://www.muppetlabs.com/~breadbox/pub/software
+PKG_SOURCE:=ELFkickers-$(PKG_VERSION).tar.gz
+PKG_HASH:=9b81e6c53e0c94fc198d9882eb737156f36d565152dc32118897c77b06a2687c
+
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/host-build.mk
 
-define Host/Compile
-	$(HOSTCC) $(HOST_CFLAGS) -include endian.h -o $(HOST_BUILD_DIR)/sstrip src/sstrip.c
-endef
-
 define Host/Install
-	$(CP) $(HOST_BUILD_DIR)/sstrip $(STAGING_DIR_HOST)/bin/
+	$(CP) $(HOST_BUILD_DIR)/bin/sstrip $(STAGING_DIR_HOST)/bin/
 endef
 
 define Host/Clean
