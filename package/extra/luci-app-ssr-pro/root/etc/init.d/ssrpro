@@ -48,6 +48,11 @@ __gfwlist_by_mode() {
 	esac
 }
 
+killall_by_name() {
+	killall "$1" >/dev/null 2>&1 ||
+		killall -9 "$1" >/dev/null 2>&1
+}
+
 start() {
 	if [ "$vt_enabled" -eq 0 ]; then
 		echo "WARNING: Shadowsocksr is disabled."
@@ -65,7 +70,7 @@ start() {
 
 	local vt_gfwlist=$(__gfwlist_by_mode $vt_proxy_mode)
 
-	killall -9 ssr-redir >/dev/null 2>&1
+	killall_by_name ssr-redir
 
 	# -----------------------------------------------------------------
 	###### shadowsocksr ######
@@ -144,7 +149,7 @@ stop() {
 	del_rule
 
 	# -----------------------------------------------------
-	killall -9 ssr-redir >/dev/null 2>&1
+	killall_by_name ssr-redir
 	rm -f $SS_REDIR_PIDFILE
 
 	del_cron
@@ -202,7 +207,7 @@ stop_dnsforwarder() {
 		while $IPTABLES -t nat -D OUTPUT -p tcp --dport $vt_safe_dns_port -j dnsforwarder_output 2>/dev/null; do :; done
 		$IPTABLES -t nat -X dnsforwarder_output
 	fi
-	killall -9 $DNSFORWARDER_BIN >/dev/null 2>&1
+	killall_by_name $DNSFORWARDER_BIN
 	rm -rf $DNSFORWARDER_PATH
 }
 
