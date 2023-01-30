@@ -1,20 +1,57 @@
 #!/bin/sh
 
 generate_china_banned() {
-	local GFWLIST_URL
-	GFWLIST_URL=$(uci -q get ssrpro.@ssrpro[0].gfwlist_url)
-	[ -z "$GFWLIST_URL" ] && GFWLIST_URL="https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"
+	local GFWLIST_URL=$(uci -q get ssrpro.@ssrpro[0].gfwlist_url 2>/dev/null)
+	[ -z "$GFWLIST_URL" ] &&
+		GFWLIST_URL="https://raw.githubusercontent.com/gfwlist/gfwlist/master/gfwlist.txt"
 
-	if wget-ssl --no-check-certificate "$GFWLIST_URL" -O /tmp/gfwlist.b64 >&2 &&
-		[ -s /tmp/gfwlist.b64 ]; then
-		base64 -d /tmp/gfwlist.b64 |
-			sed 's#!.\+##; s#|##g; s#@##g; s#https\?:\/\/##;' |
-			sed '/\*/d; /apple\.com/d; /sina\.cn/d; /sina\.com\.cn/d; /baidu\.com/d; /byr\.cn/d; /jlike\.com/d; /weibo\.com/d; /zhongsou\.com/d; /youdao\.com/d; /sogou\.com/d; /so\.com/d; /soso\.com/d; /aliyun\.com/d; /taobao\.com/d; /jd\.com/d; /qq\.com/d' |
-			sed '/^[0-9]\+\.[0-9]\+\.[0-9]\+\.[0-9]\+$/d' |
-			grep '^[0-9a-zA-Z\.-]\+$' | grep '\.' | sed 's#^\.\+##' |
-			awk 'BEGIN { prev = "________"; } { cur = $0; if (index(cur, prev) != 1 || substr(cur, 1 + length(prev), 1) != ".") { print cur; prev = cur; } }' | sort -u
-		rm -f /tmp/gfwlist.b64 >&2
-	fi
+	wget-ssl -q --no-check-certificate -O- "$GFWLIST_URL" |
+		base64 -d |
+		sed -n '{
+			s/^||\?//g;
+			s/https\?:\/\///g;
+			s/^\.//g;
+			s/\*.*//g;
+			s/\/.*//g;
+			s/%.*//g;
+			s/:[0-9]\+$//g;
+			/^$/d;
+			/^!.*/d;
+			/^@.*/d;
+			/^\[.*/d;
+			/\.$/d;
+			/^[^\.]*$/d;
+			/^[0-9\.]*$/d;
+			/\*/d;
+			/:/d;
+			/aliyun\.com/d;
+			/apple\.com/d;
+			/baidu\.com/d;
+			/bing\.com/d;
+			/chinaso\.com/d;
+			/chinaz\.com/d;
+			/cn\.gravatar\.com/d;
+			/haosou\.com/d;
+			/ip\.cn/d;
+			/jd\.com/d;
+			/jike\.com/d;
+			/gov\.cn/d;
+			/qq\.com/d;
+			/sina\.cn/d;
+			/sina\.com\.cn/d;
+			/sogou\.com/d;
+			/so\.com/d;
+			/soso\.com/d;
+			/taobao\.com/d;
+			/tencent\.com/d;
+			/uluai\.com\.cn/d;
+			/weibo\.com/d;
+			/yahoo\.cn/d;
+			/youdao\.com/d;
+			/zhongsou\.com/d;
+			p
+		}' |
+		sort -u
 }
 
 generate_china_banned
