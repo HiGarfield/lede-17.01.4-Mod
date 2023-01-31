@@ -39,6 +39,9 @@ CONFIGURE_ARGS += \
 	--enable-shared \
 	--disable-static
 
+TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -flto
+
 define Package/exfat-mkfs/install
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/sbin/mkfs.exfat $(1)/usr/sbin
