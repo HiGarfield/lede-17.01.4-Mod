@@ -9,16 +9,16 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=p910nd
 PKG_VERSION:=0.97
-PKG_RELEASE:=6
+PKG_RELEASE:=7
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=@SF/p910nd
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/HiGarfield/p910nd.git
+PKG_SOURCE_VERSION:=2b686060d8aae7596cfa5d8518bc51029fba397f
+PKG_MIRROR_HASH:=skip
+
 PKG_LICENSE:=GPLv2
 PKG_LICENSE_FILES:=COPYING
-PKG_MD5SUM:=69461a6c54dca0b13ecad5b83864b43e
 PKG_MAINTAINER:=Philipp Kerling <pkerling@casix.org>
-
-PKG_INSTALL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -49,7 +49,7 @@ MAKE_FLAGS += \
 
 define Package/p910nd/install
 	$(INSTALL_DIR) $(1)/usr/sbin
-	$(CP) $(PKG_INSTALL_DIR)/usr/sbin/p910nd $(1)/usr/sbin/
+	$(CP) $(PKG_BUILD_DIR)/p910nd $(1)/usr/sbin/
 	$(INSTALL_DIR) $(1)/etc/config
 	$(INSTALL_DATA) ./files/p910nd.config $(1)/etc/config/p910nd
 	$(INSTALL_DIR) $(1)/etc/init.d
