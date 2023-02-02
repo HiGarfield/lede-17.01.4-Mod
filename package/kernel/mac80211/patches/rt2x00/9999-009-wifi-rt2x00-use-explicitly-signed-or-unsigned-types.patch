@@ -1,0 +1,464 @@
+From bd5e3d798af0f901aee565b333c1ea4366a40774 Mon Sep 17 00:00:00 2001
+From: "Jason A. Donenfeld" <Jason@zx2c4.com>
+Date: Wed, 19 Oct 2022 09:55:41 -0600
+Subject: [PATCH] wifi: rt2x00: use explicitly signed or unsigned types
+
+On some platforms, `char` is unsigned, but this driver, for the most
+part, assumed it was signed. In other places, it uses `char` to mean an
+unsigned number, but only in cases when the values are small. And in
+still other places, `char` is used as a boolean. Put an end to this
+confusion by declaring explicit types, depending on the context.
+
+Cc: Andrew Morton <akpm@linux-foundation.org>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Stanislaw Gruszka <stf_xl@wp.pl>
+Cc: Helmut Schaa <helmut.schaa@googlemail.com>
+Cc: Kalle Valo <kvalo@kernel.org>
+Signed-off-by: Jason A. Donenfeld <Jason@zx2c4.com>
+Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
+---
+ .../net/wireless/ralink/rt2x00/rt2400pci.c    |  8 +--
+ .../net/wireless/ralink/rt2x00/rt2400pci.h    |  2 +-
+ .../net/wireless/ralink/rt2x00/rt2500pci.c    |  8 +--
+ .../net/wireless/ralink/rt2x00/rt2500pci.h    |  2 +-
+ .../net/wireless/ralink/rt2x00/rt2500usb.c    |  8 +--
+ .../net/wireless/ralink/rt2x00/rt2500usb.h    |  2 +-
+ .../net/wireless/ralink/rt2x00/rt2800lib.c    | 60 +++++++++----------
+ .../net/wireless/ralink/rt2x00/rt2800lib.h    |  8 +--
+ .../net/wireless/ralink/rt2x00/rt2x00usb.c    |  6 +-
+ drivers/net/wireless/ralink/rt2x00/rt61pci.c  |  4 +-
+ drivers/net/wireless/ralink/rt2x00/rt61pci.h  |  2 +-
+ drivers/net/wireless/ralink/rt2x00/rt73usb.c  |  4 +-
+ drivers/net/wireless/ralink/rt2x00/rt73usb.h  |  2 +-
+ 13 files changed, 58 insertions(+), 58 deletions(-)
+
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2400pci.c b/drivers/net/wireless/ralink/rt2x00/rt2400pci.c
+index ebe7696..b6b2958 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2400pci.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2400pci.c
+@@ -1034,9 +1034,9 @@ static int rt2400pci_set_state(struct rt2x00_dev *rt2x00dev,
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
+-	char bbp_state;
+-	char rf_state;
++	bool put_to_sleep;
++	u8 bbp_state;
++	u8 rf_state;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -1570,7 +1570,7 @@ static int rt2400pci_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2400pci.h b/drivers/net/wireless/ralink/rt2x00/rt2400pci.h
+index 0fd3a9d..b34501a 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2400pci.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2400pci.h
+@@ -950,7 +950,7 @@
+ #define DEFAULT_TXPOWER	39
+ 
+ #define __CLAMP_TX(__txpower) \
+-	clamp_t(char, (__txpower), MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, (__txpower), MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #define TXPOWER_FROM_DEV(__txpower) \
+ 	((__CLAMP_TX(__txpower) - MAX_TXPOWER) + MIN_TXPOWER)
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2500pci.c b/drivers/net/wireless/ralink/rt2x00/rt2500pci.c
+index 75c8fa5..3450a96 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500pci.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2500pci.c
+@@ -1187,9 +1187,9 @@ static int rt2500pci_set_state(struct rt2x00_dev *rt2x00dev,
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
+-	char bbp_state;
+-	char rf_state;
++	bool put_to_sleep;
++	u8 bbp_state;
++	u8 rf_state;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -1865,7 +1865,7 @@ static int rt2500pci_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2500pci.h b/drivers/net/wireless/ralink/rt2x00/rt2500pci.h
+index 573e87b..ce09e8c 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500pci.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2500pci.h
+@@ -1230,6 +1230,6 @@
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT2500PCI_H */
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2500usb.c b/drivers/net/wireless/ralink/rt2x00/rt2500usb.c
+index d40dfa1..9f62835 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500usb.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2500usb.c
+@@ -995,9 +995,9 @@ static int rt2500usb_set_state(struct rt2x00_dev *rt2x00dev,
+ 	u16 reg;
+ 	u16 reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
+-	char bbp_state;
+-	char rf_state;
++	bool put_to_sleep;
++	u8 bbp_state;
++	u8 rf_state;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -1674,7 +1674,7 @@ static int rt2500usb_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2500usb.h b/drivers/net/wireless/ralink/rt2x00/rt2500usb.h
+index 78cc035..9db286c 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2500usb.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2500usb.h
+@@ -850,6 +850,6 @@
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT2500USB_H */
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+index e9725eb..13df8b6 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -3402,10 +3402,10 @@ static void rt2800_config_channel_rf53xx(struct rt2x00_dev *rt2x00dev,
+ 	if (rt2x00_has_cap_bt_coexist(rt2x00dev)) {
+ 		if (rt2x00_rt_rev_gte(rt2x00dev, RT5390, REV_RT5390F)) {
+ 			/* r55/r59 value array of channel 1~14 */
+-			static const char r55_bt_rev[] = {0x83, 0x83,
++			static const u8 r55_bt_rev[] = {0x83, 0x83,
+ 				0x83, 0x73, 0x73, 0x63, 0x53, 0x53,
+ 				0x53, 0x43, 0x43, 0x43, 0x43, 0x43};
+-			static const char r59_bt_rev[] = {0x0e, 0x0e,
++			static const u8 r59_bt_rev[] = {0x0e, 0x0e,
+ 				0x0e, 0x0e, 0x0e, 0x0b, 0x0a, 0x09,
+ 				0x07, 0x07, 0x07, 0x07, 0x07, 0x07};
+ 
+@@ -3414,7 +3414,7 @@ static void rt2800_config_channel_rf53xx(struct rt2x00_dev *rt2x00dev,
+ 			rt2800_rfcsr_write(rt2x00dev, 59,
+ 					   r59_bt_rev[idx]);
+ 		} else {
+-			static const char r59_bt[] = {0x8b, 0x8b, 0x8b,
++			static const u8 r59_bt[] = {0x8b, 0x8b, 0x8b,
+ 				0x8b, 0x8b, 0x8b, 0x8b, 0x8a, 0x89,
+ 				0x88, 0x88, 0x86, 0x85, 0x84};
+ 
+@@ -3422,10 +3422,10 @@ static void rt2800_config_channel_rf53xx(struct rt2x00_dev *rt2x00dev,
+ 		}
+ 	} else {
+ 		if (rt2x00_rt_rev_gte(rt2x00dev, RT5390, REV_RT5390F)) {
+-			static const char r55_nonbt_rev[] = {0x23, 0x23,
++			static const u8 r55_nonbt_rev[] = {0x23, 0x23,
+ 				0x23, 0x23, 0x13, 0x13, 0x03, 0x03,
+ 				0x03, 0x03, 0x03, 0x03, 0x03, 0x03};
+-			static const char r59_nonbt_rev[] = {0x07, 0x07,
++			static const u8 r59_nonbt_rev[] = {0x07, 0x07,
+ 				0x07, 0x07, 0x07, 0x07, 0x07, 0x07,
+ 				0x07, 0x07, 0x06, 0x05, 0x04, 0x04};
+ 
+@@ -3436,14 +3436,14 @@ static void rt2800_config_channel_rf53xx(struct rt2x00_dev *rt2x00dev,
+ 		} else if (rt2x00_rt(rt2x00dev, RT5390) ||
+ 			   rt2x00_rt(rt2x00dev, RT5392) ||
+ 			   rt2x00_rt(rt2x00dev, RT6352)) {
+-			static const char r59_non_bt[] = {0x8f, 0x8f,
++			static const u8 r59_non_bt[] = {0x8f, 0x8f,
+ 				0x8f, 0x8f, 0x8f, 0x8f, 0x8f, 0x8d,
+ 				0x8a, 0x88, 0x88, 0x87, 0x87, 0x86};
+ 
+ 			rt2800_rfcsr_write(rt2x00dev, 59,
+ 					   r59_non_bt[idx]);
+ 		} else if (rt2x00_rt(rt2x00dev, RT5350)) {
+-			static const char r59_non_bt[] = {0x0b, 0x0b,
++			static const u8 r59_non_bt[] = {0x0b, 0x0b,
+ 				0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0a,
+ 				0x0a, 0x09, 0x08, 0x07, 0x07, 0x06};
+ 
+@@ -4076,23 +4076,23 @@ static void rt2800_iq_calibrate(struct rt2x00_dev *rt2x00dev, int channel)
+ 	rt2800_bbp_write(rt2x00dev, 159, cal != 0xff ? cal : 0);
+ }
+ 
+-static char rt2800_txpower_to_dev(struct rt2x00_dev *rt2x00dev,
++static s8 rt2800_txpower_to_dev(struct rt2x00_dev *rt2x00dev,
+ 				  unsigned int channel,
+-				  char txpower)
++				  s8 txpower)
+ {
+ 	if (rt2x00_rt(rt2x00dev, RT3593) ||
+ 	    rt2x00_rt(rt2x00dev, RT3883))
+ 		txpower = rt2x00_get_field8(txpower, EEPROM_TXPOWER_ALC);
+ 
+ 	if (channel <= 14)
+-		return clamp_t(char, txpower, MIN_G_TXPOWER, MAX_G_TXPOWER);
++		return clamp_t(s8, txpower, MIN_G_TXPOWER, MAX_G_TXPOWER);
+ 
+ 	if (rt2x00_rt(rt2x00dev, RT3593) ||
+ 	    rt2x00_rt(rt2x00dev, RT3883))
+-		return clamp_t(char, txpower, MIN_A_TXPOWER_3593,
++		return clamp_t(s8, txpower, MIN_A_TXPOWER_3593,
+ 			       MAX_A_TXPOWER_3593);
+ 	else
+-		return clamp_t(char, txpower, MIN_A_TXPOWER, MAX_A_TXPOWER);
++		return clamp_t(s8, txpower, MIN_A_TXPOWER, MAX_A_TXPOWER);
+ }
+ 
+ static void rt3883_bbp_adjust(struct rt2x00_dev *rt2x00dev,
+@@ -8613,7 +8613,7 @@ void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev)
+ 	u8 bytevalue = 0;
+ 	int rcalcode;
+ 	u8 r_cal_code = 0;
+-	char d1 = 0, d2 = 0;
++	s8 d1 = 0, d2 = 0;
+ 	u8 rfvalue;
+ 	u32 MAC_RF_BYPASS0, MAC_RF_CONTROL0, MAC_PWR_PIN_CFG;
+ 	u32 maccfg;
+@@ -8674,7 +8674,7 @@ void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev)
+ 	if (bytevalue > 128)
+ 		d1 = bytevalue - 256;
+ 	else
+-		d1 = (char)bytevalue;
++		d1 = (s8)bytevalue;
+ 	rt2800_bbp_write(rt2x00dev, 22, 0x0);
+ 	rt2800_rfcsr_write_bank(rt2x00dev, 0, 35, 0x01);
+ 
+@@ -8684,7 +8684,7 @@ void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev)
+ 	if (bytevalue > 128)
+ 		d2 = bytevalue - 256;
+ 	else
+-		d2 = (char)bytevalue;
++		d2 = (s8)bytevalue;
+ 	rt2800_bbp_write(rt2x00dev, 22, 0x0);
+ 
+ 	rcalcode = rt2800_calcrcalibrationcode(rt2x00dev, d1, d2);
+@@ -8793,7 +8793,7 @@ EXPORT_SYMBOL_GPL(rt2800_rxdcoc_calibration);
+ static u32 rt2800_do_sqrt_accumulation(u32 si)
+ {
+ 	u32 root, root_pre, bit;
+-	char i;
++	s8 i;
+ 
+ 	bit = 1 << 15;
+ 	root = 0;
+@@ -9427,11 +9427,11 @@ static void rt2800_loft_search(struct rt2x00_dev *rt2x00dev, u8 ch_idx,
+ 			       u8 alc_idx, u8 dc_result[][RF_ALC_NUM][2])
+ {
+ 	u32 p0 = 0, p1 = 0, pf = 0;
+-	char idx0 = 0, idx1 = 0;
++	s8 idx0 = 0, idx1 = 0;
+ 	u8 idxf[] = {0x00, 0x00};
+ 	u8 ibit = 0x20;
+ 	u8 iorq;
+-	char bidx;
++	s8 bidx;
+ 
+ 	rt2800_bbp_write(rt2x00dev, 158, 0xb0);
+ 	rt2800_bbp_write(rt2x00dev, 159, 0x80);
+@@ -9482,17 +9482,17 @@ EXPORT_SYMBOL_GPL(rt2800_loft_search);
+ static void rt2800_iq_search(struct rt2x00_dev *rt2x00dev, u8 ch_idx, u8 *ges, u8 *pes)
+ {
+ 	u32 p0 = 0, p1 = 0, pf = 0;
+-	char perr = 0, gerr = 0, iq_err = 0;
+-	char pef = 0, gef = 0;
+-	char psta, pend;
+-	char gsta, gend;
++	s8 perr = 0, gerr = 0, iq_err = 0;
++	s8 pef = 0, gef = 0;
++	s8 psta, pend;
++	s8 gsta, gend;
+ 
+ 	u8 ibit = 0x20;
+ 	u8 first_search = 0x00, touch_neg_max = 0x00;
+-	char idx0 = 0, idx1 = 0;
++	s8 idx0 = 0, idx1 = 0;
+ 	u8 gop;
+ 	u8 bbp = 0;
+-	char bidx;
++	s8 bidx;
+ 
+ 	for (bidx = 5; bidx >= 1; bidx--) {
+ 		for (gop = 0; gop < 2; gop++) {
+@@ -10145,11 +10145,11 @@ static int rt2800_rf_lp_config(struct rt2x00_dev *rt2x00dev, bool btxcal)
+ 	return 0;
+ }
+ 
+-static char rt2800_lp_tx_filter_bw_cal(struct rt2x00_dev *rt2x00dev)
++static s8 rt2800_lp_tx_filter_bw_cal(struct rt2x00_dev *rt2x00dev)
+ {
+ 	unsigned int cnt;
+ 	u8 bbp_val;
+-	char cal_val;
++	s8 cal_val;
+ 
+ 	rt2800_bbp_dcoc_write(rt2x00dev, 0, 0x82);
+ 
+@@ -10181,7 +10181,7 @@ static void rt2800_bw_filter_calibration(struct rt2x00_dev *rt2x00dev,
+ 	u8 rx_filter_target_20m = 0x27, rx_filter_target_40m = 0x31;
+ 	int loop = 0, is_ht40, cnt;
+ 	u8 bbp_val, rf_val;
+-	char cal_r32_init, cal_r32_val, cal_diff;
++	s8 cal_r32_init, cal_r32_val, cal_diff;
+ 	u8 saverfb5r00, saverfb5r01, saverfb5r03, saverfb5r04, saverfb5r05;
+ 	u8 saverfb5r06, saverfb5r07;
+ 	u8 saverfb5r08, saverfb5r17, saverfb5r18, saverfb5r19, saverfb5r20;
+@@ -11698,9 +11698,9 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *default_power1;
+-	char *default_power2;
+-	char *default_power3;
++	s8 *default_power1;
++	s8 *default_power2;
++	s8 *default_power3;
+ 	unsigned int i, tx_chains, rx_chains;
+ 	u32 reg;
+ 
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
+index 720d1a3..663f7a9 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
+@@ -43,10 +43,10 @@ struct rf_reg_pair {
+ struct rt2800_drv_data {
+ 	u8 calibration_bw20;
+ 	u8 calibration_bw40;
+-	char rx_calibration_bw20;
+-	char rx_calibration_bw40;
+-	char tx_calibration_bw20;
+-	char tx_calibration_bw40;
++	s8 rx_calibration_bw20;
++	s8 rx_calibration_bw40;
++	s8 tx_calibration_bw20;
++	s8 tx_calibration_bw40;
+ 	u8 bbp25;
+ 	u8 bbp26;
+ 	u8 txmixer_gain_24g;
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00usb.c b/drivers/net/wireless/ralink/rt2x00/rt2x00usb.c
+index dd74cae..b19f06e 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00usb.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00usb.c
+@@ -125,12 +125,12 @@ int rt2x00usb_vendor_request_buff(struct rt2x00_dev *rt2x00dev,
+ 				  const u16 buffer_length)
+ {
+ 	int status = 0;
+-	unsigned char *tb;
++	u8 *tb;
+ 	u16 off, len, bsize;
+ 
+ 	mutex_lock(&rt2x00dev->csr_mutex);
+ 
+-	tb  = (char *)buffer;
++	tb  = (u8 *)buffer;
+ 	off = offset;
+ 	len = buffer_length;
+ 	while (len && !status) {
+@@ -223,7 +223,7 @@ void rt2x00usb_register_read_async(struct rt2x00_dev *rt2x00dev,
+ 	rd->cr.wLength = cpu_to_le16(sizeof(u32));
+ 
+ 	usb_fill_control_urb(urb, usb_dev, usb_rcvctrlpipe(usb_dev, 0),
+-			     (unsigned char *)(&rd->cr), &rd->reg, sizeof(rd->reg),
++			     (u8 *)(&rd->cr), &rd->reg, sizeof(rd->reg),
+ 			     rt2x00usb_register_read_async_cb, rd);
+ 	usb_anchor_urb(urb, rt2x00dev->anchor);
+ 	if (usb_submit_urb(urb, GFP_ATOMIC) < 0) {
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt61pci.c b/drivers/net/wireless/ralink/rt2x00/rt61pci.c
+index ec35b79..174f36f 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt61pci.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt61pci.c
+@@ -1720,7 +1720,7 @@ static int rt61pci_set_state(struct rt2x00_dev *rt2x00dev, enum dev_state state)
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
++	bool put_to_sleep;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -2663,7 +2663,7 @@ static int rt61pci_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt61pci.h b/drivers/net/wireless/ralink/rt2x00/rt61pci.h
+index ab86415..741bc40 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt61pci.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt61pci.h
+@@ -1495,6 +1495,6 @@ struct hw_pairwise_ta_entry {
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT61PCI_H */
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt73usb.c b/drivers/net/wireless/ralink/rt2x00/rt73usb.c
+index a4d3726..a1c7b6c 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt73usb.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt73usb.c
+@@ -1389,7 +1389,7 @@ static int rt73usb_set_state(struct rt2x00_dev *rt2x00dev, enum dev_state state)
+ {
+ 	u32 reg, reg2;
+ 	unsigned int i;
+-	char put_to_sleep;
++	bool put_to_sleep;
+ 
+ 	put_to_sleep = (state != STATE_AWAKE);
+ 
+@@ -2101,7 +2101,7 @@ static int rt73usb_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+ {
+ 	struct hw_mode_spec *spec = &rt2x00dev->spec;
+ 	struct channel_info *info;
+-	char *tx_power;
++	u8 *tx_power;
+ 	unsigned int i;
+ 
+ 	/*
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt73usb.h b/drivers/net/wireless/ralink/rt2x00/rt73usb.h
+index 4a4f235..1e5d7b8 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt73usb.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt73usb.h
+@@ -1074,6 +1074,6 @@ struct hw_pairwise_ta_entry {
+ 	(((u8)(__txpower)) > MAX_TXPOWER) ? DEFAULT_TXPOWER : (__txpower)
+ 
+ #define TXPOWER_TO_DEV(__txpower) \
+-	clamp_t(char, __txpower, MIN_TXPOWER, MAX_TXPOWER)
++	clamp_t(u8, __txpower, MIN_TXPOWER, MAX_TXPOWER)
+ 
+ #endif /* RT73USB_H */
+-- 
+2.25.1
+
