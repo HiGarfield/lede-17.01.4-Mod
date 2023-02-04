@@ -1,0 +1,36 @@
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -8728,7 +8728,7 @@ EXPORT_SYMBOL_GPL(rt2800_r_calibration);
+ void rt2800_rxdcoc_calibration(struct rt2x00_dev *rt2x00dev)
+ {
+ 	u8 bbpreg = 0;
+-	u32 macvalue = 0, macvalue1 = 0;
++	u32 macvalue = 0;
+ 	u8 saverfb0r2, saverfb5r4, saverfb7r4, rfvalue;
+ 	int i;
+ 
+@@ -8745,13 +8745,8 @@ void rt2800_rxdcoc_calibration(struct rt2x00_dev *rt2x00dev)
+ 	macvalue = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
+ 	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, 0x8);
+ 
+-	for (i = 0; i < 10000; i++) {
+-		macvalue1 = rt2800_register_read(rt2x00dev, MAC_STATUS_CFG);
+-		if (macvalue1 & 0x1)
+-			usleep_range(50, 100);
+-		else
+-			break;
+-	}
++	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_TX)))
++		rt2x00_warn(rt2x00dev, "RF TX busy in RX RXDCOC calibration\n");
+ 
+ 	saverfb5r4 = rt2800_rfcsr_read_bank(rt2x00dev, 5, 4);
+ 	saverfb7r4 = rt2800_rfcsr_read_bank(rt2x00dev, 7, 4);
+@@ -12240,7 +12235,7 @@ int rt2800_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 	 * when the hw reorders frames due to aggregation.
+ 	 */
+ 	if (sta_priv->wcid > WCID_END)
+-		return 1;
++		return -ENOSPC;
+ 
+ 	switch (action) {
+ 	case IEEE80211_AMPDU_RX_START:
