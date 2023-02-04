@@ -35278,7 +35278,7 @@ Description:   This package contains the Open vSwitch kernel moodule and bridge 
 Source-Makefile: feeds/packages/net/p910nd/Makefile
 Package: p910nd
 Submenu: Printing
-Version: 0.97-6
+Version: 0.97-7
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -35288,7 +35288,7 @@ Category: Network
 Repository: base
 Title: A small non-spooling printer server
 Maintainer: Philipp Kerling <pkerling@casix.org>
-Source: p910nd-0.97.tar.bz2
+Source: p910nd-0.97.tar.xz
 License: GPLv2
 LicenseFiles: COPYING
 Type: ipkg
