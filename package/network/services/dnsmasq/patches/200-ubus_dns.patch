@@ -13,7 +13,7 @@
  		 s->tcpfd = -1; 
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -1630,14 +1630,26 @@ void emit_dbus_signal(int action, struct dhcp_lease *lease, char *hostname);
+@@ -1631,14 +1631,26 @@ void emit_dbus_signal(int action, struct dhcp_lease *lease, char *hostname);
  
  /* ubus.c */
  #ifdef HAVE_UBUS
