@@ -679,6 +679,9 @@ ramips_board_detect() {
 	*"100MI NETBOX HD51-N")
 		name="hd51-n"
 		;;
+	*"DomyWifi DW22D")
+		name="dw22d"
+		;;
 	*)
 		name="generic"
 		;;

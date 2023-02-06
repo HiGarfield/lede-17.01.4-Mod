@@ -422,6 +422,17 @@ hd51-n)
 	set_wifi_led "$board:green:wlan2g"
 	set_usb_led "$board:green:usb"
 	;;
+dw22d)
+	ucidef_set_led_netdev "internet" "internet" "$board:amber:internet" "eth0.2"
+	ucidef_set_led_switch "lan1" "lan1" "$board:amber:lan1" "switch0" "0x02"
+	ucidef_set_led_switch "lan2" "lan2" "$board:amber:lan2" "switch0" "0x04"
+	ucidef_set_led_switch "lan3" "lan3" "$board:amber:lan3" "switch0" "0x08"
+	ucidef_set_led_switch "lan4" "lan4" "$board:amber:lan4" "switch0" "0x10"
+	ucidef_set_led_switch "wan" "wan" "$board:amber:wan" "switch0" "0x01"
+	ucidef_set_led_wlan "wlan2g" "wlan2g" "$board:green:wlan2g" "phy1tpt"
+	ucidef_set_led_default "system_amber" "system_amber" "$board:amber:system" "0"
+	ucidef_set_led_default "system_green" "system_green" "$board:green:system" "1"
+	;;
 esac
 
 board_config_flush

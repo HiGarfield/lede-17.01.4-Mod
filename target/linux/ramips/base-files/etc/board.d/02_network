@@ -158,7 +158,8 @@ ramips_setup_interfaces()
 	zbt-wa05|\
 	a3004ns|\
 	wr1200js|\
-	hw24g)
+	hw24g|\
+	dw22d)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:lan" "0:wan" "6@eth0"
 		;;
@@ -329,7 +330,8 @@ ramips_setup_macs()
 	carambola|\
 	freestation5|\
 	w502u|\
-	wnce2001)
+	wnce2001|\
+	dw22d)
 		wan_mac=$(mtd_get_mac_binary factory 46)
 		;;
 	bc2|\
