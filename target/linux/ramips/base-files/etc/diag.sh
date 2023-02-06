@@ -260,6 +260,9 @@ get_status_led() {
 	zbt-cpe102)
 		status_led="$board:green:4g-0"
 		;;
+	dw22d)
+		status_led="$board:amber:system"
+		;;
 	esac
 }
 

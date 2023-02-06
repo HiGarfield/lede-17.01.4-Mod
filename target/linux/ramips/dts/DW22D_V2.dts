@@ -1,0 +1,168 @@
+/dts-v1/;
+
+#include "mt7620a.dtsi"
+
+#include <dt-bindings/gpio/gpio.h>
+#include <dt-bindings/input/input.h>
+
+/ {
+	compatible = "DW22D", "ralink,mt7620a-soc";
+	model = "DomyWifi DW22D";
+
+	gpio-leds {
+		compatible = "gpio-leds";
+
+		system_green {
+			label = "dw22d:green:system";
+			gpios = <&gpio1 6 GPIO_ACTIVE_LOW>;
+		};
+
+		system_amber {
+			label = "dw22d:amber:system";
+			gpios = <&gpio1 2 GPIO_ACTIVE_LOW>;
+		};
+
+		internet_green {
+			label = "dw22d:green:internet";
+			gpios = <&gpio1 0 GPIO_ACTIVE_LOW>;
+		};
+
+		internet_amber {
+			label = "dw22d:amber:internet";
+			gpios = <&gpio1 5 GPIO_ACTIVE_LOW>;
+		};
+
+		lan1 {
+			label = "dw22d:amber:lan1";
+			gpios = <&gpio1 3 GPIO_ACTIVE_LOW>;
+		};
+
+		lan2 {
+			label = "dw22d:amber:lan2";
+			gpios = <&gpio1 1 GPIO_ACTIVE_LOW>;
+		};
+
+		lan3 {
+			label = "dw22d:amber:lan3";
+			gpios = <&gpio1 4 GPIO_ACTIVE_LOW>;
+		};
+
+		lan4 {
+			label = "dw22d:amber:lan4";
+			gpios = <&gpio1 9 GPIO_ACTIVE_LOW>;
+		};
+
+		wan {
+			label = "dw22d:amber:wan";
+			gpios = <&gpio1 7 GPIO_ACTIVE_LOW>;
+		};
+
+		wlan2g {
+			label = "dw22d:green:wlan2g";
+			gpios = <&gpio3 0 GPIO_ACTIVE_LOW>;
+		};
+	};
+
+	gpio-keys-polled {
+		compatible = "gpio-keys-polled";
+		#address-cells = <1>;
+		#size-cells = <0>;
+		poll-interval = <20>;
+		reset {
+			label = "reset";
+			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_RESTART>;
+		};
+	};
+};
+
+&gpio1 {
+	status = "okay";
+};
+
+&gpio3 {
+	status = "okay";
+};
+
+&spi0 {
+	status = "okay";
+
+	m25p80@0 {
+		#address-cells = <1>;
+		#size-cells = <1>;
+		compatible = "jedec,spi-nor";
+		reg = <0>;
+		spi-max-frequency = <10000000>;
+		m25p,fast-read;
+
+		partition@0 {
+			label = "u-boot";
+			reg = <0x0 0x30000>;
+		};
+
+		partition@30000 {
+			label = "u-boot-env";
+			reg = <0x30000 0x10000>;
+		};
+
+		factory: partition@40000 {
+			label = "factory";
+			reg = <0x40000 0x10000>;
+		};
+
+		partition@50000 {
+			label = "firmware";
+			reg = <0x50000 0xfb0000>;
+		};
+	};
+};
+
+&pinctrl {
+	state_default: pinctrl0 {
+		gpio {
+			ralink,group = "uartf", "rgmii1", "wled";
+			ralink,function = "gpio";
+		};
+	};
+};
+
+&ethernet {
+	pinctrl-names = "default";
+	pinctrl-0 = <&ephy_pins>;
+	mtd-mac-address = <&factory 0x28>;
+	mediatek,portmap = "wllll";
+};
+
+&sdhci {
+	status = "okay";
+};
+
+&ehci {
+	status = "okay";
+};
+
+&ohci {
+	status = "okay";
+};
+
+&pcie {
+	status = "okay";
+
+	pcie-bridge {
+		mt76@0,0 {
+			reg = <0x0000 0 0 0 0>;
+			device_type = "pci";
+			mediatek,mtd-eeprom = <&factory 0x8000>;
+			ieee80211-freq-limit = <5000000 6000000>;
+
+			led {
+				led-sources = <0>;
+				led-active-low;
+			};
+		};
+	};
+};
+
+&wmac {
+	ralink,mtd-eeprom = <&factory 0x0>;
+};

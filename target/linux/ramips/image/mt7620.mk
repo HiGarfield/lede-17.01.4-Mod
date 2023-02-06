@@ -498,3 +498,21 @@ define Device/hd51-n
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci-mt7620 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += hd51-n
+
+define Device/domywifi-dw22d-v1
+  DTS := DW22D_V1
+  SUPPORTED_DEVICES := dw22d
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := DomyWifi DW22D
+  DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-usb-ohci kmod-sdhci kmod-sdhci-mt7620 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += domywifi-dw22d-v1
+
+define Device/domywifi-dw22d-v2
+  DTS := DW22D_V2
+  SUPPORTED_DEVICES := dw22d
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := DomyWifi DW22D
+  DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-usb-ohci kmod-sdhci kmod-sdhci-mt7620 kmod-usb-ledtrig-usbport
+endef
+TARGET_DEVICES += domywifi-dw22d-v2
