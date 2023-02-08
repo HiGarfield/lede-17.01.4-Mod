@@ -1,6 +1,10 @@
 #!/bin/sh
 . /usr/share/libubox/jshn.sh
 
+_log() {
+	logger -t "force-unmount" "$1"
+}
+
 # compare_pid process_id pid
 # 当process_id与pid相等，或process_id是pid子进程时返回0，否则返回1
 compare_pid() {
@@ -49,22 +53,27 @@ stop_occupying_service() {
 				json_select ..
 			fi
 			[ $kill_flag -eq 1 ] && {
-				echo "force-unmount: stopping service: ${service}" >&2
+				_log "stopping service: ${service}"
 				/etc/init.d/$service stop
 			}
 		done
 	done
 }
 
-# kill_occupying_process mount_point
+# kill_occupying_process mount_point force_kill
 # 结束所有占用挂载点的进程
-# example: kill_occupying_process /mnt/sda1
+# example: kill_occupying_process /mnt/sda1 1
 kill_occupying_process() {
-	local mountpoint process_id
+	local mountpoint process_id force_kill
 	mountpoint="$1"
+	force_kill="$2"
 	for process_id in $(lsof -t "$mountpoint"); do
-		echo "force-unmount: killing process: $(cat /proc/$process_id/comm)" >&2
-		kill -9 $process_id
+		_log "killing process: $(cat /proc/$process_id/comm)"
+		if [ "$force_kill" -eq 1 ]; then
+			kill -9 "$process_id"
+		else
+			kill "$process_id"
+		fi
 	done
 }
 
@@ -77,26 +86,30 @@ MAX_TRY=5
 mountpoint="$(echo "$1" | sed -e 's#/\+#/#g' -e 's#/*[[:space:]]*$##g')"
 
 [ -e "$mountpoint" ] || {
-	echo "force-unmount: can't unmount ${mountpoint}: No such file or directory" >&2
+	_log "can't unmount ${mountpoint}: No such file or directory"
 	exit 1
 }
 
 if awk '{print $2}' /proc/mounts | grep -q "^${mountpoint}$"; then
 	for try_count in $(seq $MAX_TRY); do
-		echo "force-unmount: unmounting ${mountpoint}: try count: ${try_count}" >&2
+		_log "unmounting ${mountpoint}: try count: ${try_count}"
 		stop_occupying_service "$mountpoint"
-		kill_occupying_process "$mountpoint"
+		if [ "$try_count" -gt 1 ] || [ "$try_count" -eq "$MAX_TRY" ]; then
+			kill_occupying_process "$mountpoint" 1
+		else
+			kill_occupying_process "$mountpoint" 0
+		fi
 		sync
 		umount "$mountpoint"
 		exit_code="$?"
 		[ "$exit_code" -eq 0 ] && {
-			echo "force-unmount: ${mountpoint} successfully unmounted" >&2
+			_log "${mountpoint} successfully unmounted"
 			exit 0
 		}
 	done
-	echo "force-unmount: can't unmount ${mountpoint}" >&2
+	_log "can't unmount ${mountpoint}"
 	exit "$exit_code"
 else
-	echo "force-unmount: ${mountpoint} is not mounted" >&2
+	_log "${mountpoint} is not mounted"
 	exit 1
 fi
