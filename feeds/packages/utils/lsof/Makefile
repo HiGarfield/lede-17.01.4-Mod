@@ -9,13 +9,11 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=lsof
-PKG_VERSION:=4.94.0
-PKG_RELEASE:=1
 
-PKG_SOURCE:=$(PKG_NAME)_$(PKG_VERSION).linux.tar.bz2
-PKG_SOURCE_URL:=https://github.com/lsof-org/lsof/releases/download/$(PKG_VERSION)
-PKG_HASH:=c41709c2543ecf9de1e950795790a9786a2f225e51c3cc53d6a9a256f872472b
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)_$(PKG_VERSION).linux
+PKG_SOURCE_PROTO:=git
+PKG_SOURCE_URL:=https://github.com/lsof-org/lsof.git
+PKG_SOURCE_VERSION:=568b7e245fe6519431b07deb9688b5cf44681030
+PKG_MIRROR_HASH:=skip
 
 PKG_MAINTAINER:=Maxim Storchak <m.storchak@gmail.com>
 PKG_LICENSE:=Unique
