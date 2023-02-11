@@ -1,0 +1,43 @@
+From f950d95eeb23123033aa35aa759aacf111e12c45 Mon Sep 17 00:00:00 2001
+From: Peter Kosyh <pkosyh@yandex.ru>
+Date: Mon, 3 Oct 2022 12:12:17 +0300
+Subject: [PATCH 2/7] wifi: ath10k: Check return value of ath10k_get_arvif() in
+ ath10k_wmi_event_tdls_peer()
+
+Return value of a function ath10k_get_arvif() is dereferenced without
+checking for null in ath10k_wmi_event_tdls_peer(), but it is usually checked
+for this function.
+
+Make ath10k_wmi_event_tdls_peer() do check retval of ath10k_get_arvif().
+
+Found by Linux Verification Center (linuxtesting.org) with SVACE.
+
+Signed-off-by: Peter Kosyh <pkosyh@yandex.ru>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://lore.kernel.org/r/20221003091217.322598-1-pkosyh@yandex.ru
+---
+ drivers/net/wireless/ath/ath10k/wmi-tlv.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/net/wireless/ath/ath10k/wmi-tlv.c b/drivers/net/wireless/ath/ath10k/wmi-tlv.c
+index 77aff5e..7bcb245 100644
+--- a/drivers/net/wireless/ath/ath10k/wmi-tlv.c
++++ b/drivers/net/wireless/ath/ath10k/wmi-tlv.c
+@@ -457,7 +457,14 @@ static void ath10k_wmi_event_tdls_peer(struct ath10k *ar, struct sk_buff *skb)
+ 			ath10k_warn(ar, "did not find station from tdls peer event");
+ 			goto exit;
+ 		}
++
+ 		arvif = ath10k_get_arvif(ar, __le32_to_cpu(ev->vdev_id));
++		if (!arvif) {
++			ath10k_warn(ar, "no vif for vdev_id %d found",
++				    __le32_to_cpu(ev->vdev_id));
++			goto exit;
++		}
++
+ 		ieee80211_tdls_oper_request(
+ 					arvif->vif, station->addr,
+ 					NL80211_TDLS_TEARDOWN,
+-- 
+2.25.1
+
