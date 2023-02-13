@@ -8,17 +8,21 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=wget
-PKG_VERSION:=1.19.2
+PKG_VERSION:=1.21.3
 PKG_RELEASE:=2
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
 PKG_SOURCE_URL:=@GNU/$(PKG_NAME)
-PKG_HASH:=4f4a673b6d466efa50fbfba796bd84a46ae24e370fa562ede5b21ab53c11a920
-PKG_MAINTAINER:=Peter Wagner <tripolar@gmx.at>
-PKG_LICENSE:=GPL-3.0+
-PKG_LICENSE_FILES:=COPYING
+PKG_HASH:=5726bb8bc5ca0f6dc7110f6416e4bb7019e2d2ff5bf93d1ca2ffcc6656f220e5
 
-PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(BUILD_VARIANT)/$(PKG_NAME)-$(PKG_VERSION)
+PKG_MAINTAINER:=
+PKG_LICENSE:=GPL-3.0-or-later
+PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:gnu:wget
+
+PKG_FIXUP:=autoreconf
+PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -66,8 +70,10 @@ endef
 CONFIGURE_ARGS+= \
 	--disable-rpath \
 	--disable-iri \
+	--disable-pcre2 \
 	--with-included-libunistring \
-	--without-libuuid
+	--without-libuuid \
+	--without-libpsl
 
 CONFIGURE_VARS += \
 	ac_cv_header_uuid_uuid_h=no
@@ -76,6 +82,9 @@ ifeq ($(BUILD_VARIANT),ssl)
 	CONFIGURE_ARGS+= \
 		--with-ssl=openssl \
 		--with-libssl-prefix="$(STAGING_DIR)/usr"
+
+	CONFIGURE_VARS += \
+		ac_cv_libssl=yes
 endif
 
 ifeq ($(BUILD_VARIANT),nossl)
@@ -86,14 +95,14 @@ endif
 
 define Package/wget/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/wget $(1)/usr/bin/wget-ssl
-	ln -sf wget-ssl $(1)/usr/bin/wget
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/wget $(1)/usr/bin/wget-ssl
+	$(LN) wget-ssl $(1)/usr/bin/wget
 endef
 
 define Package/wget-nossl/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/src/wget $(1)/usr/bin/wget-nossl
-	ln -sf wget-nossl $(1)/usr/bin/wget
+	$(INSTALL_BIN) $(PKG_INSTALL_DIR)/usr/bin/wget $(1)/usr/bin/wget-nossl
+	$(LN) wget-nossl $(1)/usr/bin/wget
 endef
 
 $(eval $(call BuildPackage,wget))
