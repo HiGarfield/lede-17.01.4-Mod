@@ -80,7 +80,6 @@ general_config_load() {
 		apply_cfg
 		exit 1
 	}
-	config_get_bool old_frame 'config' 'old_frame' 1
 	config_get wannum 'config' 'wannum' 2
 
 	config_load 'network'
@@ -127,20 +126,15 @@ general_config_remove
 general_config_load
 
 uci set network.wan.metric=40
-if [ "$old_frame" -eq 1 ]; then
-	uci set network.wan.proto=none
-	ifname=$(uci get network.wan.ifname)
-	for i in $(seq 1 "$wannum"); do
-		ip link add link "$ifname" name "macvlan$i" type macvlan
-		ifconfig "macvlan$i" hw ether "$(sed -e "s/\(:[^:]*\)\{3\}$/$(hexdump -n 3 -ve '1/1 ":%02x"' /dev/urandom)/" -e "s/ff/fe/g" -e "s/00/01/g" "/sys/class/net/$ifname/address")"
-		ifconfig "macvlan$i" up
-	done
-else
-	mwan_cfg_add wan
-fi
+uci set network.wan.proto=none
+ifname=$(uci get network.wan.ifname)
+for i in $(seq 1 "$wannum"); do
+	ip link add link "$ifname" name "macvlan$i" type macvlan
+	ifconfig "macvlan$i" hw ether "$(sed -e "s/\(:[^:]*\)\{3\}$/$(hexdump -n 3 -ve '1/1 ":%02x"' /dev/urandom)/" -e "s/ff/fe/g" -e "s/00/01/g" "/sys/class/net/$ifname/address")"
+	ifconfig "macvlan$i" up
+done
 
 for i in $(seq 1 "$wannum"); do
-	[ "$old_frame" -eq 0 ] && macvlan_dev_add "macvlan$i" "$pppoe_ifname"
 	pppoe_if_add "vwan$i" "macvlan$i" "$pppoe_user" "$pppoe_password" $((40 + i))
 	mwan_cfg_add "vwan$i"
 done
