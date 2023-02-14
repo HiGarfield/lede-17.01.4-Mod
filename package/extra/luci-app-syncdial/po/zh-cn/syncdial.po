@@ -16,9 +16,6 @@ msgstr "启用"
 msgid "Number of virtual WAN interfaces"
 msgstr "虚拟WAN接口数量"
 
-msgid "Use old macvlan method"
-msgstr "使用旧的macvlan创建方式"
-
 msgid "Redial"
 msgstr "重新拨号"
 

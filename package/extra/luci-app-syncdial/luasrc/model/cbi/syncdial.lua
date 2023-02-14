@@ -35,8 +35,6 @@ dialwait = s:option(Value, "dialwait", translate("Time waiting before redial"), 
 dialwait.datatype = "and(uinteger,min(5))"
 dialwait.optional = false
 
-s:option(Flag, "old_frame", translate("Use old macvlan method")).rmempty = false
-
 o = s:option(DummyValue, "_redial", translate("Redial"))
 o.template = "syncdial/redial_button"
 o.width = "10%"

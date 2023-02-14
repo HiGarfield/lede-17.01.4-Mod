@@ -6,7 +6,6 @@ if [ "$ACTION" = "ifdown" ]; then
 elif [ "$ACTION" = "ifup" ]; then
 	ifname=$(uci get network.wan.ifname)
 	[ "$(uci get syncdial.config.enabled)" -eq 1 ] &&
-		[ "$(uci get syncdial.config.old_frame)" -eq 1 ] &&
 		[ "$DEVICE" = "$ifname" ] && {
 		wannum=$(uci get syncdial.config.wannum)
 		for i in $(seq 1 "$wannum"); do
