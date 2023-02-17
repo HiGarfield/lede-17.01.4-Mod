@@ -107,6 +107,7 @@ uci -q batch <<-EOF >/dev/null
 	set dhcp.lan.ra_default='1'
 	set dhcp.odhcpd.loglevel='3'
 	commit dhcp
+	delete network.globals.ula_prefix
 	set network.wan.mtu='1492'
 	commit network
 EOF
