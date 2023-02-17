@@ -2,6 +2,7 @@
 
 cat >/etc/sysctl.d/99-tuning.conf <<-EOF
 	net.ipv4.tcp_fastopen = 3
+	net.ipv6.conf.br-lan.accept_ra = 1
 EOF
 
 mem="$(awk '/^MemTotal:/{print $2}' /proc/meminfo)"
