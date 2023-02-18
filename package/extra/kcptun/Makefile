@@ -48,6 +48,11 @@ define Package/kcptun/Default
   This package contains the kcptun $(1).
   endef
 
+  define Build/Compile
+	$$(call GoPackage/Build/Compile)
+	$$(UPX) $$(GO_PKG_BUILD_BIN_DIR)/$(1)
+  endef
+
   define Package/kcptun-$(1)/install
 	$$(call GoPackage/Package/Install/Bin,$$(PKG_INSTALL_DIR))
 
