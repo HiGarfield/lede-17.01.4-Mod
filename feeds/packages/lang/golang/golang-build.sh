@@ -135,11 +135,6 @@ build() {
 		retval=1
 	fi
 
-	if [ "$retval" -eq 0 ] && ! "$STAGING_DIR_HOST/bin/upx" --lzma --best "$GO_BUILD_BIN_DIR"/*; then
-		log_error "Fail to compress binaries with UPX"
-		retval=1
-	fi
-
 	if [ "$retval" -ne 0 ]; then
 		cache_cleanup
 	fi
