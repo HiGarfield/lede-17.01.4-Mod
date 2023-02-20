@@ -126,7 +126,7 @@ transmission() {
 	config_get config_dir "$cfg" 'config_dir' '/var/etc/transmission'
 	config_get user "$cfg" 'user' 'root'
 	config_get mem_percentage "$cfg" 'mem_percentage' '50'
-	config_get config_overwrite "$cfg" config_overwrite 1
+	config_get_bool config_overwrite "$cfg" config_overwrite 1
 	config_get nice "$cfg" nice 0
 
 	local MEM=$(sed -ne 's!^MemTotal:[[:space:]]*\([0-9]*\) kB$!\1!p' /proc/meminfo)
