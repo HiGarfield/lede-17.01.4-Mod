@@ -32,7 +32,6 @@ PKG_CONFIG_DEPENDS:= \
 	CONFIG_LIBCURL_NOSSL
 
 include $(INCLUDE_DIR)/package.mk
-include $(INCLUDE_DIR)/nls.mk
 
 define Package/transmission/template
   SUBMENU:=BitTorrent
@@ -40,7 +39,7 @@ define Package/transmission/template
   CATEGORY:=Network
   TITLE:=BitTorrent client
   URL:=http://www.transmissionbt.com
-  DEPENDS:=+libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls $(ICONV_DEPENDS) +block-mount
+  DEPENDS:=+libcurl +libevent2 +libminiupnpc +libnatpmp +libpthread +librt +zlib +LIBCURL_NOSSL:libmbedtls +LIBCURL_GNUTLS:libmbedtls +block-mount
 endef
 
 define Package/transmission-daemon
@@ -90,7 +89,7 @@ define Package/transmission-daemon/conffiles
 endef
 
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections -Wl,--as-needed -liconv
+TARGET_LDFLAGS += -Wl,--gc-sections -Wl,--as-needed
 
 CONFIGURE_ARGS += \
 	--enable-cli \
