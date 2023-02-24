@@ -1,0 +1,37 @@
+From a61a2da65d5ae2a6cac34a5c7590122322418652 Mon Sep 17 00:00:00 2001
+From: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Date: Fri, 6 Jan 2023 10:27:31 +0800
+Subject: [PATCH] wifi: rt2x00: Remove useless else if
+
+The assignment of the else and else if branches is the same, so the else
+if here is redundant, so we remove it.
+
+./drivers/net/wireless/ralink/rt2x00/rt2800lib.c:8927:9-11: WARNING:
+possible condition with no effect (if == else).
+
+Link: https://bugzilla.openanolis.cn/show_bug.cgi?id=3631
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Signed-off-by: Jiapeng Chong <jiapeng.chong@linux.alibaba.com>
+Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20230106022731.111243-1-jiapeng.chong@linux.alibaba.com
+---
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+index e6cc711..f68d9e9 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -9009,8 +9009,6 @@ void rt2800_rxiq_calibration(struct rt2x00_dev *rt2x00dev)
+ 
+ 				if (i < 2 && (bbptemp & 0x800000))
+ 					result = (bbptemp & 0xffffff) - 0x1000000;
+-				else if (i == 4)
+-					result = bbptemp;
+ 				else
+ 					result = bbptemp;
+ 
+-- 
+2.25.1
+
