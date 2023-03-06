@@ -1,0 +1,35 @@
+From 02a8814e385ac633bf8b5fd368c876ab21a81be0 Mon Sep 17 00:00:00 2001
+From: Wenli Looi <wlooi@ucalgary.ca>
+Date: Sun, 20 Mar 2022 17:30:08 -0600
+Subject: [PATCH 5/9] ath9k: fix ar9003_get_eepmisc
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The current implementation is reading the wrong eeprom type.
+
+Fixes: d8ec2e2a63e8 ("ath9k: Add an eeprom_ops callback for retrieving the eepmisc value")
+Signed-off-by: Wenli Looi <wlooi@ucalgary.ca>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://lore.kernel.org/r/20220320233010.123106-5-wlooi@ucalgary.ca
+---
+ drivers/net/wireless/ath/ath9k/ar9003_eeprom.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c b/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c
+index d59a3f0..9d2402a 100644
+--- a/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c
++++ b/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c
+@@ -5615,7 +5615,7 @@ unsigned int ar9003_get_paprd_scale_factor(struct ath_hw *ah,
+ 
+ static u8 ar9003_get_eepmisc(struct ath_hw *ah)
+ {
+-	return ah->eeprom.map4k.baseEepHeader.eepMisc;
++	return ah->eeprom.ar9300_eep.baseEepHeader.opCapFlags.eepMisc;
+ }
+ 
+ const struct eeprom_ops eep_ar9300_ops = {
+-- 
+2.25.1
+

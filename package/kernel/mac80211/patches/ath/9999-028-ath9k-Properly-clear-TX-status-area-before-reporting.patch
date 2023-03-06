@@ -1,0 +1,50 @@
+From 7cb72c8ab71aa528a3a315cea180e4a2cf6bfc8a Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Tue, 7 Mar 2023 01:33:44 +0800
+Subject: [PATCH 6/9] ath9k: Properly clear TX status area before reporting to
+ mac80211
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+The ath9k driver was not properly clearing the status area in the
+ieee80211_tx_info struct before reporting TX status to mac80211. Instead,
+it was manually filling in fields, which meant that fields introduced later
+were left as-is.
+
+Conveniently, mac80211 actually provides a helper to zero out the status
+area, so use that to make sure we zero everything.
+
+The last commit touching the driver function writing the status information
+seems to have actually been fixing an issue that was also caused by the
+area being uninitialised; but it only added clearing of a single field
+instead of the whole struct. That is now redundant, though, so revert that
+commit and use it as a convenient Fixes tag.
+
+Fixes: cc591d7 ("ath9k: Make sure to zero status.tx_time before reporting TX status")
+Reported-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Cc: <stable@vger.kernel.org>
+Signed-off-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Tested-by: Bagas Sanjaya <bagasdotme@gmail.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20220330164409.16645-1-toke@toke.dk
+---
+ drivers/net/wireless/ath/ath9k/xmit.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
+index ce0f3f1..406312d 100644
+--- a/drivers/net/wireless/ath/ath9k/xmit.c
++++ b/drivers/net/wireless/ath/ath9k/xmit.c
+@@ -2610,6 +2610,8 @@ static void ath_tx_rc_status(struct ath_softc *sc, struct ath_buf *bf,
+ 	struct ath_hw *ah = sc->sc_ah;
+ 	u8 i, tx_rateindex;
+ 
++	ieee80211_tx_info_clear_status(tx_info);
++
+ 	if (txok)
+ 		tx_info->status.ack_signal = ts->ts_rssi;
+ 
+-- 
+2.25.1
+
