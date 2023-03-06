@@ -1,0 +1,41 @@
+From 6a97944b3c01c1e8e0f5c5d513f6e80805ff23e2 Mon Sep 17 00:00:00 2001
+From: Peter Seiderer <ps.report@gmx.net>
+Date: Sat, 2 Apr 2022 17:30:13 +0200
+Subject: [PATCH 8/9] ath9k: fix ath_get_rate_txpower() to respect the rate
+ list end tag
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Stop reading (and copying) from ieee80211_tx_rate to ath_tx_info.rates
+after list end tag (count == 0, idx < 0), prevents copying of garbage
+to card registers.
+
+Note: no need to write to the remaining ath_tx_info.rates entries
+as the complete ath_tx_info struct is already initialized to zero from
+both call sites.
+
+Signed-off-by: Peter Seiderer <ps.report@gmx.net>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://lore.kernel.org/r/20220402153014.31332-1-ps.report@gmx.net
+---
+ drivers/net/wireless/ath/ath9k/xmit.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
+index 5fe0e65..dfbc5e3 100644
+--- a/drivers/net/wireless/ath/ath9k/xmit.c
++++ b/drivers/net/wireless/ath/ath9k/xmit.c
+@@ -1283,7 +1283,7 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
+ 		int phy;
+ 
+ 		if (!rates[i].count || (rates[i].idx < 0))
+-			continue;
++			break;
+ 
+ 		rix = rates[i].idx;
+ 		info->rates[i].Tries = rates[i].count;
+-- 
+2.25.1
+
