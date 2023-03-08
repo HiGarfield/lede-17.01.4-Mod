@@ -25,12 +25,3 @@
  
  	saverfb5r4 = rt2800_rfcsr_read_bank(rt2x00dev, 5, 4);
  	saverfb7r4 = rt2800_rfcsr_read_bank(rt2x00dev, 7, 4);
-@@ -12240,7 +12235,7 @@ int rt2800_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
- 	 * when the hw reorders frames due to aggregation.
- 	 */
- 	if (sta_priv->wcid > WCID_END)
--		return 1;
-+		return -ENOSPC;
- 
- 	switch (action) {
- 	case IEEE80211_AMPDU_RX_START:
