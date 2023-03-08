@@ -1,0 +1,373 @@
+From 517d0b0b94f2f55be3a492890578ca87d1b9b018 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 9 Mar 2023 01:05:02 +0800
+Subject: [PATCH] mac80211: simplify TX aggregation start
+
+There really is no need to make drivers call the
+ieee80211_start_tx_ba_cb_irqsafe() function and then
+schedule the worker if all we want is to set a bit.
+
+Add a new return value (that was previously considered
+invalid) to indicate that the driver is immediately
+ready for the session, and make drivers use it. The
+only drivers that remain different are the Intel ones
+as they need to negotiate more with the firmware.
+
+Link: https://lore.kernel.org/r/1570007543-I152912660131cbab2e5d80b4218238c20f8a06e5@changeid
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+ drivers/net/wireless/ath/ath9k/htc_drv_main.c         |  2 +-
+ drivers/net/wireless/ath/ath9k/main.c                 |  2 +-
+ drivers/net/wireless/ath/carl9170/main.c              |  3 +--
+ drivers/net/wireless/ath/wcn36xx/main.c               |  5 +++--
+ .../broadcom/brcm80211/brcmsmac/mac80211_if.c         |  3 +--
+ drivers/net/wireless/intel/iwlegacy/4965-mac.c        |  2 +-
+ drivers/net/wireless/intel/iwlwifi/dvm/tx.c           |  2 +-
+ drivers/net/wireless/intel/iwlwifi/mvm/sta.c          |  4 ++--
+ drivers/net/wireless/intel/iwlwifi/mvm/tx.c           |  2 +-
+ drivers/net/wireless/mac80211_hwsim.c                 |  3 +--
+ drivers/net/wireless/marvell/mwl8k.c                  |  2 +-
+ drivers/net/wireless/mediatek/mt76/mt76x0/main.c      |  2 +-
+ drivers/net/wireless/mediatek/mt76/mt76x2_common.c    |  3 +--
+ drivers/net/wireless/mediatek/mt7601u/main.c          |  3 +--
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.c        |  4 ++--
+ drivers/net/wireless/realtek/rtlwifi/base.c           |  3 +--
+ drivers/net/wireless/rsi/rsi_91x_mac80211.c           |  3 +--
+ drivers/staging/rtlwifi/base.c                        |  3 +--
+ include/net/mac80211.h                                | 11 +++++++++--
+ net/mac80211/agg-tx.c                                 |  9 ++++++++-
+ 20 files changed, 39 insertions(+), 32 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/htc_drv_main.c b/drivers/net/wireless/ath/ath9k/htc_drv_main.c
+index c3892a9..4188a4c 100644
+--- a/drivers/net/wireless/ath/ath9k/htc_drv_main.c
++++ b/drivers/net/wireless/ath/ath9k/htc_drv_main.c
+@@ -1674,7 +1674,7 @@ static int ath9k_htc_ampdu_action(struct ieee80211_hw *hw,
+ 	case IEEE80211_AMPDU_TX_START:
+ 		ret = ath9k_htc_tx_aggr_oper(priv, vif, sta, action, tid);
+ 		if (!ret)
+-			ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++			ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		break;
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH:
+diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
+index 66d09a6..7414ffd 100644
+--- a/drivers/net/wireless/ath/ath9k/main.c
++++ b/drivers/net/wireless/ath/ath9k/main.c
+@@ -2020,7 +2020,7 @@ static int ath9k_ampdu_action(struct ieee80211_hw *hw,
+ 		ath9k_ps_wakeup(sc);
+ 		ret = ath_tx_aggr_start(sc, sta, tid, ssn);
+ 		if (!ret)
+-			ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++			ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		ath9k_ps_restore(sc);
+ 		break;
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH:
+diff --git a/drivers/net/wireless/ath/carl9170/main.c b/drivers/net/wireless/ath/carl9170/main.c
+index 8a86a3e..721f41e 100644
+--- a/drivers/net/wireless/ath/carl9170/main.c
++++ b/drivers/net/wireless/ath/carl9170/main.c
+@@ -1441,8 +1441,7 @@ static int carl9170_op_ampdu_action(struct ieee80211_hw *hw,
+ 		rcu_assign_pointer(sta_info->agg[tid], tid_info);
+ 		spin_unlock_bh(&ar->tx_ampdu_list_lock);
+ 
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-		break;
++		return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH:
+diff --git a/drivers/net/wireless/ath/wcn36xx/main.c b/drivers/net/wireless/ath/wcn36xx/main.c
+index eb5d08b..015cc83 100644
+--- a/drivers/net/wireless/ath/wcn36xx/main.c
++++ b/drivers/net/wireless/ath/wcn36xx/main.c
+@@ -1075,6 +1075,7 @@ static int wcn36xx_ampdu_action(struct ieee80211_hw *hw,
+ 	enum ieee80211_ampdu_mlme_action action = params->action;
+ 	u16 tid = params->tid;
+ 	u16 *ssn = &params->ssn;
++	int ret = 0;
+ 
+ 	wcn36xx_dbg(WCN36XX_DBG_MAC, "mac ampdu action action %d tid %d\n",
+ 		    action, tid);
+@@ -1097,7 +1098,7 @@ static int wcn36xx_ampdu_action(struct ieee80211_hw *hw,
+ 		sta_priv->ampdu_state[tid] = WCN36XX_AMPDU_START;
+ 		spin_unlock_bh(&sta_priv->ampdu_lock);
+ 
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++		ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		break;
+ 	case IEEE80211_AMPDU_TX_OPERATIONAL:
+ 		spin_lock_bh(&sta_priv->ampdu_lock);
+@@ -1122,7 +1123,7 @@ static int wcn36xx_ampdu_action(struct ieee80211_hw *hw,
+ 
+ 	mutex_unlock(&wcn->conf_mutex);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ static const struct ieee80211_ops wcn36xx_ops = {
+diff --git a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.c b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.c
+index f6cdeb9..65c653d 100644
+--- a/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.c
++++ b/drivers/net/wireless/broadcom/brcm80211/brcmsmac/mac80211_if.c
+@@ -850,8 +850,7 @@ brcms_ops_ampdu_action(struct ieee80211_hw *hw,
+ 				     "START: tid %d is not agg\'able\n", tid);
+ 			return -EINVAL;
+ 		}
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-		break;
++		return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH:
+diff --git a/drivers/net/wireless/intel/iwlegacy/4965-mac.c b/drivers/net/wireless/intel/iwlegacy/4965-mac.c
+index 3dca618..d6e3ea0 100644
+--- a/drivers/net/wireless/intel/iwlegacy/4965-mac.c
++++ b/drivers/net/wireless/intel/iwlegacy/4965-mac.c
+@@ -2281,7 +2281,7 @@ il4965_tx_agg_start(struct il_priv *il, struct ieee80211_vif *vif,
+ 	if (tid_data->tfds_in_queue == 0) {
+ 		D_HT("HW queue is empty\n");
+ 		tid_data->agg.state = IL_AGG_ON;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++		ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 	} else {
+ 		D_HT("HW queue is NOT empty: %d packets in HW queue\n",
+ 		     tid_data->tfds_in_queue);
+diff --git a/drivers/net/wireless/intel/iwlwifi/dvm/tx.c b/drivers/net/wireless/intel/iwlwifi/dvm/tx.c
+index e3f42c7..a7a1cd9 100644
+--- a/drivers/net/wireless/intel/iwlwifi/dvm/tx.c
++++ b/drivers/net/wireless/intel/iwlwifi/dvm/tx.c
+@@ -638,7 +638,7 @@ int iwlagn_tx_agg_start(struct iwl_priv *priv, struct ieee80211_vif *vif,
+ 		IWL_DEBUG_TX_QUEUES(priv, "Can proceed: ssn = next_recl = %d\n",
+ 				    tid_data->agg.ssn);
+ 		tid_data->agg.state = IWL_AGG_STARTING;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++		ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 	} else {
+ 		IWL_DEBUG_TX_QUEUES(priv, "Can't proceed: ssn %d, "
+ 				    "next_reclaimed = %d\n",
+diff --git a/drivers/net/wireless/intel/iwlwifi/mvm/sta.c b/drivers/net/wireless/intel/iwlwifi/mvm/sta.c
+index 373ace3..614213a 100644
+--- a/drivers/net/wireless/intel/iwlwifi/mvm/sta.c
++++ b/drivers/net/wireless/intel/iwlwifi/mvm/sta.c
+@@ -2559,12 +2559,12 @@ int iwl_mvm_sta_tx_agg_start(struct iwl_mvm *mvm, struct ieee80211_vif *vif,
+ 
+ 	if (normalized_ssn == tid_data->next_reclaimed) {
+ 		tid_data->state = IWL_AGG_STARTING;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++		ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 	} else {
+ 		tid_data->state = IWL_EMPTYING_HW_QUEUE_ADDBA;
++		rett = 0;
+ 	}
+ 
+-	ret = 0;
+ 	goto out;
+ 
+ release_locks:
+diff --git a/drivers/net/wireless/intel/iwlwifi/mvm/tx.c b/drivers/net/wireless/intel/iwlwifi/mvm/tx.c
+index d75371e..4ab8603 100644
+--- a/drivers/net/wireless/intel/iwlwifi/mvm/tx.c
++++ b/drivers/net/wireless/intel/iwlwifi/mvm/tx.c
+@@ -1235,7 +1235,7 @@ static void iwl_mvm_check_ratid_empty(struct iwl_mvm *mvm,
+ 				    "Can continue addBA flow ssn = next_recl = %d\n",
+ 				    tid_data->next_reclaimed);
+ 		tid_data->state = IWL_AGG_STARTING;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++		ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		break;
+ 
+ 	case IWL_EMPTYING_HW_QUEUE_DELBA:
+diff --git a/drivers/net/wireless/mac80211_hwsim.c b/drivers/net/wireless/mac80211_hwsim.c
+index c20d2ab..38524b6 100644
+--- a/drivers/net/wireless/mac80211_hwsim.c
++++ b/drivers/net/wireless/mac80211_hwsim.c
+@@ -2004,8 +2004,7 @@ static int mac80211_hwsim_ampdu_action(struct ieee80211_hw *hw,
+ 
+ 	switch (action) {
+ 	case IEEE80211_AMPDU_TX_START:
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-		break;
++		return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH:
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH_CONT:
+diff --git a/drivers/net/wireless/marvell/mwl8k.c b/drivers/net/wireless/marvell/mwl8k.c
+index ee84279..2341a0e 100644
+--- a/drivers/net/wireless/marvell/mwl8k.c
++++ b/drivers/net/wireless/marvell/mwl8k.c
+@@ -5518,7 +5518,7 @@ mwl8k_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 			rc = -EBUSY;
+ 			break;
+ 		}
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, addr, tid);
++		rc = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		break;
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH:
+diff --git a/drivers/net/wireless/mediatek/mt76/mt76x0/main.c b/drivers/net/wireless/mediatek/mt76/mt76x0/main.c
+index 22bc9d3..e0d36f7 100644
+--- a/drivers/net/wireless/mediatek/mt76/mt76x0/main.c
++++ b/drivers/net/wireless/mediatek/mt76/mt76x0/main.c
+@@ -347,7 +347,7 @@ mt76_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 		break;
+ 	case IEEE80211_AMPDU_TX_START:
+ 		msta->agg_ssn[tid] = *ssn << 4;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++		return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		break;
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 		ieee80211_stop_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+diff --git a/drivers/net/wireless/mediatek/mt76/mt76x2_common.c b/drivers/net/wireless/mediatek/mt76/mt76x2_common.c
+index a2338ba..9a4b95a 100644
+--- a/drivers/net/wireless/mediatek/mt76/mt76x2_common.c
++++ b/drivers/net/wireless/mediatek/mt76/mt76x2_common.c
+@@ -80,8 +80,7 @@ int mt76x2_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 		break;
+ 	case IEEE80211_AMPDU_TX_START:
+ 		mtxq->agg_ssn = *ssn << 4;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-		break;
++		return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 		mtxq->aggr = false;
+ 		ieee80211_stop_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+diff --git a/drivers/net/wireless/mediatek/mt7601u/main.c b/drivers/net/wireless/mediatek/mt7601u/main.c
+index 0f17890..65aba7a 100644
+--- a/drivers/net/wireless/mediatek/mt7601u/main.c
++++ b/drivers/net/wireless/mediatek/mt7601u/main.c
+@@ -380,8 +380,7 @@ mt76_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 		break;
+ 	case IEEE80211_AMPDU_TX_START:
+ 		msta->agg_ssn[tid] = *ssn << 4;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-		break;
++		return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 		ieee80211_stop_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+ 		break;
+diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+index 51d0ac1..bd885aa 100644
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -9660,7 +9660,7 @@ int rt2800_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 	 * when the hw reorders frames due to aggregation.
+ 	 */
+ 	if (sta_priv->wcid > WCID_END)
+-		return 1;
++		return -ENOSPC;
+ 
+ 	switch (action) {
+ 	case IEEE80211_AMPDU_RX_START:
+@@ -9673,7 +9673,7 @@ int rt2800_ampdu_action(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 		 */
+ 		break;
+ 	case IEEE80211_AMPDU_TX_START:
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
++		ret = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		break;
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+ 	case IEEE80211_AMPDU_TX_STOP_FLUSH:
+diff --git a/drivers/net/wireless/realtek/rtlwifi/base.c b/drivers/net/wireless/realtek/rtlwifi/base.c
+index 6d1b6a4..58a69bb 100644
+--- a/drivers/net/wireless/realtek/rtlwifi/base.c
++++ b/drivers/net/wireless/realtek/rtlwifi/base.c
+@@ -1796,8 +1796,7 @@ int rtl_tx_agg_start(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 
+ 	tid_data->agg.agg_state = RTL_AGG_START;
+ 
+-	ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-	return 0;
++	return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ }
+ 
+ int rtl_tx_agg_stop(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+diff --git a/drivers/net/wireless/rsi/rsi_91x_mac80211.c b/drivers/net/wireless/rsi/rsi_91x_mac80211.c
+index 43a0f2f..5ffcacb 100644
+--- a/drivers/net/wireless/rsi/rsi_91x_mac80211.c
++++ b/drivers/net/wireless/rsi/rsi_91x_mac80211.c
+@@ -1068,8 +1068,7 @@ static int rsi_mac80211_ampdu_action(struct ieee80211_hw *hw,
+ 		else if ((vif->type == NL80211_IFTYPE_AP) ||
+ 			 (vif->type == NL80211_IFTYPE_P2P_GO))
+ 			rsta->seq_start[tid] = seq_no;
+-		ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-		status = 0;
++		status = IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ 		break;
+ 
+ 	case IEEE80211_AMPDU_TX_STOP_CONT:
+diff --git a/drivers/staging/rtlwifi/base.c b/drivers/staging/rtlwifi/base.c
+index 50b1c18..86a9c86 100644
+--- a/drivers/staging/rtlwifi/base.c
++++ b/drivers/staging/rtlwifi/base.c
+@@ -1712,8 +1712,7 @@ int rtl_tx_agg_start(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+ 	*ssn = tid_data->seq_number;
+ 	tid_data->agg.agg_state = RTL_AGG_START;
+ 
+-	ieee80211_start_tx_ba_cb_irqsafe(vif, sta->addr, tid);
+-	return 0;
++	return IEEE80211_AMPDU_TX_START_IMMEDIATE;
+ }
+ 
+ int rtl_tx_agg_stop(struct ieee80211_hw *hw, struct ieee80211_vif *vif,
+diff --git a/include/net/mac80211.h b/include/net/mac80211.h
+index ac34488..ff51213 100644
+--- a/include/net/mac80211.h
++++ b/include/net/mac80211.h
+@@ -2966,7 +2966,9 @@ enum ieee80211_filter_flags {
+  *
+  * @IEEE80211_AMPDU_RX_START: start RX aggregation
+  * @IEEE80211_AMPDU_RX_STOP: stop RX aggregation
+- * @IEEE80211_AMPDU_TX_START: start TX aggregation
++ * @IEEE80211_AMPDU_TX_START: start TX aggregation, the driver must either
++ *	call ieee80211_start_tx_ba_cb_irqsafe() or return the special
++ *	status %IEEE80211_AMPDU_TX_START_IMMEDIATE.
+  * @IEEE80211_AMPDU_TX_OPERATIONAL: TX aggregation has become operational
+  * @IEEE80211_AMPDU_TX_STOP_CONT: stop TX aggregation but continue transmitting
+  *	queued packets, now unaggregated. After all packets are transmitted the
+@@ -2990,6 +2992,8 @@ enum ieee80211_ampdu_mlme_action {
+ 	IEEE80211_AMPDU_TX_OPERATIONAL,
+ };
+ 
++#define IEEE80211_AMPDU_TX_START_IMMEDIATE 1
++
+ /**
+  * struct ieee80211_ampdu_params - AMPDU action parameters
+  *
+@@ -3745,7 +3749,10 @@ struct ieee80211_ops {
+ 	 *
+ 	 * Even ``189`` would be wrong since 1 could be lost again.
+ 	 *
+-	 * Returns a negative error code on failure.
++	 * Returns a negative error code on failure. The driver may return
++	 * %IEEE80211_AMPDU_TX_START_IMMEDIATE for %IEEE80211_AMPDU_TX_START
++	 * if the session can start immediately.
++	 *
+ 	 * The callback can sleep.
+ 	 */
+ 	int (*ampdu_action)(struct ieee80211_hw *hw,
+diff --git a/net/mac80211/agg-tx.c b/net/mac80211/agg-tx.c
+index 05b4dae..b53e9c2 100644
+--- a/net/mac80211/agg-tx.c
++++ b/net/mac80211/agg-tx.c
+@@ -490,7 +490,14 @@ void ieee80211_tx_ba_session_handle_start(struct sta_info *sta, int tid)
+ 	params.ssn = sta->tid_seq[tid] >> 4;
+ 	ret = drv_ampdu_action(local, sdata, &params);
+ 	tid_tx->ssn = params.ssn;
+-	if (ret) {
++	if (ret == IEEE80211_AMPDU_TX_START_IMMEDIATE) {
++		/*
++		 * We didn't send the request yet, so don't need to check
++		 * here if we already got a response, just mark as driver
++		 * ready immediately.
++		 */
++		set_bit(HT_AGG_STATE_DRV_READY, &tid_tx->state);
++	} else if (ret) {
+ 		ht_dbg(sdata,
+ 		       "BA request denied - HW unavailable for %pM tid %d\n",
+ 		       sta->sta.addr, tid);
+-- 
+2.25.1
+
