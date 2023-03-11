@@ -1,0 +1,62 @@
+From 66320f289242d1abc285a6f31210bd1948fe47a4 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sun, 12 Mar 2023 02:35:34 +0800
+Subject: ath9k: Fix potential hw interrupt resume during reset
+
+There is a small risk of the ath9k hw interrupts being reenabled in the
+following way:
+
+1) ath_reset_internal()
+   ...
+   -> disable_irq()
+      ...
+      <- returns
+
+                      2) ath9k_tasklet()
+                         ...
+                         -> ath9k_hw_resume_interrupts()
+                         ...
+
+1) ath_reset_internal() continued:
+   -> tasklet_disable(&sc->intr_tq); (= ath9k_tasklet() off)
+
+By first disabling the ath9k interrupt there is a small window
+afterwards which allows ath9k hw interrupts being reenabled through
+the ath9k_tasklet() before we disable this tasklet in
+ath_reset_internal(). Leading to having the ath9k hw interrupts enabled
+during the reset, which we should avoid.
+
+Fixing this by first disabling all ath9k tasklets. And only after
+they are not running anymore also disabling the overall ath9k interrupt.
+
+Either ath9k_queue_reset()->ath9k_kill_hw_interrupts() or
+ath_reset_internal()->disable_irq()->ath_isr()->ath9k_kill_hw_interrupts()
+should then have ensured that no ath9k hw interrupts are running during
+the actual ath9k reset.
+
+We could reproduce this issue with two Lima boards from 8devices
+(QCA4531) on OpenWrt 19.07 while sending UDP traffic between the two and
+triggering an ath9k_queue_reset() and with added msleep()s between
+disable_irq() and tasklet_disable() in ath_reset_internal().
+---
+ drivers/net/wireless/ath/ath9k/main.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
+index 42c3238..08665f8 100644
+--- a/drivers/net/wireless/ath/ath9k/main.c
++++ b/drivers/net/wireless/ath/ath9k/main.c
+@@ -295,9 +295,9 @@ static int ath_reset_internal(struct ath_softc *sc, struct ath9k_channel *hchan)
+ 
+ 	__ath_cancel_work(sc);
+ 
+-	disable_irq(sc->irq);
+ 	tasklet_disable(&sc->intr_tq);
+ 	tasklet_disable(&sc->bcon_tasklet);
++	disable_irq(sc->irq);
+ 	spin_lock_bh(&sc->sc_pcu_lock);
+ 
+ 	if (!sc->cur_chan->offchannel) {
+-- 
+2.25.1
+
