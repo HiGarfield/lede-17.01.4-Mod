@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: 0409a5a3fb28a9c9ccc02c30ff71ee2896ad7a3f-0
+Version: c7d2976a05b6867d8e46548d92c61c8950a26165-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -11,7 +11,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-0409a5a3fb28a9c9ccc02c30ff71ee2896ad7a3f.tar.xz
+Source: irqbalance-c7d2976a05b6867d8e46548d92c61c8950a26165.tar.xz
 Type: ipkg
 Description:  The purpose of irqbalance is to distribute hardware interrupts across
  processors/cores on a multiprocessor/multicore system in order to
