@@ -107,7 +107,7 @@ index d7372fe..f1c8849 100644
 +		sc->last_check_interrupts = sc->debug.stats.istats.rxok;
 +
 +	/* sanity check, should be 30 seconds */
-+	if (interval > 40000 || interval < 20000)
++	if (interval > ATH_HANG_WORK_INTERVAL * 6L / 5 || interval < ATH_HANG_WORK_INTERVAL * 4L / 5)
 +		return false;
 +
 +	/* should be at least one interrupt per second */
