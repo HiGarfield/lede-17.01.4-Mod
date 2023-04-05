@@ -1,4 +1,4 @@
-local m, s, enabled, bridge, ipv6, offload_at_pkts
+local m, s, enabled, bridge, offload_at_pkts
 local SYS = require "luci.sys"
 
 if SYS.call("lsmod | grep -qw \'^fast_classifier\'") == 0 then
