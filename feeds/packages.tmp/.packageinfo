@@ -26321,7 +26321,7 @@ Config:
 Source-Makefile: feeds/packages/net/ariang/Makefile
 Package: ariang
 Submenu: Download Manager
-Version: 1.3.3-0
+Version: 1.3.4-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +uhttpd
 Conflicts: 
 Menu-Depends: 
@@ -26331,7 +26331,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for uhttpd webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.3.3.zip
+Source: ariang-1.3.4.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -26342,7 +26342,7 @@ Ansuel Smith <ansuelsmth@gmail.com>
 
 Package: ariang-nginx
 Submenu: Download Manager
-Version: 1.3.3-0
+Version: 1.3.4-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +nginx
 Conflicts: 
 Menu-Depends: 
@@ -26352,7 +26352,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for nginx webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.3.3.zip
+Source: ariang-1.3.4.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -47668,7 +47668,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: c7d2976a05b6867d8e46548d92c61c8950a26165-0
+Version: 4a60b1a716fcc5aa38cba17859c3a322ac7e2825-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -47679,7 +47679,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-c7d2976a05b6867d8e46548d92c61c8950a26165.tar.xz
+Source: irqbalance-4a60b1a716fcc5aa38cba17859c3a322ac7e2825.tar.xz
 Type: ipkg
 Description:  The purpose of irqbalance is to distribute hardware interrupts across
  processors/cores on a multiprocessor/multicore system in order to
