@@ -4,8 +4,19 @@ START=19
 USE_PROCD=1
 QUIET=""
 
-validate_firewall_redirect()
-{
+LOCK_FILE="/var/lock/procd_firewall.lock"
+
+set_lock() {
+	mkdir -p "$(dirname "$LOCK_FILE")"
+	lock -n "$LOCK_FILE"
+}
+
+unset_lock() {
+	lock -u "$LOCK_FILE"
+	rm -f "$LOCK_FILE"
+}
+
+validate_firewall_redirect() {
 	uci_validate_section firewall redirect "${1}" \
 		'proto:or(uinteger, string)' \
 		'src:string' \
@@ -17,8 +28,7 @@ validate_firewall_redirect()
 		'target:or("SNAT", "DNAT")'
 }
 
-validate_firewall_rule()
-{
+validate_firewall_rule() {
 	uci_validate_section firewall rule "${1}" \
 		'proto:or(uinteger, string)' \
 		'src:string' \
@@ -29,28 +39,40 @@ validate_firewall_rule()
 }
 
 service_triggers() {
-	procd_add_reload_trigger firewall	
+	procd_add_reload_trigger firewall
+	set_lock || return
 
 	procd_open_validate
 	validate_firewall_redirect
 	validate_firewall_rule
 	procd_close_validate
+	unset_lock
 }
 
 restart() {
+	unset_lock
+	set_lock || return
 	fw3 restart
+	unset_lock
 }
 
 start_service() {
+	set_lock || return
 	fw3 ${QUIET} start
+	unset_lock
 }
 
 stop_service() {
 	fw3 flush
+	unset_lock
 }
 
 reload_service() {
+	unset_lock
+	set_lock || return
+	reload_config firewall
 	fw3 reload
+	unset_lock
 }
 
 boot() {
