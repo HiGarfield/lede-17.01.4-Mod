@@ -6,7 +6,7 @@ PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/lifenjoiner/dnsforwarder.git
-PKG_SOURCE_VERSION:=1ae31a0fbf255b02ed35760e3a1d88b8db320b3a
+PKG_SOURCE_VERSION:=1393f507b1015e7df2e89df6174a291ceddf218f
 PKG_MIRROR_HASH:=skip
 
 PKG_FIXUP:=autoreconf
