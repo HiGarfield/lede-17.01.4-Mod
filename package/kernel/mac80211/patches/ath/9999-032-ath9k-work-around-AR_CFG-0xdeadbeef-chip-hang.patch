@@ -34,7 +34,7 @@ index ee9152c..2895ea5 100644
  #define ATH_ANI_MAX_SKIP_COUNT    10
  #define ATH_PAPRD_TIMEOUT         100 /* msecs */
  #define ATH_PLL_WORK_INTERVAL     100
-+#define ATH_HANG_WORK_INTERVAL    30000
++#define ATH_HANG_WORK_INTERVAL    1000
  
  void ath_hw_check_work(struct work_struct *work);
  void ath_reset_work(struct work_struct *work);
