@@ -26321,7 +26321,7 @@ Config:
 Source-Makefile: feeds/packages/net/ariang/Makefile
 Package: ariang
 Submenu: Download Manager
-Version: 1.3.4-0
+Version: 1.3.6-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +uhttpd
 Conflicts: 
 Menu-Depends: 
@@ -26331,7 +26331,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for uhttpd webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.3.4.zip
+Source: ariang-1.3.6.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -26342,7 +26342,7 @@ Ansuel Smith <ansuelsmth@gmail.com>
 
 Package: ariang-nginx
 Submenu: Download Manager
-Version: 1.3.4-0
+Version: 1.3.6-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +nginx
 Conflicts: 
 Menu-Depends: 
@@ -26352,7 +26352,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for nginx webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.3.4.zip
+Source: ariang-1.3.6.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
