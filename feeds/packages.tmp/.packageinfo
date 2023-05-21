@@ -38827,7 +38827,7 @@ Rosen Penev <rosenp@gmail.com>
 Source-Makefile: feeds/packages/net/transmission-web-control/Makefile
 Package: transmission-web-control
 Submenu: BitTorrent
-Version: 2022-02-24-0bbe64d28667a72130aded6e6d6826efa68566ad-1
+Version: 2022-05-22-5aeb20c141f6c1ca30c0aaae6b861471a48210d8-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +transmission-daemon
 Conflicts: transmission-web
 Menu-Depends: 
@@ -38837,7 +38837,7 @@ Category: Network
 Repository: base
 Title: Transmission Web Control
 Maintainer: Richard Yu <yurichard3839@gmail.com>
-Source: transmission-web-control-2022-02-24-0bbe64d28667a72130aded6e6d6826efa68566ad.tar.xz
+Source: transmission-web-control-2022-05-22-5aeb20c141f6c1ca30c0aaae6b861471a48210d8.tar.xz
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
