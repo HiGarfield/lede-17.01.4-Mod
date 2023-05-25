@@ -8,17 +8,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=perl-http-cookies
-PKG_VERSION:=6.01
+PKG_VERSION:=6.08
 PKG_RELEASE:=1
 
-PKG_SOURCE_URL:=http://www.cpan.org/authors/id/G/GA/GAAS
 PKG_SOURCE:=HTTP-Cookies-$(PKG_VERSION).tar.gz
-PKG_MD5SUM:=ecfd0eeb88512033352c2f13c9580f03
-
-PKG_LICENSE:=GPL-1.0+ Artistic-1.0-Perl
-PKG_MAINTAINER:=Marcel Denia <naoir@gmx.net>
-
+PKG_SOURCE_URL:=https://cpan.metacpan.org/authors/id/O/OA/OALDERS
+PKG_HASH:=49ebb73576eb41063c04bc079477df094496deec805ae033f3be338c23c3af59
 PKG_BUILD_DIR:=$(BUILD_DIR)/perl/HTTP-Cookies-$(PKG_VERSION)
+
+PKG_MAINTAINER:=Marcel Denia <naoir@gmx.net>
+PKG_LICENSE:=GPL-1.0-or-later Artistic-1.0-Perl
+PKG_LICENSE_FILES:=LICENSE
 
 include $(INCLUDE_DIR)/package.mk
 include ../perl/perlmod.mk
@@ -28,7 +28,7 @@ define Package/perl-http-cookies
   SECTION:=lang
   CATEGORY:=Languages
   TITLE:=HTTP cookie jars
-  URL:=http://search.cpan.org/dist/HTTP-Cookies/
+  URL:=https://search.cpan.org/dist/HTTP-Cookies/
   DEPENDS:=perl +perl-http-date +perl-http-message +perlbase-essential +perlbase-time
 endef
 

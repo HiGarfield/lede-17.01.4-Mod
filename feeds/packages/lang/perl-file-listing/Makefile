@@ -9,13 +9,13 @@ include $(TOPDIR)/rules.mk
 
 PKG_NAME:=perl-file-listing
 PKG_VERSION:=6.04
-PKG_RELEASE:=1
+PKG_RELEASE:=2
 
 PKG_SOURCE_URL:=http://www.cpan.org/authors/id/G/GA/GAAS
 PKG_SOURCE:=File-Listing-$(PKG_VERSION).tar.gz
-PKG_MD5SUM:=83f636b477741f3a014585bb9cc079a6
+PKG_HASH:=1e0050fcd6789a2179ec0db282bf1e90fb92be35d1171588bd9c47d52d959cf5
 
-PKG_LICENSE:=GPL-1.0+ Artistic-1.0-Perl
+PKG_LICENSE:=GPL-1.0-or-later Artistic-1.0-Perl
 PKG_MAINTAINER:=Marcel Denia <naoir@gmx.net>
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/perl/File-Listing-$(PKG_VERSION)
