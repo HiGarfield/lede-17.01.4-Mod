@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/lang/perl-parse-recdescent/Makefile
 Package: perl-parse-recdescent
 Submenu: Perl
-Version: 1.967013-1
+Version: 1.967015+perl5.28-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread perl +perlbase-essential +perlbase-test +perlbase-text
 Conflicts: 
 Menu-Depends: 
@@ -13,8 +13,8 @@ Category: Languages
 Repository: base
 Title: Generate Recursive-Descent Parsers
 Maintainer: Marcel Denia <naoir@gmx.net>
-Source: Parse-RecDescent-1.967013.tar.gz
-License: GPL-1.0+ Artistic-1.0-Perl
+Source: Parse-RecDescent-1.967015.tar.gz
+License: GPL-1.0-or-later Artistic-1.0-Perl
 Type: ipkg
 Description: Generate Recursive-Descent Parsers
 http://search.cpan.org/dist/Parse-RecDescent/

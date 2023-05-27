@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/lang/perl-lockfile-simple/Makefile
 Package: perl-lockfile-simple
 Submenu: Perl
-Version: 0.208-3
+Version: 0.208+perl5.28-4
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread perl +perlbase-essential +perlbase-sys
 Conflicts: 
 Menu-Depends: 
@@ -12,7 +12,7 @@ Repository: base
 Title: Simple advisory file locking
 Maintainer: Marcel Denia <naoir@gmx.net>
 Source: LockFile-Simple-0.208.tar.gz
-License: GPL-2.0+ Artistic-1.0-Perl
+License: GPL-2.0-or-later Artistic-1.0-Perl
 Type: ipkg
 Description: Simple advisory file locking
 http://search.cpan.org/dist/LockFile-Simple/
