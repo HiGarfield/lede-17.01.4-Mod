@@ -1,29 +1,31 @@
 #!/bin/sh /etc/rc.common
-#
-#SFE connection manager has a lower priority, it should be started after other connection manager
-#to detect the existence of connection manager with higher priority
 
+# SFE connection manager has a lower priority, it should be started after other
+# connection manager to detect the existence of connection manager with higher
+# priority
 START=99
 
-#load shortcut-fe connection manager
+# load shortcut-fe connection manager
 load_sfe_cm() {
 	modprobe -q fast-classifier || modprobe -q shortcut-fe-cm
 }
 
-unload_kmod() {
-	grep -qw "^$1" /proc/modules && rmmod "$1"
+# unload kernel modules
+unload_kmods() {
+	while [ $# -gt 0 ]; do
+		grep -qw "^$1" /proc/modules && rmmod "$1"
+		shift
+	done
 }
 
 unload_sfe() {
-	unload_kmod shortcut_fe_cm
-	unload_kmod fast_classifier
-	unload_kmod shortcut_fe_ipv6
-	unload_kmod shortcut_fe
+	unload_kmods shortcut_fe_cm fast_classifier shortcut_fe_ipv6 shortcut_fe
 	rm -f /dev/sfe_ipv4 /dev/sfe_ipv6
 }
 
+# load or reload sfe
 load_sfe() {
-	local enabled bridge ipv4_dev_num ipv6_dev_num offload_at_pkts
+	local enabled bridge offload_at_pkts ipv4_dev_num ipv6_dev_num
 	config_load sfe
 	config_get_bool enabled config enabled 0
 	config_get_bool bridge config bridge 0
