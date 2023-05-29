@@ -21,16 +21,12 @@ jobs:
           fetch-depth: 0
 
       - name: Clone source code
-        if: ${{ github.repository != env.SOURCE_REPO }}
         working-directory: ${{ github.workspace }}
         run: |
-          git clone "https://github.com/$SOURCE_REPO" -b master source
-
-      - name: Set environment variable
-        run: |
-          if [ "$GITHUB_REPOSITORY" = "$SOURCE_REPO" ]; then
+          if [ -f "$GITHUB_WORKSPACE/version" ]; then
             WORKING_DIR="$GITHUB_WORKSPACE"
           else
+            git clone "https://github.com/$SOURCE_REPO" -b master source
             WORKING_DIR="$GITHUB_WORKSPACE/source"
           fi
           echo "WORKING_DIR=${WORKING_DIR}" >>$GITHUB_ENV
