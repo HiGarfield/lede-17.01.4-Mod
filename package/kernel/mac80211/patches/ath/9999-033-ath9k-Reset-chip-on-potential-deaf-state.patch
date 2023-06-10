@@ -1,4 +1,4 @@
-From a01476139055c4dd028c280d000e6adf30b99f98 Mon Sep 17 00:00:00 2001
+From b7c4d8f028a5b94d9934db6e8c3db7bba87ba3a6 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Fri, 10 Mar 2023 02:08:46 +0800
 Subject: [PATCH] ath9k: Reset chip on potential deaf state
@@ -21,11 +21,12 @@ Signed-off-by: Sven Eckelmann <sven.eckelmann@xxxxxxxxxxxxx>
  drivers/net/wireless/ath/ath9k/debug.c |  1 +
  drivers/net/wireless/ath/ath9k/debug.h |  1 +
  drivers/net/wireless/ath/ath9k/link.c  | 55 ++++++++++++++++++++++++++
- drivers/net/wireless/ath/ath9k/main.c  |  2 +
- 5 files changed, 63 insertions(+)
+ drivers/net/wireless/ath/ath9k/main.c  |  1 +
+ drivers/net/wireless/ath/ath9k/recv.c  |  2 +
+ 6 files changed, 64 insertions(+)
 
 diff --git a/drivers/net/wireless/ath/ath9k/ath9k.h b/drivers/net/wireless/ath/ath9k/ath9k.h
-index 2895ea5..2c841e6 100644
+index cfa0f3c..f8167a3 100644
 --- a/drivers/net/wireless/ath/ath9k/ath9k.h
 +++ b/drivers/net/wireless/ath/ath9k/ath9k.h
 @@ -1056,6 +1056,10 @@ struct ath_softc {
@@ -64,7 +65,7 @@ index c59d985..09a8b94 100644
  	RESET_RX_DMA_ERROR,
  	__RESET_TYPE_MAX
 diff --git a/drivers/net/wireless/ath/ath9k/link.c b/drivers/net/wireless/ath/ath9k/link.c
-index d7372fe..b0c9474 100644
+index d7372fe..7ca1543 100644
 --- a/drivers/net/wireless/ath/ath9k/link.c
 +++ b/drivers/net/wireless/ath/ath9k/link.c
 @@ -162,6 +162,58 @@ static bool ath_hw_hang_deadbeef(struct ath_softc *sc)
@@ -110,7 +111,7 @@ index d7372fe..b0c9474 100644
 +
 +	sc->rx_inactive_cnt++;
 +
-+	if (sc->rx_inactive_cnt <= 10)
++	if (sc->rx_inactive_cnt <= 15)
 +		return false;
 +
 +	sc->rx_inactive_cnt = 0;
@@ -137,7 +138,7 @@ index d7372fe..b0c9474 100644
  	ieee80211_queue_delayed_work(sc->hw, &sc->hw_hang_work,
  				     msecs_to_jiffies(ATH_HANG_WORK_INTERVAL));
 diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
-index 42c3238..d167734 100644
+index 7332215..ccb4d51 100644
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
 @@ -276,6 +276,7 @@ static bool ath_complete_reset(struct ath_softc *sc, bool start)
@@ -148,14 +149,18 @@ index 42c3238..d167734 100644
  
  	ath9k_hw_set_interrupts(ah);
  	ath9k_hw_enable_interrupts(ah);
-@@ -457,6 +458,7 @@ void ath9k_tasklet(unsigned long data)
- 			ath_rx_tasklet(sc, 0, true);
- 
- 		ath_rx_tasklet(sc, 0, false);
-+		sc->rx_inactive_cnt = 0;
+diff --git a/drivers/net/wireless/ath/ath9k/recv.c b/drivers/net/wireless/ath/ath9k/recv.c
+index 035297f..30ed9ac 100644
+--- a/drivers/net/wireless/ath/ath9k/recv.c
++++ b/drivers/net/wireless/ath/ath9k/recv.c
+@@ -1245,5 +1245,7 @@ requeue:
+ 		ath9k_hw_set_interrupts(ah);
  	}
  
- 	if (status & ATH9K_INT_TX) {
++	sc->rx_inactive_cnt = 0;
++
+ 	return 0;
+ }
 -- 
 2.25.1
 
