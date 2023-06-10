@@ -1,0 +1,115 @@
+From a1224df9fef9783613621ecb42048b09947864fb Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sun, 11 Jun 2023 05:04:06 +0800
+Subject: [PATCH] ath9k: add a lock for rx inactive check
+
+---
+ drivers/net/wireless/ath/ath9k/ath9k.h | 1 +
+ drivers/net/wireless/ath/ath9k/init.c  | 1 +
+ drivers/net/wireless/ath/ath9k/link.c  | 8 ++++++++
+ drivers/net/wireless/ath/ath9k/main.c  | 2 ++
+ drivers/net/wireless/ath/ath9k/recv.c  | 6 ++++++
+ 5 files changed, 18 insertions(+)
+
+diff --git a/drivers/net/wireless/ath/ath9k/ath9k.h b/drivers/net/wireless/ath/ath9k/ath9k.h
+index f8167a3..ed6d772 100644
+--- a/drivers/net/wireless/ath/ath9k/ath9k.h
++++ b/drivers/net/wireless/ath/ath9k/ath9k.h
+@@ -1059,6 +1059,7 @@ struct ath_softc {
+ 	unsigned long last_check_time;
+ 	u32 last_check_interrupts;
+ 	u8 rx_inactive_cnt;
++	spinlock_t sc_rx_inactive_cnt_lock;
+ 
+ 	u16 airtime_flags; /* AIRTIME_* */
+ 
+diff --git a/drivers/net/wireless/ath/ath9k/init.c b/drivers/net/wireless/ath/ath9k/init.c
+index 2df337a..47716db 100644
+--- a/drivers/net/wireless/ath/ath9k/init.c
++++ b/drivers/net/wireless/ath/ath9k/init.c
+@@ -735,6 +735,7 @@ static int ath9k_init_softc(u16 devid, struct ath_softc *sc,
+ 	spin_lock_init(&sc->sc_serial_rw);
+ 	spin_lock_init(&sc->sc_pm_lock);
+ 	spin_lock_init(&sc->chan_lock);
++	spin_lock_init(&sc->sc_rx_inactive_cnt_lock);
+ 	mutex_init(&sc->mutex);
+ 	tasklet_init(&sc->intr_tq, ath9k_tasklet, (unsigned long)sc);
+ 	tasklet_init(&sc->bcon_tasklet, ath9k_beacon_tasklet,
+diff --git a/drivers/net/wireless/ath/ath9k/link.c b/drivers/net/wireless/ath/ath9k/link.c
+index 7ca1543..a43ae99 100644
+--- a/drivers/net/wireless/ath/ath9k/link.c
++++ b/drivers/net/wireless/ath/ath9k/link.c
+@@ -171,6 +171,7 @@ static bool ath_hw_hang_deaf(struct ath_softc *sc)
+ 	u32 cur_check_interrupts, interrupts, interrupts_per_s;
+ 	unsigned int interval;
+ 	unsigned long cur_check_time;
++	unsigned long flags;
+ 
+ 	/* get historic data */
+ 	cur_check_time = jiffies;
+@@ -195,16 +196,23 @@ static bool ath_hw_hang_deaf(struct ath_softc *sc)
+ 	interrupts_per_s = interrupts * 1000 / interval;
+ 	if (interrupts_per_s >= 1)
+ 	{
++		spin_lock_irqsave(&sc->sc_rx_inactive_cnt_lock, flags);
+ 		sc->rx_inactive_cnt = 0;
++		spin_unlock_irqrestore(&sc->sc_rx_inactive_cnt_lock, flags);
+ 		return false;
+ 	}
+ 
++	spin_lock_irqsave(&sc->sc_rx_inactive_cnt_lock, flags);
+ 	sc->rx_inactive_cnt++;
+ 
+ 	if (sc->rx_inactive_cnt <= 15)
++	{
++		spin_unlock_irqrestore(&sc->sc_rx_inactive_cnt_lock, flags);
+ 		return false;
++	}
+ 
+ 	sc->rx_inactive_cnt = 0;
++	spin_unlock_irqrestore(&sc->sc_rx_inactive_cnt_lock, flags);
+ 
+ 	ath_dbg(common, RESET,
+ 			"RX deaf hang is detected. Schedule chip reset\n");
+diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
+index ccb4d51..4d18d06 100644
+--- a/drivers/net/wireless/ath/ath9k/main.c
++++ b/drivers/net/wireless/ath/ath9k/main.c
+@@ -276,7 +276,9 @@ static bool ath_complete_reset(struct ath_softc *sc, bool start)
+ 	}
+ 
+ 	sc->gtt_cnt = 0;
++	spin_lock_irqsave(&sc->sc_rx_inactive_cnt_lock, flags);
+ 	sc->rx_inactive_cnt = 0;
++	spin_unlock_irqrestore(&sc->sc_rx_inactive_cnt_lock, flags);
+ 
+ 	ath9k_hw_set_interrupts(ah);
+ 	ath9k_hw_enable_interrupts(ah);
+diff --git a/drivers/net/wireless/ath/ath9k/recv.c b/drivers/net/wireless/ath/ath9k/recv.c
+index 30ed9ac..a470de1 100644
+--- a/drivers/net/wireless/ath/ath9k/recv.c
++++ b/drivers/net/wireless/ath/ath9k/recv.c
+@@ -1236,6 +1236,10 @@ requeue:
+ 			ath_rx_edma_buf_link(sc, qtype);
+ 		}
+ 
++		spin_lock_irqsave(&sc->sc_rx_inactive_cnt_lock, flags);
++		sc->rx_inactive_cnt = 0;
++		spin_unlock_irqrestore(&sc->sc_rx_inactive_cnt_lock, flags);
++
+ 		if (!budget--)
+ 			break;
+ 	} while (1);
+@@ -1245,7 +1249,9 @@ requeue:
+ 		ath9k_hw_set_interrupts(ah);
+ 	}
+ 
++	spin_lock_irqsave(&sc->sc_rx_inactive_cnt_lock, flags);
+ 	sc->rx_inactive_cnt = 0;
++	spin_unlock_irqrestore(&sc->sc_rx_inactive_cnt_lock, flags);
+ 
+ 	return 0;
+ }
+-- 
+2.25.1
+
