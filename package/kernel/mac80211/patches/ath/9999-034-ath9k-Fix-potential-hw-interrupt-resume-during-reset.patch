@@ -1,7 +1,7 @@
-From 66320f289242d1abc285a6f31210bd1948fe47a4 Mon Sep 17 00:00:00 2001
+From 12a541f4c23f41ad0300e9db40703496e240b0c7 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Sun, 12 Mar 2023 02:35:34 +0800
-Subject: ath9k: Fix potential hw interrupt resume during reset
+Subject: [PATCH] ath9k: Fix potential hw interrupt resume during reset
 
 There is a small risk of the ath9k hw interrupts being reenabled in the
 following way:
@@ -43,10 +43,10 @@ disable_irq() and tasklet_disable() in ath_reset_internal().
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
-index 42c3238..08665f8 100644
+index 4d18d06..74b3365 100644
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -295,9 +295,9 @@ static int ath_reset_internal(struct ath_softc *sc, struct ath9k_channel *hchan)
+@@ -298,9 +298,9 @@ static int ath_reset_internal(struct ath_softc *sc, struct ath9k_channel *hchan)
  
  	__ath_cancel_work(sc);
  

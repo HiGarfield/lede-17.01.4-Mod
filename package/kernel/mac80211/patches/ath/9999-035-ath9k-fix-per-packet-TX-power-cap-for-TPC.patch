@@ -1,4 +1,4 @@
-From 7f8f045c51b9cebd9aeb3e5b7aa437b2ebf33e15 Mon Sep 17 00:00:00 2001
+From 0774cd7663d3406558eb796d8ff00d4333d22d4c Mon Sep 17 00:00:00 2001
 From: Jonas Jelonek <jelonek.jonas@gmail.com>
 Date: Thu, 30 Mar 2023 15:21:59 +0200
 Subject: [PATCH] ath9k: fix per-packet TX-power cap for TPC
