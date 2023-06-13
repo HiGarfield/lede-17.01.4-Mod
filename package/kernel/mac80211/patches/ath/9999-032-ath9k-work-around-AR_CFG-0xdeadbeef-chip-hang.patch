@@ -1,7 +1,7 @@
-From b7bde9af829ae449cd81599cab7e8f0ce82e10b0 Mon Sep 17 00:00:00 2001
+From c35838644901a8eb054f8f3d7e1811218b9b7208 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Fri, 10 Mar 2023 01:58:41 +0800
-Subject: ath9k: work around AR_CFG 0xdeadbeef chip hang
+Subject: [PATCH] ath9k: work around AR_CFG 0xdeadbeef chip hang
 
 QCA 802.11n chips (especially AR9330/AR9340) sometimes end up in a state in
 which a read of AR_CFG always returns 0xdeadbeef. This should not happen
@@ -14,10 +14,6 @@ Signed-off-by: Simon Wunderlich <simon.wunderlich@xxxxxxxxxxxxx>
 [sven.eckelmann@xxxxxxxxxxxxx: port to recent ath9k, add commit message]
 Signed-off-by: Sven Eckelmann <sven.eckelmann@xxxxxxxxxxxxx>
 ---
-This was discussed 4 years ago on the OpenWrt mailing list. The most
-relevant post is
-https://lists.openwrt.org/pipermail/openwrt-devel/2012-September/016708.html
----
  drivers/net/wireless/ath/ath9k/ath9k.h |  3 +++
  drivers/net/wireless/ath/ath9k/debug.c |  1 +
  drivers/net/wireless/ath/ath9k/debug.h |  1 +
@@ -27,7 +23,7 @@ https://lists.openwrt.org/pipermail/openwrt-devel/2012-September/016708.html
  6 files changed, 43 insertions(+)
 
 diff --git a/drivers/net/wireless/ath/ath9k/ath9k.h b/drivers/net/wireless/ath/ath9k/ath9k.h
-index ee9152c..2895ea5 100644
+index ee9152c..cfa0f3c 100644
 --- a/drivers/net/wireless/ath/ath9k/ath9k.h
 +++ b/drivers/net/wireless/ath/ath9k/ath9k.h
 @@ -746,11 +746,13 @@ void ath9k_csa_update(struct ath_softc *sc);
@@ -133,7 +129,7 @@ index 9d84003..d7372fe 100644
   * PA Pre-distortion.
   */
 diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
-index 94558b7..42c3238 100644
+index 00a8495..7332215 100644
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
 @@ -186,6 +186,7 @@ static void __ath_cancel_work(struct ath_softc *sc)
