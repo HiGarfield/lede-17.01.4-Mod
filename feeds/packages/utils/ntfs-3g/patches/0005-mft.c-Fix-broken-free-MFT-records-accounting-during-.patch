@@ -1,7 +1,7 @@
 From 1565b01e215c74e5c5f83f3ecde1ed682637dc5a Mon Sep 17 00:00:00 2001
 From: Erik Larsson <erik@tuxera.com>
 Date: Tue, 9 May 2023 11:25:10 +0300
-Subject: [PATCH 5/5] mft.c: Fix broken free MFT records accounting during
+Subject: [PATCH 5/8] mft.c: Fix broken free MFT records accounting during
  bitmap extension.
 
 When the bitmap needs extending, 'vol->free_mft_records' is incremented

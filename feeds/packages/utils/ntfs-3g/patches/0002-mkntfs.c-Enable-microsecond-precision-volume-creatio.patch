@@ -1,7 +1,7 @@
 From e73d481a76a5814076ff78a1c3a70e9b7da7c0e9 Mon Sep 17 00:00:00 2001
 From: Erik Larsson <erik@tuxera.com>
 Date: Mon, 12 Dec 2022 18:51:12 +0200
-Subject: [PATCH 2/5] mkntfs.c: Enable microsecond-precision volume creation
+Subject: [PATCH 2/8] mkntfs.c: Enable microsecond-precision volume creation
  time.
 
 Previously the creation time was filled in with seconds (obtained using
