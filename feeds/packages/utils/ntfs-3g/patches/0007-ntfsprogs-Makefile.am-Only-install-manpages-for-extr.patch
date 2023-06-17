@@ -1,0 +1,72 @@
+From 6b3f0960690ec6f4f157815adad532dc4cea1dbe Mon Sep 17 00:00:00 2001
+From: Erik Larsson <erik@tuxera.com>
+Date: Sun, 28 May 2023 08:21:34 +0300
+Subject: [PATCH 7/8] ntfsprogs/Makefile.am: Only install manpages for 'extras'
+ when enabled.
+
+We used to always install all the manpages, but some are specific to the
+'extras' enabled with the configure option '--enable-extras'.
+Fixed by only installing the 'extras' manpages when '--enable-extras' is
+active.
+
+Also since this commit touches the list of manpages a bit of cleanup was
+done to make sure there's only one manpage per line (helps to minimize
+diffs) and also that the manpages are sorted in alphabetical order in
+ntfsprogs/Makefile.am to avoid future confusion.
+
+Thanks to user 'opty77' for reporting this issue:
+https://github.com/tuxera/ntfs-3g/issues/82
+---
+ ntfsprogs/Makefile.am | 29 ++++++++++++++++++++++-------
+ 1 file changed, 22 insertions(+), 7 deletions(-)
+
+diff --git a/ntfsprogs/Makefile.am b/ntfsprogs/Makefile.am
+index 08228322..babaf341 100644
+--- a/ntfsprogs/Makefile.am
++++ b/ntfsprogs/Makefile.am
+@@ -23,13 +23,27 @@ EXTRA_PROGRAM_NAMES	= ntfswipe ntfstruncate ntfsrecover \
+ QUARANTINED_PROGRAM_NAMES = ntfsdump_logfile ntfsmftalloc ntfsmove ntfsck \
+ 			   ntfsfallocate
+ 
+-man_MANS		= mkntfs.8 ntfsfix.8 ntfslabel.8 ntfsinfo.8 \
+-			  ntfsundelete.8 ntfsresize.8 ntfsprogs.8 ntfsls.8 \
+-			  ntfsclone.8 ntfscluster.8 ntfscat.8 ntfscp.8 \
+-			  ntfscmp.8 ntfswipe.8 ntfstruncate.8 \
+-			  ntfsdecrypt.8 ntfsfallocate.8 ntfsrecover.8 \
+-			  ntfsusermap.8 ntfssecaudit.8
+-EXTRA_MANS		=
++man_MANS		= mkntfs.8 \
++			  ntfscat.8 \
++			  ntfsclone.8 \
++			  ntfscluster.8 \
++			  ntfscmp.8 \
++			  ntfscp.8 \
++			  ntfsdecrypt.8 \
++			  ntfsfallocate.8 \
++			  ntfsfix.8 \
++			  ntfsinfo.8 \
++			  ntfslabel.8 \
++			  ntfsls.8 \
++			  ntfsprogs.8 \
++			  ntfsresize.8 \
++			  ntfsundelete.8
++
++EXTRA_MANS		= ntfsrecover.8 \
++			  ntfssecaudit.8 \
++			  ntfstruncate.8 \
++			  ntfsusermap.8 \
++			  ntfswipe.8
+ 
+ CLEANFILES		= $(EXTRA_PROGRAMS)
+ 
+@@ -44,6 +58,7 @@ bin_PROGRAMS		+= $(EXTRA_PROGRAM_NAMES)
+ if ENABLE_QUARANTINED
+ bin_PROGRAMS		+= $(QUARANTINED_PROGRAM_NAMES)
+ endif
++man_MANS		+= $(EXTRA_MANS)
+ else
+ EXTRA_PROGRAMS		= $(EXTRA_PROGRAM_NAMES)
+ endif
+-- 
+2.25.1
+

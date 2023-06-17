@@ -1,7 +1,7 @@
 From 241ddb38605b6b298174e6f1019e8e2502a45558 Mon Sep 17 00:00:00 2001
 From: Erik Larsson <erik@tuxera.com>
 Date: Wed, 3 May 2023 10:44:57 +0200
-Subject: [PATCH 4/5] index.c: Fix crash when a reparse tag cannot be found in
+Subject: [PATCH 4/8] index.c: Fix crash when a reparse tag cannot be found in
  the index.
 
 When 'remove_reparse_index', called by 'ntfs_delete_reparse_index',

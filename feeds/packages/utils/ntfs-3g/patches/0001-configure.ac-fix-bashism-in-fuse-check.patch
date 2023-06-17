@@ -1,7 +1,7 @@
 From 71ecccf279d3660812b18803a75f368d2f76eea6 Mon Sep 17 00:00:00 2001
 From: Sam James <sam@gentoo.org>
 Date: Thu, 22 Sep 2022 04:00:45 +0100
-Subject: [PATCH 1/5] configure.ac: fix bashism in fuse check
+Subject: [PATCH 1/8] configure.ac: fix bashism in fuse check
 
 configure scripts need to be runnable with a POSIX-compliant /bin/sh.
 

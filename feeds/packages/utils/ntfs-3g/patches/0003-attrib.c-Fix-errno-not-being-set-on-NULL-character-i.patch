@@ -1,7 +1,7 @@
 From 01b9bddc0c2165baa46abe7562550ef4e8c2752b Mon Sep 17 00:00:00 2001
 From: Erik Larsson <erik@tuxera.com>
 Date: Wed, 3 May 2023 09:57:34 +0200
-Subject: [PATCH 3/5] attrib.c: Fix errno not being set on NULL character in
+Subject: [PATCH 3/8] attrib.c: Fix errno not being set on NULL character in
  attribute name.
 
 This is an error condition as we jump to err_out, but there's no errno
