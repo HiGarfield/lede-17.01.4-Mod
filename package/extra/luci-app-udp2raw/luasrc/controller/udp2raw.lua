@@ -6,7 +6,7 @@ function index()
 	end
 
 	entry({"admin", "services", "udp2raw"},
-		firstchild(), _("udp2raw-tunnel")).dependent = false
+		firstchild(), _("udp2raw")).dependent = false
 
 	entry({"admin", "services", "udp2raw", "general"},
 		cbi("udp2raw/general"), _("Settings"), 1)

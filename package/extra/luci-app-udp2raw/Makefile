@@ -6,8 +6,8 @@
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=LuCI Support for udp2raw-tunnel
-LUCI_DEPENDS:=+udp2raw-tunnel +luci
+LUCI_TITLE:=LuCI Support for udp2raw
+LUCI_DEPENDS:=+udp2raw +luci
 LUCI_PKGARCH:=all
 PKG_VERSION:=1.0.0
 PKG_RELEASE:=4
