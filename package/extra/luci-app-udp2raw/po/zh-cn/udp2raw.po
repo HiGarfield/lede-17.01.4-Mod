@@ -1,9 +1,6 @@
 msgid ""
 msgstr "Content-Type: text/plain; charset=UTF-8\n"
 
-msgid "udp2raw-tunnel"
-msgstr "udp2raw 隧道"
-
 msgid "Settings"
 msgstr "设置"
 

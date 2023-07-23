@@ -7,8 +7,8 @@ local function has_bin(name)
 end
 
 if not has_bin("udp2raw") then
-	return Map("udp2raw", "%s - %s" %{translate("udp2raw-tunnel"),
-		translate("Settings")}, '<b style="color:red">udp2raw-tunnel binary file not found. install udp2raw-tunnel package, or copy binary to /usr/bin/udp2raw manually. </b>')
+	return Map("udp2raw", "%s - %s" %{translate("udp2raw"),
+		translate("Settings")}, '<b style="color:red">udp2raw binary file not found. install udp2raw package, or copy binary to /usr/bin/udp2raw manually. </b>')
 end
 
 uci:foreach("udp2raw", "servers", function(s)
@@ -17,7 +17,7 @@ uci:foreach("udp2raw", "servers", function(s)
 	end
 end)
 
-m = Map("udp2raw", "%s - %s" %{translate("udp2raw-tunnel"), translate("Settings")})
+m = Map("udp2raw", "%s - %s" %{translate("udp2raw"), translate("Settings")})
 m:append(Template("udp2raw/status"))
 
 s = m:section(NamedSection, "general", "general", translate("General Settings"))

@@ -22,7 +22,7 @@ local auth_modes = {
 	"none",
 }
 
-m = Map("udp2raw", "%s - %s" %{translate("udp2raw-tunnel"), translate("Edit Server")})
+m = Map("udp2raw", "%s - %s" %{translate("udp2raw"), translate("Edit Server")})
 m.redirect = luci.dispatcher.build_url("admin/services/udp2raw/servers")
 m.sid = sid
 

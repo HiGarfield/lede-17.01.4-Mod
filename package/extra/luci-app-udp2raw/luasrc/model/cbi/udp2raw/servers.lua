@@ -1,6 +1,6 @@
 local m, s, o
 
-m = Map("udp2raw", "%s - %s" %{translate("udp2raw-tunnel"), translate("Servers Manage")})
+m = Map("udp2raw", "%s - %s" %{translate("udp2raw"), translate("Servers Manage")})
 
 s = m:section(TypedSection, "servers")
 s.anonymous = true
