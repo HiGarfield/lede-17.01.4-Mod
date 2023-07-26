@@ -1,0 +1,163 @@
+From d27495b87167fea6dc4a675f3cfc0531c434a5fa Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 27 Jul 2023 01:35:56 +0800
+Subject: [PATCH] ath10k: always use mac80211 loss detection
+
+ath10k does not report excessive loss in case of broken block-ack
+sessions. The loss is communicated to the host-os, but ath10k does not
+trigger a low-ack events by itself.
+
+The mac80211 framework for loss detection however detects this
+circumstance well in case of ath10k. So use it regardless of ath10k's
+own loss detection mechanism.
+
+Signed-off-by: David Bauer <mail@david-bauer.net>
+---
+ ath10k-4.13/mac.c | 1 -
+ ath10k-4.16/mac.c | 1 -
+ ath10k-4.19/mac.c | 1 -
+ ath10k-4.20/mac.c | 1 -
+ ath10k-5.10/mac.c | 1 -
+ ath10k-5.11/mac.c | 1 -
+ ath10k-5.12/mac.c | 1 -
+ ath10k-5.2/mac.c  | 1 -
+ ath10k-5.4/mac.c  | 1 -
+ ath10k-5.7/mac.c  | 1 -
+ ath10k-5.8/mac.c  | 1 -
+ 11 files changed, 11 deletions(-)
+
+diff --git a/ath10k-4.13/mac.c b/ath10k-4.13/mac.c
+index f68e898..d63e6ed 100644
+--- a/ath10k-4.13/mac.c
++++ b/ath10k-4.13/mac.c
+@@ -9316,7 +9316,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-4.16/mac.c b/ath10k-4.16/mac.c
+index bc4e895..ee50f56 100644
+--- a/ath10k-4.16/mac.c
++++ b/ath10k-4.16/mac.c
+@@ -9570,7 +9570,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-4.19/mac.c b/ath10k-4.19/mac.c
+index bd696be..ef7e222 100644
+--- a/ath10k-4.19/mac.c
++++ b/ath10k-4.19/mac.c
+@@ -9765,7 +9765,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-4.20/mac.c b/ath10k-4.20/mac.c
+index 8c9345d..e65fedd 100644
+--- a/ath10k-4.20/mac.c
++++ b/ath10k-4.20/mac.c
+@@ -9861,7 +9861,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-5.10/mac.c b/ath10k-5.10/mac.c
+index e08deed..4e91ac9 100644
+--- a/ath10k-5.10/mac.c
++++ b/ath10k-5.10/mac.c
+@@ -11099,7 +11099,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-5.11/mac.c b/ath10k-5.11/mac.c
+index ed4cab1..308cbc5 100644
+--- a/ath10k-5.11/mac.c
++++ b/ath10k-5.11/mac.c
+@@ -11099,7 +11099,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-5.12/mac.c b/ath10k-5.12/mac.c
+index f9eec4a..048131b 100644
+--- a/ath10k-5.12/mac.c
++++ b/ath10k-5.12/mac.c
+@@ -11208,7 +11208,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-5.2/mac.c b/ath10k-5.2/mac.c
+index 949ac8a..a30742a 100644
+--- a/ath10k-5.2/mac.c
++++ b/ath10k-5.2/mac.c
+@@ -9920,7 +9920,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-5.4/mac.c b/ath10k-5.4/mac.c
+index fcf83fc..d210c1f 100644
+--- a/ath10k-5.4/mac.c
++++ b/ath10k-5.4/mac.c
+@@ -10135,7 +10135,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-5.7/mac.c b/ath10k-5.7/mac.c
+index 7a1257c..3a792d6 100644
+--- a/ath10k-5.7/mac.c
++++ b/ath10k-5.7/mac.c
+@@ -10198,7 +10198,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+diff --git a/ath10k-5.8/mac.c b/ath10k-5.8/mac.c
+index 1cc5c98..60a73aa 100644
+--- a/ath10k-5.8/mac.c
++++ b/ath10k-5.8/mac.c
+@@ -10444,7 +10444,6 @@ int ath10k_mac_register(struct ath10k *ar)
+ 	ieee80211_hw_set(ar->hw, CHANCTX_STA_CSA);
+ 	ieee80211_hw_set(ar->hw, QUEUE_CONTROL);
+ 	ieee80211_hw_set(ar->hw, SUPPORTS_TX_FRAG);
+-	ieee80211_hw_set(ar->hw, REPORTS_LOW_ACK);
+ 
+ 	if (!test_bit(ATH10K_FLAG_RAW_MODE, &ar->dev_flags))
+ 		ieee80211_hw_set(ar->hw, SW_CRYPTO_CONTROL);
+-- 
+2.25.1
+
