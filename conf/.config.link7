@@ -4421,7 +4421,7 @@ CONFIG_ARIA2_SFTP=y
 CONFIG_ARIA2_WEBSOCKET=y
 # CONFIG_PACKAGE_atftp is not set
 # CONFIG_PACKAGE_atftpd is not set
-# CONFIG_PACKAGE_curl is not set
+CONFIG_PACKAGE_curl=y
 # CONFIG_PACKAGE_gnurl is not set
 # CONFIG_PACKAGE_lftp is not set
 # CONFIG_PACKAGE_rsync is not set
