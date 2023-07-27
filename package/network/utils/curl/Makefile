@@ -6,17 +6,18 @@
 #
 
 include $(TOPDIR)/rules.mk
+include $(INCLUDE_DIR)/nls.mk
 
 PKG_NAME:=curl
-PKG_VERSION:=7.85.0
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_VERSION:=8.1.2
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.xz
 PKG_SOURCE_URL:=https://github.com/curl/curl/releases/download/curl-$(subst .,_,$(PKG_VERSION))/ \
 	https://dl.uxnr.de/mirror/curl/ \
 	https://curl.askapache.com/download/ \
 	https://curl.se/download/
-PKG_HASH:=88b54a6d4b9a48cb4d873c7056dcba997ddd5b7be5a2d537a4acb55c20b04be6
+PKG_HASH:=31b1118eb8bfd43cd95d9a3f146f814ff874f6ed3999b29d94f4d1e7dbac5ef6
 
 PKG_LICENSE:=MIT
 PKG_LICENSE_FILES:=COPYING
@@ -102,7 +103,7 @@ define Package/libcurl/config
   source "$(SOURCE)/Config.in"
 endef
 
-TARGET_CFLAGS += $(FPIC) -ffunction-sections -fdata-sections
+TARGET_CFLAGS += $(FPIC)
 TARGET_CPPFLAGS += $(if $(CONFIG_LIBCURL_NTLM),,-DCURL_DISABLE_NTLM)
 TARGET_LDFLAGS += -Wl,--gc-sections
 
@@ -123,9 +124,10 @@ CONFIGURE_ARGS += \
 	\
 	$(call autoconf_bool,CONFIG_IPV6,ipv6) \
 	\
+	$(if $(CONFIG_LIBCURL_WOLFSSL)$(CONFIG_LIBCURL_GNUTLS)$(CONFIG_LIBCURL_OPENSSL)$(CONFIG_LIBCURL_MBEDTLS),,--without-ssl) \
 	$(if $(CONFIG_LIBCURL_WOLFSSL),--with-wolfssl="$(STAGING_DIR)/usr",--without-wolfssl) \
 	$(if $(CONFIG_LIBCURL_GNUTLS),--with-gnutls="$(STAGING_DIR)/usr",--without-gnutls) \
-	$(if $(CONFIG_LIBCURL_OPENSSL),--with-ssl="$(STAGING_DIR)/usr",--without-ssl) \
+	$(if $(CONFIG_LIBCURL_OPENSSL),--with-openssl="$(STAGING_DIR)/usr",--without-openssl) \
 	$(if $(CONFIG_LIBCURL_MBEDTLS),--with-mbedtls="$(STAGING_DIR)/usr",--without-mbedtls) \
 	\
 	$(if $(CONFIG_LIBCURL_LIBIDN),--with-libidn="$(STAGING_DIR)/usr",--without-libidn) \
