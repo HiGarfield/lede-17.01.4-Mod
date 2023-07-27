@@ -6,7 +6,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ipset-lists
-PKG_VERSION:=9
+PKG_VERSION:=14
 PKG_RELEASE:=
 
 PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
@@ -17,10 +17,12 @@ define Package/ipset-lists
   CATEGORY:=Network
   TITLE:=Service for IPSET address tables
   MAINTAINER:=Justin Liu <rssnsj@gmail.com>
-  DEPENDS:=+ipset
+  DEPENDS:=+ipset +curl
 endef
 
 define Package/ipset-lists/conffiles
+/etc/ipset/local
+/etc/ipset/china
 /etc/gfwlist/china-banned
 /etc/gfwlist/unblock-youku
 endef
