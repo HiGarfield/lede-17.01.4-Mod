@@ -1,0 +1,50 @@
+From 7b604b9f6704a31d88a7f508624f50c3eb458134 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 29 Jul 2023 22:52:58 +0800
+Subject: [PATCH] pinctrl: mtmips: support requesting different functions for 
+ same group
+
+Sometimes pinctrl consumers may request different functions for the
+same pin group in different situations. This patch can help to reset
+the group function flag when requesting a different function.
+
+Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
+---
+ drivers/pinctrl/pinctrl-rt2880.c | 20 +++++++++++++++++---
+ 1 file changed, 17 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/pinctrl/pinctrl-rt2880.c b/drivers/pinctrl/pinctrl-rt2880.c
+index 3d2d1c2a..61cd2c50 100644
+--- a/drivers/pinctrl/pinctrl-rt2880.c
++++ b/drivers/pinctrl/pinctrl-rt2880.c
+@@ -207,10 +207,24 @@ static int rt2880_pmx_group_enable(struct pinctrl_dev *pctrldev,
+ 	int i;
+ 	int shift;
+ 
+-	/* dont allow double use */
++	/*
++	 * for the same pin group, if request a different function,
++	 * then clear the group function flag and continue, else exit.
++	 */
+ 	if (p->groups[group].enabled) {
+-		dev_err(p->dev, "%s is already enabled\n", p->groups[group].name);
+-		return -EBUSY;
++		for (i = 0; i < p->groups[group].func_count; i++) {
++			if (p->groups[group].func[i].enabled == 1) {
++				if (!strcmp(p->func[func]->name,
++					p->groups[group].func[i].name))
++					return 0;
++				p->groups[group].func[i].enabled = 0;
++				break;
++			}
++		}
++
++		/* exit if request the "gpio" function again */
++		if (i == p->groups[group].func_count && func == 0)
++			return 0;
+ 	}
+ 
+ 	p->groups[group].enabled = 1;
+-- 
+2.25.1
+
