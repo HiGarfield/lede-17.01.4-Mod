@@ -1,11 +1,9 @@
-From 475f0d03ac76cc059878d827e4910adb9b53cd86 Mon Sep 17 00:00:00 2001
+From 13778aba008c2303def151974ab15f37a77fbeb4 Mon Sep 17 00:00:00 2001
 From: Shiji Yang <yangshiji66@outlook.com>
 Date: Tue, 25 Jul 2023 20:05:06 +0800
 Subject: [PATCH] wifi: rt2x00: rework MT7620 PA/LNA RF calibration
 
 1. Move MT7620 PA/LNA calibration code to dedicated functions.
-   Calibration stage 1 is executed before configuring channels and
-   stage 2 is executed after configuring channels.
 2. For external PA/LNA devices, restore RF and BBP registers before
    R-Calibration.
 3. Do Rx DCOC calibration again before RXIQ calibration.
@@ -22,25 +20,15 @@ Subject: [PATCH] wifi: rt2x00: rework MT7620 PA/LNA RF calibration
 
 Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
 ---
- .../net/wireless/ralink/rt2x00/rt2800lib.c    | 318 +++++++++++-------
+ .../net/wireless/ralink/rt2x00/rt2800lib.c    | 306 ++++++++++--------
  drivers/net/wireless/ralink/rt2x00/rt2x00.h   |   6 +
- 2 files changed, 194 insertions(+), 130 deletions(-)
+ 2 files changed, 182 insertions(+), 130 deletions(-)
 
 diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-index b1d0368..5d845c2 100644
+index b1d0368..f6be2d3 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -73,6 +73,9 @@ MODULE_PARM_DESC(watchdog, "Enable watchdog to detect tx/rx hangs and reset hard
- 	rt2800_regbusy_read((__dev), H2M_MAILBOX_CSR, \
- 			    H2M_MAILBOX_CSR_OWNER, (__reg))
- 
-+static void rt6352_init_palna_stage1(struct rt2x00_dev *rt2x00dev);
-+static void rt6352_init_palna_stage2(struct rt2x00_dev *rt2x00dev);
-+
- static inline bool rt2800_is_305x_soc(struct rt2x00_dev *rt2x00dev)
- {
- 	/* check for rt2872 on SoC */
-@@ -3892,14 +3895,6 @@ static void rt2800_config_channel_rf7620(struct rt2x00_dev *rt2x00dev,
+@@ -3892,14 +3892,6 @@ static void rt2800_config_channel_rf7620(struct rt2x00_dev *rt2x00dev,
  		rfcsr |= tx_agc_fc;
  		rt2800_rfcsr_write_bank(rt2x00dev, 7, 59, rfcsr);
  	}
@@ -55,17 +43,7 @@ index b1d0368..5d845c2 100644
  }
  
  static void rt2800_config_alc_rt6352(struct rt2x00_dev *rt2x00dev,
-@@ -4162,6 +4157,9 @@ static void rt2800_config_channel(struct rt2x00_dev *rt2x00dev,
- 			rt2800_txpower_to_dev(rt2x00dev, rf->channel,
- 					      info->default_power3);
- 
-+	if (rt2x00_rt(rt2x00dev, RT6352))
-+		rt6352_init_palna_stage1(rt2x00dev);
-+
- 	switch (rt2x00dev->chip.rt) {
- 	case RT3883:
- 		rt3883_bbp_adjust(rt2x00dev, rf);
-@@ -4468,89 +4466,65 @@ static void rt2800_config_channel(struct rt2x00_dev *rt2x00dev,
+@@ -4468,89 +4460,63 @@ static void rt2800_config_channel(struct rt2x00_dev *rt2x00dev,
  		usleep_range(1000, 1500);
  	}
  
@@ -196,12 +174,10 @@ index b1d0368..5d845c2 100644
 +		 * Otherwise it's difficult to pass the WHQL.
 +		 */
 +		usleep_range(1000, 1500);
-+
-+		rt6352_init_palna_stage2(rt2x00dev);
  	}
  
  	bbp = rt2800_bbp_read(rt2x00dev, 4);
-@@ -5660,43 +5634,6 @@ void rt2800_vco_calibration(struct rt2x00_dev *rt2x00dev)
+@@ -5660,43 +5626,6 @@ void rt2800_vco_calibration(struct rt2x00_dev *rt2x00dev)
  		}
  	}
  	rt2800_register_write(rt2x00dev, TX_PIN_CFG, tx_pin);
@@ -245,7 +221,7 @@ index b1d0368..5d845c2 100644
  }
  EXPORT_SYMBOL_GPL(rt2800_vco_calibration);
  
-@@ -8663,7 +8600,7 @@ void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev)
+@@ -8663,7 +8592,7 @@ void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev)
  		rt2x00_warn(rt2x00dev, "Wait MAC Tx Status to MAX !!!\n");
  
  	maccfg = rt2800_register_read(rt2x00dev, MAC_SYS_CTRL);
@@ -254,7 +230,7 @@ index b1d0368..5d845c2 100644
  	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, maccfg);
  
  	if (unlikely(rt2800_wait_bbp_rf_ready(rt2x00dev, MAC_STATUS_CFG_BBP_RF_BUSY_RX)))
-@@ -10713,30 +10650,151 @@ static void rt2800_init_rfcsr_6352(struct rt2x00_dev *rt2x00dev)
+@@ -10713,30 +10642,143 @@ static void rt2800_init_rfcsr_6352(struct rt2x00_dev *rt2x00dev)
  		rt2800_rfcsr_write_dccal(rt2x00dev, 5, 0x00);
  		rt2800_rfcsr_write_dccal(rt2x00dev, 17, 0x7C);
  	}
@@ -269,7 +245,7 @@ index b1d0368..5d845c2 100644
 -	rt2800_loft_iq_calibration(rt2x00dev);
 -	rt2800_rxiq_calibration(rt2x00dev);
 -	rt6352_enable_pa_pin(rt2x00dev, 1);
-+static void rt6352_init_ext_palna(struct rt2x00_dev *rt2x00dev)
++static void rt2800_init_palna_rt6352(struct rt2x00_dev *rt2x00dev)
 +{
 +	u32 reg;
 +
@@ -285,14 +261,14 @@ index b1d0368..5d845c2 100644
 +	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
++	    rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
  		rt2800_rfcsr_write_chanreg(rt2x00dev, 14, 0x66);
  		rt2800_rfcsr_write_chanreg(rt2x00dev, 17, 0x20);
  		rt2800_rfcsr_write_chanreg(rt2x00dev, 18, 0x42);
 +	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_pa(rt2x00dev)) {
++	    rt2x00_has_cap_external_pa(rt2x00dev)) {
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 43, 0x73);
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 44, 0x73);
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 45, 0x73);
@@ -311,12 +287,11 @@ index b1d0368..5d845c2 100644
 +	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_pa(rt2x00dev)) {
++	    rt2x00_has_cap_external_pa(rt2x00dev))
 +		rt2800_rfcsr_write_dccal(rt2x00dev, 05, 0x00);
-+	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
++	    rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
  		rt2800_bbp_write(rt2x00dev, 75, 0x68);
  		rt2800_bbp_write(rt2x00dev, 76, 0x4C);
  		rt2800_bbp_write(rt2x00dev, 79, 0x1C);
@@ -329,14 +304,14 @@ index b1d0368..5d845c2 100644
 +	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_pa(rt2x00dev)) {
++	    rt2x00_has_cap_external_pa(rt2x00dev)) {
 +		rt2800_register_write(rt2x00dev, TX0_RF_GAIN_CORRECT, 0x36303636);
 +		rt2800_register_write(rt2x00dev, TX0_RF_GAIN_ATTEN, 0x6C6C6B6C);
 +		rt2800_register_write(rt2x00dev, TX1_RF_GAIN_ATTEN, 0x6C6C6B6C);
 +	}
 +}
 +
-+static void rt6352_restore_rf_bbp(struct rt2x00_dev *rt2x00dev)
++static void rt2800_restore_rf_bbp_rt6352(struct rt2x00_dev *rt2x00dev)
 +{
 +	if (rt2x00_has_cap_external_pa(rt2x00dev)) {
 +		rt2800_register_write(rt2x00dev, RF_CONTROL3, 0x0);
@@ -344,15 +319,14 @@ index b1d0368..5d845c2 100644
 +	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
++	    rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 14, 0x16);
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 17, 0x23);
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 18, 0x02);
 +	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_pa(rt2x00dev))
-+	{
++	    rt2x00_has_cap_external_pa(rt2x00dev)) {
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 43, 0xD3);
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 44, 0xB3);
 +		rt2800_rfcsr_write_chanreg(rt2x00dev, 45, 0xD5);
@@ -371,7 +345,7 @@ index b1d0368..5d845c2 100644
 +	}
 +
 +	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
-+		rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
++	    rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
 +		rt2800_bbp_write(rt2x00dev, 75, 0x60);
 +		rt2800_bbp_write(rt2x00dev, 76, 0x44);
 +		rt2800_bbp_write(rt2x00dev, 79, 0x1C);
@@ -379,29 +353,23 @@ index b1d0368..5d845c2 100644
 +		rt2800_bbp_write(rt2x00dev, 82, 0xB6);
 +	}
 +
-+	if (rt2800_hw_get_chippkg(rt2x00dev) == 1
-+		&& rt2x00_has_cap_external_pa(rt2x00dev)) {
++	if (rt2800_hw_get_chippkg(rt2x00dev) == 1 &&
++	    rt2x00_has_cap_external_pa(rt2x00dev)) {
 +		rt2800_register_write(rt2x00dev, TX0_RF_GAIN_CORRECT, 0x3630363A);
 +		rt2800_register_write(rt2x00dev, TX0_RF_GAIN_ATTEN, 0x6C6C666C);
 +		rt2800_register_write(rt2x00dev, TX1_RF_GAIN_ATTEN, 0x6C6C666C);
 +	}
 +}
 +
-+/* MT7620 PA/LNA initialization before switching channels */
-+static void rt6352_init_palna_stage1(struct rt2x00_dev *rt2x00dev)
++static void rt2800_calibration_rt6352(struct rt2x00_dev *rt2x00dev)
 +{
 +	if (rt2x00_has_cap_external_pa(rt2x00dev) ||
-+		rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
++	    rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
 +		rt6352_enable_pa_pin(rt2x00dev, 0);
-+		rt6352_restore_rf_bbp(rt2x00dev);
++		rt2800_restore_rf_bbp_rt6352(rt2x00dev);
 +	}
 +
 +	rt2800_r_calibration(rt2x00dev);
-+}
-+
-+/* MT7620 PA/LNA initialization after switching channels */
-+static void rt6352_init_palna_stage2(struct rt2x00_dev *rt2x00dev)
-+{
 +	rt2800_rf_self_txdc_cal(rt2x00dev);
 +	rt2800_rxdcoc_calibration(rt2x00dev);
 +	rt2800_bw_filter_calibration(rt2x00dev, true);
@@ -413,13 +381,24 @@ index b1d0368..5d845c2 100644
 +	rt2800_rxdcoc_calibration(rt2x00dev);
 +	rt2800_rxiq_calibration(rt2x00dev);
 +
-+	if(rt2x00_has_cap_external_pa(rt2x00dev) ||
-+		rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
++	if (rt2x00_has_cap_external_pa(rt2x00dev) ||
++	   rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
 +		rt6352_enable_pa_pin(rt2x00dev, 1);
-+		rt6352_init_ext_palna(rt2x00dev);
++		rt2800_init_palna_rt6352(rt2x00dev);
  	}
  }
  
+@@ -10829,6 +10871,10 @@ int rt2800_enable_radio(struct rt2x00_dev *rt2x00dev)
+ 	rt2800_init_bbp(rt2x00dev);
+ 	rt2800_init_rfcsr(rt2x00dev);
+ 
++	/* Do calibration and init PA/LNA for RT6352 */
++	if (rt2x00_rt(rt2x00dev, RT6352))
++		rt2800_calibration_rt6352(rt2x00dev);
++
+ 	if (rt2x00_is_usb(rt2x00dev) &&
+ 	    (rt2x00_rt(rt2x00dev, RT3070) ||
+ 	     rt2x00_rt(rt2x00dev, RT3071) ||
 diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 index 6b446a3..fb0ae2e 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
