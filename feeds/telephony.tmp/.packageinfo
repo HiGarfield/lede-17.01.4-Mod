@@ -6106,7 +6106,7 @@ Package: freeswitch
 Menu: 1
 Submenu: Telephony
 Version: 1.9.0+perl5.28-77d0cfb
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +FS_WITH_CORE_LIBEDIT_SUPPORT:libedit +FS_WITH_OPENSSL:libopenssl +libcurl +libdb47 +libfreetype +libgdbm +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full +libjpeg +libncurses +libopenldap +libpcre +libpng +libpthread +librt +libspeex +libspeexdsp +FS_WITH_SQLITE3:libsqlite3 +libsrtp +libstdcpp +libuuid +PACKAGE_freeswitch-mod-perl:perl
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +FS_WITH_CORE_LIBEDIT_SUPPORT:libedit +FS_WITH_OPENSSL:libopenssl +libcurl +libdb47 +libfreetype +libgdbm +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full +libjpeg +libncurses +libopenldap +libpcre +libpng +libpthread +librt +libspeex +libspeexdsp +FS_WITH_SQLITE3:libsqlite3 +libsrtp +libstdcpp +libuuid
 Conflicts: 
 Menu-Depends: 
 Provides: 
