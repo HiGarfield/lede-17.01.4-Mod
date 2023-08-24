@@ -171,7 +171,7 @@ add_rule() {
 	$ipt_n -A ADBYBY -d 224.0.0.0/4 -j RETURN
 	$ipt_n -A ADBYBY -d 240.0.0.0/4 -j RETURN
 	ip_rule
-	if [ $(ipset list music -name -quiet | grep music) ]; then
+	if ipset list music -name -quiet | grep -q music; then
 		$ipt_n -A ADBYBY -m set --match-set music dst -j RETURN 2>/dev/null
 	fi
 	$ipt_n -A ADBYBY -p tcp -j REDIRECT --to-ports 8118 2>/dev/null
@@ -221,7 +221,7 @@ start() {
 }
 
 stop() {
-	kill -9 $(busybox ps -w | grep "/tmp/adbyby/adbyby" | grep -v grep | grep -v update | grep -v adblock | awk '{print $1}') >/dev/null 2>&1
+	killall -9 adbyby >/dev/null 2>&1
 	config_load adbyby
 	config_foreach get_config adbyby
 	del_rule
