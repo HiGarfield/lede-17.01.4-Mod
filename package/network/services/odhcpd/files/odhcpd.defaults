@@ -32,6 +32,7 @@ set dhcp.lan.interface='lan'
 set dhcp.lan.start='100'
 set dhcp.lan.limit='100'
 set dhcp.lan.leasetime='12h'
+set dhcp.lan.domain='lan'
 EOF
 }
 
@@ -44,5 +45,8 @@ set dhcp.odhcpd.loglevel=4
 set dhcp.lan.dhcpv4=$V4MODE
 set dhcp.lan.dhcpv6=$V6MODE
 set dhcp.lan.ra=$V6MODE
+set dhcp.lan.ra_slaac=1
+add_list dhcp.lan.ra_flags=managed-config
+add_list dhcp.lan.ra_flags=other-config
 commit dhcp
 EOF
