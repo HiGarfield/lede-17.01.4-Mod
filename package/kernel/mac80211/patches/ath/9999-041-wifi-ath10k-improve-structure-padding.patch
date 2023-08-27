@@ -1,0 +1,61 @@
+From ab6ded1e8055edf7a8c2006220fc65c01dab8f8d Mon Sep 17 00:00:00 2001
+From: Arnd Bergmann <arnd@arndb.de>
+Date: Fri, 16 Jun 2023 11:04:21 +0200
+Subject: [PATCH] wifi: ath10k: improve structure padding
+
+Including an aligned structure inside of a packed one is ambiguous
+and can lead to misaligned data.
+
+These structures appear to actually need the packing since they
+are embedded at misaligned offsets. Add even more such annotations
+here to enforce bytewise access throughout the driver.
+
+Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+---
+ drivers/net/wireless/ath/ath10k/htt.h | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/wireless/ath/ath10k/htt.h b/drivers/net/wireless/ath/ath10k/htt.h
+index 38e9973..804051a 100644
+--- a/drivers/net/wireless/ath/ath10k/htt.h
++++ b/drivers/net/wireless/ath/ath10k/htt.h
+@@ -702,7 +702,7 @@ struct htt_rx_indication_prefix {
+ 	__le16 fw_rx_desc_bytes;
+ 	u8 pad0;
+ 	u8 pad1;
+-};
++} __packed;
+ 
+ struct htt_rx_indication {
+ 	struct htt_rx_indication_hdr hdr;
+@@ -1636,7 +1636,7 @@ struct htt_cmd {
+ 		struct htt_frag_desc_bank_cfg32 frag_desc_bank_cfg32;
+ 		struct htt_frag_desc_bank_cfg64 frag_desc_bank_cfg64;
+ 		struct htt_tx_fetch_resp tx_fetch_resp;
+-	};
++	} __packed;
+ } __packed;
+ 
+ struct htt_resp {
+@@ -1665,7 +1665,7 @@ struct htt_resp {
+ 		struct htt_tx_mode_switch_ind tx_mode_switch_ind;
+ 		struct htt_channel_change chan_change;
+ 		struct htt_peer_tx_stats peer_tx_stats;
+-	};
++	} __packed;
+ } __packed;
+ 
+ /*** host side structures follow ***/
+@@ -1997,7 +1997,7 @@ struct htt_rx_desc {
+ 	} __packed;
+ 	u8 rx_hdr_status[RX_HTT_HDR_STATUS_LEN];
+ 	u8 msdu_payload[0];
+-};
++} __packed;
+ 
+ #define HTT_RX_DESC_ALIGN 8
+ 
+-- 
+2.25.1
+
