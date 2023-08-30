@@ -52,7 +52,7 @@ TARGET_DEVICES += link7
 
 define Device/a3004ns
   DTS := A3004NS
-  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  IMAGE_SIZE := 16128k
   DEVICE_TITLE := TOTOLINK A3004NS
   DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
 endef
