@@ -61,24 +61,24 @@
 		spi-max-frequency = <10000000>;
 		m25p,chunked-io = <32>;
 
-		partition@0 {
+		uboot: partition@0 {
 			label = "u-boot";
-			reg = <0x0 0x30000>;
+			reg = <0x0 0x20000>;
 		};
 
-		partition@30000 {
-			label = "u-boot-env";
+		partition@20000 {
+			label = "config";
+			reg = <0x20000 0x10000>;
+		};
+
+		factory: partition@30000 {
+			label = "factory";
 			reg = <0x30000 0x10000>;
 		};
 
-		factory: partition@40000 {
-			label = "factory";
-			reg = <0x40000 0x10000>;
-		};
-
-		partition@50000 {
+		partition@40000 {
 			label = "firmware";
-			reg = <0x50000 0xfb0000>;
+			reg = <0x40000 0xfc0000>;
 		};
 	};
 };
