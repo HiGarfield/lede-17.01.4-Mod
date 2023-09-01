@@ -26,8 +26,8 @@ minonlinenum = s:option(Value, "minonlinenum", translate("Minimal number of onli
 minonlinenum.datatype = "and(uinteger,range(0,20))"
 minonlinenum.optional = false
 
-dialwait = s:option(Value, "dialwait", translate("Time waiting before redial"), translate("Minimal value: 5 seconds"))
-dialwait.datatype = "and(uinteger,min(5))"
+dialwait = s:option(Value, "dialwait", translate("Time waiting before redial"), translate("Minimal value: 25 seconds"))
+dialwait.datatype = "and(uinteger,min(25))"
 dialwait.optional = false
 
 o = s:option(DummyValue, "_redial", translate("Redial"))

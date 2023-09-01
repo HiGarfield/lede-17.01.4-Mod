@@ -4,8 +4,11 @@ touch /etc/config/syncdial
 
 uci -q batch <<-EOF >/dev/null
 	delete ucitrack.@syncdial[-1]
+	delete ucitrack.@syncdial[-1]
 	add ucitrack syncdial
 	set ucitrack.@syncdial[-1].exec='/bin/genwancfg'
+	add ucitrack syncdial
+	set ucitrack.@syncdial[-1].exec='/bin/pppconnectcheck &'
 	commit ucitrack
 EOF
 

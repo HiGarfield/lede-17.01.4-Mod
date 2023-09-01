@@ -4,14 +4,14 @@ if [ "$ACTION" = "ifdown" ]; then
 	echo "$DEVICE" | grep -q "^pppoe-vwan[[:digit:]]\+$" &&
 		pppconnectcheck &
 elif [ "$ACTION" = "ifup" ]; then
-	ifname=$(uci get network.wan.ifname)
-	[ "$(uci get syncdial.config.enabled)" -eq 1 ] &&
+	ifname=$(uci -q get network.wan.ifname)
+	[ "$(uci -q get syncdial.config.enabled)" -eq 1 ] &&
 		[ "$DEVICE" = "$ifname" ] && {
-		wannum=$(uci get syncdial.config.wannum)
+		wannum=$(uci -q get syncdial.config.wannum)
 		for i in $(seq 1 "$wannum"); do
 			[ -d "/sys/class/net/macvlan$i" ] || {
 				ip link add link "$ifname" name "macvlan$i" type macvlan
-				ifconfig "macvlan$i" hw ether "$(sed -e "s/\(:[^:]*\)\{3\}$/$(hexdump -n 3 -ve '1/1 ":%02x"' /dev/urandom)/" -e "s/ff/fe/g" -e "s/00/01/g" "/sys/class/net/$ifname/address")"
+				ifconfig "macvlan$i" hw ether "$(hexdump -n 6 -ve '1/1 ":%02x"' /dev/urandom | sed 's/^://')"
 				ifconfig "macvlan$i" up
 			}
 		done
