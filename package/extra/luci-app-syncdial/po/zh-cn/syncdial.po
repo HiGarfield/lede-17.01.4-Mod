@@ -34,5 +34,5 @@ msgstr "如果在线接口数量小于这个值则重拨"
 msgid "Time waiting before redial"
 msgstr "重拨等待时间"
 
-msgid "Minimal value: 5 seconds"
-msgstr "最小值：5秒"
+msgid "Minimal value: 25 seconds"
+msgstr "最小值：25秒"

@@ -1,24 +1,26 @@
 #!/bin/sh
+
 #PPPoE拨号在线接口数检测及重拨脚本
-. /lib/functions.sh
-
-[ -f /etc/config/syncdial ] || exit 1
-
-config_load "syncdial"
-config_get enabled config enabled 0
-config_get_bool dialchk config dialchk 0
-config_get wannum config wannum 0
-config_get minonlinenum config minonlinenum 0
-config_get dialwait config dialwait 20
-
-[ "$enabled" -eq 1 ] && [ "$dialchk" -eq 1 ] || exit 0
-
-[ "$minonlinenum" -gt "$wannum" ] && minonlinenum=$wannum
 
 [ "$(pgrep -fl "pppconnectcheck" | grep -c "/bin/sh")" -gt 2 ] && {
 	logger -t PPPoE-IFChecker "Another checker is running. Exit."
 	exit 1
 }
+
+. /lib/functions.sh
+
+[ -f /etc/config/syncdial ] || exit 1
+
+config_load "syncdial"
+config_get_bool enabled config enabled 0
+config_get_bool dialchk config dialchk 0
+config_get wannum config wannum 0
+config_get minonlinenum config minonlinenum 0
+config_get dialwait config dialwait 25
+
+[ "$enabled" -eq 1 ] && [ "$dialchk" -eq 1 ] || exit 0
+
+[ "$minonlinenum" -gt "$wannum" ] && minonlinenum=$wannum
 
 ifs_opt_down() {
 	local ifn=$1
@@ -58,12 +60,17 @@ logger -t PPPoE-IFChecker "$pppupnum interfaces are online."
 	config_foreach ifs_opt_down "interface"
 	ifdown wan
 	sleep $dialwait
+	while pgrep pppd >/dev/null 2>&1 ||
+		[ -f /dev/shm/SYNCPPP_block ] ||
+		[ -f /dev/shm/SYNCPPP_counts ]; do
+		killall -9 pppd
+		rm -f /dev/shm/SYNCPPP_block /dev/shm/SYNCPPP_counts
+	done
 	logger -t PPPoE-IFChecker "Start interfaces."
 	config_foreach ifs_opt_up "interface"
 	ifup wan
 	logger -t PPPoE-IFChecker "Interfaces restarted."
-	logger -t PPPoE-IFChecker "Another checker will be started ${checkwait}s later."
-	sleep $checkwait
+	logger -t PPPoE-IFChecker "Another checker will be started."
 	pppconnectcheck &
 	exit 0
 }

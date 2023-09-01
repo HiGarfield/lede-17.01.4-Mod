@@ -240,7 +240,6 @@ proto_pppoe_setup() {
 	[ "$(uci get syncdial.config.enabled)" -eq "1" ] && {
 		ppp_if_cnt=$(uci show network | grep -c "\.proto=\'pppoe\'$")
 		syncppp_option="syncppp $ppp_if_cnt"
-		shellsync $ppp_if_cnt 15
 	}
 
 	ppp_generic_setup "$config" \

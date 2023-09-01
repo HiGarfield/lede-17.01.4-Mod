@@ -1,34 +1,22 @@
---- a/pppd/chap-new.c
-+++ b/pppd/chap-new.c
-@@ -37,6 +37,8 @@
- #include "chap-new.h"
- #include "chap-md5.h"
- 
-+#include "syncppp.h"
-+
- #ifdef CHAPMS
- #include "chap_ms.h"
- #define MDTYPE_ALL (MDTYPE_MICROSOFT_V2 | MDTYPE_MICROSOFT | MDTYPE_MD5)
-@@ -492,6 +494,19 @@ chap_respond(struct chap_client_state *c
- 	p[2] = len >> 8;
- 	p[3] = len;
- 
-+    if (npppd > 1) {
-+        if (syncppp(npppd) < 0) {
-+            error("syncppp sync fail");
-+            sem_unlink(SEM_COUNT_NAME);
-+            sem_unlink(SEM_BLOCK_NAME);
-+        } else {
-+            info("syncppp sync succeeded");
-+        }   
-+    } else {
-+        info("syncppp not active");
-+    }
-+
-+
- 	output(0, response, PPP_HDRLEN + len);
- }
- 
+From 2a28e3910d4da8d7c7acf65ef28c45ae590d6f20 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 2 Sep 2023 02:30:17 +0800
+Subject: [PATCH] syncppp
+
+---
+ pppd/Makefile.linux |  8 ++---
+ pppd/chap-new.c     | 15 +++++++++
+ pppd/options.c      |  5 +++
+ pppd/pppd.h         |  1 +
+ pppd/syncppp.c      | 74 +++++++++++++++++++++++++++++++++++++++++++++
+ pppd/syncppp.h      |  4 +++
+ pppd/upap.c         | 13 ++++++++
+ 7 files changed, 116 insertions(+), 4 deletions(-)
+ create mode 100644 pppd/syncppp.c
+ create mode 100644 pppd/syncppp.h
+
+diff --git a/pppd/Makefile.linux b/pppd/Makefile.linux
+index 7716b40..d22b50f 100644
 --- a/pppd/Makefile.linux
 +++ b/pppd/Makefile.linux
 @@ -13,16 +13,16 @@ TARGETS = pppd
@@ -60,9 +48,44 @@
  
  # Uncomment the next line to include support for Microsoft's
  # MS-CHAP authentication protocol.  Also, edit plugins/radius/Makefile.linux.
+diff --git a/pppd/chap-new.c b/pppd/chap-new.c
+index 7fd7087..831e804 100644
+--- a/pppd/chap-new.c
++++ b/pppd/chap-new.c
+@@ -37,6 +37,8 @@
+ #include "chap-new.h"
+ #include "chap-md5.h"
+ 
++#include "syncppp.h"
++
+ #ifdef CHAPMS
+ #include "chap_ms.h"
+ #define MDTYPE_ALL (MDTYPE_MICROSOFT_V2 | MDTYPE_MICROSOFT | MDTYPE_MD5)
+@@ -492,6 +494,19 @@ chap_respond(struct chap_client_state *cs, int id,
+ 	p[2] = len >> 8;
+ 	p[3] = len;
+ 
++    if (npppd > 1) {
++        if (syncppp(npppd) < 0) {
++            error("syncppp sync fail");
++            sem_unlink(SEM_COUNT_NAME);
++            sem_unlink(SEM_BLOCK_NAME);
++        } else {
++            info("syncppp sync succeeded");
++        }   
++    } else {
++        info("syncppp not active");
++    }
++
++
+ 	output(0, response, PPP_HDRLEN + len);
+ }
+ 
+diff --git a/pppd/options.c b/pppd/options.c
+index e788431..3e6fed8 100644
 --- a/pppd/options.c
 +++ b/pppd/options.c
-@@ -128,6 +128,7 @@ bool	dump_options;		/* print out option
+@@ -128,6 +128,7 @@ bool	dump_options;		/* print out option values */
  bool	dryrun;			/* print out option values and exit */
  char	*domain;		/* domain name set by domain option */
  int	child_wait = 5;		/* # seconds to wait for children at exit */
@@ -81,9 +104,11 @@
  #ifdef HAVE_MULTILINK
      { "multilink", o_bool, &multilink,
        "Enable multilink operation", OPT_PRIO | 1 },
+diff --git a/pppd/pppd.h b/pppd/pppd.h
+index 8509b39..45ac524 100644
 --- a/pppd/pppd.h
 +++ b/pppd/pppd.h
-@@ -343,6 +343,7 @@ extern char	*bundle_name;	/* bundle name
+@@ -343,6 +343,7 @@ extern char	*bundle_name;	/* bundle name for multilink */
  extern bool	dump_options;	/* print out option values */
  extern bool	dryrun;		/* check everything, print options, exit */
  extern int	child_wait;	/* # seconds to wait for children at end */
@@ -91,73 +116,75 @@
  
  #ifdef MAXOCTETS
  extern unsigned int maxoctets;	     /* Maximum octetes per session (in bytes) */
+diff --git a/pppd/syncppp.c b/pppd/syncppp.c
+new file mode 100644
+index 0000000..2852dee
 --- /dev/null
 +++ b/pppd/syncppp.c
-@@ -0,0 +1,75 @@
-+#include<stdio.h>
-+#include<semaphore.h>
-+#include<fcntl.h>
-+#include<stdlib.h>
-+#include<time.h>
-+#include<errno.h>
+@@ -0,0 +1,74 @@
++#include <stdio.h>
++#include <semaphore.h>
++#include <fcntl.h>
++#include <stdlib.h>
++#include <time.h>
++#include <errno.h>
 +#include "pppd.h"
 +#include "syncppp.h"
 +
 +int syncppp(int nproc)
 +{
 +    int flags;
-+    int value;
-+    sem_t *block; 
++    sem_t *block;
 +    sem_t *count;
 +    struct timespec ts;
 +
-+    if (nproc <= 1) {
++    if (nproc <= 1)
++    {
 +        error("syncppp: number of pppd should be larger than 1");
 +        return -1;
 +    }
 +
-+    if (clock_gettime(CLOCK_REALTIME, &ts) == -1) {
++    if (clock_gettime(CLOCK_REALTIME, &ts) == -1)
++    {
 +        error("clock_gettime error");
 +        return -1;
 +    }
 +    ts.tv_sec += SYNCPPP_TIMEOUT;
 +
-+
 +    flags = O_RDWR | O_CREAT;
 +    block = sem_open(SEM_BLOCK_NAME, flags, 0644, 0);
-+    count = sem_open(SEM_COUNT_NAME, flags, 0644, 0);
-+    if (block == SEM_FAILED || count == SEM_FAILED) {
++    count = sem_open(SEM_COUNT_NAME, flags, 0644, nproc - 1);
++    if (block == SEM_FAILED || count == SEM_FAILED)
++    {
 +        error("syncppp: sem_open failed");
 +        return -1;
 +    }
 +
-+    if (sem_post(count) < 0) {
-+        error("syncppp: sem_post failed");
-+        return -1;
-+    }
-+    if (sem_getvalue(count, &value) < 0) {
-+        error("syncppp: sem_getvalue failed");
-+        return -1;
-+    }
-+    info("%d pppd have arrived, waiting for the left %d", value, nproc-value);
-+    if (value >= nproc) {
-+        while (nproc-1 > 0) {
-+            if (sem_post(block) < 0) {
++    if (sem_trywait(count) < 0 && errno == EAGAIN)
++    {
++        while (--nproc)
++        {
++            if (sem_post(block) < 0)
++            {
 +                error("syncppp: sem_post failed");
 +                return -1;
 +            }
-+            nproc--;
 +        }
-+    } else {
-+        if (sem_timedwait(block, &ts) < 0) {
-+            if (errno == ETIMEDOUT) {
++    }
++    else
++    {
++        if (sem_timedwait(block, &ts) < 0)
++        {
++            if (errno == ETIMEDOUT)
++            {
 +                error("syncppp: sem_timewait time out");
-+            } else {
++            }
++            else
++            {
 +                error("syncppp: sem_timewait error");
 +            }
 +            return -1;
 +        }
-+
 +    }
 +
 +    sem_close(count);
@@ -169,12 +196,18 @@
 +    return 0;
 +}
 +
+diff --git a/pppd/syncppp.h b/pppd/syncppp.h
+new file mode 100644
+index 0000000..5a9ce9f
 --- /dev/null
 +++ b/pppd/syncppp.h
-@@ -0,0 +1,3 @@
-+#define SEM_BLOCK_NAME  "block"
-+#define SEM_COUNT_NAME  "count"
+@@ -0,0 +1,4 @@
++#define SEM_BLOCK_NAME "SYNCPPP_block"
++#define SEM_COUNT_NAME "SYNCPPP_count"
 +#define SYNCPPP_TIMEOUT 15
++
+diff --git a/pppd/upap.c b/pppd/upap.c
+index 8733533..f7f61f1 100644
 --- a/pppd/upap.c
 +++ b/pppd/upap.c
 @@ -52,6 +52,7 @@
@@ -204,4 +237,6 @@
      output(u->us_unit, outpacket_buf, outlen + PPP_HDRLEN);
  
      TIMEOUT(upap_timeout, u, u->us_timeouttime);
+-- 
+2.25.1
 
