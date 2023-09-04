@@ -3,7 +3,7 @@ This is the buildsystem for the LEDE Linux distribution.
 Please use "make menuconfig" to choose your preferred
 configuration for the toolchain and firmware.
 
-You need to have installed gcc, binutils, bzip2, flex, python, perl, make,
+You need to have installed gcc, binutils, bzip2, gettext, flex, python2, perl, make,
 find, grep, diff, unzip, gawk, getopt, subversion, libz-dev and libc headers.
 
 Run "./scripts/feeds update -i" to recreate the index for all packages
