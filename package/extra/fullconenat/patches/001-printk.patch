@@ -1,6 +1,6 @@
 --- a/xt_FULLCONENAT.c
 +++ b/xt_FULLCONENAT.c
-@@ -702,9 +702,10 @@
+@@ -702,9 +702,10 @@ static struct xt_target tg_reg[] __read_mostly = {
  
  static int __init fullconenat_tg_init(void)
  {

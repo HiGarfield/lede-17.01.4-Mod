@@ -1,0 +1,32 @@
+--- a/xt_FULLCONENAT.c
++++ b/xt_FULLCONENAT.c
+@@ -559,12 +559,12 @@ static unsigned int fullconenat_tg(struct sk_buff *skb, const struct xt_action_p
+     ct_tuple_origin = &(ct->tuplehash[IP_CT_DIR_ORIGINAL].tuple);
+     protonum = (ct_tuple_origin->dst).protonum;
+ 
+-    spin_lock_bh(&fullconenat_lock);
+-
+     if (protonum == IPPROTO_UDP) {
+       ip = (ct_tuple_origin->src).u3.ip;
+       original_port = be16_to_cpu((ct_tuple_origin->src).u.udp.port);
+ 
++      spin_lock_bh(&fullconenat_lock);
++
+       src_mapping = get_mapping_by_int_src(ip, original_port);
+       if (src_mapping != NULL && check_mapping(src_mapping, net, zone)) {
+ 
+@@ -602,8 +602,12 @@ static unsigned int fullconenat_tg(struct sk_buff *skb, const struct xt_action_p
+     /* do SNAT now */
+     ret = nf_nat_setup_info(ct, &newrange, HOOK2MANIP(xt_hooknum(par)));
+ 
+-    if (protonum != IPPROTO_UDP || ret != NF_ACCEPT) {
+-      /* for non-UDP packets and failed SNAT, bailout */
++    if (protonum != IPPROTO_UDP) {
++      /* non-UDP packets, bailout */
++      return ret;
++    }
++    if (ret != NF_ACCEPT) {
++      /* failed SNAT, bailout */
+       spin_unlock_bh(&fullconenat_lock);
+       return ret;
+     }
