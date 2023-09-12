@@ -5,7 +5,7 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/HiGarfield/cpulimit.git
-PKG_SOURCE_VERSION:=96a71be689bf0a98ba07708d4f008a5ff9014c17
+PKG_SOURCE_VERSION:=9dbd80267bb9c1feb4e30d8f91508684739ac496
 PKG_MIRROR_HASH:=skip
 
 include $(INCLUDE_DIR)/package.mk
