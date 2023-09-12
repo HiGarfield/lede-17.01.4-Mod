@@ -30,7 +30,7 @@ end
 
 o = s:option(DummyValue, "_listen_address", translate("Listen Address"))
 function o.cfgvalue(self, section)
-	local listen_addr = m.uci:get("udp2raw", section, "listen_addr") or "127.0.0.1"
+	local listen_addr = m.uci:get("udp2raw", section, "listen_addr") or "0.0.0.0"
 	local listen_port = m.uci:get("udp2raw", section, "listen_port") or "2080"
 	return "%s:%s" %{listen_addr, listen_port}
 end
