@@ -1,0 +1,70 @@
+From f041329bb977b3bfde98ff8e667e0032659a1b22 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Sat, 16 Sep 2023 16:18:29 +0900
+Subject: [PATCH] Remove deprecated std::unary_function and
+ std::binary_function
+
+---
+ src/ConsoleStatCalc.h | 2 +-
+ src/CookieStorage.cc  | 2 +-
+ src/MetalinkEntry.cc  | 3 +--
+ src/a2functional.h    | 3 +--
+ 4 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/src/ConsoleStatCalc.h b/src/ConsoleStatCalc.h
+index 3940ef0..76bfd5b 100644
+--- a/src/ConsoleStatCalc.h
++++ b/src/ConsoleStatCalc.h
+@@ -45,7 +45,7 @@
+ 
+ namespace aria2 {
+ 
+-class SizeFormatter : public std::unary_function<int64_t, std::string> {
++class SizeFormatter {
+ protected:
+   virtual std::string format(int64_t size) const = 0;
+ 
+diff --git a/src/CookieStorage.cc b/src/CookieStorage.cc
+index 56db33e..3dbafde 100644
+--- a/src/CookieStorage.cc
++++ b/src/CookieStorage.cc
+@@ -352,7 +352,7 @@ public:
+ } // namespace
+ 
+ namespace {
+-class OrderByPathDepthDesc : public std::binary_function<Cookie, Cookie, bool> {
++class OrderByPathDepthDesc {
+ public:
+   bool operator()(const CookiePathDivider& lhs,
+                   const CookiePathDivider& rhs) const
+diff --git a/src/MetalinkEntry.cc b/src/MetalinkEntry.cc
+index 3567f06..d18afd2 100644
+--- a/src/MetalinkEntry.cc
++++ b/src/MetalinkEntry.cc
+@@ -102,8 +102,7 @@ void MetalinkEntry::reorderMetaurlsByPriority()
+ }
+ 
+ namespace {
+-class Supported
+-    : public std::unary_function<std::shared_ptr<MetalinkResource>, bool> {
++class Supported {
+ public:
+   bool operator()(const std::shared_ptr<MetalinkResource>& res) const
+   {
+diff --git a/src/a2functional.h b/src/a2functional.h
+index c1059fe..bacfff5 100644
+--- a/src/a2functional.h
++++ b/src/a2functional.h
+@@ -102,8 +102,7 @@ std::string strjoin(InputIterator first, InputIterator last,
+   return result;
+ }
+ 
+-template <typename T>
+-class LeastRecentAccess : public std::binary_function<T, T, bool> {
++template <typename T> class LeastRecentAccess {
+ public:
+   bool operator()(const std::shared_ptr<T>& lhs,
+                   const std::shared_ptr<T>& rhs) const
+-- 
+2.25.1
+

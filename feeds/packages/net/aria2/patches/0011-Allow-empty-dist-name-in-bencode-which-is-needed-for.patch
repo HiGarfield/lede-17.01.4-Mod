@@ -1,7 +1,7 @@
-From ba36a38a6c4be38fe4e09cc95a40b58a48daed79 Mon Sep 17 00:00:00 2001
+From 20dcc5615bdce065f14a2751b8315141150ec683 Mon Sep 17 00:00:00 2001
 From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
 Date: Fri, 8 Apr 2022 22:48:00 +0900
-Subject: [PATCH 11/23] Allow empty dist name in bencode which is needed for
+Subject: [PATCH] Allow empty dist name in bencode which is needed for
  hybrid torrent
 
 ---
@@ -15,7 +15,7 @@ Subject: [PATCH 11/23] Allow empty dist name in bencode which is needed for
  7 files changed, 41 insertions(+), 5 deletions(-)
 
 diff --git a/src/GenericParser.h b/src/GenericParser.h
-index 86c6ca92..7373b066 100644
+index 86c6ca9..7373b06 100644
 --- a/src/GenericParser.h
 +++ b/src/GenericParser.h
 @@ -42,9 +42,14 @@
@@ -36,7 +36,7 @@ index 86c6ca92..7373b066 100644
    ~GenericParser() = default;
  
 diff --git a/src/ValueBaseBencodeParser.h b/src/ValueBaseBencodeParser.h
-index cfc43145..91cfc37b 100644
+index cfc4314..91cfc37 100644
 --- a/src/ValueBaseBencodeParser.h
 +++ b/src/ValueBaseBencodeParser.h
 @@ -43,7 +43,7 @@ namespace aria2 {
@@ -49,7 +49,7 @@ index cfc43145..91cfc37b 100644
  
  } // namespace bittorrent
 diff --git a/src/ValueBaseStructParserStateMachine.cc b/src/ValueBaseStructParserStateMachine.cc
-index b026758a..caf6296e 100644
+index b026758..caf6296 100644
 --- a/src/ValueBaseStructParserStateMachine.cc
 +++ b/src/ValueBaseStructParserStateMachine.cc
 @@ -213,4 +213,9 @@ void ValueBaseStructParserStateMachine::pushNullState()
@@ -63,7 +63,7 @@ index b026758a..caf6296e 100644
 +
  } // namespace aria2
 diff --git a/src/ValueBaseStructParserStateMachine.h b/src/ValueBaseStructParserStateMachine.h
-index a049de3a..c309cfb6 100644
+index a049de3..c309cfb 100644
 --- a/src/ValueBaseStructParserStateMachine.h
 +++ b/src/ValueBaseStructParserStateMachine.h
 @@ -106,6 +106,8 @@ public:
@@ -76,7 +76,7 @@ index a049de3a..c309cfb6 100644
    std::unique_ptr<rpc::XmlRpcRequestParserController> ctrl_;
    std::stack<ValueBaseStructParserState*> stateStack_;
 diff --git a/src/XmlRpcRequestParserController.cc b/src/XmlRpcRequestParserController.cc
-index 25a5addc..a3c9a857 100644
+index 25a5add..a3c9a85 100644
 --- a/src/XmlRpcRequestParserController.cc
 +++ b/src/XmlRpcRequestParserController.cc
 @@ -54,7 +54,7 @@ void XmlRpcRequestParserController::popStructFrame()
@@ -101,7 +101,7 @@ index 25a5addc..a3c9a857 100644
  
  } // namespace aria2
 diff --git a/src/XmlRpcRequestParserController.h b/src/XmlRpcRequestParserController.h
-index 7892147b..b84a7de1 100644
+index 7892147..b84a7de 100644
 --- a/src/XmlRpcRequestParserController.h
 +++ b/src/XmlRpcRequestParserController.h
 @@ -52,7 +52,10 @@ private:
@@ -138,7 +138,7 @@ index 7892147b..b84a7de1 100644
  };
  
 diff --git a/test/ValueBaseBencodeParserTest.cc b/test/ValueBaseBencodeParserTest.cc
-index 30cca2f4..2e12ec49 100644
+index 30cca2f..2e12ec4 100644
 --- a/test/ValueBaseBencodeParserTest.cc
 +++ b/test/ValueBaseBencodeParserTest.cc
 @@ -208,6 +208,16 @@ void ValueBaseBencodeParserTest::testParseUpdate()

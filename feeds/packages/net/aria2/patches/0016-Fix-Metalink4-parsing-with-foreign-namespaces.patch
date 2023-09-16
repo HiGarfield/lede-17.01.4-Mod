@@ -1,7 +1,7 @@
-From 15a96209cd0a25fea4398b8c6f6ccd3a488829c9 Mon Sep 17 00:00:00 2001
+From 4e0729bd86a6a702322071604450bacdd8a60355 Mon Sep 17 00:00:00 2001
 From: Nikita Ofitserov <himikof@gmail.com>
 Date: Tue, 23 Aug 2022 20:27:39 +0300
-Subject: [PATCH 22/23] Fix Metalink4 parsing with foreign namespaces
+Subject: [PATCH] Fix Metalink4 parsing with foreign namespaces
 
 Rename local checkNsUri helper function to make boolean conditions easily readable,
 as the issue was not apparent with the old helper function name.
@@ -10,7 +10,7 @@ as the issue was not apparent with the old helper function name.
  1 file changed, 4 insertions(+), 4 deletions(-)
 
 diff --git a/src/MetalinkParserStateV4Impl.cc b/src/MetalinkParserStateV4Impl.cc
-index 43fdeec0..4fee5c33 100644
+index 43fdeec..4fee5c3 100644
 --- a/src/MetalinkParserStateV4Impl.cc
 +++ b/src/MetalinkParserStateV4Impl.cc
 @@ -47,7 +47,7 @@ namespace aria2 {

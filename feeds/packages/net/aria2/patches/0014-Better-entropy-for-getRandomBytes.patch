@@ -1,7 +1,7 @@
-From ba3396f7bb210b53fb940f274a0622ad9799545c Mon Sep 17 00:00:00 2001
+From d4f6a8237dd47d8d4329fff46b404c7658e32f03 Mon Sep 17 00:00:00 2001
 From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
 Date: Sat, 9 Apr 2022 15:48:16 +0900
-Subject: [PATCH 15/23] Better entropy for getRandomBytes
+Subject: [PATCH] Better entropy for getRandomBytes
 
 ---
  configure.ac                 |  1 +
@@ -12,7 +12,7 @@ Subject: [PATCH 15/23] Better entropy for getRandomBytes
  create mode 100644 test/SimpleRandomizerTest.cc
 
 diff --git a/configure.ac b/configure.ac
-index 56481fd2..10acaba0 100644
+index 56481fd..10acaba 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -754,6 +754,7 @@ AC_CHECK_FUNCS([__argz_count \
@@ -24,7 +24,7 @@ index 56481fd2..10acaba0 100644
                  gethostbyname \
                  getifaddrs \
 diff --git a/src/SimpleRandomizer.cc b/src/SimpleRandomizer.cc
-index 8a055d66..8dbef82f 100644
+index 8a055d6..8dbef82 100644
 --- a/src/SimpleRandomizer.cc
 +++ b/src/SimpleRandomizer.cc
 @@ -39,6 +39,11 @@
@@ -91,7 +91,7 @@ index 8a055d66..8dbef82f 100644
  }
  
 diff --git a/test/Makefile.am b/test/Makefile.am
-index c7114449..49c6211f 100644
+index c711444..49c6211 100644
 --- a/test/Makefile.am
 +++ b/test/Makefile.am
 @@ -89,7 +89,8 @@ aria2c_SOURCES = AllTest.cc\
@@ -106,7 +106,7 @@ index c7114449..49c6211f 100644
  aria2c_SOURCES += XmlRpcRequestParserControllerTest.cc
 diff --git a/test/SimpleRandomizerTest.cc b/test/SimpleRandomizerTest.cc
 new file mode 100644
-index 00000000..59e134aa
+index 0000000..59e134a
 --- /dev/null
 +++ b/test/SimpleRandomizerTest.cc
 @@ -0,0 +1,70 @@

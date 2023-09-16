@@ -1,7 +1,7 @@
-From c546fa492c752d0594312ee1a2ac8bb4763c40f2 Mon Sep 17 00:00:00 2001
+From 08ede0fe4fedba9b43fcd202163dee83b3d3cda4 Mon Sep 17 00:00:00 2001
 From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
 Date: Sat, 30 Oct 2021 19:04:29 +0900
-Subject: [PATCH 05/23] clang-format-12
+Subject: [PATCH] clang-format-12
 
 ---
  src/AbstractDiskWriter.cc     | 2 +-
@@ -13,7 +13,7 @@ Subject: [PATCH 05/23] clang-format-12
  6 files changed, 14 insertions(+), 14 deletions(-)
 
 diff --git a/src/AbstractDiskWriter.cc b/src/AbstractDiskWriter.cc
-index f21c5261..52efc012 100644
+index f21c526..52efc01 100644
 --- a/src/AbstractDiskWriter.cc
 +++ b/src/AbstractDiskWriter.cc
 @@ -597,7 +597,7 @@ void AbstractDiskWriter::flushOSBuffers()
@@ -26,7 +26,7 @@ index f21c5261..52efc012 100644
  #endif // __MINGW32__
  }
 diff --git a/src/BtLeecherStateChoke.cc b/src/BtLeecherStateChoke.cc
-index 7dd2126e..a2a159ac 100644
+index 7dd2126..a2a159a 100644
 --- a/src/BtLeecherStateChoke.cc
 +++ b/src/BtLeecherStateChoke.cc
 @@ -72,8 +72,8 @@ void BtLeecherStateChoke::PeerEntry::swap(PeerEntry& c)
@@ -52,7 +52,7 @@ index 7dd2126e..a2a159ac 100644
    return peerEntry.getPeer()->amChoking() == amChoking_ &&
           peerEntry.getPeer()->peerInterested() == peerInterested_;
 diff --git a/src/BtSeederStateChoke.cc b/src/BtSeederStateChoke.cc
-index e80291a2..0252a696 100644
+index e80291a..0252a69 100644
 --- a/src/BtSeederStateChoke.cc
 +++ b/src/BtSeederStateChoke.cc
 @@ -79,8 +79,8 @@ void BtSeederStateChoke::PeerEntry::swap(PeerEntry& c)
@@ -67,7 +67,7 @@ index e80291a2..0252a696 100644
    if (this != &c) {
      peer_ = c.peer_;
 diff --git a/src/DHTPeerAnnounceStorage.cc b/src/DHTPeerAnnounceStorage.cc
-index 37b4bf82..79465caa 100644
+index 37b4bf8..79465ca 100644
 --- a/src/DHTPeerAnnounceStorage.cc
 +++ b/src/DHTPeerAnnounceStorage.cc
 @@ -57,9 +57,9 @@ DHTPeerAnnounceStorage::DHTPeerAnnounceStorage()
@@ -84,7 +84,7 @@ index 37b4bf82..79465caa 100644
    return memcmp(lhs->getInfoHash(), rhs->getInfoHash(), DHT_ID_LENGTH) < 0;
  }
 diff --git a/src/DiskAdaptor.h b/src/DiskAdaptor.h
-index 9287b3ec..9ff46792 100644
+index 9287b3e..9ff4679 100644
 --- a/src/DiskAdaptor.h
 +++ b/src/DiskAdaptor.h
 @@ -115,7 +115,7 @@ public:
@@ -97,7 +97,7 @@ index 9287b3ec..9ff46792 100644
    void setFileAllocationMethod(FileAllocationMethod method)
    {
 diff --git a/src/FileEntry.cc b/src/FileEntry.cc
-index 5e976085..0de16443 100644
+index 5e97608..0de1644 100644
 --- a/src/FileEntry.cc
 +++ b/src/FileEntry.cc
 @@ -51,9 +51,9 @@
