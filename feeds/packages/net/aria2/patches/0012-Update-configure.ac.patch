@@ -1,14 +1,14 @@
-From 893c096aa681e24e84b1ea848d112cbb7ab70d91 Mon Sep 17 00:00:00 2001
+From 5ccdb4ef23aa21d79cecfb4f919fb62c7be13aa2 Mon Sep 17 00:00:00 2001
 From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
 Date: Sat, 9 Apr 2022 15:47:11 +0900
-Subject: [PATCH 13/23] Update configure.ac
+Subject: [PATCH] Update configure.ac
 
 ---
  configure.ac | 15 ++++++++++-----
  1 file changed, 10 insertions(+), 5 deletions(-)
 
 diff --git a/configure.ac b/configure.ac
-index 745a0a87..bae3fce8 100644
+index 745a0a8..bae3fce 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -343,9 +343,12 @@ fi

@@ -1,7 +1,7 @@
-From 6c9658924421803c868da3faea47b1c1d9dc082c Mon Sep 17 00:00:00 2001
+From 5efcbfcf6d264286c1ca785cd9e9aeedfc34d3d6 Mon Sep 17 00:00:00 2001
 From: Richard Nias <richardnias@gmail.com>
 Date: Fri, 17 Sep 2021 10:17:39 +0200
-Subject: [PATCH 01/23] Fix header in --http-accept-gzip documentation
+Subject: [PATCH] Fix header in --http-accept-gzip documentation
 
 ---
  doc/manual-src/en/aria2c.rst | 2 +-
@@ -11,7 +11,7 @@ Subject: [PATCH 01/23] Fix header in --http-accept-gzip documentation
  4 files changed, 6 insertions(+), 6 deletions(-)
 
 diff --git a/doc/manual-src/en/aria2c.rst b/doc/manual-src/en/aria2c.rst
-index f093f733..306167b9 100644
+index f093f73..306167b 100644
 --- a/doc/manual-src/en/aria2c.rst
 +++ b/doc/manual-src/en/aria2c.rst
 @@ -433,7 +433,7 @@ HTTP Specific Options
@@ -24,7 +24,7 @@ index f093f733..306167b9 100644
    ``Content-Encoding: deflate``.  Default: ``false``
  
 diff --git a/doc/manual-src/pt/aria2c.rst b/doc/manual-src/pt/aria2c.rst
-index 668a3331..062a4cb0 100644
+index 668a333..062a4cb 100644
 --- a/doc/manual-src/pt/aria2c.rst
 +++ b/doc/manual-src/pt/aria2c.rst
 @@ -407,7 +407,7 @@ Opções Específicas de HTTP e HTTPS
@@ -37,7 +37,7 @@ index 668a3331..062a4cb0 100644
    ``Content-Encoding: deflate``.  Padrão: ``false``
  
 diff --git a/doc/manual-src/ru/aria2c.rst b/doc/manual-src/ru/aria2c.rst
-index 9c7367a0..e29d2b65 100644
+index 9c7367a..e29d2b6 100644
 --- a/doc/manual-src/ru/aria2c.rst
 +++ b/doc/manual-src/ru/aria2c.rst
 @@ -451,7 +451,7 @@ HTTP(S)/FTP, они тут же могут выгружаться в BitTorrent-
@@ -50,7 +50,7 @@ index 9c7367a0..e29d2b65 100644
    ``Content-Encoding: deflate``.
    По умолчанию: 'false
 diff --git a/src/usage_text.h b/src/usage_text.h
-index ebf67e3d..3042469c 100644
+index ebf67e3..3042469 100644
 --- a/src/usage_text.h
 +++ b/src/usage_text.h
 @@ -723,9 +723,9 @@

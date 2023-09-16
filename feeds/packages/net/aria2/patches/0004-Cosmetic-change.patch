@@ -1,14 +1,14 @@
-From 177939d6aca9b2c77d8ce526aa22f220de3fefcc Mon Sep 17 00:00:00 2001
+From 2d33408f170417141f5e144eefb84eaf8203c3d7 Mon Sep 17 00:00:00 2001
 From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
 Date: Sat, 30 Oct 2021 19:03:53 +0900
-Subject: [PATCH 04/23] Cosmetic change
+Subject: [PATCH] Cosmetic change
 
 ---
  src/LibsslARC4Encryptor.cc | 1 -
  1 file changed, 1 deletion(-)
 
 diff --git a/src/LibsslARC4Encryptor.cc b/src/LibsslARC4Encryptor.cc
-index 50bd6290..5d7bf9c9 100644
+index 50bd629..5d7bf9c 100644
 --- a/src/LibsslARC4Encryptor.cc
 +++ b/src/LibsslARC4Encryptor.cc
 @@ -53,7 +53,6 @@ ARC4Encryptor::~ARC4Encryptor()

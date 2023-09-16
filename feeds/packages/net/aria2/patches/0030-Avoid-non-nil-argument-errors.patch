@@ -1,0 +1,166 @@
+From 4292f4110fb09e9ad7ddc7c7a6d161194f3bb029 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Mon, 18 Sep 2023 14:29:48 +0900
+Subject: [PATCH] Avoid non-nil argument errors
+
+Use std::copy_n and std::fill_n to avoid a non-nil argument error with
+memcpy/memset.
+---
+ src/AbstractDiskWriter.cc |  4 ++--
+ src/BitfieldMan.cc        | 27 ++++++++++++++-------------
+ src/PeerConnection.cc     |  9 +++++----
+ 3 files changed, 21 insertions(+), 19 deletions(-)
+
+diff --git a/src/AbstractDiskWriter.cc b/src/AbstractDiskWriter.cc
+index 52efc01..0568bfa 100644
+--- a/src/AbstractDiskWriter.cc
++++ b/src/AbstractDiskWriter.cc
+@@ -258,7 +258,7 @@ ssize_t AbstractDiskWriter::writeDataInternal(const unsigned char* data,
+                                               size_t len, int64_t offset)
+ {
+   if (mapaddr_) {
+-    memcpy(mapaddr_ + offset, data, len);
++    std::copy_n(data, len, mapaddr_ + offset);
+     return len;
+   }
+   else {
+@@ -298,7 +298,7 @@ ssize_t AbstractDiskWriter::readDataInternal(unsigned char* data, size_t len,
+       return 0;
+     }
+     auto readlen = std::min(maplen_ - offset, static_cast<int64_t>(len));
+-    memcpy(data, mapaddr_ + offset, readlen);
++    std::copy_n(mapaddr_ + offset, readlen, data);
+     return readlen;
+   }
+   else {
+diff --git a/src/BitfieldMan.cc b/src/BitfieldMan.cc
+index 43d3ba2..8d1d189 100644
+--- a/src/BitfieldMan.cc
++++ b/src/BitfieldMan.cc
+@@ -64,8 +64,8 @@ BitfieldMan::BitfieldMan(int32_t blockLength, int64_t totalLength)
+     bitfieldLength_ = blocks_ / 8 + (blocks_ % 8 ? 1 : 0);
+     bitfield_ = new unsigned char[bitfieldLength_];
+     useBitfield_ = new unsigned char[bitfieldLength_];
+-    memset(bitfield_, 0, bitfieldLength_);
+-    memset(useBitfield_, 0, bitfieldLength_);
++    std::fill_n(bitfield_, bitfieldLength_, 0);
++    std::fill_n(useBitfield_, bitfieldLength_, 0);
+     updateCache();
+   }
+ }
+@@ -85,11 +85,11 @@ BitfieldMan::BitfieldMan(const BitfieldMan& bitfieldMan)
+       blockLength_(bitfieldMan.blockLength_),
+       filterEnabled_(bitfieldMan.filterEnabled_)
+ {
+-  memcpy(bitfield_, bitfieldMan.bitfield_, bitfieldLength_);
+-  memcpy(useBitfield_, bitfieldMan.useBitfield_, bitfieldLength_);
++  std::copy_n(bitfieldMan.bitfield_, bitfieldLength_, bitfield_);
++  std::copy_n(bitfieldMan.useBitfield_, bitfieldLength_, useBitfield_);
+   if (filterEnabled_) {
+     filterBitfield_ = new unsigned char[bitfieldLength_];
+-    memcpy(filterBitfield_, bitfieldMan.filterBitfield_, bitfieldLength_);
++    std::copy_n(bitfieldMan.filterBitfield_, bitfieldLength_, filterBitfield_);
+   }
+   updateCache();
+ }
+@@ -105,16 +105,17 @@ BitfieldMan& BitfieldMan::operator=(const BitfieldMan& bitfieldMan)
+ 
+     delete[] bitfield_;
+     bitfield_ = new unsigned char[bitfieldLength_];
+-    memcpy(bitfield_, bitfieldMan.bitfield_, bitfieldLength_);
++    std::copy_n(bitfieldMan.bitfield_, bitfieldLength_, bitfield_);
+ 
+     delete[] useBitfield_;
+     useBitfield_ = new unsigned char[bitfieldLength_];
+-    memcpy(useBitfield_, bitfieldMan.useBitfield_, bitfieldLength_);
++    std::copy_n(bitfieldMan.useBitfield_, bitfieldLength_, useBitfield_);
+ 
+     delete[] filterBitfield_;
+     if (filterEnabled_) {
+       filterBitfield_ = new unsigned char[bitfieldLength_];
+-      memcpy(filterBitfield_, bitfieldMan.filterBitfield_, bitfieldLength_);
++      std::copy_n(bitfieldMan.filterBitfield_, bitfieldLength_,
++                  filterBitfield_);
+     }
+     else {
+       filterBitfield_ = nullptr;
+@@ -665,14 +666,14 @@ void BitfieldMan::setBitfield(const unsigned char* bitfield,
+   if (bitfieldLength_ == 0 || bitfieldLength_ != bitfieldLength) {
+     return;
+   }
+-  memcpy(bitfield_, bitfield, bitfieldLength_);
+-  memset(useBitfield_, 0, bitfieldLength_);
++  std::copy_n(bitfield, bitfieldLength_, bitfield_);
++  std::fill_n(useBitfield_, bitfieldLength_, 0);
+   updateCache();
+ }
+ 
+ void BitfieldMan::clearAllBit()
+ {
+-  memset(bitfield_, 0, bitfieldLength_);
++  std::fill_n(bitfield_, bitfieldLength_, 0);
+   updateCache();
+ }
+ 
+@@ -686,7 +687,7 @@ void BitfieldMan::setAllBit()
+ 
+ void BitfieldMan::clearAllUseBit()
+ {
+-  memset(useBitfield_, 0, bitfieldLength_);
++  std::fill_n(useBitfield_, bitfieldLength_, 0);
+   updateCache();
+ }
+ 
+@@ -706,7 +707,7 @@ void BitfieldMan::ensureFilterBitfield()
+ {
+   if (!filterBitfield_) {
+     filterBitfield_ = new unsigned char[bitfieldLength_];
+-    memset(filterBitfield_, 0, bitfieldLength_);
++    std::fill_n(filterBitfield_, bitfieldLength_, 0);
+   }
+ }
+ 
+diff --git a/src/PeerConnection.cc b/src/PeerConnection.cc
+index 51f08a6..56461fb 100644
+--- a/src/PeerConnection.cc
++++ b/src/PeerConnection.cc
+@@ -142,7 +142,8 @@ bool PeerConnection::receiveMessage(unsigned char* data, size_t& dataLength)
+     resbufOffset_ = i;
+     if (done) {
+       if (data) {
+-        memcpy(data, resbuf_.get() + msgOffset_ + 4, currentPayloadLength_);
++        std::copy_n(resbuf_.get() + msgOffset_ + 4, currentPayloadLength_,
++                    data);
+       }
+       dataLength = currentPayloadLength_;
+       return true;
+@@ -220,7 +221,7 @@ bool PeerConnection::receiveHandshake(unsigned char* data, size_t& dataLength,
+     }
+   }
+   size_t writeLength = std::min(resbufLength_, dataLength);
+-  memcpy(data, resbuf_.get(), writeLength);
++  std::copy_n(resbuf_.get(), writeLength, data);
+   dataLength = writeLength;
+   if (retval && !peek) {
+     resbufLength_ = 0;
+@@ -249,7 +250,7 @@ void PeerConnection::enableEncryption(std::unique_ptr<ARC4Encryptor> encryptor,
+ void PeerConnection::presetBuffer(const unsigned char* data, size_t length)
+ {
+   size_t nwrite = std::min(bufferCapacity_, length);
+-  memcpy(resbuf_.get(), data, nwrite);
++  std::copy_n(data, nwrite, resbuf_.get());
+   resbufLength_ = length;
+ }
+ 
+@@ -280,7 +281,7 @@ void PeerConnection::reserveBuffer(size_t minSize)
+   if (bufferCapacity_ < minSize) {
+     bufferCapacity_ = minSize;
+     auto buf = make_unique<unsigned char[]>(bufferCapacity_);
+-    memcpy(buf.get(), resbuf_.get(), resbufLength_);
++    std::copy_n(resbuf_.get(), resbufLength_, buf.get());
+     resbuf_ = std::move(buf);
+   }
+ }
+-- 
+2.25.1
+

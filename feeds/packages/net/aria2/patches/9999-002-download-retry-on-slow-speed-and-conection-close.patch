@@ -1,7 +1,7 @@
-From 66524bee738e98742c908d93c993d0a78a2d9891 Mon Sep 17 00:00:00 2001
+From b4e7d6859f11e425260ea9aed881a29d993fdb4a Mon Sep 17 00:00:00 2001
 From: myfreeer <myfreeer@users.noreply.github.com>
 Date: Sat, 18 Nov 2017 11:55:04 +0800
-Subject: [PATCH 3/4] download: retry on slow speed and conection close
+Subject: [PATCH] download: retry on slow speed and conection close
 
 This would provide better speed on bad network conditions
 ---
@@ -45,7 +45,7 @@ index 62862ff..1906173 100644
      // A2_LOG_NOTICE(fmt("num=%zu, amount=%d, bufq.size()=%zu, SEND=%d",
      //                   num, amount, bufq_.size(), slen));
 diff --git a/src/SocketCore.cc b/src/SocketCore.cc
-index 77dc30c..537375a 100644
+index e235f51..ab42ba7 100644
 --- a/src/SocketCore.cc
 +++ b/src/SocketCore.cc
 @@ -1015,7 +1015,7 @@ bool SocketCore::tlsHandshake(TLSContext* tlsctx, const std::string& hostname)
@@ -58,5 +58,5 @@ index 77dc30c..537375a 100644
                                  ? tlsSession_->getLastErrorString().c_str()
                                  : handshakeError.c_str()));
 -- 
-2.17.1
+2.25.1
 

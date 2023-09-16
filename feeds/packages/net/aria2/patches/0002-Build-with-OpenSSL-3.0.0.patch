@@ -1,7 +1,7 @@
-From 869aae82648cfe9f4a7dac2bd912240a71dfdc70 Mon Sep 17 00:00:00 2001
+From 50013afed5066c0f6b16d07d361c9480288bd2b5 Mon Sep 17 00:00:00 2001
 From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
 Date: Thu, 28 Oct 2021 15:45:35 +0900
-Subject: [PATCH 02/23] Build with OpenSSL 3.0.0
+Subject: [PATCH] Build with OpenSSL 3.0.0
 
 ---
  src/LibsslARC4Encryptor.cc | 53 ++++++++++++++++++++++++++++++++++++++
@@ -13,7 +13,7 @@ Subject: [PATCH 02/23] Build with OpenSSL 3.0.0
  6 files changed, 119 insertions(+), 5 deletions(-)
 
 diff --git a/src/LibsslARC4Encryptor.cc b/src/LibsslARC4Encryptor.cc
-index e1a46aae..656242e2 100644
+index e1a46aa..656242e 100644
 --- a/src/LibsslARC4Encryptor.cc
 +++ b/src/LibsslARC4Encryptor.cc
 @@ -34,21 +34,74 @@
@@ -92,7 +92,7 @@ index e1a46aae..656242e2 100644
  
  } // namespace aria2
 diff --git a/src/LibsslARC4Encryptor.h b/src/LibsslARC4Encryptor.h
-index fb6d5f2c..dd4910b6 100644
+index fb6d5f2..dd4910b 100644
 --- a/src/LibsslARC4Encryptor.h
 +++ b/src/LibsslARC4Encryptor.h
 @@ -39,13 +39,22 @@
@@ -120,7 +120,7 @@ index fb6d5f2c..dd4910b6 100644
  public:
    ARC4Encryptor();
 diff --git a/src/LibsslTLSContext.cc b/src/LibsslTLSContext.cc
-index 14e6f3fa..2cf78323 100644
+index 14e6f3f..2cf7832 100644
 --- a/src/LibsslTLSContext.cc
 +++ b/src/LibsslTLSContext.cc
 @@ -151,7 +151,8 @@ OpenSSLTLSContext::OpenSSLTLSContext(TLSSessionSide side, TLSVersion minVer)
@@ -144,7 +144,7 @@ index 14e6f3fa..2cf78323 100644
  
  OpenSSLTLSContext::~OpenSSLTLSContext() { SSL_CTX_free(sslCtx_); }
 diff --git a/src/LibsslTLSSession.cc b/src/LibsslTLSSession.cc
-index a7e547c5..697029c3 100644
+index a7e547c..697029c 100644
 --- a/src/LibsslTLSSession.cc
 +++ b/src/LibsslTLSSession.cc
 @@ -233,7 +233,11 @@ int OpenSSLTLSSession::tlsConnect(const std::string& hostname,
@@ -161,7 +161,7 @@ index a7e547c5..697029c3 100644
        handshakeErr = "certificate not found";
        return TLS_ERR_ERROR;
 diff --git a/src/Platform.cc b/src/Platform.cc
-index 93d795ff..9f3ddb25 100644
+index 93d795f..9f3ddb2 100644
 --- a/src/Platform.cc
 +++ b/src/Platform.cc
 @@ -73,6 +73,7 @@
@@ -227,7 +227,7 @@ index 93d795ff..9f3ddb25 100644
    gnutls_global_deinit();
  #endif // HAVE_LIBGNUTLS
 diff --git a/src/Platform.h b/src/Platform.h
-index c05ba96b..d46e7b6d 100644
+index c05ba96..d46e7b6 100644
 --- a/src/Platform.h
 +++ b/src/Platform.h
 @@ -37,12 +37,26 @@

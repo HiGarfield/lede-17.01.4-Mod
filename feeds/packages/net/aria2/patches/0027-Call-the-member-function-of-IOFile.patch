@@ -1,0 +1,34 @@
+From d6f903dcc00d6e52932a43fc1c4525863bd80c43 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Mon, 18 Sep 2023 10:22:45 +0900
+Subject: [PATCH] Call the member function of IOFile
+
+---
+ src/UriListParser.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/UriListParser.cc b/src/UriListParser.cc
+index ca021cb..7fd2b21 100644
+--- a/src/UriListParser.cc
++++ b/src/UriListParser.cc
+@@ -77,7 +77,7 @@ void UriListParser::parseNext(std::vector<std::string>& uris, Option& op)
+           if (fp_->eof()) {
+             break;
+           }
+-          else if (!fp_) {
++          else if (!*fp_) {
+             throw DL_ABORT_EX("UriListParser:I/O error.");
+           }
+           else {
+@@ -102,7 +102,7 @@ void UriListParser::parseNext(std::vector<std::string>& uris, Option& op)
+       if (fp_->eof()) {
+         return;
+       }
+-      else if (!fp_) {
++      else if (!*fp_) {
+         throw DL_ABORT_EX("UriListParser:I/O error.");
+       }
+     }
+-- 
+2.25.1
+

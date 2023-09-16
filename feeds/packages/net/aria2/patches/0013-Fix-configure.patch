@@ -1,14 +1,14 @@
-From 851a74f53e6128019dbfff7d410e91c9d4d03799 Mon Sep 17 00:00:00 2001
+From c58885390685a066a60ae010a8c02f34727d48e9 Mon Sep 17 00:00:00 2001
 From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
 Date: Sat, 9 Apr 2022 15:50:42 +0900
-Subject: [PATCH 14/23] Fix configure
+Subject: [PATCH] Fix configure
 
 ---
  configure.ac | 1 -
  1 file changed, 1 deletion(-)
 
 diff --git a/configure.ac b/configure.ac
-index bae3fce8..56481fd2 100644
+index bae3fce..56481fd 100644
 --- a/configure.ac
 +++ b/configure.ac
 @@ -660,7 +660,6 @@ esac

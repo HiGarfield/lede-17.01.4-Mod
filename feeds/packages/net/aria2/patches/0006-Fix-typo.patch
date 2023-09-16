@@ -1,7 +1,7 @@
-From de99fc170e1a40bbf1158c931bb334e6620b994d Mon Sep 17 00:00:00 2001
+From 820e8ef4cee7a99e66c58c1ef2d5f04eef8572ee Mon Sep 17 00:00:00 2001
 From: Dan Church <amphetamachine@gmail.com>
 Date: Wed, 19 Jan 2022 09:56:21 -0600
-Subject: [PATCH 06/23] Fix typo
+Subject: [PATCH] Fix typo
 
 ---
  doc/manual-src/en/aria2c.rst | 2 +-
@@ -10,7 +10,7 @@ Subject: [PATCH 06/23] Fix typo
  3 files changed, 3 insertions(+), 3 deletions(-)
 
 diff --git a/doc/manual-src/en/aria2c.rst b/doc/manual-src/en/aria2c.rst
-index f093f733..c5bcbb5a 100644
+index 306167b..2c174e3 100644
 --- a/doc/manual-src/en/aria2c.rst
 +++ b/doc/manual-src/en/aria2c.rst
 @@ -1359,7 +1359,7 @@ Advanced Options
@@ -23,7 +23,7 @@ index f093f733..c5bcbb5a 100644
    not be available if your system doesn't have
    :manpage:`posix_fallocate(3)` function.
 diff --git a/doc/manual-src/pt/aria2c.rst b/doc/manual-src/pt/aria2c.rst
-index 668a3331..da395f8d 100644
+index 062a4cb..b012511 100644
 --- a/doc/manual-src/pt/aria2c.rst
 +++ b/doc/manual-src/pt/aria2c.rst
 @@ -1206,7 +1206,7 @@ Opções Avançadas
@@ -36,7 +36,7 @@ index 668a3331..da395f8d 100644
    not be available if your system doesn't have
    :manpage:`posix_fallocate(3)` function.
 diff --git a/src/usage_text.h b/src/usage_text.h
-index ebf67e3d..68aeac4b 100644
+index 3042469..7837a39 100644
 --- a/src/usage_text.h
 +++ b/src/usage_text.h
 @@ -142,7 +142,7 @@

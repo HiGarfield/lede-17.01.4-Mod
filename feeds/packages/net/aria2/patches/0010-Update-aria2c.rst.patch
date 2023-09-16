@@ -1,14 +1,14 @@
-From 0dcd4e9f29c79c4b84f9ac1cb39ebb8ace0fb141 Mon Sep 17 00:00:00 2001
+From 71adc5f12faf236de8f59925281f86668a8334d4 Mon Sep 17 00:00:00 2001
 From: ITriskTI <ITriskTI@gmail.com>
 Date: Thu, 7 Apr 2022 13:22:35 +0300
-Subject: [PATCH 10/23] Update aria2c.rst
+Subject: [PATCH] Update aria2c.rst
 
 ---
  doc/manual-src/ru/aria2c.rst | 6 +++++-
  1 file changed, 5 insertions(+), 1 deletion(-)
 
 diff --git a/doc/manual-src/ru/aria2c.rst b/doc/manual-src/ru/aria2c.rst
-index e29d2b65..7a4c9d65 100644
+index e29d2b6..7a4c9d6 100644
 --- a/doc/manual-src/ru/aria2c.rst
 +++ b/doc/manual-src/ru/aria2c.rst
 @@ -454,7 +454,7 @@ HTTP(S)/FTP, они тут же могут выгружаться в BitTorrent-
