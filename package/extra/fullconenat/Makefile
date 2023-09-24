@@ -44,7 +44,7 @@ define KernelPackage/ipt-fullconenat
   DEPENDS:=+kmod-nf-ipt +kmod-nf-nat
   MAINTAINER:=Chion Tang <tech@chionlab.moe>
   KCONFIG:= \
-    CONFIG_NF_CONNTRACK_EVENTS=y
+    CONFIG_NF_CONNTRACK_EVENTS=y \
     CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y
   FILES:=$(PKG_BUILD_DIR)/xt_FULLCONENAT.ko
   AUTOLOAD:=$(call AutoLoad,09,xt_FULLCONENAT)
