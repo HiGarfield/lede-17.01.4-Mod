@@ -1,27 +1,26 @@
 #
-# Copyright (C) 2018 Chion Tang <tech@chionlab.moe>
+# Copyright (C) 2022 Chion Tang <tech@chionlab.moe>
 #
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
 
 include $(TOPDIR)/rules.mk
-include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=fullconenat
 PKG_RELEASE:=1
-PKG_VERSION:=2019-10-21
-PKG_REV:=0cf3b48fd7d2fa81d0297d1fff12bbd0580fc435
 
-PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_SUBDIR:=$(PKG_NAME)-$(PKG_VERSION)
-PKG_SOURCE_VERSION:=$(PKG_REV)
+PKG_SOURCE_DATE:=2023-01-01
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/Chion82/netfilter-full-cone-nat.git
+PKG_SOURCE_URL:=https://github.com/llccd/netfilter-full-cone-nat.git
+PKG_SOURCE_VERSION:=74c5e6f3c7faaf33ece451697537c81781781c20
+PKG_MIRROR_HASH:=3c254f1edba28eafdccac9cf95eb550fd2b05eeaaec8a02c73e1dcd2f98f9d93
 
 PKG_LICENSE:=GPL-2.0
 PKG_LICENSE_FILES:=LICENSE
+PKG_MAINTAINER:=Chion Tang <tech@chionlab.moe>
 
+include $(INCLUDE_DIR)/kernel.mk
 include $(INCLUDE_DIR)/package.mk
 
 define Package/iptables-mod-fullconenat
@@ -30,7 +29,6 @@ define Package/iptables-mod-fullconenat
   CATEGORY:=Network
   TITLE:=FULLCONENAT iptables extension
   DEPENDS:=+iptables +kmod-ipt-fullconenat
-  MAINTAINER:=Chion Tang <tech@chionlab.moe>
 endef
 
 define Package/iptables-mod-fullconenat/install
@@ -41,11 +39,11 @@ endef
 define KernelPackage/ipt-fullconenat
   SUBMENU:=Netfilter Extensions
   TITLE:=FULLCONENAT netfilter module
-  DEPENDS:=+kmod-nf-ipt +kmod-nf-nat
-  MAINTAINER:=Chion Tang <tech@chionlab.moe>
+  DEPENDS:=+kmod-nf-ipt +kmod-nf-nat +kmod-ipt-nat6
   KCONFIG:= \
     CONFIG_NF_CONNTRACK_EVENTS=y \
-    CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y
+    CONFIG_NF_CONNTRACK_CHAIN_EVENTS=y \
+    CONFIG_NF_NAT_MASQUERADE_IPV6=m
   FILES:=$(PKG_BUILD_DIR)/xt_FULLCONENAT.ko
   AUTOLOAD:=$(call AutoLoad,09,xt_FULLCONENAT)
 endef
@@ -58,5 +56,5 @@ define Build/Compile
 	$(call Build/Compile/Default)
 endef
 
-$(eval $(call BuildPackage,iptables-mod-fullconenat))
 $(eval $(call KernelPackage,ipt-fullconenat))
+$(eval $(call BuildPackage,iptables-mod-fullconenat))
