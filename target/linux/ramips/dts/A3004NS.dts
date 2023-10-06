@@ -10,7 +10,7 @@
 	model = "TOTOLINK A3004NS";
 
 	chosen {
-		bootargs = "console=ttyS0,115200";
+		bootargs = "console=ttyS0,57600";
 	};
 
 	gpio-leds {
