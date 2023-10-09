@@ -1,0 +1,94 @@
+From aa1f2c5333f3904abcab2a8479c4515c22a5dbf2 Mon Sep 17 00:00:00 2001
+From: Alexander Egorenkov <egorenar-dev@posteo.net>
+Date: Sat, 7 Oct 2023 13:39:06 +0200
+Subject: [PATCH] Logger: Fix format string overflow in writeHeader()
+
+This problem occurred on a 32-bit ARM OpenWRT router running Linux 6.1.
+The method writeHeader() assumes that the size of struct timeval is 8 bytes
+which is not true on this machine, it is 16 bytes large. Therefore, first
+cast tv.tv_usec to the unsigned long type.
+
+=========
+GDB trace
+=========
+
+ (gdb) c
+ Continuing.
+
+ Program received signal SIGSEGV, Segmentation fault.
+ 0xb6f4f9b4 in memchr (src=src@entry=0x3b6a, c=c@entry=0x0, n=n@entry=0x7fffffff) at src/string/memchr.c:16
+ 16              for (; ((uintptr_t)s & ALIGN) && n && *s != c; s++, n--);
+    0xb6f4f98c <memchr+12>:      00 00 52 e3     cmp     r2, #0
+    0xb6f4f990 <memchr+16>:      00 30 a0 e1     mov     r3, r0
+    0xb6f4f994 <memchr+20>:      05 00 00 1a     bne     0xb6f4f9b0 <memchr+48>
+    0xb6f4f998 <memchr+24>:      32 00 00 ea     b       0xb6f4fa68 <memchr+232>
+    0xb6f4f99c <memchr+28>:      03 00 13 e3     tst     r3, #3
+    0xb6f4f9a0 <memchr+32>:      01 20 42 e2     sub     r2, r2, #1
+    0xb6f4f9a4 <memchr+36>:      36 00 00 0a     beq     0xb6f4fa84 <memchr+260>
+    0xb6f4f9a8 <memchr+40>:      00 00 52 e3     cmp     r2, #0
+    0xb6f4f9ac <memchr+44>:      2d 00 00 0a     beq     0xb6f4fa68 <memchr+232>
+    0xb6f4f9b0 <memchr+48>:      03 00 a0 e1     mov     r0, r3
+ => 0xb6f4f9b4 <memchr+52>:      01 c0 d3 e4     ldrb    r12, [r3], #1
+    0xb6f4f9b8 <memchr+56>:      01 00 5c e1     cmp     r12, r1
+    0xb6f4f9bc <memchr+60>:      f6 ff ff 1a     bne     0xb6f4f99c <memchr+28>
+ (gdb) bt
+ #0  0xb6f4f9b4 in memchr (src=src@entry=0x3b6a, c=c@entry=0x0, n=n@entry=0x7fffffff) at src/string/memchr.c:16
+ #1  0xb6f512b4 in strnlen (s=s@entry=0x3b6a <error: Cannot access memory at address 0x3b6a>, n=n@entry=0x7fffffff) at src/string/strnlen.c:5
+ #2  0xb6f19eb4 in printf_core (f=f@entry=0xb67d35b0, fmt=fmt@entry=0x101856 "%s.%06ld [%s] [%s:%d] ", ap=ap@entry=0xbe8f5a1c, nl_arg=nl_arg@entry=0xbe8f5a48, nl_type=<optimized out>, nl_type@entry=0xbe8f5a20) at
+ src/stdio/vfprintf.c:599
+ #3  0xb6f4b86c in vfprintf (f=0xb67d35b0, fmt=0x101856 "%s.%06ld [%s] [%s:%d] ", ap=...) at src/stdio/vfprintf.c:688
+ #4  0x0001d92c in aria2::OutputFile::printf (this=<optimized out>, format=0x101856 "%s.%06ld [%s] [%s:%d] ") at OutputFile.h:58
+ #5  0x00027910 in aria2::(anonymous namespace)::writeHeader<aria2::OutputFile> (lineNum=0xba, sourceFile=0x10d842 "HttpServer.cc", level=aria2::Logger::A2_INFO, fp=...) at Logger.cc:136
+ #6  aria2::Logger::writeLog (this=0xb67cf78c, level=aria2::Logger::A2_INFO, sourceFile=0x10d842 "HttpServer.cc", lineNum=0xba, msg=0xb6766280 "HTTP Server received request\nPOST /jsonrpc HTTP/1.1\r\nHost: 192.168
+ .1.1:6800\r\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0\r\nAccept: application/json, text/plain, *"..., msg@entry=0x10d842 "HttpServer.cc", trace=trace@entry=0x124806 "") a
+ t Logger.cc:196
+ #7  0x00028bf0 in aria2::Logger::log (this=<optimized out>, level=<optimized out>, sourceFile=<optimized out>, lineNum=<optimized out>, msg=0xb6766280 "HTTP Server received request\nPOST /jsonrpc HTTP/1.1\r\nHost
+ : 192.168.1.1:6800\r\nUser-Agent: Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/118.0\r\nAccept: application/json, text/plain, *"...) at Logger.cc:213
+ #8  0x00081708 in aria2::HttpServer::receiveRequest (this=0xb6774430) at /home/egorenar/Repositories/openwrt-rel/staging_dir/toolchain-arm_cortex-a15+neon-vfpv4_gcc-12.3.0_musl_eabi/arm-openwrt-linux-muslgnueabi/
+ include/c++/12.3.0/bits/basic_string.h:233
+ #9  aria2::HttpServerCommand::execute (this=0xb6772620) at HttpServerCommand.cc:194
+ #10 0x00076de4 in aria2::(anonymous namespace)::executeCommand (commands=..., statusFilter=aria2::Command::STATUS_ALL) at DownloadEngine.cc:139
+ #11 0x0001913c in aria2::DownloadEngine::run (oneshot=0x0, this=0xb67967e0) at DownloadEngine.cc:180
+ #12 aria2::MultiUrlRequestInfo::execute (this=0xb67dee6c) at MultiUrlRequestInfo.cc:361
+ #13 aria2::main (argv=<optimized out>, argc=<optimized out>) at main.cc:78
+ #14 main (argc=<optimized out>, argv=<optimized out>) at main.cc:91
+
+ (gdb) p tv
+ $13 = {
+   tv_sec = 0x652134fd,
+   tv_usec = 0x3b6a
+ }
+ (gdb) call sizeof(tv)
+ $14 = 0x10
+ (gdb) call sizeof(tv.tv_usec)
+ $15 = 0x8
+ (gdb) call sizeof(long)
+ $16 = 0x4
+ (gdb) call sizeof(unsigned long)
+ $17 = 0x4
+ (gdb) call sizeof(time_t)
+ $18 = 0x8
+
+Signed-off-by: Alexander Egorenkov <egorenar-dev@posteo.net>
+---
+ src/Logger.cc | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/src/Logger.cc b/src/Logger.cc
+index 87168e1..c991d2c 100644
+--- a/src/Logger.cc
++++ b/src/Logger.cc
+@@ -133,8 +133,8 @@ void writeHeader(Output& fp, Logger::LEVEL level, const char* sourceFile,
+   size_t dateLength =
+       strftime(datestr, sizeof(datestr), "%Y-%m-%d %H:%M:%S", &tm);
+   assert(dateLength <= (size_t)20);
+-  fp.printf("%s.%06ld [%s] [%s:%d] ", datestr, tv.tv_usec, levelToString(level),
+-            sourceFile, lineNum);
++  fp.printf("%s.%06ld [%s] [%s:%d] ", datestr, (unsigned long)tv.tv_usec,
++            levelToString(level), sourceFile, lineNum);
+ }
+ } // namespace
+ 
+-- 
+2.25.1
+
