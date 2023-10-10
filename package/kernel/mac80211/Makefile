@@ -16,7 +16,7 @@ PKG_SOURCE_URL:=@KERNEL/linux/kernel/projects/backports/stable/v4.19.237/
 PKG_HASH:=e40ce1f4b707d5b1b5da3f4470f1ccf4f565602323424c89d956069df701bffd
 
 PKG_SOURCE:=backports-$(PKG_VERSION).tar.xz
-PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/backports-$(PKG_VERSION)
+PKG_BUILD_DIR:=$(KERNEL_BUILD_DIR)/$(if $(BUILD_VARIANT),$(PKG_NAME)-$(BUILD_VARIANT)/)backports-$(PKG_VERSION)
 PKG_BUILD_PARALLEL:=1
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
