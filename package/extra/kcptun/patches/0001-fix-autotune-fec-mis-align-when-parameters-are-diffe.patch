@@ -1,0 +1,66 @@
+From 3e301afd05787b5a61edf22006a029254ee36c24 Mon Sep 17 00:00:00 2001
+From: xtaci <daniel820313@gmail.com>
+Date: Thu, 12 Oct 2023 23:29:36 +0800
+Subject: [PATCH] fix autotune fec mis-align when parameters are different
+
+---
+ vendor/github.com/xtaci/kcp-go/v5/fec.go | 16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
+
+diff --git a/vendor/github.com/xtaci/kcp-go/v5/fec.go b/vendor/github.com/xtaci/kcp-go/v5/fec.go
+index 0a203ee..af02ed8 100644
+--- a/vendor/github.com/xtaci/kcp-go/v5/fec.go
++++ b/vendor/github.com/xtaci/kcp-go/v5/fec.go
+@@ -48,7 +48,8 @@ type fecDecoder struct {
+ 	codec reedsolomon.Encoder
+ 
+ 	// auto tune fec parameter
+-	autoTune autoTune
++	autoTune   autoTune
++	shouldTune bool
+ }
+ 
+ func newFECDecoder(dataShards, parityShards int) *fecDecoder {
+@@ -82,18 +83,17 @@ func (dec *fecDecoder) decode(in fecPacket) (recovered [][]byte) {
+ 	}
+ 
+ 	// check if FEC parameters is out of sync
+-	var shouldTune bool
+ 	if int(in.seqid())%dec.shardSize < dec.dataShards {
+ 		if in.flag() != typeData { // expect typeData
+-			shouldTune = true
++			dec.shouldTune = true
+ 		}
+ 	} else {
+ 		if in.flag() != typeParity {
+-			shouldTune = true
++			dec.shouldTune = true
+ 		}
+ 	}
+ 
+-	if shouldTune {
++	if dec.shouldTune {
+ 		autoDS := dec.autoTune.FindPeriod(true)
+ 		autoPS := dec.autoTune.FindPeriod(false)
+ 
+@@ -112,11 +112,17 @@ func (dec *fecDecoder) decode(in fecPacket) (recovered [][]byte) {
+ 				dec.codec = codec
+ 				dec.decodeCache = make([][]byte, dec.shardSize)
+ 				dec.flagCache = make([]bool, dec.shardSize)
++				dec.shouldTune = false
+ 				//log.Println("autotune to :", dec.dataShards, dec.parityShards)
+ 			}
+ 		}
+ 	}
+ 
++	// parameters in tuning
++	if dec.shouldTune {
++		return nil
++	}
++
+ 	// insertion
+ 	n := len(dec.rx) - 1
+ 	insertIdx := 0
+-- 
+2.25.1
+
