@@ -1,0 +1,28 @@
+From 556cef9c29613530c1eb240fbe8bdf31b135fc77 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 28 Oct 2023 21:55:20 +0800
+Subject: [PATCH] add definition of container_of_safe
+
+---
+ interface.c | 5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/interface.c b/interface.c
+index e98edde..3b84287 100644
+--- a/interface.c
++++ b/interface.c
+@@ -41,6 +41,11 @@
+ #include "announce.h"
+ #include "service.h"
+ 
++#ifndef container_of_safe
++#define container_of_safe(ptr, type, member) 				\
++	(!(ptr) ? (void *) (ptr) : container_of(ptr, type, member))
++#endif
++
+ static struct uloop_fd ufd[] = {
+ 	[SOCK_UC_IPV4] = { .fd = -1 },
+ 	[SOCK_UC_IPV6] = { .fd = -1 },
+-- 
+2.25.1
+
