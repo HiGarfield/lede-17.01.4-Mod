@@ -1,8 +1,49 @@
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800.h b/drivers/net/wireless/ralink/rt2x00/rt2800.h
-index eeaa93e..feeaf5d 100644
+From patchwork Sat Sep 17 20:27:41 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Patchwork-Submitter: Daniel Golle <daniel@makrotopia.org>
+X-Patchwork-Id: 12979247
+X-Patchwork-Delegate: kvalo@adurom.com
+Return-Path: <linux-wireless-owner@kernel.org>
+Date: Sat, 17 Sep 2022 21:27:41 +0100
+From: Daniel Golle <daniel@makrotopia.org>
+To: linux-wireless@vger.kernel.org, Stanislaw Gruszka <stf_xl@wp.pl>,
+        Helmut Schaa <helmut.schaa@googlemail.com>
+Cc: Kalle Valo <kvalo@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Johannes Berg <johannes.berg@intel.com>
+Subject: [PATCH v3 06/16] rt2x00: add r calibration for MT7620
+Message-ID: 
+ <e0c34f233089bec4eb73826bc4f512166ee25934.1663445157.git.daniel@makrotopia.org>
+References: <cover.1663445157.git.daniel@makrotopia.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <cover.1663445157.git.daniel@makrotopia.org>
+Precedence: bulk
+List-ID: <linux-wireless.vger.kernel.org>
+X-Mailing-List: linux-wireless@vger.kernel.org
+
+From: Tomislav Požega <pozega.tomislav@gmail.com>
+
+Add r calibration code as found in mtk driver.
+
+Signed-off-by: Tomislav Požega <pozega.tomislav@gmail.com>
+Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
+---
+v2: use rt2800_wait_bbp_rf_ready()
+
+ drivers/net/wireless/ralink/rt2x00/rt2800.h   |   2 +
+ .../net/wireless/ralink/rt2x00/rt2800lib.c    | 133 ++++++++++++++++++
+ 2 files changed, 135 insertions(+)
+
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800.h
-@@ -1027,6 +1027,8 @@
+@@ -1016,6 +1016,8 @@
   */
  #define MAC_STATUS_CFG			0x1200
  #define MAC_STATUS_CFG_BBP_RF_BUSY	FIELD32(0x00000003)
@@ -11,15 +52,13 @@ index eeaa93e..feeaf5d 100644
  
  /*
   * PWR_PIN_CFG:
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-index 057fae4..82e2044 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -8479,6 +8479,140 @@ void rt2800_rf_self_txdc_cal(struct rt2x00_dev *rt2x00dev)
+@@ -8475,6 +8475,138 @@ static void rt2800_rf_self_txdc_cal(stru
+ 	rt2800_register_write(rt2x00dev, RF_BYPASS2, mac052c);
  }
- EXPORT_SYMBOL_GPL(rt2800_rf_self_txdc_cal);
  
-+int rt2800_calcrcalibrationcode(struct rt2x00_dev *rt2x00dev, int d1, int d2)
++static int rt2800_calcrcalibrationcode(struct rt2x00_dev *rt2x00dev, int d1, int d2)
 +{
 +	int calcode = ((d2 - d1) * 1000) / 43;
 +
@@ -29,9 +68,8 @@ index 057fae4..82e2044 100644
 +
 +	return calcode;
 +}
-+EXPORT_SYMBOL_GPL(rt2800_calcrcalibrationcode);
 +
-+void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev)
++static void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev)
 +{
 +	u32 savemacsysctrl;
 +	u8 saverfb0r1, saverfb0r34, saverfb0r35;
@@ -151,12 +189,11 @@ index 057fae4..82e2044 100644
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, savemacsysctrl);
 +	rt2800_register_write(rt2x00dev, PWR_PIN_CFG, MAC_PWR_PIN_CFG);
 +}
-+EXPORT_SYMBOL_GPL(rt2800_r_calibration);
 +
  static void rt2800_bbp_core_soft_reset(struct rt2x00_dev *rt2x00dev,
  				       bool set_bw, bool is_ht40)
  {
-@@ -9086,6 +9220,7 @@ static void rt2800_init_rfcsr_6352(struct rt2x00_dev *rt2x00dev)
+@@ -9082,6 +9214,7 @@ static void rt2800_init_rfcsr_6352(struc
  	rt2800_rfcsr_write_dccal(rt2x00dev, 5, 0x00);
  	rt2800_rfcsr_write_dccal(rt2x00dev, 17, 0x7C);
  
@@ -164,29 +201,3 @@ index 057fae4..82e2044 100644
  	rt2800_rf_self_txdc_cal(rt2x00dev);
  	rt2800_bw_filter_calibration(rt2x00dev, true);
  	rt2800_bw_filter_calibration(rt2x00dev, false);
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-index c3b04f7..b3d11f9 100644
---- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-+++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-@@ -254,6 +254,8 @@ void rt2800_link_tuner(struct rt2x00_dev *rt2x00dev, struct link_qual *qual,
- void rt2800_gain_calibration(struct rt2x00_dev *rt2x00dev);
- void rt2800_vco_calibration(struct rt2x00_dev *rt2x00dev);
- void rt2800_rf_self_txdc_cal(struct rt2x00_dev *rt2x00dev);
-+int rt2800_calcrcalibrationcode(struct rt2x00_dev *rt2x00dev, int d1, int d2);
-+void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev);
- 
- int rt2800_enable_radio(struct rt2x00_dev *rt2x00dev);
- void rt2800_disable_radio(struct rt2x00_dev *rt2x00dev);
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-index e13ac57..bfd1ca8 100644
---- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-+++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-@@ -575,6 +575,8 @@ struct rt2x00lib_ops {
- 	void (*gain_calibration) (struct rt2x00_dev *rt2x00dev);
- 	void (*vco_calibration) (struct rt2x00_dev *rt2x00dev);
- 	void (*rf_self_txdc_cal) (struct rt2x00_dev *rt2x00dev);
-+	int (*calcrcalibrationcode) (struct rt2x00_dev *rt2x00dev, int d1, int d2);
-+	void (*r_calibration) (struct rt2x00_dev *rt2x00dev);
- 
- 	/*
- 	 * Data queue handlers.
