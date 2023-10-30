@@ -1,10 +1,51 @@
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-index ccb3e38..6ff2394 100644
+From patchwork Sat Sep 17 20:28:10 2022
+Content-Type: text/plain; charset="utf-8"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8bit
+X-Patchwork-Submitter: Daniel Golle <daniel@makrotopia.org>
+X-Patchwork-Id: 12979249
+X-Patchwork-Delegate: kvalo@adurom.com
+Return-Path: <linux-wireless-owner@kernel.org>
+Date: Sat, 17 Sep 2022 21:28:10 +0100
+From: Daniel Golle <daniel@makrotopia.org>
+To: linux-wireless@vger.kernel.org, Stanislaw Gruszka <stf_xl@wp.pl>,
+        Helmut Schaa <helmut.schaa@googlemail.com>
+Cc: Kalle Valo <kvalo@kernel.org>,
+        "David S. Miller" <davem@davemloft.net>,
+        Eric Dumazet <edumazet@google.com>,
+        Jakub Kicinski <kuba@kernel.org>,
+        Paolo Abeni <pabeni@redhat.com>,
+        Johannes Berg <johannes.berg@intel.com>
+Subject: [PATCH v3 08/16] rt2x00: add RXIQ calibration for MT7620
+Message-ID: 
+ <033a39a697d51f6df258acea4c33608e0944fe4c.1663445157.git.daniel@makrotopia.org>
+References: <cover.1663445157.git.daniel@makrotopia.org>
+MIME-Version: 1.0
+Content-Disposition: inline
+In-Reply-To: <cover.1663445157.git.daniel@makrotopia.org>
+Precedence: bulk
+List-ID: <linux-wireless.vger.kernel.org>
+X-Mailing-List: linux-wireless@vger.kernel.org
+
+From: Tomislav Požega <pozega.tomislav@gmail.com>
+
+Add RXIQ calibration found in mtk driver. With old openwrt builds this
+gets us ~8Mbps more of RX bandwidth (test with iPA/eLNA layout).
+
+Signed-off-by: Tomislav Požega <pozega.tomislav@gmail.com>
+Signed-off-by: Daniel Golle <daniel@makrotopia.org>
+Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
+---
+v2: use rt2800_wait_bbp_rf_ready(), fix indentation
+
+ .../net/wireless/ralink/rt2x00/rt2800lib.c    | 375 ++++++++++++++++++
+ 1 file changed, 375 insertions(+)
+
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -8678,6 +8678,381 @@ void rt2800_rxdcoc_calibration(struct rt2x00_dev *rt2x00dev)
+@@ -8666,6 +8666,380 @@ static void rt2800_rxdcoc_calibration(st
+ 	rt2800_rfcsr_write_bank(rt2x00dev, 0, 2, saverfb0r2);
  }
- EXPORT_SYMBOL_GPL(rt2800_rxdcoc_calibration);
  
 +static u32 rt2800_do_sqrt_accumulation(u32 si)
 +{
@@ -23,7 +64,7 @@ index ccb3e38..6ff2394 100644
 +	return root;
 +}
 +
-+void rt2800_rxiq_calibration(struct rt2x00_dev *rt2x00dev)
++static void rt2800_rxiq_calibration(struct rt2x00_dev *rt2x00dev)
 +{
 +	u8 rfb0r1, rfb0r2, rfb0r42;
 +	u8 rfb4r0, rfb4r19;
@@ -379,12 +420,11 @@ index ccb3e38..6ff2394 100644
 +	rt2800_register_write(rt2x00dev, RF_BYPASS3, orig_RF_BYPASS3);
 +	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, savemacsysctrl);
 +}
-+EXPORT_SYMBOL_GPL(rt2800_rxiq_calibration);
 +
  static void rt2800_bbp_core_soft_reset(struct rt2x00_dev *rt2x00dev,
  				       bool set_bw, bool is_ht40)
  {
-@@ -9290,6 +9665,7 @@ static void rt2800_init_rfcsr_6352(struct rt2x00_dev *rt2x00dev)
+@@ -9278,6 +9652,7 @@ static void rt2800_init_rfcsr_6352(struc
  	rt2800_rxdcoc_calibration(rt2x00dev);
  	rt2800_bw_filter_calibration(rt2x00dev, true);
  	rt2800_bw_filter_calibration(rt2x00dev, false);
@@ -392,27 +432,3 @@ index ccb3e38..6ff2394 100644
  }
  
  static void rt2800_init_rfcsr(struct rt2x00_dev *rt2x00dev)
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-index 5e79671..60fe373 100644
---- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-+++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-@@ -257,6 +257,7 @@ void rt2800_rf_self_txdc_cal(struct rt2x00_dev *rt2x00dev);
- int rt2800_calcrcalibrationcode(struct rt2x00_dev *rt2x00dev, int d1, int d2);
- void rt2800_r_calibration(struct rt2x00_dev *rt2x00dev);
- void rt2800_rxdcoc_calibration(struct rt2x00_dev *rt2x00dev);
-+void rt2800_rxiq_calibration(struct rt2x00_dev *rt2x00dev);
- 
- int rt2800_enable_radio(struct rt2x00_dev *rt2x00dev);
- void rt2800_disable_radio(struct rt2x00_dev *rt2x00dev);
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-index acb1bad..f965d17 100644
---- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-+++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-@@ -578,6 +578,7 @@ struct rt2x00lib_ops {
- 	int (*calcrcalibrationcode) (struct rt2x00_dev *rt2x00dev, int d1, int d2);
- 	void (*r_calibration) (struct rt2x00_dev *rt2x00dev);
- 	void (*rxdcoc_calibration) (struct rt2x00_dev *rt2x00dev);
-+	void (*rxiq_calibration) (struct rt2x00_dev *rt2x00dev);
- 
- 	/*
- 	 * Data queue handlers.

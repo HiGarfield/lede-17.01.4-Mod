@@ -1,0 +1,49 @@
+From: Shiji Yang <yangshiji66@outlook.com>
+Date: Sat, 28 Oct 2023 16:56:30 +0800
+Subject: [PATCH 3/3] wifi: rt2x00: restart beacon queue when hardware reset
+
+When a hardware reset is triggered, all registers are reset, so all
+queues are forced to stop in hardware interface. However, mac80211
+will not automatically stop the queue. If we don't manually stop the
+beacon queue, the queue will be deadlocked and unable to start again.
+This patch fixes the issue where Apple devices cannot connect to the
+AP after calling ieee80211_restart_hw().
+
+Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
+---
+ drivers/net/wireless/ralink/rt2x00/rt2x00dev.c | 3 +++
+ drivers/net/wireless/ralink/rt2x00/rt2x00mac.c | 4 +++-
+ 2 files changed, 6 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00dev.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00dev.c
+@@ -101,6 +101,8 @@ void rt2x00lib_disable_radio(struct rt2x
+ 	rt2x00link_stop_tuner(rt2x00dev);
+ 	rt2x00queue_stop_queues(rt2x00dev);
+ 	rt2x00queue_flush_queues(rt2x00dev, true);
++	if (test_bit(DEVICE_STATE_RESET, &rt2x00dev->flags))
++		rt2x00queue_stop_queue(rt2x00dev->bcn);
+ 
+ 	/*
+ 	 * Disable radio.
+@@ -1286,6 +1288,7 @@ int rt2x00lib_start(struct rt2x00_dev *r
+ 	rt2x00dev->intf_ap_count = 0;
+ 	rt2x00dev->intf_sta_count = 0;
+ 	rt2x00dev->intf_associated = 0;
++	rt2x00dev->intf_beaconing = 0;
+ 
+ 	/* Enable the radio */
+ 	retval = rt2x00lib_enable_radio(rt2x00dev);
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
+@@ -615,7 +615,9 @@ void rt2x00mac_bss_info_changed(struct i
+ 			 * and keep it running on other interfaces.
+ 			 */
+ 			rt2x00queue_clear_beacon(rt2x00dev, vif);
+-		} else if (bss_conf->enable_beacon && !intf->enable_beacon) {
++		} else if (bss_conf->enable_beacon &&
++			   (!intf->enable_beacon ||
++			    test_bit(DEVICE_STATE_RESET, &rt2x00dev->flags))) {
+ 			rt2x00dev->intf_beaconing++;
+ 			intf->enable_beacon = true;
+ 			/*

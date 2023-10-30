@@ -1,0 +1,169 @@
+From: Shiji Yang <yangshiji66@outlook.com>
+Date: Thu, 12 Oct 2023 00:12:26 +0800
+Subject: [PATCH 1/3] wifi: rt2x00: introduce DMA busy check watchdog for
+ rt2800
+
+When I tried to fix the watchdog of rt2800, I found that sometimes
+the watchdog could not reset the hung device. This is because the
+queue did not completely stop, it just became very slow. The Mediatek
+vendor driver for the new chips (MT7603/MT7612) has a DMA busy
+watchdog to detect device hangs by checking DMA busy status. This
+implementation is something similar to it. To reduce unnecessary
+watchdog reset, we can check the INT_STATUS register together as I
+found that when the radio hung, the RX/TX coherent interrupt will
+always stuck at triggered state.
+
+This patch also changes the watchdog module parameters to the new
+'hang_watchdog' and 'dma_busy_watchdog' so that we can control them
+separately. That's because they may have different behavior on
+specific chip.
+
+This watchdog function is a slight schedule and it won't affect the
+WiFi transmission speed. Watchdog can help the driver automatically
+recover from the abnormal state. So I think it should be default on.
+Anyway it can be disabled by module parameter 'dma_busy_watchdog=0'.
+
+Tested on MT7620 and RT5350.
+
+Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
+---
+ .../net/wireless/ralink/rt2x00/rt2800lib.c    | 81 ++++++++++++++++---
+ drivers/net/wireless/ralink/rt2x00/rt2x00.h   |  3 +
+ 2 files changed, 72 insertions(+), 12 deletions(-)
+
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -30,9 +30,15 @@
+ #include "rt2800lib.h"
+ #include "rt2800.h"
+ 
+-static bool modparam_watchdog;
+-module_param_named(watchdog, modparam_watchdog, bool, S_IRUGO);
+-MODULE_PARM_DESC(watchdog, "Enable watchdog to detect tx/rx hangs and reset hardware if detected");
++static bool modparam_dma_wdt = true;
++module_param_named(dma_busy_watchdog, modparam_dma_wdt, bool, 0444);
++MODULE_PARM_DESC(dma_busy_watchdog, "Enable watchdog to detect tx/rx"
++		 " DMA busy and reset hardware if detected");
++
++static bool modparam_hang_wdt = true;
++module_param_named(hang_watchdog, modparam_hang_wdt, bool, 0444);
++MODULE_PARM_DESC(hang_watchdog, "Enable watchdog to detect tx/rx hangs"
++		 " and reset hardware if detected");
+ 
+ /*
+  * Register access.
+@@ -1261,15 +1267,12 @@ static void rt2800_update_survey(struct
+ 	chan_survey->time_ext_busy += rt2800_register_read(rt2x00dev, CH_BUSY_STA_SEC);
+ }
+ 
+-void rt2800_watchdog(struct rt2x00_dev *rt2x00dev)
++static bool rt2800_watchdog_hung(struct rt2x00_dev *rt2x00dev)
+ {
+ 	struct data_queue *queue;
+ 	bool hung_tx = false;
+ 	bool hung_rx = false;
+ 
+-	if (test_bit(DEVICE_STATE_SCANNING, &rt2x00dev->flags))
+-		return;
+-
+ 	rt2800_update_survey(rt2x00dev);
+ 
+ 	queue_for_each(rt2x00dev, queue) {
+@@ -1297,18 +1300,72 @@ void rt2800_watchdog(struct rt2x00_dev *
+ 		}
+ 	}
+ 
++	if (!hung_tx && !hung_rx)
++		return false;
++
+ 	if (hung_tx)
+ 		rt2x00_warn(rt2x00dev, "Watchdog TX hung detected\n");
+ 
+ 	if (hung_rx)
+ 		rt2x00_warn(rt2x00dev, "Watchdog RX hung detected\n");
+ 
+-	if (hung_tx || hung_rx) {
+-		queue_for_each(rt2x00dev, queue)
+-			queue->wd_count = 0;
++	queue_for_each(rt2x00dev, queue)
++		queue->wd_count = 0;
++
++	return true;
++}
++
++static bool rt2800_watchdog_dma_busy(struct rt2x00_dev *rt2x00dev)
++{
++	bool busy_rx, busy_tx;
++	u32 reg_cfg = rt2800_register_read(rt2x00dev, WPDMA_GLO_CFG);
++	u32 reg_int = rt2800_register_read(rt2x00dev, INT_SOURCE_CSR);
++
++	if (rt2x00_get_field32(reg_cfg, WPDMA_GLO_CFG_RX_DMA_BUSY) &&
++	    rt2x00_get_field32(reg_int, INT_SOURCE_CSR_RX_COHERENT))
++		rt2x00dev->rxdma_busy++;
++	else
++		rt2x00dev->rxdma_busy = 0;
++
++	if (rt2x00_get_field32(reg_cfg, WPDMA_GLO_CFG_TX_DMA_BUSY) &&
++	    rt2x00_get_field32(reg_int, INT_SOURCE_CSR_TX_COHERENT))
++		rt2x00dev->txdma_busy++;
++	else
++		rt2x00dev->txdma_busy = 0;
++
++	busy_rx = rt2x00dev->rxdma_busy > 30 ? true : false;
++	busy_tx = rt2x00dev->txdma_busy > 30 ? true : false;
+ 
++	if (!busy_rx && !busy_tx)
++		return false;
++
++	if (busy_rx)
++		rt2x00_warn(rt2x00dev, "Watchdog RX DMA busy detected\n");
++
++	if (busy_tx)
++		rt2x00_warn(rt2x00dev, "Watchdog TX DMA busy detected\n");
++
++	rt2x00dev->rxdma_busy = 0;
++	rt2x00dev->txdma_busy = 0;
++
++	return true;
++}
++
++void rt2800_watchdog(struct rt2x00_dev *rt2x00dev)
++{
++	bool reset = false;
++
++	if (test_bit(DEVICE_STATE_SCANNING, &rt2x00dev->flags))
++		return;
++
++	if (modparam_dma_wdt)
++		reset = rt2800_watchdog_dma_busy(rt2x00dev);
++
++	if (modparam_hang_wdt)
++		reset = rt2800_watchdog_hung(rt2x00dev) || reset;
++
++	if (reset)
+ 		ieee80211_restart_hw(rt2x00dev->hw);
+-	}
+ }
+ EXPORT_SYMBOL_GPL(rt2800_watchdog);
+ 
+@@ -12016,7 +12073,7 @@ int rt2800_probe_hw(struct rt2x00_dev *r
+ 		__set_bit(REQUIRE_TASKLET_CONTEXT, &rt2x00dev->cap_flags);
+ 	}
+ 
+-	if (modparam_watchdog) {
++	if (modparam_hang_wdt || modparam_dma_wdt) {
+ 		__set_bit(CAPABILITY_RESTART_HW, &rt2x00dev->cap_flags);
+ 		rt2x00dev->link.watchdog_interval = msecs_to_jiffies(100);
+ 	} else {
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
+@@ -926,6 +926,9 @@ struct rt2x00_dev {
+ 	 */
+ 	u16 beacon_int;
+ 
++	/* Rx/Tx DMA busy watchdog counter */
++	u16 rxdma_busy, txdma_busy;
++
+ 	/**
+ 	 * Timestamp of last received beacon
+ 	 */
