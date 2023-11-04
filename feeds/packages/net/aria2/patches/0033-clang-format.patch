@@ -1,0 +1,254 @@
+From d607327ea6dd969c5ccdfa3e4d2693efcddac0b5 Mon Sep 17 00:00:00 2001
+From: Tatsuhiro Tsujikawa <tatsuhiro.t@gmail.com>
+Date: Thu, 2 Nov 2023 19:27:35 +0900
+Subject: [PATCH] clang-format
+
+---
+ src/BtChokingEvent.h          |  3 +-
+ src/Context.cc                | 28 +++++++++---------
+ src/DownloadEngineFactory.cc  |  6 ++--
+ src/Event.h                   |  6 ++--
+ src/NullWebSocketSessionMan.h |  3 +-
+ src/SocketCore.cc             | 55 ++++++++++++++++++-----------------
+ src/cookie_helper.cc          |  3 +-
+ src/gai_strerror.c            |  3 +-
+ src/getaddrinfo.c             |  6 ++--
+ 9 files changed, 57 insertions(+), 56 deletions(-)
+
+diff --git a/src/BtChokingEvent.h b/src/BtChokingEvent.h
+index 5fa6a0ce..91a9360e 100644
+--- a/src/BtChokingEvent.h
++++ b/src/BtChokingEvent.h
+@@ -39,8 +39,7 @@
+ 
+ namespace aria2 {
+ 
+-class BtChokingEvent {
+-};
++class BtChokingEvent {};
+ 
+ } // namespace aria2
+ 
+diff --git a/src/Context.cc b/src/Context.cc
+index d12775bb..44fe28fd 100644
+--- a/src/Context.cc
++++ b/src/Context.cc
+@@ -270,23 +270,23 @@ Context::Context(bool standalone, int argc, char** argv, const KeyVals& options)
+   }
+   else
+ #endif // ENABLE_METALINK
+-      if (!op->blank(PREF_INPUT_FILE)) {
+-    if (op->getAsBool(PREF_DEFERRED_INPUT)) {
+-      uriListParser = openUriListParser(op->get(PREF_INPUT_FILE));
++    if (!op->blank(PREF_INPUT_FILE)) {
++      if (op->getAsBool(PREF_DEFERRED_INPUT)) {
++        uriListParser = openUriListParser(op->get(PREF_INPUT_FILE));
++      }
++      else {
++        createRequestGroupForUriList(requestGroups, op);
++      }
++#if defined(ENABLE_BITTORRENT) || defined(ENABLE_METALINK)
++    }
++    else if (op->get(PREF_SHOW_FILES) == A2_V_TRUE) {
++      showFiles(args, op);
++      return;
++#endif // ENABLE_METALINK || ENABLE_METALINK
+     }
+     else {
+-      createRequestGroupForUriList(requestGroups, op);
++      createRequestGroupForUri(requestGroups, op, args, false, false, true);
+     }
+-#if defined(ENABLE_BITTORRENT) || defined(ENABLE_METALINK)
+-  }
+-  else if (op->get(PREF_SHOW_FILES) == A2_V_TRUE) {
+-    showFiles(args, op);
+-    return;
+-#endif // ENABLE_METALINK || ENABLE_METALINK
+-  }
+-  else {
+-    createRequestGroupForUri(requestGroups, op, args, false, false, true);
+-  }
+ 
+   // Remove option values which is only valid for URIs specified in
+   // command-line. If they are left, because op is used as a template
+diff --git a/src/DownloadEngineFactory.cc b/src/DownloadEngineFactory.cc
+index 64c5c76b..da45dff1 100644
+--- a/src/DownloadEngineFactory.cc
++++ b/src/DownloadEngineFactory.cc
+@@ -137,9 +137,9 @@ std::unique_ptr<EventPoll> createEventPoll(Option* op)
+   }
+   else
+ #endif // HAVE_POLL
+-      if (pollMethod == V_SELECT) {
+-    return make_unique<SelectEventPoll>();
+-  }
++    if (pollMethod == V_SELECT) {
++      return make_unique<SelectEventPoll>();
++    }
+   assert(0);
+   return nullptr;
+ }
+diff --git a/src/Event.h b/src/Event.h
+index 7d6985eb..df8c4387 100644
+--- a/src/Event.h
++++ b/src/Event.h
+@@ -179,8 +179,7 @@ public:
+ };
+ #else  // !ENABLE_ASYNC_DNS
+ template <typename SocketEntry, typename EventPoll>
+-class ADNSEvent : public Event<SocketEntry> {
+-};
++class ADNSEvent : public Event<SocketEntry> {};
+ #endif // !ENABLE_ASYNC_DNS
+ 
+ template <typename CommandEvent, typename ADNSEvent> class SocketEntry {
+@@ -362,8 +361,7 @@ public:
+   }
+ };
+ #else  // !ENABLE_ASYNC_DNS
+-template <typename EventPoll> class AsyncNameResolverEntry {
+-};
++template <typename EventPoll> class AsyncNameResolverEntry {};
+ #endif // !ENABLE_ASYNC_DNS
+ 
+ } // namespace aria2
+diff --git a/src/NullWebSocketSessionMan.h b/src/NullWebSocketSessionMan.h
+index ab81d116..d895150a 100644
+--- a/src/NullWebSocketSessionMan.h
++++ b/src/NullWebSocketSessionMan.h
+@@ -48,8 +48,7 @@ class RequestGroup;
+ 
+ namespace rpc {
+ 
+-class WebSocketSession {
+-};
++class WebSocketSession {};
+ 
+ class WebSocketSessionMan {
+ public:
+diff --git a/src/SocketCore.cc b/src/SocketCore.cc
+index e235f512..4e7421bc 100644
+--- a/src/SocketCore.cc
++++ b/src/SocketCore.cc
+@@ -863,38 +863,39 @@ void SocketCore::readData(void* data, size_t& len)
+   }
+   else
+ #endif // HAVE_LIBSSH2
+-      if (!secure_) {
+-    // Cast for Windows recv()
+-    while ((ret = recv(sockfd_, reinterpret_cast<char*>(data), len, 0)) == -1 &&
+-           SOCKET_ERRNO == A2_EINTR)
+-      ;
+-    int errNum = SOCKET_ERRNO;
+-    if (ret == -1) {
+-      if (!A2_WOULDBLOCK(errNum)) {
+-        throw DL_RETRY_EX(fmt(EX_SOCKET_RECV, errorMsg(errNum).c_str()));
++    if (!secure_) {
++      // Cast for Windows recv()
++      while ((ret = recv(sockfd_, reinterpret_cast<char*>(data), len, 0)) ==
++                 -1 &&
++             SOCKET_ERRNO == A2_EINTR)
++        ;
++      int errNum = SOCKET_ERRNO;
++      if (ret == -1) {
++        if (!A2_WOULDBLOCK(errNum)) {
++          throw DL_RETRY_EX(fmt(EX_SOCKET_RECV, errorMsg(errNum).c_str()));
++        }
++        wantRead_ = true;
++        ret = 0;
+       }
+-      wantRead_ = true;
+-      ret = 0;
+     }
+-  }
+-  else {
++    else {
+ #ifdef ENABLE_SSL
+-    ret = tlsSession_->readData(data, len);
+-    if (ret < 0) {
+-      if (ret != TLS_ERR_WOULDBLOCK) {
+-        throw DL_RETRY_EX(
+-            fmt(EX_SOCKET_RECV, tlsSession_->getLastErrorString().c_str()));
+-      }
+-      if (tlsSession_->checkDirection() == TLS_WANT_READ) {
+-        wantRead_ = true;
+-      }
+-      else {
+-        wantWrite_ = true;
++      ret = tlsSession_->readData(data, len);
++      if (ret < 0) {
++        if (ret != TLS_ERR_WOULDBLOCK) {
++          throw DL_RETRY_EX(
++              fmt(EX_SOCKET_RECV, tlsSession_->getLastErrorString().c_str()));
++        }
++        if (tlsSession_->checkDirection() == TLS_WANT_READ) {
++          wantRead_ = true;
++        }
++        else {
++          wantWrite_ = true;
++        }
++        ret = 0;
+       }
+-      ret = 0;
+-    }
+ #endif // ENABLE_SSL
+-  }
++    }
+ 
+   len = ret;
+ }
+diff --git a/src/cookie_helper.cc b/src/cookie_helper.cc
+index 18540c65..7a826624 100644
+--- a/src/cookie_helper.cc
++++ b/src/cookie_helper.cc
+@@ -303,7 +303,8 @@ std::unique_ptr<Cookie> parse(const std::string& cookieStr,
+ 
+           if (n > std::numeric_limits<int64_t>::max() - delta) {
+             maxAge = std::numeric_limits<time_t>::max();
+-          } else {
++          }
++          else {
+             n += delta;
+ 
+             if (n < 0 || std::numeric_limits<time_t>::max() < n) {
+diff --git a/src/gai_strerror.c b/src/gai_strerror.c
+index a76e4c5a..5ea304ba 100644
+--- a/src/gai_strerror.c
++++ b/src/gai_strerror.c
+@@ -87,7 +87,8 @@ static char* eai_errlist[] = {
+ /*
+  * gai_strerror().
+  */
+-const char* gai_strerror(ecode) int ecode;
++const char* gai_strerror(ecode)
++int ecode;
+ {
+   if (ecode < 0 || ecode > EAI_SYSTEM)
+     return _("Unknown error");
+diff --git a/src/getaddrinfo.c b/src/getaddrinfo.c
+index bfa3b4a3..7c80dcf2 100644
+--- a/src/getaddrinfo.c
++++ b/src/getaddrinfo.c
+@@ -224,7 +224,8 @@ static int itoa_length();
+ /*
+  * gai_strerror().
+  */
+-const char* gai_strerror(ecode) int ecode;
++const char* gai_strerror(ecode)
++int ecode;
+ {
+   if (ecode < 0 || ecode > EAI_SYSTEM)
+     return _("Unknown error");
+@@ -295,7 +296,8 @@ static int is_address(s) const char* s;
+  * Calcurate length of the string `s', where `s' is set by
+  * sprintf(s, "%d", n).
+  */
+-static int itoa_length(n) int n;
++static int itoa_length(n)
++int n;
+ {
+   int result = 1;
+ 
+-- 
+2.25.1
+
