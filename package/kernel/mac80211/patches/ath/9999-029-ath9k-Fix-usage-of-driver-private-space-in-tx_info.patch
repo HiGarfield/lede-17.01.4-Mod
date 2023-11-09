@@ -37,11 +37,9 @@ Link: https://lore.kernel.org/r/20220404204800.2681133-1-toke@toke.dk
  drivers/net/wireless/ath/ath9k/xmit.c | 30 ++++++++++++++++++---------
  2 files changed, 21 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
-index c5f9c65..00a8495 100644
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -849,7 +849,7 @@ static bool ath9k_txq_list_has_key(struct list_head *txq_list, u32 keyix)
+@@ -849,7 +849,7 @@ static bool ath9k_txq_list_has_key(struc
  			continue;
  
  		txinfo = IEEE80211_SKB_CB(bf->bf_mpdu);
@@ -50,11 +48,9 @@ index c5f9c65..00a8495 100644
  		if (fi->keyix == keyix)
  			return true;
  	}
-diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
-index 406312d..5fe0e65 100644
 --- a/drivers/net/wireless/ath/ath9k/xmit.c
 +++ b/drivers/net/wireless/ath/ath9k/xmit.c
-@@ -175,8 +175,8 @@ static struct ath_frame_info *get_frame_info(struct sk_buff *skb)
+@@ -175,8 +175,8 @@ static struct ath_frame_info *get_frame_
  {
  	struct ieee80211_tx_info *tx_info = IEEE80211_SKB_CB(skb);
  	BUILD_BUG_ON(sizeof(struct ath_frame_info) >
@@ -82,7 +78,7 @@ index 406312d..5fe0e65 100644
  static void ath_tx_rc_status(struct ath_softc *sc, struct ath_buf *bf,
  			     struct ath_tx_status *ts, int nframes, int nbad,
  			     int txok)
-@@ -2610,7 +2620,7 @@ static void ath_tx_rc_status(struct ath_softc *sc, struct ath_buf *bf,
+@@ -2610,7 +2620,7 @@ static void ath_tx_rc_status(struct ath_
  	struct ath_hw *ah = sc->sc_ah;
  	u8 i, tx_rateindex;
  
@@ -91,7 +87,7 @@ index 406312d..5fe0e65 100644
  
  	if (txok)
  		tx_info->status.ack_signal = ts->ts_rssi;
-@@ -2626,6 +2636,13 @@ static void ath_tx_rc_status(struct ath_softc *sc, struct ath_buf *bf,
+@@ -2626,6 +2636,13 @@ static void ath_tx_rc_status(struct ath_
  	tx_info->status.ampdu_len = nframes;
  	tx_info->status.ampdu_ack_len = nframes - nbad;
  
@@ -105,7 +101,7 @@ index 406312d..5fe0e65 100644
  	if ((ts->ts_status & ATH9K_TXERR_FILT) == 0 &&
  	    (tx_info->flags & IEEE80211_TX_CTL_NO_ACK) == 0) {
  		/*
-@@ -2647,13 +2664,6 @@ static void ath_tx_rc_status(struct ath_softc *sc, struct ath_buf *bf,
+@@ -2647,13 +2664,6 @@ static void ath_tx_rc_status(struct ath_
  			tx_info->status.rates[tx_rateindex].count =
  				hw->max_rate_tries;
  	}
@@ -119,6 +115,3 @@ index 406312d..5fe0e65 100644
  }
  
  static void ath_tx_processq(struct ath_softc *sc, struct ath_txq *txq)
--- 
-2.25.1
-

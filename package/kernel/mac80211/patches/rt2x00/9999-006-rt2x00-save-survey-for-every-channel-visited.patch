@@ -24,11 +24,9 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
  drivers/net/wireless/ralink/rt2x00/rt2x00.h   | 10 +++
  2 files changed, 56 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-index e9fa323..d3a54ed 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -1240,6 +1240,17 @@ static int rt2800_check_hung(struct data_queue *queue)
+@@ -1279,6 +1279,17 @@ static int rt2800_check_hung(struct data
  	return queue->wd_count > 16;
  }
  
@@ -46,7 +44,7 @@ index e9fa323..d3a54ed 100644
  void rt2800_watchdog(struct rt2x00_dev *rt2x00dev)
  {
  	struct data_queue *queue;
-@@ -1249,6 +1260,8 @@ void rt2800_watchdog(struct rt2x00_dev *rt2x00dev)
+@@ -1288,6 +1299,8 @@ void rt2800_watchdog(struct rt2x00_dev *
  	if (test_bit(DEVICE_STATE_SCANNING, &rt2x00dev->flags))
  		return;
  
@@ -55,7 +53,7 @@ index e9fa323..d3a54ed 100644
  	queue_for_each(rt2x00dev, queue) {
  		switch (queue->qid) {
  		case QID_AC_VO:
-@@ -5604,6 +5617,12 @@ void rt2800_config(struct rt2x00_dev *rt2x00dev,
+@@ -5743,6 +5756,12 @@ void rt2800_config(struct rt2x00_dev *rt
  	rt2800_config_lna_gain(rt2x00dev, libconf);
  
  	if (flags & IEEE80211_CONF_CHANGE_CHANNEL) {
@@ -68,7 +66,7 @@ index e9fa323..d3a54ed 100644
  		rt2800_config_channel(rt2x00dev, libconf->conf,
  				      &libconf->rf, &libconf->channel);
  		rt2800_config_txpower(rt2x00dev, libconf->conf->chandef.chan,
-@@ -11790,12 +11809,20 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+@@ -11859,12 +11878,20 @@ static int rt2800_probe_hw_mode(struct r
  	}
  
  	/*
@@ -90,7 +88,7 @@ index e9fa323..d3a54ed 100644
  	spec->channels_info = info;
  
  	default_power1 = rt2800_eeprom_addr(rt2x00dev, EEPROM_TXPOWER_BG1);
-@@ -12182,27 +12209,30 @@ int rt2800_get_survey(struct ieee80211_hw *hw, int idx,
+@@ -12251,27 +12278,30 @@ int rt2800_get_survey(struct ieee80211_h
  		      struct survey_info *survey)
  {
  	struct rt2x00_dev *rt2x00dev = hw->priv;
@@ -116,35 +114,34 @@ index e9fa323..d3a54ed 100644
 -	idle = rt2800_register_read(rt2x00dev, CH_IDLE_STA);
 -	busy = rt2800_register_read(rt2x00dev, CH_BUSY_STA);
 -	busy_ext = rt2800_register_read(rt2x00dev, CH_BUSY_STA_SEC);
-+	survey->channel = &rt2x00dev->bands[band].channels[idx];
- 
+-
 -	if (idle || busy) {
 -		survey->filled = SURVEY_INFO_TIME |
 -				 SURVEY_INFO_TIME_BUSY |
 -				 SURVEY_INFO_TIME_EXT_BUSY;
-+	survey->filled = SURVEY_INFO_TIME |
-+			 SURVEY_INFO_TIME_BUSY |
-+			 SURVEY_INFO_TIME_EXT_BUSY;
- 
+-
 -		survey->time = (idle + busy) / 1000;
 -		survey->time_busy = busy / 1000;
 -		survey->time_ext_busy = busy_ext / 1000;
 -	}
++	survey->channel = &rt2x00dev->bands[band].channels[idx];
++
++	survey->filled = SURVEY_INFO_TIME |
++			 SURVEY_INFO_TIME_BUSY |
++			 SURVEY_INFO_TIME_EXT_BUSY;
++
 +	survey->time = div_u64(chan_survey->time_idle + chan_survey->time_busy, 1000);
 +	survey->time_busy = div_u64(chan_survey->time_busy, 1000);
 +	survey->time_ext_busy = div_u64(chan_survey->time_ext_busy, 1000);
  
  	if (!(hw->conf.flags & IEEE80211_CONF_OFFCHANNEL))
  		survey->filled |= SURVEY_INFO_IN_USE;
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-index 128cfac..a5bcee0 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-@@ -194,6 +194,15 @@ struct rf_channel {
- 	u32 rf4;
+@@ -196,6 +196,15 @@ struct rf_channel {
  };
  
-+/*
+ /*
 + * Information structure for channel survey.
 + */
 +struct rt2x00_chan_survey {
@@ -153,10 +150,11 @@ index 128cfac..a5bcee0 100644
 +	u64 time_ext_busy;
 +};
 +
- /*
++/*
   * Channel information structure
   */
-@@ -773,6 +782,7 @@ struct rt2x00_dev {
+ struct channel_info {
+@@ -768,6 +777,7 @@ struct rt2x00_dev {
  	 */
  	struct ieee80211_hw *hw;
  	struct ieee80211_supported_band bands[NUM_NL80211_BANDS];
@@ -164,6 +162,3 @@ index 128cfac..a5bcee0 100644
  	enum nl80211_band curr_band;
  	int curr_freq;
  
--- 
-2.25.1
-

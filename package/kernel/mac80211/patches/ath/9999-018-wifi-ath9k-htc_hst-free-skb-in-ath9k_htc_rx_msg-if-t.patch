@@ -26,11 +26,9 @@ Link: https://lore.kernel.org/r/20230104123546.51427-1-pchelkin@ispras.ru
  drivers/net/wireless/ath/ath9k/htc_hst.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc_hst.c b/drivers/net/wireless/ath/ath9k/htc_hst.c
-index 7f74bc6..dc08ab3 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_hst.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_hst.c
-@@ -389,7 +389,7 @@ static void ath9k_htc_fw_panic_report(struct htc_target *htc_handle,
+@@ -389,7 +389,7 @@ static void ath9k_htc_fw_panic_report(st
   * HTC Messages are handled directly here and the obtained SKB
   * is freed.
   *
@@ -48,6 +46,3 @@ index 7f74bc6..dc08ab3 100644
  	}
  }
  
--- 
-2.25.1
-

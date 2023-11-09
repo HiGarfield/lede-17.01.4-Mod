@@ -18,11 +18,9 @@ Link: https://lore.kernel.org/r/20221110061926.18163-1-xiujianfeng@huawei.com
  drivers/net/wireless/ath/ath10k/pci.c | 20 ++++++++++++--------
  1 file changed, 12 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath10k/pci.c b/drivers/net/wireless/ath/ath10k/pci.c
-index 56fdad8..69db057 100644
 --- a/drivers/net/wireless/ath/ath10k/pci.c
 +++ b/drivers/net/wireless/ath/ath10k/pci.c
-@@ -3755,18 +3755,22 @@ static struct pci_driver ath10k_pci_driver = {
+@@ -3755,18 +3755,22 @@ static struct pci_driver ath10k_pci_driv
  
  static int __init ath10k_pci_init(void)
  {
@@ -53,6 +51,3 @@ index 56fdad8..69db057 100644
  }
  module_init(ath10k_pci_init);
  
--- 
-2.25.1
-

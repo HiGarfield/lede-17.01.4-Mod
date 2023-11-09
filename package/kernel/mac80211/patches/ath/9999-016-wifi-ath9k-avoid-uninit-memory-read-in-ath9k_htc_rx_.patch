@@ -38,8 +38,6 @@ Link: https://lore.kernel.org/r/7acfa1be-4b5c-b2ce-de43-95b0593fb3e5@I-love.SAKU
  drivers/net/wireless/ath/ath9k/htc_hst.c | 43 +++++++++++++++---------
  1 file changed, 28 insertions(+), 15 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc_hst.c b/drivers/net/wireless/ath/ath9k/htc_hst.c
-index 05fca38..7f74bc6 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_hst.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_hst.c
 @@ -362,33 +362,27 @@ ret:
@@ -83,7 +81,7 @@ index 05fca38..7f74bc6 100644
  }
  
  /*
-@@ -409,16 +403,26 @@ void ath9k_htc_rx_msg(struct htc_target *htc_handle,
+@@ -409,16 +403,26 @@ void ath9k_htc_rx_msg(struct htc_target
  	if (!htc_handle || !skb)
  		return;
  
@@ -111,7 +109,7 @@ index 05fca38..7f74bc6 100644
  		if (pipe_id != USB_REG_IN_PIPE)
  			dev_kfree_skb_any(skb);
  		else
-@@ -430,21 +434,30 @@ void ath9k_htc_rx_msg(struct htc_target *htc_handle,
+@@ -430,21 +434,30 @@ void ath9k_htc_rx_msg(struct htc_target
  
  		/* Handle trailer */
  		if (htc_hdr->flags & HTC_FLAGS_RECV_TRAILER) {
@@ -143,6 +141,3 @@ index 05fca38..7f74bc6 100644
  			htc_process_conn_rsp(htc_handle, htc_hdr);
  			break;
  		default:
--- 
-2.25.1
-

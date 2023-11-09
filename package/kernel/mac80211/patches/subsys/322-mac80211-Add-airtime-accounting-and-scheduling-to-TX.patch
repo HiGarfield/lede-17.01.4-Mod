@@ -373,7 +373,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  struct sta_info;
  
  /**
-@@ -594,6 +604,9 @@ struct sta_info {
+@@ -595,6 +605,9 @@ struct sta_info {
  	} tx_stats;
  	u16 tid_seq[IEEE80211_QOS_CTL_TID_MASK + 1];
  

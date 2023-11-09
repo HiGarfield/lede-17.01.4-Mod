@@ -16,8 +16,6 @@ Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
  drivers/net/wireless/ath/ath10k/htt.h | 8 ++++----
  1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath10k/htt.h b/drivers/net/wireless/ath/ath10k/htt.h
-index 38e9973..804051a 100644
 --- a/drivers/net/wireless/ath/ath10k/htt.h
 +++ b/drivers/net/wireless/ath/ath10k/htt.h
 @@ -702,7 +702,7 @@ struct htt_rx_indication_prefix {
@@ -56,6 +54,3 @@ index 38e9973..804051a 100644
  
  #define HTT_RX_DESC_ALIGN 8
  
--- 
-2.25.1
-

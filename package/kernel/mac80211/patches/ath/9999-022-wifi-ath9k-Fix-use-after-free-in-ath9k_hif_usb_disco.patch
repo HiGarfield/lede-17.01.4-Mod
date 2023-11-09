@@ -127,11 +127,9 @@ Link: https://lore.kernel.org/r/20221205014308.1617597-1-linuxlovemin@yonsei.ac.
  drivers/net/wireless/ath/ath9k/htc_drv_init.c | 2 ++
  2 files changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/hif_usb.c b/drivers/net/wireless/ath/ath9k/hif_usb.c
-index c550a84..07f61f2 100644
 --- a/drivers/net/wireless/ath/ath9k/hif_usb.c
 +++ b/drivers/net/wireless/ath/ath9k/hif_usb.c
-@@ -1428,8 +1428,6 @@ static void ath9k_hif_usb_disconnect(struct usb_interface *interface)
+@@ -1428,8 +1428,6 @@ static void ath9k_hif_usb_disconnect(str
  
  	if (hif_dev->flags & HIF_USB_READY) {
  		ath9k_htc_hw_deinit(hif_dev->htc_handle, unplugged);
@@ -140,11 +138,9 @@ index c550a84..07f61f2 100644
  		ath9k_htc_hw_free(hif_dev->htc_handle);
  	}
  
-diff --git a/drivers/net/wireless/ath/ath9k/htc_drv_init.c b/drivers/net/wireless/ath/ath9k/htc_drv_init.c
-index 816ddcd..2028860 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_drv_init.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_drv_init.c
-@@ -990,6 +990,8 @@ void ath9k_htc_disconnect_device(struct htc_target *htc_handle, bool hotunplug)
+@@ -990,6 +990,8 @@ void ath9k_htc_disconnect_device(struct
  
  		ath9k_deinit_device(htc_handle->drv_priv);
  		ath9k_stop_wmi(htc_handle->drv_priv);
@@ -153,6 +149,3 @@ index 816ddcd..2028860 100644
  		ieee80211_free_hw(htc_handle->drv_priv->hw);
  	}
  }
--- 
-2.25.1
-

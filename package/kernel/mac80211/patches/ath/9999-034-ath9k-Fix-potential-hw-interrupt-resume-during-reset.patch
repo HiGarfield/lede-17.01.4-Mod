@@ -42,11 +42,9 @@ disable_irq() and tasklet_disable() in ath_reset_internal().
  drivers/net/wireless/ath/ath9k/main.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
-index 4d18d06..74b3365 100644
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -298,9 +298,9 @@ static int ath_reset_internal(struct ath_softc *sc, struct ath9k_channel *hchan)
+@@ -296,9 +296,9 @@ static int ath_reset_internal(struct ath
  
  	__ath_cancel_work(sc);
  
@@ -57,6 +55,3 @@ index 4d18d06..74b3365 100644
  	spin_lock_bh(&sc->sc_pcu_lock);
  
  	if (!sc->cur_chan->offchannel) {
--- 
-2.25.1
-

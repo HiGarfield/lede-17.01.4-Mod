@@ -34,7 +34,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/net/mac80211/ibss.c
 +++ b/net/mac80211/ibss.c
-@@ -534,6 +534,10 @@ int ieee80211_ibss_finish_csa(struct iee
+@@ -544,6 +544,10 @@ int ieee80211_ibss_finish_csa(struct iee
  
  	sdata_assert_lock(sdata);
  

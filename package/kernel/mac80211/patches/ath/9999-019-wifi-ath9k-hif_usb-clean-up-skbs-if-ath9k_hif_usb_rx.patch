@@ -34,11 +34,9 @@ Link: https://lore.kernel.org/r/20230104123615.51511-1-pchelkin@ispras.ru
  drivers/net/wireless/ath/ath9k/hif_usb.c | 31 +++++++++++++++++-------
  1 file changed, 22 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/hif_usb.c b/drivers/net/wireless/ath/ath9k/hif_usb.c
-index 408bcb3..c550a84 100644
 --- a/drivers/net/wireless/ath/ath9k/hif_usb.c
 +++ b/drivers/net/wireless/ath/ath9k/hif_usb.c
-@@ -561,11 +561,11 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -561,11 +561,11 @@ static void ath9k_hif_usb_rx_stream(stru
  			memcpy(ptr, skb->data, rx_remain_len);
  
  			rx_pkt_len += rx_remain_len;
@@ -52,7 +50,7 @@ index 408bcb3..c550a84 100644
  		} else {
  			index = rx_remain_len;
  		}
-@@ -584,16 +584,21 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -584,16 +584,21 @@ static void ath9k_hif_usb_rx_stream(stru
  		pkt_len = get_unaligned_le16(ptr + index);
  		pkt_tag = get_unaligned_le16(ptr + index + 2);
  
@@ -76,7 +74,7 @@ index 408bcb3..c550a84 100644
  		}
  
  		pad_len = 4 - (pkt_len & 0x3);
-@@ -605,11 +610,6 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -605,11 +610,6 @@ static void ath9k_hif_usb_rx_stream(stru
  
  		if (index > MAX_RX_BUF_SIZE) {
  			spin_lock(&hif_dev->rx_lock);
@@ -88,7 +86,7 @@ index 408bcb3..c550a84 100644
  			nskb = __dev_alloc_skb(pkt_len + 32, GFP_ATOMIC);
  			if (!nskb) {
  				dev_err(&hif_dev->udev->dev,
-@@ -617,6 +617,12 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -617,6 +617,12 @@ static void ath9k_hif_usb_rx_stream(stru
  				spin_unlock(&hif_dev->rx_lock);
  				goto err;
  			}
@@ -115,6 +113,3 @@ index 408bcb3..c550a84 100644
  }
  
  static void ath9k_hif_usb_rx_cb(struct urb *urb)
--- 
-2.25.1
-

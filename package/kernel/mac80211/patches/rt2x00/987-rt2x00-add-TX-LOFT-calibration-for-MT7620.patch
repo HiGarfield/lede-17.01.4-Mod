@@ -45,7 +45,7 @@ Reported-by: kernel test robot <lkp@intel.com>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -9041,6 +9041,907 @@ restore_value:
+@@ -9037,6 +9037,907 @@ restore_value:
  	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, savemacsysctrl);
  }
  
@@ -953,7 +953,7 @@ Reported-by: kernel test robot <lkp@intel.com>
  static void rt2800_bbp_core_soft_reset(struct rt2x00_dev *rt2x00dev,
  				       bool set_bw, bool is_ht40)
  {
-@@ -9653,6 +10554,7 @@ static void rt2800_init_rfcsr_6352(struc
+@@ -9649,6 +10550,7 @@ static void rt2800_init_rfcsr_6352(struc
  	rt2800_rxdcoc_calibration(rt2x00dev);
  	rt2800_bw_filter_calibration(rt2x00dev, true);
  	rt2800_bw_filter_calibration(rt2x00dev, false);
@@ -963,7 +963,7 @@ Reported-by: kernel test robot <lkp@intel.com>
  
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-@@ -17,6 +17,16 @@
+@@ -28,6 +28,16 @@
  #define WCID_START	33
  #define WCID_END	222
  #define STA_IDS_SIZE	(WCID_END - WCID_START + 2)

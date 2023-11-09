@@ -56,8 +56,6 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  net/mac80211/tx.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/mac80211/tx.c b/net/mac80211/tx.c
-index e3b9ecd..5b55b4f 100644
 --- a/net/mac80211/tx.c
 +++ b/net/mac80211/tx.c
 @@ -3545,7 +3545,7 @@ begin:
@@ -69,6 +67,3 @@ index e3b9ecd..5b55b4f 100644
  		set_bit(IEEE80211_TXQ_STOP_NETIF_TX, &txqi->flags);
  		goto out;
  	}
--- 
-2.25.1
-

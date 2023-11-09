@@ -29,11 +29,9 @@ Link: https://lore.kernel.org/r/ebb2306d06a496cd1b032155ae52fdc5fa8cc2c5.1655145
  drivers/net/wireless/ath/ath9k/htc_drv_txrx.c | 10 +++---
  3 files changed, 36 insertions(+), 32 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/hif_usb.c b/drivers/net/wireless/ath/ath9k/hif_usb.c
-index 7ef4de6..e5e35c0 100644
 --- a/drivers/net/wireless/ath/ath9k/hif_usb.c
 +++ b/drivers/net/wireless/ath/ath9k/hif_usb.c
-@@ -244,11 +244,11 @@ static inline void ath9k_skb_queue_complete(struct hif_device_usb *hif_dev,
+@@ -244,11 +244,11 @@ static inline void ath9k_skb_queue_compl
  		ath9k_htc_txcompletion_cb(hif_dev->htc_handle,
  					  skb, txok);
  		if (txok) {
@@ -48,7 +46,7 @@ index 7ef4de6..e5e35c0 100644
  	}
  }
  
-@@ -302,7 +302,7 @@ static void hif_usb_tx_cb(struct urb *urb)
+@@ -302,7 +302,7 @@ static void hif_usb_tx_cb(struct urb *ur
  	hif_dev->tx.tx_buf_cnt++;
  	if (!(hif_dev->tx.flags & HIF_USB_TX_STOP))
  		__hif_usb_tx(hif_dev); /* Check for pending SKBs */
@@ -57,7 +55,7 @@ index 7ef4de6..e5e35c0 100644
  	spin_unlock(&hif_dev->tx.tx_lock);
  }
  
-@@ -353,7 +353,7 @@ static int __hif_usb_tx(struct hif_device_usb *hif_dev)
+@@ -353,7 +353,7 @@ static int __hif_usb_tx(struct hif_devic
  			tx_buf->len += tx_buf->offset;
  
  		__skb_queue_tail(&tx_buf->skb_queue, nskb);
@@ -66,7 +64,7 @@ index 7ef4de6..e5e35c0 100644
  	}
  
  	usb_fill_bulk_urb(tx_buf->urb, hif_dev->udev,
-@@ -369,7 +369,7 @@ static int __hif_usb_tx(struct hif_device_usb *hif_dev)
+@@ -369,7 +369,7 @@ static int __hif_usb_tx(struct hif_devic
  		list_move_tail(&tx_buf->list, &hif_dev->tx.tx_buf);
  		hif_dev->tx.tx_buf_cnt++;
  	} else {
@@ -75,7 +73,7 @@ index 7ef4de6..e5e35c0 100644
  	}
  
  	return ret;
-@@ -514,7 +514,7 @@ static void hif_usb_sta_drain(void *hif_handle, u8 idx)
+@@ -514,7 +514,7 @@ static void hif_usb_sta_drain(void *hif_
  			ath9k_htc_txcompletion_cb(hif_dev->htc_handle,
  						  skb, false);
  			hif_dev->tx.tx_skb_cnt--;
@@ -84,7 +82,7 @@ index 7ef4de6..e5e35c0 100644
  		}
  	}
  
-@@ -585,14 +585,14 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -585,14 +585,14 @@ static void ath9k_hif_usb_rx_stream(stru
  		pkt_tag = get_unaligned_le16(ptr + index + 2);
  
  		if (pkt_tag != ATH_USB_RX_STREAM_MODE_TAG) {
@@ -101,7 +99,7 @@ index 7ef4de6..e5e35c0 100644
  			return;
  		}
  
-@@ -618,7 +618,7 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -618,7 +618,7 @@ static void ath9k_hif_usb_rx_stream(stru
  				goto err;
  			}
  			skb_reserve(nskb, 32);
@@ -110,7 +108,7 @@ index 7ef4de6..e5e35c0 100644
  
  			memcpy(nskb->data, &(skb->data[chk_idx+4]),
  			       hif_dev->rx_transfer_len);
-@@ -639,7 +639,7 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -639,7 +639,7 @@ static void ath9k_hif_usb_rx_stream(stru
  				goto err;
  			}
  			skb_reserve(nskb, 32);
@@ -119,7 +117,7 @@ index 7ef4de6..e5e35c0 100644
  
  			memcpy(nskb->data, &(skb->data[chk_idx+4]), pkt_len);
  			skb_put(nskb, pkt_len);
-@@ -649,10 +649,10 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+@@ -649,10 +649,10 @@ static void ath9k_hif_usb_rx_stream(stru
  
  err:
  	for (i = 0; i < pool_index; i++) {
@@ -132,11 +130,9 @@ index 7ef4de6..e5e35c0 100644
  	}
  }
  
-diff --git a/drivers/net/wireless/ath/ath9k/htc.h b/drivers/net/wireless/ath/ath9k/htc.h
-index d73564b..07a904f 100644
 --- a/drivers/net/wireless/ath/ath9k/htc.h
 +++ b/drivers/net/wireless/ath/ath9k/htc.h
-@@ -325,14 +325,18 @@ static inline struct ath9k_htc_tx_ctl *HTC_SKB_CB(struct sk_buff *skb)
+@@ -325,14 +325,18 @@ static inline struct ath9k_htc_tx_ctl *H
  }
  
  #ifdef CPTCFG_ATH9K_HTC_DEBUGFS
@@ -163,7 +159,7 @@ index d73564b..07a904f 100644
  
  void ath9k_htc_err_stat_rx(struct ath9k_htc_priv *priv,
  			   struct ath_rx_status *rs);
-@@ -372,13 +376,13 @@ void ath9k_htc_get_et_stats(struct ieee80211_hw *hw,
+@@ -372,13 +376,13 @@ void ath9k_htc_get_et_stats(struct ieee8
  			    struct ethtool_stats *stats, u64 *data);
  #else
  
@@ -183,11 +179,9 @@ index d73564b..07a904f 100644
  
  static inline void ath9k_htc_err_stat_rx(struct ath9k_htc_priv *priv,
  					 struct ath_rx_status *rs)
-diff --git a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
-index 3cd3f3c..979ac31 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
-@@ -106,20 +106,20 @@ static inline enum htc_endpoint_id get_htc_epid(struct ath9k_htc_priv *priv,
+@@ -106,20 +106,20 @@ static inline enum htc_endpoint_id get_h
  
  	switch (qnum) {
  	case 0:
@@ -212,7 +206,7 @@ index 3cd3f3c..979ac31 100644
  		epid = priv->data_bk_ep;
  		break;
  	}
-@@ -323,7 +323,7 @@ static void ath9k_htc_tx_data(struct ath9k_htc_priv *priv,
+@@ -323,7 +323,7 @@ static void ath9k_htc_tx_data(struct ath
  	memcpy(tx_fhdr, (u8 *) &tx_hdr, sizeof(tx_hdr));
  
  	if (is_cab) {
@@ -221,6 +215,3 @@ index 3cd3f3c..979ac31 100644
  		tx_ctl->epid = priv->cab_ep;
  		return;
  	}
--- 
-2.25.1
-

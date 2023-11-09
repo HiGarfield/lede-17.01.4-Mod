@@ -24,11 +24,9 @@ Link: https://lore.kernel.org/r/20220908173618.155291-2-hdegoede@redhat.com
  drivers/net/wireless/ralink/rt2x00/rt2x00.h | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00.h b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-index ffbe1d5..6b446a3 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-@@ -1341,8 +1341,11 @@ void rt2x00queue_unmap_skb(struct queue_entry *entry);
+@@ -1330,8 +1330,11 @@ void rt2x00queue_unmap_skb(struct queue_
   */
  static inline struct data_queue *
  rt2x00queue_get_tx_queue(struct rt2x00_dev *rt2x00dev,
@@ -41,6 +39,3 @@ index ffbe1d5..6b446a3 100644
  	if (queue < rt2x00dev->ops->tx_queues && rt2x00dev->tx)
  		return &rt2x00dev->tx[queue];
  
--- 
-2.25.1
-

@@ -17,11 +17,9 @@ Link: https://lore.kernel.org/r/20220320233010.123106-5-wlooi@ucalgary.ca
  drivers/net/wireless/ath/ath9k/ar9003_eeprom.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c b/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c
-index d59a3f0..9d2402a 100644
 --- a/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c
 +++ b/drivers/net/wireless/ath/ath9k/ar9003_eeprom.c
-@@ -5615,7 +5615,7 @@ unsigned int ar9003_get_paprd_scale_factor(struct ath_hw *ah,
+@@ -5615,7 +5615,7 @@ unsigned int ar9003_get_paprd_scale_fact
  
  static u8 ar9003_get_eepmisc(struct ath_hw *ah)
  {
@@ -30,6 +28,3 @@ index d59a3f0..9d2402a 100644
  }
  
  const struct eeprom_ops eep_ar9300_ops = {
--- 
-2.25.1
-

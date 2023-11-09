@@ -22,11 +22,9 @@ Link: https://lore.kernel.org/r/20220409061225.GA5447@kili
  drivers/net/wireless/ath/ath9k/htc_drv_txrx.c | 8 ++++++++
  1 file changed, 8 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
-index d567fbe..3cd3f3c 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
-@@ -1005,6 +1005,14 @@ static bool ath9k_rx_prepare(struct ath9k_htc_priv *priv,
+@@ -1005,6 +1005,14 @@ static bool ath9k_rx_prepare(struct ath9
  		goto rx_next;
  	}
  
@@ -41,6 +39,3 @@ index d567fbe..3cd3f3c 100644
  	/* Get the RX status information */
  
  	memset(rx_status, 0, sizeof(struct ieee80211_rx_status));
--- 
-2.25.1
-

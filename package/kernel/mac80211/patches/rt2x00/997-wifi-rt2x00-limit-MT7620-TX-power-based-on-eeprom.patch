@@ -34,7 +34,7 @@ Link: https://lore.kernel.org/r/TYAP286MB03159090ED14044215E59FD6BC10A@TYAP286MB
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -3865,28 +3865,51 @@ static void rt2800_config_channel_rf7620
+@@ -3892,28 +3892,51 @@ static void rt2800_config_channel_rf7620
  	}
  }
  
@@ -103,7 +103,7 @@ Link: https://lore.kernel.org/r/TYAP286MB03159090ED14044215E59FD6BC10A@TYAP286MB
  
  	eeprom = rt2800_eeprom_read(rt2x00dev, EEPROM_NIC_CONF1);
  	if (rt2x00_get_field16(eeprom, EEPROM_NIC_CONF1_INTERNAL_TX_ALC)) {
-@@ -5268,7 +5291,7 @@ static void rt2800_config_txpower_rt6352
+@@ -5322,7 +5345,7 @@ static void rt2800_config_txpower_rt6352
  	rt2x00_set_field32(&pwreg, TX_PWR_CFG_9B_STBC_MCS7, t);
  	rt2800_register_write(rt2x00dev, TX_PWR_CFG_9, pwreg);
  

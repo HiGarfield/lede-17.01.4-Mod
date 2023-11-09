@@ -25,7 +25,7 @@ Link: https://lore.kernel.org/r/TYAP286MB0315BC1D83D31154924F0D39BCD1A@TYAP286MB
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -1237,13 +1237,14 @@ void rt2800_txdone_nostatus(struct rt2x0
+@@ -1267,13 +1267,14 @@ void rt2800_txdone_nostatus(struct rt2x0
  }
  EXPORT_SYMBOL_GPL(rt2800_txdone_nostatus);
  
@@ -43,7 +43,7 @@ Link: https://lore.kernel.org/r/TYAP286MB0315BC1D83D31154924F0D39BCD1A@TYAP286MB
  		queue->wd_count++;
  
  	return queue->wd_count > 16;
-@@ -1280,7 +1281,7 @@ void rt2800_watchdog(struct rt2x00_dev *
+@@ -1310,7 +1311,7 @@ void rt2800_watchdog(struct rt2x00_dev *
  		case QID_MGMT:
  			if (rt2x00queue_empty(queue))
  				continue;
@@ -52,7 +52,7 @@ Link: https://lore.kernel.org/r/TYAP286MB0315BC1D83D31154924F0D39BCD1A@TYAP286MB
  			break;
  		case QID_RX:
  			/* For station mode we should reactive at least
-@@ -1289,7 +1290,7 @@ void rt2800_watchdog(struct rt2x00_dev *
+@@ -1319,7 +1320,7 @@ void rt2800_watchdog(struct rt2x00_dev *
  			 */
  			if (rt2x00dev->intf_sta_count == 0)
  				continue;
@@ -61,7 +61,7 @@ Link: https://lore.kernel.org/r/TYAP286MB0315BC1D83D31154924F0D39BCD1A@TYAP286MB
  			break;
  		default:
  			break;
-@@ -1302,8 +1303,12 @@ void rt2800_watchdog(struct rt2x00_dev *
+@@ -1332,8 +1333,12 @@ void rt2800_watchdog(struct rt2x00_dev *
  	if (hung_rx)
  		rt2x00_warn(rt2x00dev, "Watchdog RX hung detected\n");
  

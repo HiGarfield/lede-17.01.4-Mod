@@ -21,7 +21,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 
 --- a/local-symbols
 +++ b/local-symbols
-@@ -350,6 +350,7 @@ RT2X00_LIB_FIRMWARE=
+@@ -305,6 +305,7 @@ RT2X00_LIB_FIRMWARE=
  RT2X00_LIB_CRYPTO=
  RT2X00_LIB_LEDS=
  RT2X00_LIB_DEBUGFS=
@@ -31,7 +31,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  RTL8180=
 --- a/drivers/net/wireless/ralink/rt2x00/Kconfig
 +++ b/drivers/net/wireless/ralink/rt2x00/Kconfig
-@@ -70,6 +70,7 @@ config RT2800PCI
+@@ -69,6 +69,7 @@ config RT2800PCI
  	select RT2X00_LIB_MMIO
  	select RT2X00_LIB_PCI
  	select RT2X00_LIB_FIRMWARE
@@ -39,7 +39,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	select RT2X00_LIB_CRYPTO
  	depends on CRC_CCITT
  	depends on EEPROM_93CX6
-@@ -216,6 +217,7 @@ config RT2800SOC
+@@ -215,6 +216,7 @@ config RT2800SOC
  	select RT2X00_LIB_MMIO
  	select RT2X00_LIB_CRYPTO
  	select RT2X00_LIB_FIRMWARE
@@ -47,7 +47,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	select RT2800_LIB
  	select RT2800_LIB_MMIO
  	---help---
-@@ -266,6 +268,9 @@ config RT2X00_LIB_FIRMWARE
+@@ -265,6 +267,9 @@ config RT2X00_LIB_FIRMWARE
  config RT2X00_LIB_CRYPTO
  	bool
  
@@ -69,7 +69,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  obj-$(CPTCFG_RT2X00_LIB_MMIO)		+= rt2x00mmio.o
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800soc.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800soc.c
-@@ -90,19 +90,6 @@ static int rt2800soc_set_device_state(st
+@@ -102,19 +102,6 @@ static int rt2800soc_set_device_state(st
  	return retval;
  }
  
@@ -89,7 +89,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  /* Firmware functions */
  static char *rt2800soc_get_firmware_name(struct rt2x00_dev *rt2x00dev)
  {
-@@ -168,7 +155,7 @@ static const struct rt2800_ops rt2800soc
+@@ -178,7 +165,7 @@ static const struct rt2800_ops rt2800soc
  	.register_multiread	= rt2x00mmio_register_multiread,
  	.register_multiwrite	= rt2x00mmio_register_multiwrite,
  	.regbusy_read		= rt2x00mmio_regbusy_read,
@@ -100,7 +100,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	.drv_init_registers	= rt2800mmio_init_registers,
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-@@ -703,6 +703,7 @@ enum rt2x00_capability_flags {
+@@ -706,6 +706,7 @@ enum rt2x00_capability_flags {
  	REQUIRE_HT_TX_DESC,
  	REQUIRE_PS_AUTOWAKE,
  	REQUIRE_DELAYED_RFKILL,
@@ -190,7 +190,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
 +EXPORT_SYMBOL_GPL(rt2x00lib_read_eeprom);
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00soc.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00soc.c
-@@ -86,6 +86,7 @@ int rt2x00soc_probe(struct platform_devi
+@@ -97,6 +97,7 @@ int rt2x00soc_probe(struct platform_devi
  	if (IS_ERR(rt2x00dev->clk))
  		rt2x00dev->clk = NULL;
  
@@ -200,7 +200,7 @@ Signed-off-by: Christian Marangi <ansuelsmth@gmail.com>
  	retval = rt2x00soc_alloc_reg(rt2x00dev);
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00soc.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00soc.h
-@@ -26,4 +26,13 @@ int rt2x00soc_resume(struct platform_dev
+@@ -37,4 +37,13 @@ int rt2x00soc_resume(struct platform_dev
  #define rt2x00soc_resume	NULL
  #endif /* CONFIG_PM */
  

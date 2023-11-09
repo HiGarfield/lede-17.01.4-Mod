@@ -65,7 +65,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -4225,7 +4225,10 @@ static void rt2800_config_channel(struct
+@@ -4227,7 +4227,10 @@ static void rt2800_config_channel(struct
  		rt2800_bbp_write(rt2x00dev, 62, 0x37 - rt2x00dev->lna_gain);
  		rt2800_bbp_write(rt2x00dev, 63, 0x37 - rt2x00dev->lna_gain);
  		rt2800_bbp_write(rt2x00dev, 64, 0x37 - rt2x00dev->lna_gain);

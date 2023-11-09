@@ -19,11 +19,9 @@ Link: https://lore.kernel.org/r/20221003091217.322598-1-pkosyh@yandex.ru
  drivers/net/wireless/ath/ath10k/wmi-tlv.c | 7 +++++++
  1 file changed, 7 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath10k/wmi-tlv.c b/drivers/net/wireless/ath/ath10k/wmi-tlv.c
-index 77aff5e..7bcb245 100644
 --- a/drivers/net/wireless/ath/ath10k/wmi-tlv.c
 +++ b/drivers/net/wireless/ath/ath10k/wmi-tlv.c
-@@ -457,7 +457,14 @@ static void ath10k_wmi_event_tdls_peer(struct ath10k *ar, struct sk_buff *skb)
+@@ -457,7 +457,14 @@ static void ath10k_wmi_event_tdls_peer(s
  			ath10k_warn(ar, "did not find station from tdls peer event");
  			goto exit;
  		}
@@ -38,6 +36,3 @@ index 77aff5e..7bcb245 100644
  		ieee80211_tdls_oper_request(
  					arvif->vif, station->addr,
  					NL80211_TDLS_TEARDOWN,
--- 
-2.25.1
-

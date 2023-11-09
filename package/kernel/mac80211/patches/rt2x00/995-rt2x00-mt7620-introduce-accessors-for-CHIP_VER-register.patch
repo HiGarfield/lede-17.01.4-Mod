@@ -1,6 +1,6 @@
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.h
-@@ -78,6 +78,9 @@ struct rt2800_ops {
+@@ -87,6 +87,9 @@ struct rt2800_ops {
  	int (*drv_init_registers)(struct rt2x00_dev *rt2x00dev);
  	__le32 *(*drv_get_txwi)(struct queue_entry *entry);
  	unsigned int (*drv_get_dma_done)(struct data_queue *queue);
@@ -40,7 +40,7 @@
  			const u8 arg0, const u8 arg1);
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800pci.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800pci.c
-@@ -286,6 +286,10 @@ static int rt2800pci_read_eeprom(struct
+@@ -297,6 +297,10 @@ static int rt2800pci_read_eeprom(struct
  	return retval;
  }
  
@@ -51,7 +51,7 @@
  static const struct ieee80211_ops rt2800pci_mac80211_ops = {
  	.tx			= rt2x00mac_tx,
  	.start			= rt2x00mac_start,
-@@ -328,6 +332,9 @@ static const struct rt2800_ops rt2800pci
+@@ -338,6 +342,9 @@ static const struct rt2800_ops rt2800pci
  	.drv_init_registers	= rt2800mmio_init_registers,
  	.drv_get_txwi		= rt2800mmio_get_txwi,
  	.drv_get_dma_done	= rt2800mmio_get_dma_done,
@@ -63,7 +63,7 @@
  static const struct rt2x00lib_ops rt2800pci_rt2x00_ops = {
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800soc.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800soc.c
-@@ -27,6 +27,12 @@
+@@ -39,6 +39,12 @@
  #include "rt2800lib.h"
  #include "rt2800mmio.h"
  
@@ -76,7 +76,7 @@
  /* Allow hardware encryption to be disabled. */
  static bool modparam_nohwcrypt;
  module_param_named(nohwcrypt, modparam_nohwcrypt, bool, 0444);
-@@ -118,6 +124,27 @@ static int rt2800soc_write_firmware(stru
+@@ -130,6 +136,27 @@ static int rt2800soc_write_firmware(stru
  	return 0;
  }
  
@@ -104,7 +104,7 @@
  static const struct ieee80211_ops rt2800soc_mac80211_ops = {
  	.tx			= rt2x00mac_tx,
  	.start			= rt2x00mac_start,
-@@ -159,6 +186,9 @@ static const struct rt2800_ops rt2800soc
+@@ -171,6 +198,9 @@ static const struct rt2800_ops rt2800soc
  	.drv_init_registers	= rt2800mmio_init_registers,
  	.drv_get_txwi		= rt2800mmio_get_txwi,
  	.drv_get_dma_done	= rt2800mmio_get_dma_done,
@@ -116,7 +116,7 @@
  static const struct rt2x00lib_ops rt2800soc_rt2x00_ops = {
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800usb.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800usb.c
-@@ -628,6 +628,10 @@ static int rt2800usb_probe_hw(struct rt2
+@@ -639,6 +639,10 @@ static int rt2800usb_probe_hw(struct rt2
  	return 0;
  }
  
@@ -127,7 +127,7 @@
  static const struct ieee80211_ops rt2800usb_mac80211_ops = {
  	.tx			= rt2x00mac_tx,
  	.start			= rt2x00mac_start,
-@@ -671,6 +675,9 @@ static const struct rt2800_ops rt2800usb
+@@ -681,6 +685,9 @@ static const struct rt2800_ops rt2800usb
  	.drv_init_registers	= rt2800usb_init_registers,
  	.drv_get_txwi		= rt2800usb_get_txwi,
  	.drv_get_dma_done	= rt2800usb_get_dma_done,

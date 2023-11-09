@@ -8,11 +8,9 @@ Subject: [PATCH 4/5] rt2800: enable MFP support unconditionally
  drivers/net/wireless/ralink/rt2x00/rt2x00mac.c | 3 ++-
  2 files changed, 3 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-index ab2fbbc..e9fa323 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -11650,9 +11650,7 @@ static int rt2800_probe_hw_mode(struct rt2x00_dev *rt2x00dev)
+@@ -11719,9 +11719,7 @@ static int rt2800_probe_hw_mode(struct r
  	if (!rt2x00_is_usb(rt2x00dev))
  		ieee80211_hw_set(rt2x00dev->hw, HOST_BROADCAST_PS_BUFFERING);
  
@@ -23,11 +21,9 @@ index ab2fbbc..e9fa323 100644
  
  	SET_IEEE80211_DEV(rt2x00dev->hw, rt2x00dev->dev);
  	SET_IEEE80211_PERM_ADDR(rt2x00dev->hw,
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c b/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
-index 22ae3c9..4739a5f 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
-@@ -480,7 +480,8 @@ int rt2x00mac_set_key(struct ieee80211_hw *hw, enum set_key_cmd cmd,
+@@ -459,7 +459,8 @@ int rt2x00mac_set_key(struct ieee80211_h
  	if (!test_bit(DEVICE_STATE_PRESENT, &rt2x00dev->flags))
  		return 0;
  
@@ -37,6 +33,3 @@ index 22ae3c9..4739a5f 100644
  		return -EOPNOTSUPP;
  
  	/*
--- 
-2.17.1
-

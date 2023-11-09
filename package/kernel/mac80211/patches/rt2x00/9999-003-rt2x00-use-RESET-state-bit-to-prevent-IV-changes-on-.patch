@@ -8,11 +8,9 @@ Subject: [PATCH 3/5] rt2x00: use RESET state bit to prevent IV changes on
  .../net/wireless/ralink/rt2x00/rt2800lib.c    | 21 ++++++++-----------
  1 file changed, 9 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-index 55387b1..ab2fbbc 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -1664,20 +1664,17 @@ static void rt2800_config_wcid_attr_cipher(struct rt2x00_dev *rt2x00dev,
+@@ -1703,20 +1703,17 @@ static void rt2800_config_wcid_attr_ciph
  		rt2800_register_write(rt2x00dev, offset, reg);
  	}
  
@@ -42,6 +40,3 @@ index 55387b1..ab2fbbc 100644
  	rt2800_register_multiwrite(rt2x00dev, offset,
  				   &iveiv_entry, sizeof(iveiv_entry));
  }
--- 
-2.17.1
-

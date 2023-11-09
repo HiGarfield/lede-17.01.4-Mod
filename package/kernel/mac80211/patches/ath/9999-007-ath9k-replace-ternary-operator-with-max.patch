@@ -19,11 +19,9 @@ Link: https://lore.kernel.org/r/20220517024106.77050-1-guozhengkui@vivo.com
  drivers/net/wireless/ath/ath9k/dfs.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/dfs.c b/drivers/net/wireless/ath/ath9k/dfs.c
-index acb9602..1134921 100644
 --- a/drivers/net/wireless/ath/ath9k/dfs.c
 +++ b/drivers/net/wireless/ath/ath9k/dfs.c
-@@ -246,7 +246,7 @@ ath9k_postprocess_radar_event(struct ath_softc *sc,
+@@ -246,7 +246,7 @@ ath9k_postprocess_radar_event(struct ath
  		DFS_STAT_INC(sc, dc_phy_errors);
  
  		/* when both are present use stronger one */
@@ -32,6 +30,3 @@ index acb9602..1134921 100644
  		break;
  	default:
  		/*
--- 
-2.25.1
-

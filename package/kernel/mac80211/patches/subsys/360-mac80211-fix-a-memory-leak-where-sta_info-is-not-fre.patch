@@ -49,7 +49,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/net/mac80211/sta_info.c
 +++ b/net/mac80211/sta_info.c
-@@ -646,13 +646,13 @@ static int sta_info_insert_finish(struct
+@@ -574,13 +574,13 @@ static int sta_info_insert_finish(struct
  	/* check if STA exists already */
  	if (sta_info_get_bss(sdata, sta->sta.addr)) {
  		err = -EEXIST;
@@ -65,7 +65,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	}
  
  	local->num_sta++;
-@@ -708,8 +708,8 @@ static int sta_info_insert_finish(struct
+@@ -636,8 +636,8 @@ static int sta_info_insert_finish(struct
   out_drop_sta:
  	local->num_sta--;
  	synchronize_net();

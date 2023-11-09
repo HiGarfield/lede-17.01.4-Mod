@@ -4,11 +4,9 @@ This patch is made for lede-17.01 kernel 4.4 to use mac80211 4.19
 also mt76 can sync with openwrt 19.07 
 Signed-off-by: LunaticKochiya <125438787@qq.com>
 Signed-off-by: LunaticUrey <lunaticurey@gmail.com>
-diff --git a/include/linux/ath9k_platform.h b/include/linux/ath9k_platform.h
-index 30ce216..558445f 100644
 --- a/include/linux/ath9k_platform.h
 +++ b/include/linux/ath9k_platform.h
-@@ -49,6 +49,7 @@
+@@ -49,6 +49,7 @@ struct ath9k_platform_data {
  
  	int num_leds;
  	const struct gpio_led *leds;
@@ -16,8 +14,6 @@ index 30ce216..558445f 100644
  
  	unsigned num_btns;
  	const struct gpio_keys_button *btns;
-diff --git a/io.h b/io.h
-index 7187153..a0a02d0 100644
 --- a/backport-include/linux/io.h
 +++ b/backport-include/linux/io.h
 @@ -6,4 +6,17 @@
@@ -48,7 +44,7 @@ index 7187153..a0a02d0 100644
  
  #if LINUX_VERSION_IS_GEQ(3,19,0)
  int led_set_brightness_sync(struct led_classdev *led_cdev,
-@@ -150,3 +151,24 @@ int devm_led_trigger_register(struct device *dev,
+@@ -150,3 +151,24 @@ int devm_led_trigger_register(struct dev
  	return rc;
  }
  EXPORT_SYMBOL_GPL(devm_led_trigger_register);
@@ -73,11 +69,9 @@ index 7187153..a0a02d0 100644
 +		*dst++ = __raw_readl(src++);
 +}
 +EXPORT_SYMBOL_GPL(__ioread32_copy);
-diff --git a/netdevice.h b/netdevice.h
-index 7187153..a0a02d0 100644
 --- a/backport-include/linux/netdevice.h
 +++ b/backport-include/linux/netdevice.h
-@@ -289,13 +289,27 @@
+@@ -289,13 +289,27 @@ static inline void u64_stats_init(struct
  })
  #endif /* netdev_alloc_pcpu_stats */
  
@@ -109,8 +103,6 @@ index 7187153..a0a02d0 100644
  
  #if LINUX_VERSION_IS_LESS(4,5,0)
  #define netif_tx_napi_add LINUX_BACKPORT(netif_tx_napi_add)
-diff --git a/rcupdate.h b/rcupdate.h
-index 7187153..a0a02d0 100644
 --- a/backport-include/linux/rcupdate.h
 +++ b/backport-include/linux/rcupdate.h
 @@ -41,4 +41,22 @@
@@ -138,7 +130,7 @@ index 7187153..a0a02d0 100644
  #endif /* __BACKPORT_LINUX_RCUPDATE_H */
 --- a/backport-include/linux/page_ref.h
 +++ b/backport-include/linux/page_ref.h
-@@ -8,6 +8,16 @@
+@@ -8,6 +8,16 @@ static inline void page_ref_inc(struct p
  {
  	atomic_inc(&page->_count);
  }
@@ -155,8 +147,6 @@ index 7187153..a0a02d0 100644
  #endif
  
  #endif /* __BP_PAGE_REF_H */
-diff --git a/backport-include/linux/gfp.h b/backport-include/linux/gfp.h
-index 42f818f1..d41d4277 100644
 --- a/backport-include/linux/gfp.h
 +++ b/backport-include/linux/gfp.h
 @@ -10,4 +10,16 @@
@@ -176,8 +166,6 @@ index 42f818f1..d41d4277 100644
 +#endif /* < 4.10 && >= 4.2 */
 +
  #endif /* __BACKPORT_LINUX_GFP_H */
-diff --git a/compat/backport-4.10.c b/compat/backport-4.10.c
-index 44e02dd7..a35c699e 100644
 --- a/compat/backport-4.10.c
 +++ b/compat/backport-4.10.c
 @@ -12,6 +12,8 @@
@@ -189,7 +177,7 @@ index 44e02dd7..a35c699e 100644
  
  #if LINUX_VERSION_IS_GEQ(4,6,0)
  #if LINUX_VERSION_IS_LESS(4,7,0)
-@@ -252,3 +254,23 @@ int mii_ethtool_get_link_ksettings(struct mii_if_info *mii,
+@@ -252,3 +254,23 @@ int mii_ethtool_get_link_ksettings(struc
  }
  EXPORT_SYMBOL(mii_ethtool_get_link_ksettings);
  #endif /* LINUX_VERSION_IS_GEQ(4,6,0) */
