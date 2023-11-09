@@ -81,7 +81,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   * mac80211 is capable of taking advantage of many hardware
 --- a/net/mac80211/iface.c
 +++ b/net/mac80211/iface.c
-@@ -1873,6 +1873,10 @@ int ieee80211_if_add(struct ieee80211_lo
+@@ -1874,6 +1874,10 @@ int ieee80211_if_add(struct ieee80211_lo
  					+ 8 /* rfc1042/bridge tunnel */
  					- ETH_HLEN /* ethernet hard_header_len */
  					+ IEEE80211_ENCRYPT_HEADROOM;
@@ -133,7 +133,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  				       sdata->encrypt_headroom,
  				  tailroom, GFP_ATOMIC);
  	if (!fwd_skb)
-@@ -2827,6 +2829,12 @@ ieee80211_rx_h_mesh_fwding(struct ieee80
+@@ -2828,6 +2830,12 @@ ieee80211_rx_h_mesh_fwding(struct ieee80
  		return RX_DROP_MONITOR;
  	}
  
@@ -148,7 +148,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
   out:
 --- a/net/mac80211/sta_info.h
 +++ b/net/mac80211/sta_info.h
-@@ -313,7 +313,7 @@ struct ieee80211_fast_tx {
+@@ -314,7 +314,7 @@ struct ieee80211_fast_tx {
  	u8 hdr_len;
  	u8 sa_offs, da_offs, pn_offs;
  	u8 band;

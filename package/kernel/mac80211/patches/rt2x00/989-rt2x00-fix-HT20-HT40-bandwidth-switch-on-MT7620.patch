@@ -39,7 +39,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -3855,6 +3855,14 @@ static void rt2800_config_channel_rf7620
+@@ -3857,6 +3857,14 @@ static void rt2800_config_channel_rf7620
  		rfcsr |= tx_agc_fc;
  		rt2800_rfcsr_write_bank(rt2x00dev, 7, 59, rfcsr);
  	}

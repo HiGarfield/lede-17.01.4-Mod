@@ -28,11 +28,9 @@ Signed-off-by: Luca Coelho <luciano.coelho@intel.com>
  net/mac80211/agg-tx.c | 8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/net/mac80211/agg-tx.c b/net/mac80211/agg-tx.c
-index fe36352..5366e4b 100644
 --- a/net/mac80211/agg-tx.c
 +++ b/net/mac80211/agg-tx.c
-@@ -216,6 +216,8 @@ ieee80211_agg_start_txq(struct sta_info *sta, int tid, bool enable)
+@@ -216,6 +216,8 @@ ieee80211_agg_start_txq(struct sta_info
  	struct ieee80211_txq *txq = sta->sta.txq[tid];
  	struct txq_info *txqi;
  
@@ -41,7 +39,7 @@ index fe36352..5366e4b 100644
  	if (!txq)
  		return;
  
-@@ -293,7 +295,6 @@ static void ieee80211_remove_tid_tx(struct sta_info *sta, int tid)
+@@ -293,7 +295,6 @@ static void ieee80211_remove_tid_tx(stru
  	ieee80211_assign_tid_tx(sta, tid, NULL);
  
  	ieee80211_agg_splice_finish(sta->sdata, tid);
@@ -49,7 +47,7 @@ index fe36352..5366e4b 100644
  
  	kfree_rcu(tid_tx, rcu_head);
  }
-@@ -864,6 +865,7 @@ void ieee80211_stop_tx_ba_cb(struct sta_info *sta, int tid,
+@@ -864,6 +865,7 @@ void ieee80211_stop_tx_ba_cb(struct sta_
  {
  	struct ieee80211_sub_if_data *sdata = sta->sdata;
  	bool send_delba = false;
@@ -57,7 +55,7 @@ index fe36352..5366e4b 100644
  
  	ht_dbg(sdata, "Stopping Tx BA session for %pM tid %d\n",
  	       sta->sta.addr, tid);
-@@ -881,10 +883,14 @@ void ieee80211_stop_tx_ba_cb(struct sta_info *sta, int tid,
+@@ -881,10 +883,14 @@ void ieee80211_stop_tx_ba_cb(struct sta_
  		send_delba = true;
  
  	ieee80211_remove_tid_tx(sta, tid);
@@ -72,6 +70,3 @@ index fe36352..5366e4b 100644
  	if (send_delba)
  		ieee80211_send_delba(sdata, sta->sta.addr, tid,
  			WLAN_BACK_INITIATOR, WLAN_REASON_QSTA_NOT_USE);
--- 
-2.17.1
-

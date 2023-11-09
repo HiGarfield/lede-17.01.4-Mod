@@ -19,11 +19,9 @@ Link: https://lore.kernel.org/r/20230613134655.248728-1-dmantipov@yandex.ru
  drivers/net/wireless/ath/ath9k/main.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
-index a7e7eec..5734a13 100644
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -203,7 +203,7 @@ void ath_cancel_work(struct ath_softc *sc)
+@@ -203,7 +203,7 @@ void ath_cancel_work(struct ath_softc *s
  void ath_restart_work(struct ath_softc *sc)
  {
  	ieee80211_queue_delayed_work(sc->hw, &sc->hw_check_work,
@@ -32,7 +30,7 @@ index a7e7eec..5734a13 100644
  
  	if (AR_SREV_9340(sc->sc_ah) || AR_SREV_9330(sc->sc_ah))
  		ieee80211_queue_delayed_work(sc->hw, &sc->hw_pll_work,
-@@ -2248,7 +2248,7 @@ void __ath9k_flush(struct ieee80211_hw *hw, u32 queues, bool drop,
+@@ -2246,7 +2246,7 @@ void __ath9k_flush(struct ieee80211_hw *
  	}
  
  	ieee80211_queue_delayed_work(hw, &sc->hw_check_work,
@@ -41,6 +39,3 @@ index a7e7eec..5734a13 100644
  }
  
  static bool ath9k_tx_frames_pending(struct ieee80211_hw *hw)
--- 
-2.25.1
-

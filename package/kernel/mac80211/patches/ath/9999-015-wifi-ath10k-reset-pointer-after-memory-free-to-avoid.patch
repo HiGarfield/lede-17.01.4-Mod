@@ -22,11 +22,9 @@ Link: https://lore.kernel.org/r/20220505092248.787-1-quic_wgong@quicinc.com
  drivers/net/wireless/ath/ath10k/htt_rx.c | 6 ++++++
  1 file changed, 6 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath10k/htt_rx.c b/drivers/net/wireless/ath/ath10k/htt_rx.c
-index 0a7551d..68728cb 100644
 --- a/drivers/net/wireless/ath/ath10k/htt_rx.c
 +++ b/drivers/net/wireless/ath/ath10k/htt_rx.c
-@@ -302,12 +302,16 @@ void ath10k_htt_rx_free(struct ath10k_htt *htt)
+@@ -302,12 +302,16 @@ void ath10k_htt_rx_free(struct ath10k_ht
  			  ath10k_htt_get_vaddr_ring(htt),
  			  htt->rx_ring.base_paddr);
  
@@ -54,6 +52,3 @@ index 0a7551d..68728cb 100644
  err_netbuf:
  	return -ENOMEM;
  }
--- 
-2.25.1
-

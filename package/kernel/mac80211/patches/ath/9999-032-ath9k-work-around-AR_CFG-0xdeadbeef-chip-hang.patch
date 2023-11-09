@@ -22,11 +22,9 @@ Signed-off-by: Sven Eckelmann <sven.eckelmann@xxxxxxxxxxxxx>
  drivers/net/wireless/ath/ath9k/main.c  |  4 ++++
  6 files changed, 43 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath9k/ath9k.h b/drivers/net/wireless/ath/ath9k/ath9k.h
-index ee9152c..cfa0f3c 100644
 --- a/drivers/net/wireless/ath/ath9k/ath9k.h
 +++ b/drivers/net/wireless/ath/ath9k/ath9k.h
-@@ -746,11 +746,13 @@ void ath9k_csa_update(struct ath_softc *sc);
+@@ -746,11 +746,13 @@ void ath9k_csa_update(struct ath_softc *
  #define ATH_ANI_MAX_SKIP_COUNT    10
  #define ATH_PAPRD_TIMEOUT         100 /* msecs */
  #define ATH_PLL_WORK_INTERVAL     100
@@ -48,11 +46,9 @@ index ee9152c..cfa0f3c 100644
  	struct timer_list sleep_timer;
  
  #ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
-diff --git a/drivers/net/wireless/ath/ath9k/debug.c b/drivers/net/wireless/ath/ath9k/debug.c
-index 25dbf9c..8ba3646 100644
 --- a/drivers/net/wireless/ath/ath9k/debug.c
 +++ b/drivers/net/wireless/ath/ath9k/debug.c
-@@ -763,6 +763,7 @@ static int read_file_reset(struct seq_file *file, void *data)
+@@ -763,6 +763,7 @@ static int read_file_reset(struct seq_fi
  		[RESET_TYPE_BEACON_STUCK] = "Stuck Beacon",
  		[RESET_TYPE_MCI] = "MCI Reset",
  		[RESET_TYPE_CALIBRATION] = "Calibration error",
@@ -60,8 +56,6 @@ index 25dbf9c..8ba3646 100644
  		[RESET_TX_DMA_ERROR] = "Tx DMA stop error",
  		[RESET_RX_DMA_ERROR] = "Rx DMA stop error",
  	};
-diff --git a/drivers/net/wireless/ath/ath9k/debug.h b/drivers/net/wireless/ath/ath9k/debug.h
-index 80cf8b3..c59d985 100644
 --- a/drivers/net/wireless/ath/ath9k/debug.h
 +++ b/drivers/net/wireless/ath/ath9k/debug.h
 @@ -50,6 +50,7 @@ enum ath_reset_type {
@@ -72,11 +66,9 @@ index 80cf8b3..c59d985 100644
  	RESET_TX_DMA_ERROR,
  	RESET_RX_DMA_ERROR,
  	__RESET_TYPE_MAX
-diff --git a/drivers/net/wireless/ath/ath9k/init.c b/drivers/net/wireless/ath/ath9k/init.c
-index 97f8fc6..2df337a 100644
 --- a/drivers/net/wireless/ath/ath9k/init.c
 +++ b/drivers/net/wireless/ath/ath9k/init.c
-@@ -745,6 +745,7 @@ static int ath9k_init_softc(u16 devid, struct ath_softc *sc,
+@@ -745,6 +745,7 @@ static int ath9k_init_softc(u16 devid, s
  	INIT_WORK(&sc->paprd_work, ath_paprd_calibrate);
  	INIT_DELAYED_WORK(&sc->hw_pll_work, ath_hw_pll_work);
  	INIT_DELAYED_WORK(&sc->hw_check_work, ath_hw_check_work);
@@ -84,11 +76,9 @@ index 97f8fc6..2df337a 100644
  
  	ath9k_init_channel_context(sc);
  
-diff --git a/drivers/net/wireless/ath/ath9k/link.c b/drivers/net/wireless/ath/ath9k/link.c
-index 9d84003..d7372fe 100644
 --- a/drivers/net/wireless/ath/ath9k/link.c
 +++ b/drivers/net/wireless/ath/ath9k/link.c
-@@ -142,6 +142,39 @@ void ath_hw_pll_work(struct work_struct *work)
+@@ -142,6 +142,39 @@ void ath_hw_pll_work(struct work_struct
  				     msecs_to_jiffies(ATH_PLL_WORK_INTERVAL));
  }
  
@@ -128,11 +118,9 @@ index 9d84003..d7372fe 100644
  /*
   * PA Pre-distortion.
   */
-diff --git a/drivers/net/wireless/ath/ath9k/main.c b/drivers/net/wireless/ath/ath9k/main.c
-index 00a8495..7332215 100644
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -186,6 +186,7 @@ static void __ath_cancel_work(struct ath_softc *sc)
+@@ -186,6 +186,7 @@ static void __ath_cancel_work(struct ath
  	cancel_work_sync(&sc->paprd_work);
  	cancel_delayed_work_sync(&sc->hw_check_work);
  	cancel_delayed_work_sync(&sc->hw_pll_work);
@@ -140,7 +128,7 @@ index 00a8495..7332215 100644
  
  #ifdef CPTCFG_ATH9K_BTCOEX_SUPPORT
  	if (ath9k_hw_mci_is_enabled(sc->sc_ah))
-@@ -208,6 +209,9 @@ void ath_restart_work(struct ath_softc *sc)
+@@ -208,6 +209,9 @@ void ath_restart_work(struct ath_softc *
  		ieee80211_queue_delayed_work(sc->hw, &sc->hw_pll_work,
  				     msecs_to_jiffies(ATH_PLL_WORK_INTERVAL));
  
@@ -150,6 +138,3 @@ index 00a8495..7332215 100644
  	ath_start_ani(sc);
  }
  
--- 
-2.25.1
-

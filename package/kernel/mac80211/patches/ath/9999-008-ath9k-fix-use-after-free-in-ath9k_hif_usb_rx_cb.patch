@@ -42,11 +42,9 @@ Link: https://lore.kernel.org/r/d57bbedc857950659bfacac0ab48790c1eda00c8.1655145
  drivers/net/wireless/ath/ath9k/htc_drv_init.c |  3 ++-
  2 files changed, 7 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc.h b/drivers/net/wireless/ath/ath9k/htc.h
-index ffa4674..d73564b 100644
 --- a/drivers/net/wireless/ath/ath9k/htc.h
 +++ b/drivers/net/wireless/ath/ath9k/htc.h
-@@ -325,11 +325,11 @@ static inline struct ath9k_htc_tx_ctl *HTC_SKB_CB(struct sk_buff *skb)
+@@ -325,11 +325,11 @@ static inline struct ath9k_htc_tx_ctl *H
  }
  
  #ifdef CPTCFG_ATH9K_HTC_DEBUGFS
@@ -63,11 +61,9 @@ index ffa4674..d73564b 100644
  #define CAB_STAT_INC   priv->debug.tx_stats.cab_queued++
  
  #define TX_QSTAT_INC(q) (priv->debug.tx_stats.queue_stats[q]++)
-diff --git a/drivers/net/wireless/ath/ath9k/htc_drv_init.c b/drivers/net/wireless/ath/ath9k/htc_drv_init.c
-index be7348b..816ddcd 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_drv_init.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_drv_init.c
-@@ -946,7 +946,6 @@ int ath9k_htc_probe_device(struct htc_target *htc_handle, struct device *dev,
+@@ -946,7 +946,6 @@ int ath9k_htc_probe_device(struct htc_ta
  	priv->hw = hw;
  	priv->htc = htc_handle;
  	priv->dev = dev;
@@ -75,7 +71,7 @@ index be7348b..816ddcd 100644
  	SET_IEEE80211_DEV(hw, priv->dev);
  
  	ret = ath9k_htc_wait_for_target(priv);
-@@ -967,6 +966,8 @@ int ath9k_htc_probe_device(struct htc_target *htc_handle, struct device *dev,
+@@ -967,6 +966,8 @@ int ath9k_htc_probe_device(struct htc_ta
  	if (ret)
  		goto err_init;
  
@@ -84,6 +80,3 @@ index be7348b..816ddcd 100644
  	return 0;
  
  err_init:
--- 
-2.25.1
-

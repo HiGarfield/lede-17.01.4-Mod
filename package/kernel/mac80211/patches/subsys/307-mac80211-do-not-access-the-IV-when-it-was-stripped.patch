@@ -7,11 +7,9 @@ Subject: [PATCH] mac80211: do not access the IV when it was stripped
  net/mac80211/rx.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/net/mac80211/rx.c b/net/mac80211/rx.c
-index 976bddc..fcb9195 100644
 --- a/net/mac80211/rx.c
 +++ b/net/mac80211/rx.c
-@@ -1831,7 +1831,7 @@ ieee80211_rx_h_decrypt(struct ieee80211_rx_data *rx)
+@@ -1831,7 +1831,7 @@ ieee80211_rx_h_decrypt(struct ieee80211_
  	if (rx->sta) {
  		int keyid = rx->sta->ptk_idx;
  
@@ -20,6 +18,3 @@ index 976bddc..fcb9195 100644
  			cs = rx->sta->cipher_scheme;
  			keyid = ieee80211_get_cs_keyid(cs, rx->skb);
  			if (unlikely(keyid < 0))
--- 
-2.17.1
-

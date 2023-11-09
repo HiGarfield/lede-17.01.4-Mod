@@ -114,11 +114,9 @@ Link: https://lore.kernel.org/r/20220801141930.16794-1-quic_wgong@quicinc.com
  drivers/net/wireless/ath/ath10k/mac.c | 54 ++++++++++++++-------------
  1 file changed, 29 insertions(+), 25 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath10k/mac.c b/drivers/net/wireless/ath/ath10k/mac.c
-index 260f262..7e49a13 100644
 --- a/drivers/net/wireless/ath/ath10k/mac.c
 +++ b/drivers/net/wireless/ath/ath10k/mac.c
-@@ -836,11 +836,36 @@ static int ath10k_peer_delete(struct ath10k *ar, u32 vdev_id, const u8 *addr)
+@@ -836,11 +836,36 @@ static int ath10k_peer_delete(struct ath
  	return 0;
  }
  
@@ -157,7 +155,7 @@ index 260f262..7e49a13 100644
  
  	lockdep_assert_held(&ar->conf_mutex);
  
-@@ -852,25 +877,7 @@ static void ath10k_peer_cleanup(struct ath10k *ar, u32 vdev_id)
+@@ -852,25 +877,7 @@ static void ath10k_peer_cleanup(struct a
  		ath10k_warn(ar, "removing stale peer %pM from vdev_id %d\n",
  			    peer->addr, vdev_id);
  
@@ -184,7 +182,7 @@ index 260f262..7e49a13 100644
  	}
  	spin_unlock_bh(&ar->data_lock);
  }
-@@ -6470,10 +6477,7 @@ static int ath10k_sta_state(struct ieee80211_hw *hw,
+@@ -6470,10 +6477,7 @@ static int ath10k_sta_state(struct ieee8
  				/* Clean up the peer object as well since we
  				 * must have failed to do this above.
  				 */
@@ -196,6 +194,3 @@ index 260f262..7e49a13 100644
  			}
  		}
  		spin_unlock_bh(&ar->data_lock);
--- 
-2.25.1
-

@@ -67,11 +67,9 @@ Link: https://lore.kernel.org/r/20220115122733.11160-1-paskripkin@gmail.com
  drivers/net/wireless/ath/ath9k/htc_hst.c | 5 +++++
  1 file changed, 5 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc_hst.c b/drivers/net/wireless/ath/ath9k/htc_hst.c
-index dc08ab3..6331c98 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_hst.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_hst.c
-@@ -30,6 +30,7 @@ static int htc_issue_send(struct htc_target *target, struct sk_buff* skb,
+@@ -30,6 +30,7 @@ static int htc_issue_send(struct htc_tar
  	hdr->endpoint_id = epid;
  	hdr->flags = flags;
  	hdr->payload_len = cpu_to_be16(len);
@@ -79,7 +77,7 @@ index dc08ab3..6331c98 100644
  
  	status = target->hif->send(target->hif_dev, endpoint->ul_pipeid, skb);
  
-@@ -274,6 +275,10 @@ int htc_connect_service(struct htc_target *target,
+@@ -274,6 +275,10 @@ int htc_connect_service(struct htc_targe
  	conn_msg->dl_pipeid = endpoint->dl_pipeid;
  	conn_msg->ul_pipeid = endpoint->ul_pipeid;
  
@@ -90,6 +88,3 @@ index dc08ab3..6331c98 100644
  	ret = htc_issue_send(target, skb, skb->len, 0, ENDPOINT0);
  	if (ret)
  		goto err;
--- 
-2.25.1
-

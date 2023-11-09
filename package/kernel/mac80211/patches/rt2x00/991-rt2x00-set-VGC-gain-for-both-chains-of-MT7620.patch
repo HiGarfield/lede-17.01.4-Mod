@@ -38,7 +38,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -5743,7 +5743,8 @@ static inline void rt2800_set_vgc(struct
+@@ -5739,7 +5739,8 @@ static inline void rt2800_set_vgc(struct
  	if (qual->vgc_level != vgc_level) {
  		if (rt2x00_rt(rt2x00dev, RT3572) ||
  		    rt2x00_rt(rt2x00dev, RT3593) ||

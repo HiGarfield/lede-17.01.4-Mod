@@ -17,7 +17,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00dev.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00dev.c
-@@ -101,6 +101,8 @@ void rt2x00lib_disable_radio(struct rt2x
+@@ -112,6 +112,8 @@ void rt2x00lib_disable_radio(struct rt2x
  	rt2x00link_stop_tuner(rt2x00dev);
  	rt2x00queue_stop_queues(rt2x00dev);
  	rt2x00queue_flush_queues(rt2x00dev, true);
@@ -26,7 +26,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  
  	/*
  	 * Disable radio.
-@@ -1286,6 +1288,7 @@ int rt2x00lib_start(struct rt2x00_dev *r
+@@ -1334,6 +1336,7 @@ int rt2x00lib_start(struct rt2x00_dev *r
  	rt2x00dev->intf_ap_count = 0;
  	rt2x00dev->intf_sta_count = 0;
  	rt2x00dev->intf_associated = 0;
@@ -36,7 +36,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  	retval = rt2x00lib_enable_radio(rt2x00dev);
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
-@@ -615,7 +615,9 @@ void rt2x00mac_bss_info_changed(struct i
+@@ -628,7 +628,9 @@ void rt2x00mac_bss_info_changed(struct i
  			 * and keep it running on other interfaces.
  			 */
  			rt2x00queue_clear_beacon(rt2x00dev, vif);

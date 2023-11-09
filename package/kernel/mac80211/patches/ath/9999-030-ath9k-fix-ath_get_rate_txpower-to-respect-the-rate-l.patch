@@ -23,11 +23,9 @@ Link: https://lore.kernel.org/r/20220402153014.31332-1-ps.report@gmx.net
  drivers/net/wireless/ath/ath9k/xmit.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
-index 5fe0e65..dfbc5e3 100644
 --- a/drivers/net/wireless/ath/ath9k/xmit.c
 +++ b/drivers/net/wireless/ath/ath9k/xmit.c
-@@ -1283,7 +1283,7 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
+@@ -1283,7 +1283,7 @@ static void ath_buf_set_rate(struct ath_
  		int phy;
  
  		if (!rates[i].count || (rates[i].idx < 0))
@@ -36,6 +34,3 @@ index 5fe0e65..dfbc5e3 100644
  
  		rix = rates[i].idx;
  		info->rates[i].Tries = rates[i].count;
--- 
-2.25.1
-

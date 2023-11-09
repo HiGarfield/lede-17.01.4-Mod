@@ -18,11 +18,9 @@ Link: https://lore.kernel.org/r/20211116220720.30145-1-ps.report@gmx.net
  drivers/net/wireless/ath/ath9k/ar9002_mac.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/ar9002_mac.c b/drivers/net/wireless/ath/ath9k/ar9002_mac.c
-index 4b3c9b1..8be2164 100644
 --- a/drivers/net/wireless/ath/ath9k/ar9002_mac.c
 +++ b/drivers/net/wireless/ath/ath9k/ar9002_mac.c
-@@ -120,7 +120,7 @@ static bool ar9002_hw_get_isr(struct ath_hw *ah, enum ath9k_int *masked,
+@@ -120,7 +120,7 @@ static bool ar9002_hw_get_isr(struct ath
  					 AR_ISR_TXEOL);
  			}
  
@@ -31,6 +29,3 @@ index 4b3c9b1..8be2164 100644
  			ah->intr_txqs |= MS(s0_s, AR_ISR_S0_QCU_TXDESC);
  			ah->intr_txqs |= MS(s1_s, AR_ISR_S1_QCU_TXERR);
  			ah->intr_txqs |= MS(s1_s, AR_ISR_S1_QCU_TXEOL);
--- 
-2.25.1
-

@@ -116,7 +116,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
   * The values are not guaranteed to be coherent with regard to each other, i.e.
 --- a/net/mac80211/agg-tx.c
 +++ b/net/mac80211/agg-tx.c
-@@ -229,7 +229,7 @@ ieee80211_agg_start_txq(struct sta_info
+@@ -231,7 +231,7 @@ ieee80211_agg_start_txq(struct sta_info
  	clear_bit(IEEE80211_TXQ_STOP, &txqi->flags);
  	local_bh_disable();
  	rcu_read_lock();

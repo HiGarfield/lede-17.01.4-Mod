@@ -29,7 +29,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/net/mac80211/scan.c
 +++ b/net/mac80211/scan.c
-@@ -401,11 +401,6 @@ static void __ieee80211_scan_completed(struct ieee80211_hw *hw, bool aborted)
+@@ -401,11 +401,6 @@ static void __ieee80211_scan_completed(s
  
  	scan_req = rcu_dereference_protected(local->scan_req,
  					     lockdep_is_held(&local->mtx));
@@ -41,7 +41,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	RCU_INIT_POINTER(local->scan_req, NULL);
  
  	scan_sdata = rcu_dereference_protected(local->scan_sdata,
-@@ -415,6 +410,13 @@ static void __ieee80211_scan_completed(struct ieee80211_hw *hw, bool aborted)
+@@ -415,6 +410,13 @@ static void __ieee80211_scan_completed(s
  	local->scanning = 0;
  	local->scan_chandef.chan = NULL;
  

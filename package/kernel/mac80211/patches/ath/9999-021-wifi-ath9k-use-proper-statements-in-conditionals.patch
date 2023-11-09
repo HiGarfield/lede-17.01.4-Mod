@@ -26,11 +26,9 @@ Link: https://lore.kernel.org/r/20221215165553.1950307-1-arnd@kernel.org
  drivers/net/wireless/ath/ath9k/htc.h | 14 +++++++-------
  1 file changed, 7 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc.h b/drivers/net/wireless/ath/ath9k/htc.h
-index 07a904f..c2b6dbe 100644
 --- a/drivers/net/wireless/ath/ath9k/htc.h
 +++ b/drivers/net/wireless/ath/ath9k/htc.h
-@@ -325,9 +325,9 @@ static inline struct ath9k_htc_tx_ctl *HTC_SKB_CB(struct sk_buff *skb)
+@@ -325,9 +325,9 @@ static inline struct ath9k_htc_tx_ctl *H
  }
  
  #ifdef CPTCFG_ATH9K_HTC_DEBUGFS
@@ -43,7 +41,7 @@ index 07a904f..c2b6dbe 100644
  
  #define TX_STAT_INC(hif_dev, c) \
  		__STAT_SAFE((hif_dev), (hif_dev)->htc_handle->drv_priv->debug.tx_stats.c++)
-@@ -376,10 +376,10 @@ void ath9k_htc_get_et_stats(struct ieee80211_hw *hw,
+@@ -376,10 +376,10 @@ void ath9k_htc_get_et_stats(struct ieee8
  			    struct ethtool_stats *stats, u64 *data);
  #else
  
@@ -58,6 +56,3 @@ index 07a904f..c2b6dbe 100644
  
  #define CAB_STAT_INC(priv)
  #define TX_QSTAT_INC(priv, c)
--- 
-2.25.1
-

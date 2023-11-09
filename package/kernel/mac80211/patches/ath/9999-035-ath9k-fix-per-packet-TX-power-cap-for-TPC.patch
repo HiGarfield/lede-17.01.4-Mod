@@ -44,8 +44,6 @@ Link: https://lore.kernel.org/r/20230330132159.758088-1-jelonek.jonas@gmail.com
  drivers/net/wireless/ath/ath9k/xmit.c | 30 +++++++++++++++++++++------
  1 file changed, 24 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
-index dfbc5e3..661dfa4 100644
 --- a/drivers/net/wireless/ath/ath9k/xmit.c
 +++ b/drivers/net/wireless/ath/ath9k/xmit.c
 @@ -34,6 +34,12 @@
@@ -61,7 +59,7 @@ index dfbc5e3..661dfa4 100644
  
  static u16 bits_per_symbol[][2] = {
  	/* 20MHz 40MHz */
-@@ -1181,13 +1187,14 @@ void ath_update_max_aggr_framelen(struct ath_softc *sc, int queue, int txop)
+@@ -1181,13 +1187,14 @@ void ath_update_max_aggr_framelen(struct
  }
  
  static u8 ath_get_rate_txpower(struct ath_softc *sc, struct ath_buf *bf,
@@ -77,7 +75,7 @@ index dfbc5e3..661dfa4 100644
  
  	if (sc->tx99_state || !ah->tpc_enabled)
  		return MAX_RATE_POWER;
-@@ -1196,6 +1203,19 @@ static u8 ath_get_rate_txpower(struct ath_softc *sc, struct ath_buf *bf,
+@@ -1196,6 +1203,19 @@ static u8 ath_get_rate_txpower(struct at
  	fi = get_frame_info(skb);
  	info = IEEE80211_SKB_CB(skb);
  
@@ -97,7 +95,7 @@ index dfbc5e3..661dfa4 100644
  	if (!AR_SREV_9300_20_OR_LATER(ah)) {
  		int txpower = fi->tx_power;
  
-@@ -1205,10 +1225,8 @@ static u8 ath_get_rate_txpower(struct ath_softc *sc, struct ath_buf *bf,
+@@ -1205,10 +1225,8 @@ static u8 ath_get_rate_txpower(struct at
  			u16 eeprom_rev = ah->eep_ops->get_eeprom_rev(ah);
  
  			if (eeprom_rev >= AR5416_EEP_MINOR_VER_2) {
@@ -108,7 +106,7 @@ index dfbc5e3..661dfa4 100644
  				pmodal = &eep->modalHeader[is_2ghz];
  				power_ht40delta = pmodal->ht40PowerIncForPdadc;
  			} else {
-@@ -1241,7 +1259,7 @@ static u8 ath_get_rate_txpower(struct ath_softc *sc, struct ath_buf *bf,
+@@ -1241,7 +1259,7 @@ static u8 ath_get_rate_txpower(struct at
  		if (!max_power && !AR_SREV_9280_20_OR_LATER(ah))
  			max_power = 1;
  	} else if (!bf->bf_state.bfs_paprd) {
@@ -117,7 +115,7 @@ index dfbc5e3..661dfa4 100644
  			max_power = min_t(u8, ah->tx_power_stbc[rateidx],
  					  fi->tx_power);
  		else
-@@ -1331,7 +1349,7 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
+@@ -1331,7 +1349,7 @@ static void ath_buf_set_rate(struct ath_
  			}
  
  			info->txpower[i] = ath_get_rate_txpower(sc, bf, rix,
@@ -126,7 +124,7 @@ index dfbc5e3..661dfa4 100644
  			continue;
  		}
  
-@@ -1362,7 +1380,7 @@ static void ath_buf_set_rate(struct ath_softc *sc, struct ath_buf *bf,
+@@ -1362,7 +1380,7 @@ static void ath_buf_set_rate(struct ath_
  
  		is_cck = IS_CCK_RATE(info->rates[i].Rate);
  		info->txpower[i] = ath_get_rate_txpower(sc, bf, rix, false,
@@ -135,6 +133,3 @@ index dfbc5e3..661dfa4 100644
  	}
  
  	/* For AR5416 - RTS cannot be followed by a frame larger than 8K */
--- 
-2.25.1
-

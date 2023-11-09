@@ -32,11 +32,9 @@ Link: https://lore.kernel.org/r/20220330164409.16645-1-toke@toke.dk
  drivers/net/wireless/ath/ath9k/xmit.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath9k/xmit.c b/drivers/net/wireless/ath/ath9k/xmit.c
-index ce0f3f1..406312d 100644
 --- a/drivers/net/wireless/ath/ath9k/xmit.c
 +++ b/drivers/net/wireless/ath/ath9k/xmit.c
-@@ -2610,6 +2610,8 @@ static void ath_tx_rc_status(struct ath_softc *sc, struct ath_buf *bf,
+@@ -2610,6 +2610,8 @@ static void ath_tx_rc_status(struct ath_
  	struct ath_hw *ah = sc->sc_ah;
  	u8 i, tx_rateindex;
  
@@ -45,6 +43,3 @@ index ce0f3f1..406312d 100644
  	if (txok)
  		tx_info->status.ack_signal = ts->ts_rssi;
  
--- 
-2.25.1
-

@@ -29,8 +29,6 @@ Link: https://lore.kernel.org/r/77b76ac8-2bee-6444-d26c-8c30858b8daa@i-love.saku
  drivers/net/wireless/ath/ath9k/wmi.c          | 4 ++++
  3 files changed, 10 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc.h b/drivers/net/wireless/ath/ath9k/htc.h
-index 7e8ef48..01882a4 100644
 --- a/drivers/net/wireless/ath/ath9k/htc.h
 +++ b/drivers/net/wireless/ath/ath9k/htc.h
 @@ -306,6 +306,7 @@ struct ath9k_htc_tx {
@@ -41,11 +39,9 @@ index 7e8ef48..01882a4 100644
  };
  
  struct ath9k_htc_tx_ctl {
-diff --git a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
-index 38a9869..a35ec4b 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
-@@ -808,6 +808,11 @@ int ath9k_tx_init(struct ath9k_htc_priv *priv)
+@@ -808,6 +808,11 @@ int ath9k_tx_init(struct ath9k_htc_priv
  	skb_queue_head_init(&priv->tx.data_vi_queue);
  	skb_queue_head_init(&priv->tx.data_vo_queue);
  	skb_queue_head_init(&priv->tx.tx_failed);
@@ -57,11 +53,9 @@ index 38a9869..a35ec4b 100644
  	return 0;
  }
  
-diff --git a/drivers/net/wireless/ath/ath9k/wmi.c b/drivers/net/wireless/ath/ath9k/wmi.c
-index e4ea6f5..2dd9e27 100644
 --- a/drivers/net/wireless/ath/ath9k/wmi.c
 +++ b/drivers/net/wireless/ath/ath9k/wmi.c
-@@ -170,6 +170,10 @@ void ath9k_wmi_event_tasklet(unsigned long data)
+@@ -170,6 +170,10 @@ void ath9k_wmi_event_tasklet(unsigned lo
  					     &wmi->drv_priv->fatal_work);
  			break;
  		case WMI_TXSTATUS_EVENTID:
@@ -72,6 +66,3 @@ index e4ea6f5..2dd9e27 100644
  			spin_lock_bh(&priv->tx.tx_lock);
  			if (priv->tx.flags & ATH9K_HTC_OP_TX_DRAIN) {
  				spin_unlock_bh(&priv->tx.tx_lock);
--- 
-2.25.1
-

@@ -19,8 +19,6 @@ Link: https://lore.kernel.org/r/20220320233010.123106-2-wlooi@ucalgary.ca
  drivers/net/wireless/ath/ath9k/reg.h | 10 +++++-----
  1 file changed, 5 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/reg.h b/drivers/net/wireless/ath/ath9k/reg.h
-index cac4c44..a7d5703 100644
 --- a/drivers/net/wireless/ath/ath9k/reg.h
 +++ b/drivers/net/wireless/ath/ath9k/reg.h
 @@ -834,8 +834,8 @@
@@ -54,6 +52,3 @@ index cac4c44..a7d5703 100644
  
  /* NOTE: When adding chips newer than Peacock, add chip check here */
  #define AR_SREV_9580_10_OR_LATER(_ah) \
--- 
-2.25.1
-

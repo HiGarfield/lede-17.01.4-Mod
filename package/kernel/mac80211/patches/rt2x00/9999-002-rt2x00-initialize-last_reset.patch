@@ -7,11 +7,9 @@ Subject: [PATCH 2/5] rt2x00: initialize last_reset
  drivers/net/wireless/ralink/rt2x00/rt2x00debug.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ralink/rt2x00/rt2x00debug.c b/drivers/net/wireless/ralink/rt2x00/rt2x00debug.c
-index 3772c37..8aa0e56 100644
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00debug.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00debug.c
-@@ -566,7 +566,7 @@ static ssize_t rt2x00debug_write_restart_hw(struct file *file,
+@@ -566,7 +566,7 @@ static ssize_t rt2x00debug_write_restart
  {
  	struct rt2x00debug_intf *intf =	file->private_data;
  	struct rt2x00_dev *rt2x00dev = intf->rt2x00dev;
@@ -20,6 +18,3 @@ index 3772c37..8aa0e56 100644
  
  	if (!rt2x00_has_cap_restart_hw(rt2x00dev))
  		return -EOPNOTSUPP;
--- 
-2.17.1
-

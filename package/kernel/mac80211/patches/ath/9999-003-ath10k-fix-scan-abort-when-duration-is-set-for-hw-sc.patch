@@ -43,11 +43,9 @@ Link: https://lore.kernel.org/r/20211026025902.26621-1-quic_wgong@quicinc.com
  drivers/net/wireless/ath/ath10k/mac.c | 9 +++++----
  1 file changed, 5 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath10k/mac.c b/drivers/net/wireless/ath/ath10k/mac.c
-index c53decc..260f262 100644
 --- a/drivers/net/wireless/ath/ath10k/mac.c
 +++ b/drivers/net/wireless/ath/ath10k/mac.c
-@@ -5920,13 +5920,14 @@ static int ath10k_hw_scan(struct ieee80211_hw *hw,
+@@ -5920,13 +5920,14 @@ static int ath10k_hw_scan(struct ieee802
  		scan_timeout = min_t(u32, arg.max_rest_time *
  				(arg.n_channels - 1) + (req->duration +
  				ATH10K_SCAN_CHANNEL_SWITCH_WMI_EVT_OVERHEAD) *
@@ -66,6 +64,3 @@ index c53decc..260f262 100644
  	ret = ath10k_start_scan(ar, &arg);
  	if (ret) {
  		ath10k_warn(ar, "failed to start hw scan: %d\n", ret);
--- 
-2.25.1
-

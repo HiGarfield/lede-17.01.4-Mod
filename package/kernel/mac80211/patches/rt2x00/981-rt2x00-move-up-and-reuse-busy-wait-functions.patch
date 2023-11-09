@@ -40,7 +40,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -2143,6 +2143,48 @@ void rt2800_config_erp(struct rt2x00_dev
+@@ -2145,6 +2145,48 @@ void rt2800_config_erp(struct rt2x00_dev
  }
  EXPORT_SYMBOL_GPL(rt2800_config_erp);
  
@@ -89,7 +89,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
  static void rt2800_config_3572bt_ant(struct rt2x00_dev *rt2x00dev)
  {
  	u32 reg;
-@@ -3799,10 +3841,9 @@ static void rt2800_config_alc(struct rt2
+@@ -3801,10 +3843,9 @@ static void rt2800_config_alc(struct rt2
  			      struct ieee80211_channel *chan,
  			      int power_level) {
  	u16 eeprom, target_power, max_power;
@@ -101,7 +101,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
  
  	/* hardware unit is 0.5dBm, limited to 23.5dBm */
  	power_level *= 2;
-@@ -3838,16 +3879,8 @@ static void rt2800_config_alc(struct rt2
+@@ -3840,16 +3881,8 @@ static void rt2800_config_alc(struct rt2
  	/* Disable Tx/Rx */
  	rt2800_register_write(rt2x00dev, MAC_SYS_CTRL, 0);
  	/* Check MAC Tx/Rx idle */
@@ -120,7 +120,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
  
  	if (chan->center_freq > 2457) {
  		bbp = rt2800_bbp_read(rt2x00dev, 30);
-@@ -6249,46 +6282,6 @@ static int rt2800_init_registers(struct
+@@ -6245,46 +6278,6 @@ static int rt2800_init_registers(struct
  	return 0;
  }
  
@@ -167,7 +167,7 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
  
  static void rt2800_bbp4_mac_if_ctrl(struct rt2x00_dev *rt2x00dev)
  {
-@@ -9110,7 +9103,7 @@ int rt2800_enable_radio(struct rt2x00_de
+@@ -9106,7 +9099,7 @@ int rt2800_enable_radio(struct rt2x00_de
  	/*
  	 * Wait BBP/RF to wake up.
  	 */

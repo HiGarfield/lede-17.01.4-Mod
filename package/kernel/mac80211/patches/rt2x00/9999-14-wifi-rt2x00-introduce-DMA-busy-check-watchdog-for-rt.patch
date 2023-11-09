@@ -33,7 +33,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -30,9 +30,15 @@
+@@ -42,9 +42,15 @@
  #include "rt2800lib.h"
  #include "rt2800.h"
  
@@ -52,7 +52,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  
  /*
   * Register access.
-@@ -1261,15 +1267,12 @@ static void rt2800_update_survey(struct
+@@ -1291,15 +1297,12 @@ static void rt2800_update_survey(struct
  	chan_survey->time_ext_busy += rt2800_register_read(rt2x00dev, CH_BUSY_STA_SEC);
  }
  
@@ -69,7 +69,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  	rt2800_update_survey(rt2x00dev);
  
  	queue_for_each(rt2x00dev, queue) {
-@@ -1297,18 +1300,72 @@ void rt2800_watchdog(struct rt2x00_dev *
+@@ -1327,18 +1330,72 @@ void rt2800_watchdog(struct rt2x00_dev *
  		}
  	}
  
@@ -146,7 +146,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  }
  EXPORT_SYMBOL_GPL(rt2800_watchdog);
  
-@@ -12016,7 +12073,7 @@ int rt2800_probe_hw(struct rt2x00_dev *r
+@@ -12138,7 +12195,7 @@ int rt2800_probe_hw(struct rt2x00_dev *r
  		__set_bit(REQUIRE_TASKLET_CONTEXT, &rt2x00dev->cap_flags);
  	}
  
@@ -157,7 +157,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  	} else {
 --- a/drivers/net/wireless/ralink/rt2x00/rt2x00.h
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2x00.h
-@@ -926,6 +926,9 @@ struct rt2x00_dev {
+@@ -942,6 +942,9 @@ struct rt2x00_dev {
  	 */
  	u16 beacon_int;
  

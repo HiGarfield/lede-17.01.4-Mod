@@ -42,11 +42,9 @@ Link: https://lore.kernel.org/r/20221008211532.74583-1-pchelkin@ispras.ru
  drivers/net/wireless/ath/ath9k/hif_usb.c | 14 ++++++++++++++
  1 file changed, 14 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath9k/hif_usb.c b/drivers/net/wireless/ath/ath9k/hif_usb.c
-index e5e35c0..ac35bf5 100644
 --- a/drivers/net/wireless/ath/ath9k/hif_usb.c
 +++ b/drivers/net/wireless/ath/ath9k/hif_usb.c
-@@ -1329,10 +1329,24 @@ static int send_eject_command(struct usb_interface *interface)
+@@ -1329,10 +1329,24 @@ static int send_eject_command(struct usb
  static int ath9k_hif_usb_probe(struct usb_interface *interface,
  			       const struct usb_device_id *id)
  {
@@ -71,6 +69,3 @@ index e5e35c0..ac35bf5 100644
  	if (id->driver_info == STORAGE_DEVICE)
  		return send_eject_command(interface);
  
--- 
-2.25.1
-

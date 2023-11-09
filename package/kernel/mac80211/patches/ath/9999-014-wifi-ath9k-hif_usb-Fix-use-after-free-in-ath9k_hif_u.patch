@@ -28,11 +28,9 @@ Link: https://lore.kernel.org/r/20221008114917.21404-1-pchelkin@ispras.ru
  drivers/net/wireless/ath/ath9k/hif_usb.c | 28 +++++++++++++-----------
  1 file changed, 15 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/hif_usb.c b/drivers/net/wireless/ath/ath9k/hif_usb.c
-index ac35bf5..408bcb3 100644
 --- a/drivers/net/wireless/ath/ath9k/hif_usb.c
 +++ b/drivers/net/wireless/ath/ath9k/hif_usb.c
-@@ -708,14 +708,13 @@ static void ath9k_hif_usb_reg_in_cb(struct urb *urb)
+@@ -708,14 +708,13 @@ static void ath9k_hif_usb_reg_in_cb(stru
  	struct rx_buf *rx_buf = (struct rx_buf *)urb->context;
  	struct hif_device_usb *hif_dev = rx_buf->hif_dev;
  	struct sk_buff *skb = rx_buf->skb;
@@ -48,7 +46,7 @@ index ac35bf5..408bcb3 100644
  
  	switch (urb->status) {
  	case 0:
-@@ -724,7 +723,7 @@ static void ath9k_hif_usb_reg_in_cb(struct urb *urb)
+@@ -724,7 +723,7 @@ static void ath9k_hif_usb_reg_in_cb(stru
  	case -ECONNRESET:
  	case -ENODEV:
  	case -ESHUTDOWN:
@@ -57,7 +55,7 @@ index ac35bf5..408bcb3 100644
  	default:
  		skb_reset_tail_pointer(skb);
  		skb_trim(skb, 0);
-@@ -735,25 +734,27 @@ static void ath9k_hif_usb_reg_in_cb(struct urb *urb)
+@@ -735,25 +734,27 @@ static void ath9k_hif_usb_reg_in_cb(stru
  	if (likely(urb->actual_length != 0)) {
  		skb_put(skb, urb->actual_length);
  
@@ -109,6 +107,3 @@ index ac35bf5..408bcb3 100644
  	kfree(rx_buf);
  	urb->context = NULL;
  }
--- 
-2.25.1
-

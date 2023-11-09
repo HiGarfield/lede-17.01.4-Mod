@@ -34,11 +34,9 @@ Link: https://lore.kernel.org/r/20230424183348.111355-1-pchelkin@ispras.ru
  drivers/net/wireless/ath/ath9k/wmi.c | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath9k/wmi.c b/drivers/net/wireless/ath/ath9k/wmi.c
-index 2dd9e27..bf76fbc 100644
 --- a/drivers/net/wireless/ath/ath9k/wmi.c
 +++ b/drivers/net/wireless/ath/ath9k/wmi.c
-@@ -222,6 +222,10 @@ static void ath9k_wmi_ctrl_rx(void *priv, struct sk_buff *skb,
+@@ -222,6 +222,10 @@ static void ath9k_wmi_ctrl_rx(void *priv
  	if (unlikely(wmi->stopped))
  		goto free_skb;
  
@@ -49,6 +47,3 @@ index 2dd9e27..bf76fbc 100644
  	hdr = (struct wmi_cmd_hdr *) skb->data;
  	cmd_id = be16_to_cpu(hdr->command_id);
  
--- 
-2.25.1
-

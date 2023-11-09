@@ -1,8 +1,6 @@
-diff --git a/drivers/net/wireless/ath/ath10k/debug.c b/drivers/net/wireless/ath/ath10k/debug.c
-index 5b6a95d..73a14b5 100644
 --- a/drivers/net/wireless/ath/ath10k/debug.c
 +++ b/drivers/net/wireless/ath/ath10k/debug.c
-@@ -1263,6 +1263,12 @@ static int ath10k_debug_cal_data_fetch(struct ath10k *ar)
+@@ -1263,6 +1263,12 @@ static int ath10k_debug_cal_data_fetch(s
  	if (WARN_ON(ar->hw_params.cal_data_len > ATH10K_DEBUG_CAL_DATA_LEN))
  		return -EINVAL;
  

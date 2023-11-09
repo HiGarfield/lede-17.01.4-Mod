@@ -8,8 +8,6 @@ Subject: [PATCH] ath10k-small-buffers
  drivers/net/wireless/ath/ath10k/pci.c | 16 ++++++++++++++++
  2 files changed, 20 insertions(+)
 
-diff --git a/drivers/net/wireless/ath/ath10k/htt.h b/drivers/net/wireless/ath/ath10k/htt.h
-index fb468e5..38e9973 100644
 --- a/drivers/net/wireless/ath/ath10k/htt.h
 +++ b/drivers/net/wireless/ath/ath10k/htt.h
 @@ -238,7 +238,11 @@ enum htt_rx_ring_flags {
@@ -24,11 +22,9 @@ index fb468e5..38e9973 100644
  #define HTT_RX_RING_SIZE HTT_RX_RING_SIZE_MAX
  #define HTT_RX_RING_FILL_LEVEL (((HTT_RX_RING_SIZE) / 2) - 1)
  #define HTT_RX_RING_FILL_LEVEL_DUAL_MAC (HTT_RX_RING_SIZE - 1)
-diff --git a/drivers/net/wireless/ath/ath10k/pci.c b/drivers/net/wireless/ath/ath10k/pci.c
-index 4efb8d9..56fdad8 100644
 --- a/drivers/net/wireless/ath/ath10k/pci.c
 +++ b/drivers/net/wireless/ath/ath10k/pci.c
-@@ -142,7 +142,11 @@ static struct ce_attr host_ce_config_wlan[] = {
+@@ -142,7 +142,11 @@ static struct ce_attr host_ce_config_wla
  		.flags = CE_ATTR_FLAGS,
  		.src_nentries = 0,
  		.src_sz_max = 2048,
@@ -40,7 +36,7 @@ index 4efb8d9..56fdad8 100644
  		.recv_cb = ath10k_pci_htt_htc_rx_cb,
  	},
  
-@@ -151,7 +155,11 @@ static struct ce_attr host_ce_config_wlan[] = {
+@@ -151,7 +155,11 @@ static struct ce_attr host_ce_config_wla
  		.flags = CE_ATTR_FLAGS,
  		.src_nentries = 0,
  		.src_sz_max = 2048,
@@ -52,7 +48,7 @@ index 4efb8d9..56fdad8 100644
  		.recv_cb = ath10k_pci_htc_rx_cb,
  	},
  
-@@ -178,7 +186,11 @@ static struct ce_attr host_ce_config_wlan[] = {
+@@ -178,7 +186,11 @@ static struct ce_attr host_ce_config_wla
  		.flags = CE_ATTR_FLAGS,
  		.src_nentries = 0,
  		.src_sz_max = 512,
@@ -64,7 +60,7 @@ index 4efb8d9..56fdad8 100644
  		.recv_cb = ath10k_pci_htt_rx_cb,
  	},
  
-@@ -203,7 +215,11 @@ static struct ce_attr host_ce_config_wlan[] = {
+@@ -203,7 +215,11 @@ static struct ce_attr host_ce_config_wla
  		.flags = CE_ATTR_FLAGS,
  		.src_nentries = 0,
  		.src_sz_max = 2048,
@@ -76,6 +72,3 @@ index 4efb8d9..56fdad8 100644
  		.recv_cb = ath10k_pci_pktlog_rx_cb,
  	},
  
--- 
-2.25.1
-

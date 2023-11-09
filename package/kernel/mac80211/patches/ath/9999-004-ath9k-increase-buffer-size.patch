@@ -1,5 +1,3 @@
-diff --git a/drivers/net/wireless/ath/ath9k/ath9k.h b/drivers/net/wireless/ath/ath9k/ath9k.h
-index 07106e7..ee9152c 100644
 --- a/drivers/net/wireless/ath/ath9k/ath9k.h
 +++ b/drivers/net/wireless/ath/ath9k/ath9k.h
 @@ -44,7 +44,7 @@ extern int ath9k_use_chanctx;
@@ -11,7 +9,7 @@ index 07106e7..ee9152c 100644
  
  /* Macro to expand scalars to 64-bit objects */
  #define	ito64(x) (sizeof(x) == 1) ?			\
-@@ -89,8 +89,8 @@ int ath_descdma_setup(struct ath_softc *sc, struct ath_descdma *dd,
+@@ -89,8 +89,8 @@ int ath_descdma_setup(struct ath_softc *
  		(_l) &= ((_sz) - 1);		\
  	} while (0)
  

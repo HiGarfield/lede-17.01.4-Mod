@@ -29,7 +29,7 @@ Signed-off-by: Alexander Wetzel <alexander@wetzel-home.de>
 
 --- a/net/mac80211/status.c
 +++ b/net/mac80211/status.c
-@@ -698,7 +698,7 @@ static void ieee80211_report_used_skb(st
+@@ -528,7 +528,7 @@ static void ieee80211_report_used_skb(st
  
  		if (!sdata) {
  			skb->dev = NULL;

@@ -26,11 +26,9 @@ Link: https://lore.kernel.org/r/20230516150427.79469-1-pchelkin@ispras.ru
  drivers/net/wireless/ath/ath9k/htc_hst.c | 8 +++++++-
  1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/wireless/ath/ath9k/htc_hst.c b/drivers/net/wireless/ath/ath9k/htc_hst.c
-index 6331c98..d5e5f9c 100644
 --- a/drivers/net/wireless/ath/ath9k/htc_hst.c
 +++ b/drivers/net/wireless/ath/ath9k/htc_hst.c
-@@ -114,7 +114,13 @@ static void htc_process_conn_rsp(struct htc_target *target,
+@@ -114,7 +114,13 @@ static void htc_process_conn_rsp(struct
  
  	if (svc_rspmsg->status == HTC_SERVICE_SUCCESS) {
  		epid = svc_rspmsg->endpoint_id;
@@ -45,6 +43,3 @@ index 6331c98..d5e5f9c 100644
  			return;
  
  		service_id = be16_to_cpu(svc_rspmsg->service_id);
--- 
-2.25.1
-
