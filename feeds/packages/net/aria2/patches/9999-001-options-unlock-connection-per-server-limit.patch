@@ -7,11 +7,9 @@ Subject: [PATCH] options: unlock connection-per-server limit
  src/OptionHandlerFactory.cc | 6 +++---
  1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/src/OptionHandlerFactory.cc b/src/OptionHandlerFactory.cc
-index 2cd2c43..666f914 100644
 --- a/src/OptionHandlerFactory.cc
 +++ b/src/OptionHandlerFactory.cc
-@@ -440,7 +440,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
+@@ -440,7 +440,7 @@ std::vector<OptionHandler*> OptionHandle
    {
      OptionHandler* op(new NumberOptionHandler(PREF_MAX_CONNECTION_PER_SERVER,
                                                TEXT_MAX_CONNECTION_PER_SERVER,
@@ -20,7 +18,7 @@ index 2cd2c43..666f914 100644
      op->addTag(TAG_BASIC);
      op->addTag(TAG_FTP);
      op->addTag(TAG_HTTP);
-@@ -501,7 +501,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
+@@ -501,7 +501,7 @@ std::vector<OptionHandler*> OptionHandle
    }
    {
      OptionHandler* op(new UnitNumberOptionHandler(
@@ -29,7 +27,7 @@ index 2cd2c43..666f914 100644
      op->addTag(TAG_BASIC);
      op->addTag(TAG_FTP);
      op->addTag(TAG_HTTP);
-@@ -905,7 +905,7 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
+@@ -905,7 +905,7 @@ std::vector<OptionHandler*> OptionHandle
    }
    {
      OptionHandler* op(new UnitNumberOptionHandler(
@@ -38,6 +36,3 @@ index 2cd2c43..666f914 100644
      op->addTag(TAG_ADVANCED);
      op->addTag(TAG_FTP);
      op->addTag(TAG_HTTP);
--- 
-2.25.1
-

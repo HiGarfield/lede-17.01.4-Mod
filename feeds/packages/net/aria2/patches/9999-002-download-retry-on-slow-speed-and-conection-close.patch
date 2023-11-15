@@ -10,11 +10,9 @@ This would provide better speed on bad network conditions
  src/SocketCore.cc      | 2 +-
  3 files changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/src/DownloadCommand.cc b/src/DownloadCommand.cc
-index 2db41e4..f49eb80 100644
 --- a/src/DownloadCommand.cc
 +++ b/src/DownloadCommand.cc
-@@ -306,7 +306,7 @@ void DownloadCommand::checkLowestDownloadSpeed() const
+@@ -306,7 +306,7 @@ void DownloadCommand::checkLowestDownloa
            startupIdleTime_) {
      int nowSpeed = peerStat_->calculateDownloadSpeed();
      if (nowSpeed <= lowestDownloadSpeedLimit_) {
@@ -23,8 +21,6 @@ index 2db41e4..f49eb80 100644
                               lowestDownloadSpeedLimit_,
                               getRequest()->getHost().c_str()),
                           error_code::TOO_SLOW_DOWNLOAD_SPEED);
-diff --git a/src/SocketBuffer.cc b/src/SocketBuffer.cc
-index 62862ff..1906173 100644
 --- a/src/SocketBuffer.cc
 +++ b/src/SocketBuffer.cc
 @@ -39,6 +39,7 @@
@@ -44,11 +40,9 @@ index 62862ff..1906173 100644
      }
      // A2_LOG_NOTICE(fmt("num=%zu, amount=%d, bufq.size()=%zu, SEND=%d",
      //                   num, amount, bufq_.size(), slen));
-diff --git a/src/SocketCore.cc b/src/SocketCore.cc
-index e235f51..ab42ba7 100644
 --- a/src/SocketCore.cc
 +++ b/src/SocketCore.cc
-@@ -1015,7 +1015,7 @@ bool SocketCore::tlsHandshake(TLSContext* tlsctx, const std::string& hostname)
+@@ -1016,7 +1016,7 @@ bool SocketCore::tlsHandshake(TLSContext
  
      if (rv == TLS_ERR_ERROR) {
        // Damn those error.
@@ -57,6 +51,3 @@ index e235f51..ab42ba7 100644
                              handshakeError.empty()
                                  ? tlsSession_->getLastErrorString().c_str()
                                  : handshakeError.c_str()));
--- 
-2.25.1
-
