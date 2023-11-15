@@ -43,11 +43,9 @@ Subject: [PATCH] option: add option to retry on http 400, 403, 406, or
  src/usage_text.h               | 16 +++++++++++++
  5 files changed, 108 insertions(+), 6 deletions(-)
 
-diff --git a/src/HttpSkipResponseCommand.cc b/src/HttpSkipResponseCommand.cc
-index a722d77..de4ad6c 100644
 --- a/src/HttpSkipResponseCommand.cc
 +++ b/src/HttpSkipResponseCommand.cc
-@@ -204,7 +204,7 @@ bool HttpSkipResponseCommand::processResponse()
+@@ -204,7 +204,7 @@ bool HttpSkipResponseCommand::processRes
    auto statusCode = httpResponse_->getStatusCode();
    if (statusCode >= 400) {
      switch (statusCode) {
@@ -56,7 +54,7 @@ index a722d77..de4ad6c 100644
        if (getOption()->getAsBool(PREF_HTTP_AUTH_CHALLENGE) &&
            !httpResponse_->getHttpRequest()->authenticationUsed() &&
            getDownloadEngine()->getAuthConfigFactory()->activateBasicCred(
-@@ -213,15 +213,41 @@ bool HttpSkipResponseCommand::processResponse()
+@@ -213,15 +213,41 @@ bool HttpSkipResponseCommand::processRes
          return prepareForRetry(0);
        }
        throw DL_ABORT_EX2(EX_AUTH_FAILED, error_code::HTTP_AUTH_FAILED);
@@ -101,7 +99,7 @@ index a722d77..de4ad6c 100644
        // Only retry if pretry-wait > 0. Hammering 'busy' server is not
        // a good idea.
        if (getOption()->getAsInt(PREF_RETRY_WAIT) > 0) {
-@@ -230,12 +256,16 @@ bool HttpSkipResponseCommand::processResponse()
+@@ -230,12 +256,16 @@ bool HttpSkipResponseCommand::processRes
        }
        throw DL_ABORT_EX2(fmt(EX_BAD_STATUS, statusCode),
                           error_code::HTTP_SERVICE_UNAVAILABLE);
@@ -120,16 +118,12 @@ index a722d77..de4ad6c 100644
      throw DL_ABORT_EX2(fmt(EX_BAD_STATUS, statusCode),
                         error_code::HTTP_PROTOCOL_ERROR);
    }
-diff --git a/src/OptionHandlerFactory.cc b/src/OptionHandlerFactory.cc
-index 666f914..6efc2b6 100644
 --- a/src/OptionHandlerFactory.cc
 +++ b/src/OptionHandlerFactory.cc
-@@ -934,6 +934,46 @@ std::vector<OptionHandler*> OptionHandlerFactory::createOptionHandlers()
-     op->setChangeOptionForReserved(true);
-     handlers.push_back(op);
+@@ -936,6 +936,46 @@ std::vector<OptionHandler*> OptionHandle
    }
-+  {
-+    OptionHandler* op(new BooleanOptionHandler(
+   {
+     OptionHandler* op(new BooleanOptionHandler(
 +        PREF_RETRY_ON_400, TEXT_RETRY_ON_400, A2_V_FALSE, OptionHandler::OPT_ARG));
 +    op->addTag(TAG_ADVANCED);
 +    op->addTag(TAG_HTTP);
@@ -168,14 +162,14 @@ index 666f914..6efc2b6 100644
 +    op->setChangeOptionForReserved(true);
 +    handlers.push_back(op);
 +  }
-   {
-     OptionHandler* op(new BooleanOptionHandler(
++  {
++    OptionHandler* op(new BooleanOptionHandler(
          PREF_REUSE_URI, TEXT_REUSE_URI, A2_V_TRUE, OptionHandler::OPT_ARG));
-diff --git a/src/prefs.cc b/src/prefs.cc
-index 2591b9f..153e66b 100644
+     op->addTag(TAG_FTP);
+     op->addTag(TAG_HTTP);
 --- a/src/prefs.cc
 +++ b/src/prefs.cc
-@@ -326,6 +326,14 @@ PrefPtr PREF_ENABLE_ASYNC_DNS6 = makePref("enable-async-dns6");
+@@ -326,6 +326,14 @@ PrefPtr PREF_ENABLE_ASYNC_DNS6 = makePre
  PrefPtr PREF_MAX_DOWNLOAD_RESULT = makePref("max-download-result");
  // value: 1*digit
  PrefPtr PREF_RETRY_WAIT = makePref("retry-wait");
@@ -190,8 +184,6 @@ index 2591b9f..153e66b 100644
  // value: string
  PrefPtr PREF_ASYNC_DNS_SERVER = makePref("async-dns-server");
  // value: true | false
-diff --git a/src/prefs.h b/src/prefs.h
-index 338fd6e..883edc5 100644
 --- a/src/prefs.h
 +++ b/src/prefs.h
 @@ -279,6 +279,14 @@ extern PrefPtr PREF_ENABLE_ASYNC_DNS6;
@@ -209,8 +201,6 @@ index 338fd6e..883edc5 100644
  // value: string
  extern PrefPtr PREF_ASYNC_DNS_SERVER;
  // value: true | false
-diff --git a/src/usage_text.h b/src/usage_text.h
-index 0052b79..3a601c2 100644
 --- a/src/usage_text.h
 +++ b/src/usage_text.h
 @@ -64,6 +64,22 @@
@@ -236,6 +226,3 @@ index 0052b79..3a601c2 100644
  #define TEXT_TIMEOUT                                            \
    _(" -t, --timeout=SEC            Set timeout in seconds.")
  #define TEXT_MAX_TRIES                                                  \
--- 
-2.25.1
-
