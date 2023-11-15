@@ -26649,7 +26649,7 @@ Alex Samorukov <samm@os2.kiev.ua>
 Source-Makefile: feeds/packages/net/aria2/Makefile
 Package: aria2
 Submenu: File Transfer
-Version: 1.36.0-1
+Version: 1.37.0-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +zlib +libstdcpp +ARIA2_OPENSSL:libopenssl +ARIA2_GNUTLS:libgnutls +ARIA2_NETTLE:libnettle +ARIA2_LIBGCRYPT:libgcrypt +ARIA2_GMP:libgmp +ARIA2_LIBXML2:libxml2 +ARIA2_EXPAT:libexpat +ARIA2_SFTP:libssh2 +ARIA2_ASYNC_DNS:libcares +ARIA2_COOKIE:libsqlite3 +block-mount
 Conflicts: 
 Menu-Depends: 
@@ -26661,7 +26661,7 @@ Repository: base
 Title: lightweight download utility
 Maintainer: Imre Kaloz <kaloz@openwrt.org>, Hsing-Wang Liao <kuoruan@gmail.com>
 Require-User: aria2=6800:aria2=6800
-Source: aria2-1.36.0.tar.xz
+Source: aria2-1.37.0.tar.xz
 License: GPLv2
 LicenseFiles: COPYING
 Type: ipkg
@@ -48025,7 +48025,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: 50699824c75a69e3bda4a38e27ac9e5321b46ea1-0
+Version: d08fb4d1b5060fc52dfdcdea412aa1a06bcda0bd-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -48036,7 +48036,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-50699824c75a69e3bda4a38e27ac9e5321b46ea1.tar.xz
+Source: irqbalance-d08fb4d1b5060fc52dfdcdea412aa1a06bcda0bd.tar.xz
 Type: ipkg
 Description:  The purpose of irqbalance is to distribute hardware interrupts across
  processors/cores on a multiprocessor/multicore system in order to
