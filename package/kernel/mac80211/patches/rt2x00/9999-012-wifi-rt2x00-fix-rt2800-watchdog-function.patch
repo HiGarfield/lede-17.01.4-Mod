@@ -20,12 +20,12 @@ Acked-by: Stanislaw Gruszka <stf_xl@wp.pl>
 Signed-off-by: Kalle Valo <kvalo@kernel.org>
 Link: https://lore.kernel.org/r/TYAP286MB0315BC1D83D31154924F0D39BCD1A@TYAP286MB0315.JPNP286.PROD.OUTLOOK.COM
 ---
- drivers/net/wireless/ralink/rt2x00/rt2800lib.c | 17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.c | 19 ++++++++++++-------
+ 1 file changed, 12 insertions(+), 7 deletions(-)
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -1267,13 +1267,14 @@ void rt2800_txdone_nostatus(struct rt2x0
+@@ -1267,16 +1267,17 @@ void rt2800_txdone_nostatus(struct rt2x0
  }
  EXPORT_SYMBOL_GPL(rt2800_txdone_nostatus);
  
@@ -42,7 +42,11 @@ Link: https://lore.kernel.org/r/TYAP286MB0315BC1D83D31154924F0D39BCD1A@TYAP286MB
 +	} else
  		queue->wd_count++;
  
- 	return queue->wd_count > 16;
+-	return queue->wd_count > 16;
++	return queue->wd_count > 64;
+ }
+ 
+ static void rt2800_update_survey(struct rt2x00_dev *rt2x00dev)
 @@ -1310,7 +1311,7 @@ void rt2800_watchdog(struct rt2x00_dev *
  		case QID_MGMT:
  			if (rt2x00queue_empty(queue))
