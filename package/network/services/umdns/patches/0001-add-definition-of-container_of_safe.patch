@@ -7,8 +7,6 @@ Subject: [PATCH] add definition of container_of_safe
  interface.c | 5 +++++
  1 file changed, 5 insertions(+)
 
-diff --git a/interface.c b/interface.c
-index e98edde..3b84287 100644
 --- a/interface.c
 +++ b/interface.c
 @@ -41,6 +41,11 @@
@@ -23,6 +21,3 @@ index e98edde..3b84287 100644
  static struct uloop_fd ufd[] = {
  	[SOCK_UC_IPV4] = { .fd = -1 },
  	[SOCK_UC_IPV6] = { .fd = -1 },
--- 
-2.25.1
-
