@@ -1,6 +1,6 @@
 --- a/package/openwrt/files/etc/init.d/smartdns
 +++ b/package/openwrt/files/etc/init.d/smartdns
-@@ -683,6 +683,11 @@ load_service()
+@@ -743,6 +743,11 @@ load_service()
  	get_tz
  	[ -z "$SET_TZ" ] || procd_set_param env TZ="$SET_TZ"
  
