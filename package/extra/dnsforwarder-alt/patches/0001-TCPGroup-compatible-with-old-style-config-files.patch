@@ -13,11 +13,9 @@ TCPGroup <IP1[:PORT],IP2[:PORT],...> <DOMAIN1,DOMAIN2,...> <no|PROXY1[:PORT],PRO
  mmgr.c | 10 +++++++++-
  1 file changed, 9 insertions(+), 1 deletion(-)
 
-diff --git a/mmgr.c b/mmgr.c
-index d92579f..d057b01 100755
 --- a/mmgr.c
 +++ b/mmgr.c
-@@ -255,7 +255,15 @@ static int Tcp_Init(ModuleMap *ModuleMap, StringListIterator *i)
+@@ -255,7 +255,15 @@ static int Tcp_Init(ModuleMap *ModuleMap
      Services = i->Next(i);
      Domains = i->Next(i);
      Parallel = i->Next(i);
@@ -34,6 +32,3 @@ index d92579f..d057b01 100755
  
      if( Domains == NULL )
      {
--- 
-2.25.1
-
