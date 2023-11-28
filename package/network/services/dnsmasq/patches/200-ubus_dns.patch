@@ -1,6 +1,6 @@
 --- a/src/dnsmasq.c
 +++ b/src/dnsmasq.c
-@@ -2003,6 +2003,10 @@ static void check_dns_listeners(time_t now)
+@@ -2009,6 +2009,10 @@ static void check_dns_listeners(time_t n
  		  daemon->pipe_to_parent = pipefd[1];
  		}
  
@@ -13,7 +13,7 @@
  		 s->tcpfd = -1; 
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -1631,14 +1631,26 @@ void emit_dbus_signal(int action, struct dhcp_lease *lease, char *hostname);
+@@ -1657,14 +1657,26 @@ void emit_dbus_signal(int action, struct
  
  /* ubus.c */
  #ifdef HAVE_UBUS
@@ -54,7 +54,7 @@
  
  int extract_name(struct dns_header *header, size_t plen, unsigned char **pp, 
  		 char *name, int isExtract, int extrabytes)
-@@ -394,9 +396,64 @@ static int private_net6(struct in6_addr *a, int ban_localhost)
+@@ -384,9 +386,64 @@ static int private_net6(struct in6_addr
      ((u32 *)a)[0] == htonl(0x20010db8); /* RFC 6303 4.6 */
  }
  
@@ -120,7 +120,7 @@
  
    for (i = count; i != 0; i--)
      {
-@@ -405,7 +462,7 @@ static unsigned char *do_doctor(unsigned char *p, int count, struct dns_header *
+@@ -395,7 +452,7 @@ static unsigned char *do_doctor(unsigned
        
        GETSHORT(qtype, p); 
        GETSHORT(qclass, p);
@@ -129,7 +129,7 @@
        GETSHORT(rdlen, p);
        
        if (qclass == C_IN && qtype == T_A)
-@@ -416,6 +473,9 @@ static unsigned char *do_doctor(unsigned char *p, int count, struct dns_header *
+@@ -406,6 +463,9 @@ static unsigned char *do_doctor(unsigned
  	  if (!CHECK_LEN(header, p, qlen, INADDRSZ))
  	    return 0;
  	  
@@ -139,7 +139,7 @@
  	  /* alignment */
  	  memcpy(&addr, p, INADDRSZ);
  	  
-@@ -433,13 +493,22 @@ static unsigned char *do_doctor(unsigned char *p, int count, struct dns_header *
+@@ -423,13 +483,22 @@ static unsigned char *do_doctor(unsigned
  	      addr.s_addr &= ~doctor->mask.s_addr;
  	      addr.s_addr |= (doctor->out.s_addr & doctor->mask.s_addr);
  	      /* Since we munged the data, the server it came from is no longer authoritative */
@@ -164,7 +164,7 @@
        if (!ADD_RDLEN(header, p, qlen, rdlen))
  	 return 0; /* bad packet */
      }
-@@ -570,7 +639,7 @@ int extract_addresses(struct dns_header *header, size_t qlen, char *name, time_t
+@@ -558,7 +627,7 @@ int extract_addresses(struct dns_header
    cache_start_insert();
  
    /* find_soa is needed for dns_doctor side effects, so don't call it lazily if there are any. */
@@ -175,7 +175,7 @@
        ttl = find_soa(header, qlen, doctored);
 --- a/src/ubus.c
 +++ b/src/ubus.c
-@@ -72,6 +72,13 @@ static struct ubus_object ubus_object = {
+@@ -72,6 +72,13 @@ static struct ubus_object ubus_object =
    .subscribe_cb = ubus_subscribe_cb,
  };
  
@@ -189,7 +189,7 @@
  static void ubus_subscribe_cb(struct ubus_context *ctx, struct ubus_object *obj)
  {
    (void)ctx;
-@@ -105,13 +112,21 @@ static void ubus_disconnect_cb(struct ubus_context *ubus)
+@@ -105,13 +112,21 @@ static void ubus_disconnect_cb(struct ub
  char *ubus_init()
  {
    struct ubus_context *ubus = NULL;
