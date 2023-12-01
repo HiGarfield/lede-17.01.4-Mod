@@ -13700,7 +13700,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Source-Makefile: feeds/packages/libs/expat/Makefile
 Package: libexpat
-Version: 2.2.0-1
+Version: 2.5.0-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -13710,14 +13710,14 @@ Section: libs
 Category: Libraries
 Repository: base
 Title: An XML parsing library
-Maintainer: Steven Barth <cyrus@openwrt.org>
-Source: expat-2.2.0.tar.bz2
+Maintainer: Ted Hess <thess@kitschensync.net>
+Source: expat-2.5.0.tar.xz
 License: MIT
 LicenseFiles: COPYING
 Type: ipkg
 Description:  A fast, non-validating, stream-oriented XML parsing library.
-http://expat.sourceforge.net/
-Steven Barth <cyrus@openwrt.org>
+https://libexpat.github.io/
+Ted Hess <thess@kitschensync.net>
 @@
 
 
@@ -48025,7 +48025,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: d08fb4d1b5060fc52dfdcdea412aa1a06bcda0bd-0
+Version: 1a7d461c27fb49c8c149aca313a12b7b0365d456-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -48036,7 +48036,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-d08fb4d1b5060fc52dfdcdea412aa1a06bcda0bd.tar.xz
+Source: irqbalance-1a7d461c27fb49c8c149aca313a12b7b0365d456.tar.xz
 Type: ipkg
 Description:  The purpose of irqbalance is to distribute hardware interrupts across
  processors/cores on a multiprocessor/multicore system in order to
