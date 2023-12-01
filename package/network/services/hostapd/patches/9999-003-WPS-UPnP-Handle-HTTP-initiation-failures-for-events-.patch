@@ -20,11 +20,9 @@ Signed-off-by: Jouni Malinen <jouni@codeaurora.org>
  src/wps/wps_upnp_event.c | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/src/wps/wps_upnp_event.c b/src/wps/wps_upnp_event.c
-index fd225b0..a6018fc 100644
 --- a/src/wps/wps_upnp_event.c
 +++ b/src/wps/wps_upnp_event.c
-@@ -294,7 +294,7 @@ static int event_send_start(struct subscription *s)
+@@ -294,7 +294,7 @@ static int event_send_start(struct subsc
  
  	buf = event_build_message(e);
  	if (buf == NULL) {
@@ -33,7 +31,7 @@ index fd225b0..a6018fc 100644
  		return -1;
  	}
  
-@@ -302,7 +302,7 @@ static int event_send_start(struct subscription *s)
+@@ -302,7 +302,7 @@ static int event_send_start(struct subsc
  					 event_http_cb, e);
  	if (e->http_event == NULL) {
  		wpabuf_free(buf);
@@ -42,6 +40,3 @@ index fd225b0..a6018fc 100644
  		return -1;
  	}
  
--- 
-2.17.1
-

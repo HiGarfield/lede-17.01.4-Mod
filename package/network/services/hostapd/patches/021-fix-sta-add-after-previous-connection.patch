@@ -1,6 +1,6 @@
 --- a/src/ap/ieee802_11.c
 +++ b/src/ap/ieee802_11.c
-@@ -3393,7 +3393,7 @@ static int add_associated_sta(struct hostapd_data *hapd,
+@@ -3393,7 +3393,7 @@ static int add_associated_sta(struct hos
  	    (!(sta->flags & WLAN_STA_AUTHORIZED) ||
  	     (reassoc && sta->ft_over_ds && sta->auth_alg == WLAN_AUTH_FT) ||
  	     (!wpa_auth_sta_ft_tk_already_set(sta->wpa_sm) &&

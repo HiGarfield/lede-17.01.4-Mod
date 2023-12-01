@@ -8,11 +8,9 @@ Subject: [PATCH 5/5] disable BSS neighbor check
  src/ap/ieee802_11_ht.c | 25 -------------------------
  2 files changed, 40 deletions(-)
 
-diff --git a/src/ap/hw_features.c b/src/ap/hw_features.c
-index 993f0d0..49f843f 100644
 --- a/src/ap/hw_features.c
 +++ b/src/ap/hw_features.c
-@@ -310,21 +310,6 @@ static void ieee80211n_check_scan(struct hostapd_iface *iface)
+@@ -310,21 +310,6 @@ static void ieee80211n_check_scan(struct
  	wpa_scan_results_free(scan_res);
  
  	iface->secondary_ch = iface->conf->secondary_channel;
@@ -34,11 +32,9 @@ index 993f0d0..49f843f 100644
  
  	res = ieee80211n_allowed_ht40_channel_pair(iface);
  	if (!res) {
-diff --git a/src/ap/ieee802_11_ht.c b/src/ap/ieee802_11_ht.c
-index 3697ca3..0c8abf3 100644
 --- a/src/ap/ieee802_11_ht.c
 +++ b/src/ap/ieee802_11_ht.c
-@@ -351,31 +351,6 @@ void hostapd_2040_coex_action(struct hostapd_data *hapd,
+@@ -351,31 +351,6 @@ void hostapd_2040_coex_action(struct hos
  	}
  	wpa_printf(MSG_DEBUG, "is_ht40_allowed=%d num_sta_ht40_intolerant=%d",
  		   is_ht40_allowed, iface->num_sta_ht40_intolerant);
@@ -70,6 +66,3 @@ index 3697ca3..0c8abf3 100644
  }
  
  
--- 
-2.17.1
-
