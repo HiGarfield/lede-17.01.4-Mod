@@ -14,11 +14,9 @@ Signed-off-by: Alexander Wetzel <alexander@wetzel-home.de>
  src/eapol_supp/eapol_supp_sm.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/eapol_supp/eapol_supp_sm.c b/src/eapol_supp/eapol_supp_sm.c
-index f1ca0a8..7c3b83f 100644
 --- a/src/eapol_supp/eapol_supp_sm.c
 +++ b/src/eapol_supp/eapol_supp_sm.c
-@@ -828,7 +828,7 @@ static void eapol_sm_processKey(struct eapol_sm *sm)
+@@ -828,7 +828,7 @@ static void eapol_sm_processKey(struct e
  
  	if (sm->ctx->set_wep_key &&
  	    sm->ctx->set_wep_key(sm->ctx->ctx,
@@ -27,6 +25,3 @@ index f1ca0a8..7c3b83f 100644
  				 key->key_index & IEEE8021X_KEY_INDEX_MASK,
  				 datakey, key_len) < 0) {
  		wpa_printf(MSG_WARNING, "EAPOL: Failed to set WEP key to the "
--- 
-2.25.1
-

@@ -19,11 +19,9 @@ Signed-off-by: Jouni Malinen <j@w1.fi>
  src/tls/x509v3.c | 20 ++++++++++++++++++++
  2 files changed, 41 insertions(+)
 
-diff --git a/src/tls/pkcs1.c b/src/tls/pkcs1.c
-index 141ac50..e09db07 100644
 --- a/src/tls/pkcs1.c
 +++ b/src/tls/pkcs1.c
-@@ -240,6 +240,8 @@ int pkcs1_v15_sig_ver(struct crypto_public_key *pk,
+@@ -240,6 +240,8 @@ int pkcs1_v15_sig_ver(struct crypto_publ
  		os_free(decrypted);
  		return -1;
  	}
@@ -32,7 +30,7 @@ index 141ac50..e09db07 100644
  
  	pos = hdr.payload;
  	end = pos + hdr.length;
-@@ -261,6 +263,8 @@ int pkcs1_v15_sig_ver(struct crypto_public_key *pk,
+@@ -261,6 +263,8 @@ int pkcs1_v15_sig_ver(struct crypto_publ
  		os_free(decrypted);
  		return -1;
  	}
@@ -41,7 +39,7 @@ index 141ac50..e09db07 100644
  	da_end = hdr.payload + hdr.length;
  
  	if (asn1_get_oid(hdr.payload, hdr.length, &oid, &next)) {
-@@ -269,6 +273,23 @@ int pkcs1_v15_sig_ver(struct crypto_public_key *pk,
+@@ -269,6 +273,23 @@ int pkcs1_v15_sig_ver(struct crypto_publ
  		os_free(decrypted);
  		return -1;
  	}
@@ -65,11 +63,9 @@ index 141ac50..e09db07 100644
  
  	if (!asn1_oid_equal(&oid, hash_alg)) {
  		char txt[100], txt2[100];
-diff --git a/src/tls/x509v3.c b/src/tls/x509v3.c
-index 1bd5aa0..bf2289f 100644
 --- a/src/tls/x509v3.c
 +++ b/src/tls/x509v3.c
-@@ -1834,6 +1834,7 @@ int x509_check_signature(struct x509_certificate *issuer,
+@@ -1834,6 +1834,7 @@ int x509_check_signature(struct x509_cer
  		os_free(data);
  		return -1;
  	}
@@ -77,7 +73,7 @@ index 1bd5aa0..bf2289f 100644
  
  	pos = hdr.payload;
  	end = pos + hdr.length;
-@@ -1855,6 +1856,8 @@ int x509_check_signature(struct x509_certificate *issuer,
+@@ -1855,6 +1856,8 @@ int x509_check_signature(struct x509_cer
  		os_free(data);
  		return -1;
  	}
@@ -86,7 +82,7 @@ index 1bd5aa0..bf2289f 100644
  	da_end = hdr.payload + hdr.length;
  
  	if (asn1_get_oid(hdr.payload, hdr.length, &oid, &next)) {
-@@ -1862,6 +1865,23 @@ int x509_check_signature(struct x509_certificate *issuer,
+@@ -1862,6 +1865,23 @@ int x509_check_signature(struct x509_cer
  		os_free(data);
  		return -1;
  	}
@@ -110,6 +106,3 @@ index 1bd5aa0..bf2289f 100644
  
  	if (x509_sha1_oid(&oid)) {
  		if (signature->oid.oid[6] != 5 /* sha-1WithRSAEncryption */) {
--- 
-2.17.1
-

@@ -14,7 +14,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
 
 --- a/src/ap/acs.c
 +++ b/src/ap/acs.c
-@@ -497,6 +497,9 @@ static void acs_survey_all_chans_intereference_factor(
+@@ -497,6 +497,9 @@ static void acs_survey_all_chans_interef
  		if (!is_in_chanlist(iface, chan))
  			continue;
  
@@ -24,7 +24,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  		wpa_printf(MSG_DEBUG, "ACS: Survey analysis for channel %d (%d MHz)",
  			   chan->chan, chan->freq);
  
-@@ -621,6 +624,9 @@ acs_find_ideal_chan(struct hostapd_iface *iface)
+@@ -621,6 +624,9 @@ acs_find_ideal_chan(struct hostapd_iface
  		if (!is_in_chanlist(iface, chan))
  			continue;
  
@@ -34,7 +34,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  		if (!chan_bw_allowed(chan, bw, 1, 1)) {
  			wpa_printf(MSG_DEBUG,
  				   "ACS: Channel %d: BW %u is not supported",
-@@ -931,6 +937,9 @@ static int acs_request_scan(struct hostapd_iface *iface)
+@@ -931,6 +937,9 @@ static int acs_request_scan(struct hosta
  		if (!is_in_chanlist(iface, chan))
  			continue;
  
@@ -46,7 +46,7 @@ Signed-off-by: David Bauer <mail@david-bauer.net>
  	*freq = 0;
 --- a/src/ap/dfs.c
 +++ b/src/ap/dfs.c
-@@ -220,6 +220,9 @@ static int dfs_find_channel(struct hostapd_iface *iface,
+@@ -220,6 +220,9 @@ static int dfs_find_channel(struct hosta
  		if (!is_in_chanlist(iface, chan))
  			continue;
  

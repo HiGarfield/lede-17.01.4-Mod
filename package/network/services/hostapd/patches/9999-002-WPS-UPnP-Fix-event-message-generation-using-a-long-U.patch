@@ -19,11 +19,9 @@ Signed-off-by: Jouni Malinen <jouni@codeaurora.org>
  src/wps/wps_upnp_event.c | 3 ++-
  2 files changed, 9 insertions(+), 3 deletions(-)
 
-diff --git a/src/wps/wps_upnp.c b/src/wps/wps_upnp.c
-index 9e40aeb..93d6fb5 100644
 --- a/src/wps/wps_upnp.c
 +++ b/src/wps/wps_upnp.c
-@@ -328,9 +328,14 @@ static void subscr_addr_add_url(struct subscription *s, const char *url,
+@@ -328,9 +328,14 @@ static void subscr_addr_add_url(struct s
  	int rerr;
  	size_t host_len, path_len;
  
@@ -40,11 +38,9 @@ index 9e40aeb..93d6fb5 100644
  	url += 7;
  	url_len -= 7;
  
-diff --git a/src/wps/wps_upnp_event.c b/src/wps/wps_upnp_event.c
-index 94aae75..fd225b0 100644
 --- a/src/wps/wps_upnp_event.c
 +++ b/src/wps/wps_upnp_event.c
-@@ -147,7 +147,8 @@ static struct wpabuf * event_build_message(struct wps_event_ *e)
+@@ -147,7 +147,8 @@ static struct wpabuf * event_build_messa
  	struct wpabuf *buf;
  	char *b;
  
@@ -54,6 +50,3 @@ index 94aae75..fd225b0 100644
  	if (buf == NULL)
  		return NULL;
  	wpabuf_printf(buf, "NOTIFY %s HTTP/1.1\r\n", e->addr->path);
--- 
-2.17.1
-
