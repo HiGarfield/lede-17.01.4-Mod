@@ -1,6 +1,6 @@
 --- a/src/dnsmasq.c
 +++ b/src/dnsmasq.c
-@@ -2009,6 +2009,10 @@ static void check_dns_listeners(time_t n
+@@ -2027,6 +2027,10 @@ static void check_dns_listeners(time_t n
  		  daemon->pipe_to_parent = pipefd[1];
  		}
  
@@ -13,7 +13,7 @@
  		 s->tcpfd = -1; 
 --- a/src/dnsmasq.h
 +++ b/src/dnsmasq.h
-@@ -1657,14 +1657,26 @@ void emit_dbus_signal(int action, struct
+@@ -1659,14 +1659,26 @@ void emit_dbus_signal(int action, struct
  
  /* ubus.c */
  #ifdef HAVE_UBUS
