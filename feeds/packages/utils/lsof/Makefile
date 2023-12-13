@@ -1,6 +1,4 @@
 #
-# Copyright (C) 2007-2015 OpenWrt.org
-#
 # This is free software, licensed under the GNU General Public License v2.
 # See /LICENSE for more information.
 #
@@ -9,15 +7,17 @@ include $(TOPDIR)/rules.mk
 include $(INCLUDE_DIR)/kernel.mk
 
 PKG_NAME:=lsof
+PKG_VERSION:=4.99.0
+PKG_RELEASE:=1
 
-PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/lsof-org/lsof.git
-PKG_SOURCE_VERSION:=568b7e245fe6519431b07deb9688b5cf44681030
-PKG_MIRROR_HASH:=skip
+PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.gz
+PKG_SOURCE_URL:=https://github.com/lsof-org/lsof/releases/download/$(PKG_VERSION)
+PKG_HASH:=180e6284aff184d94d273e34f7264edc2af849c07b1c5d6a4183d4d402734245
+PKG_BUILD_DIR:=$(BUILD_DIR)/$(PKG_NAME)-$(PKG_VERSION)
 
 PKG_MAINTAINER:=Maxim Storchak <m.storchak@gmail.com>
 PKG_LICENSE:=Unique
-PKG_LICENSE_FILES:=00README
+PKG_LICENSE_FILES:=COPYING
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -29,39 +29,7 @@ define Package/lsof
   URL:=http://people.freebsd.org/~abe/
 endef
 
-ifneq ($(CONFIG_IPV6),n)
-  LINUX_CLIB_IPV6=-DHASIPv6
-else
-  LINUX_CLIB_IPV6=
-endif
-
-TARGET_CFLAGS += -I$(STAGING_DIR)/usr/include/tirpc
-TARGET_LDFLAGS += -ltirpc
-
-TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed,--no-undefined,--no-allow-shlib-undefined -flto
-
-define Build/Configure
-	$(SED) 's/rpc\/rpc/\/tirpc\/rpc\/rpc/g' $(PKG_BUILD_DIR)/Configure
-	cd $(PKG_BUILD_DIR); \
-		LINUX_CLIB="-DGLIBCV=2 $(LINUX_CLIB_IPV6)" \
-		LSOF_CC="$(TARGET_CC)" \
-		LSOF_VSTR="$(LINUX_VERSION)" \
-		LSOF_CFGF="$(TARGET_CFLAGS)" \
-		LSOF_CFGL="$(TARGET_LDFLAGS)" \
-		LSOF_AR="$(TARGET_CROSS)ar cr" \
-		LSOF_RANLIB="$(TARGET_CROSS)ranlib" \
-		LSOF_INCLUDE="$(STAGING_DIR)/usr/include" \
-		./Configure -n linux
-endef
-
-define Build/Compile
-	LSOF_HOST="none" \
-	LSOF_LOGNAME="none" \
-	LSOF_SYSINFO="none" \
-	LSOF_USER="none" \
-	$(MAKE) -C $(PKG_BUILD_DIR)
-endef
+CONFIGURE_ARGS += --without-selinux
 
 define Package/lsof/install
 	$(INSTALL_DIR) $(1)/usr/bin
