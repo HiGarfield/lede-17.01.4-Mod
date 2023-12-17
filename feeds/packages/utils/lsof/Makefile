@@ -30,6 +30,8 @@ define Package/lsof
 endef
 
 CONFIGURE_ARGS += --without-selinux
+TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -flto
 
 define Package/lsof/install
 	$(INSTALL_DIR) $(1)/usr/bin
