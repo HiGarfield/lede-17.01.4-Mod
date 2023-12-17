@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/utils/lsof/Makefile
 Package: lsof
-Version: 568b7e245fe6519431b07deb9688b5cf44681030
+Version: 4.99.0-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtirpc
 Conflicts: 
 Menu-Depends: 
@@ -10,9 +10,9 @@ Category: Utilities
 Repository: base
 Title: LiSt Open Files - a diagnostic tool
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: lsof-568b7e245fe6519431b07deb9688b5cf44681030.tar.xz
+Source: lsof-4.99.0.tar.gz
 License: Unique
-LicenseFiles: 00README
+LicenseFiles: COPYING
 Type: ipkg
 Description: LiSt Open Files - a diagnostic tool
 http://people.freebsd.org/~abe/
