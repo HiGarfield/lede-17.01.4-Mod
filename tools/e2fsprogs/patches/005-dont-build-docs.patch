@@ -1,0 +1,56 @@
+--- a/Makefile.in
++++ b/Makefile.in
+@@ -31,7 +31,6 @@ TAR=tar
+ all:: subs
+ 	$(MAKE) libs
+ @ALL_CMT@	$(MAKE) progs
+-@ALL_CMT@	$(MAKE) docs
+ 
+ subs: $(DEP_SUBSTITUTE)
+ 	@for i in $(SUBS) ; do if test -d `dirname $$i` ; \
+@@ -47,29 +46,14 @@ all-progs-recursive all-libs-recursive:
+ rpm:
+ 	sh contrib/build-rpm
+ 
+-docs:
+-	-@test -d doc && cd doc && $(MAKE) libext2fs.info
+-
+-install-doc-libs:
+-	-@test -d doc && cd doc && $(MAKE) install-doc-libs
+-
+-uninstall-doc-libs:
+-	-@test -d doc && cd doc && $(MAKE) uninstall-doc-libs
+-
+-clean-doc:
+-	-@test -d doc && cd doc && $(MAKE) clean
+-
+-distclean-doc:
+-	-test -d doc && cd doc && $(MAKE) distclean
+-
+ install: subs all-libs-recursive install-progs-recursive \
+-  install-shlibs-libs-recursive install-doc-libs
++  install-shlibs-libs-recursive
+ 	if test ! -d e2fsck && test ! -d debugfs && test ! -d misc && test ! -d ext2ed ; then $(MAKE) install-libs ; fi
+ 
+ install-strip: subs all-libs-recursive install-strip-progs-recursive \
+-  install-shlibs-strip-libs-recursive install-doc-libs
++  install-shlibs-strip-libs-recursive
+ 
+-uninstall: uninstall-progs-recursive uninstall-shlibs-libs-recursive uninstall-doc-libs
++uninstall: uninstall-progs-recursive uninstall-shlibs-libs-recursive
+ 
+ install-libs: install-libs-recursive
+ 
+@@ -114,10 +98,10 @@ all-libs-recursive install-libs-recursiv
+ 
+ mostlyclean: mostlyclean-recursive mostlyclean-local
+ 
+-clean:: clean-recursive clean-local clean-doc
++clean:: clean-recursive clean-local
+ 	$(RM) -f $(SUBS) 
+ 
+-distclean: distclean-doc distclean-recursive
++distclean: distclean-recursive
+ 	$(RM) -rf autom4te.cache ext2ed/Makefile po/stamp-po \
+ 		asm_types.h config.log public_config.h parse-types.log
+ 	$(MAKE) distclean-local 
