@@ -38,7 +38,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
   * This function is used to check whether given txq is allowed to transmit by
 --- a/net/mac80211/driver-ops.h
 +++ b/net/mac80211/driver-ops.h
-@@ -1179,9 +1179,7 @@ static inline void drv_wake_tx_queue(str
+@@ -1182,9 +1182,7 @@ static inline void drv_wake_tx_queue(str
  static inline void schedule_and_wake_txq(struct ieee80211_local *local,
  					 struct txq_info *txqi)
  {
