@@ -127,7 +127,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  }
 --- a/net/mac80211/driver-ops.h
 +++ b/net/mac80211/driver-ops.h
-@@ -1176,6 +1176,15 @@ static inline void drv_wake_tx_queue(str
+@@ -1179,6 +1179,15 @@ static inline void drv_wake_tx_queue(str
  	local->ops->wake_tx_queue(&local->hw, &txq->txq);
  }
  
