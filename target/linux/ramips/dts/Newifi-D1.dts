@@ -2,6 +2,7 @@
 
 #include "mt7621.dtsi"
 
+#include <dt-bindings/gpio/gpio.h>
 #include <dt-bindings/input/input.h>
 
 / {
@@ -16,17 +17,18 @@
 
 		status-red {
 			label = "newifi-d1:red:status";
-			gpios = <&gpio0 14 1>;
+			gpios = <&gpio0 14 GPIO_ACTIVE_LOW>;
 		};
 
 		status-green {
 			label = "newifi-d1:green:status";
-			gpios = <&gpio0 13 1>;
+			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
 		};
 
-		statys-blue {
+		status-blue {
 			label = "newifi-d1:blue:status";
-			gpios = <&gpio0 16 1>;
+			gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
+			default-state = "on";
 		};
 	};
 
@@ -38,8 +40,14 @@
 
 		reset {
 			label = "reset";
-			gpios = <&gpio0 15 1>;
+			gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
 			linux,code = <KEY_RESTART>;
+		};
+
+		wps {
+			label = "wps";
+			gpios = <&gpio0 18 GPIO_ACTIVE_LOW>;
+			linux,code = <KEY_WPS_BUTTON>;
 		};
 	};
 
@@ -50,13 +58,13 @@
 		usb2power {
 			gpio-export,name = "usb2power";
 			gpio-export,output = <1>;
-			gpios = <&gpio0 9 0>;
+			gpios = <&gpio0 9 GPIO_ACTIVE_HIGH>;
 		};
 
 		usb3power {
 			gpio-export,name = "usb3power";
 			gpio-export,output = <1>;
-			gpios = <&gpio0 11 0>;
+			gpios = <&gpio0 11 GPIO_ACTIVE_HIGH>;
 		};
 	};
 };
@@ -78,27 +86,30 @@
 		m25p,chunked-io = <32>;
 		m25p,fast-read;
 
-		partition@0 {
-			label = "u-boot";
-			reg = <0x0 0x30000>;
-			read-only;
-		};
+		partitions {
+			compatible = "fixed-partitions";
+			#address-cells = <1>;
+			#size-cells = <1>;
 
-		partition@30000 {
-			label = "u-boot-env";
-			reg = <0x30000 0x10000>;
-			read-only;
-		};
+			partition@0 {
+				label = "u-boot";
+				reg = <0x0 0x30000>;
+			};
 
-		factory: partition@40000 {
-			label = "factory";
-			reg = <0x40000 0x10000>;
-			read-only;
-		};
+			partition@30000 {
+				label = "u-boot-env";
+				reg = <0x30000 0x10000>;
+			};
 
-		partition@50000 {
-			label = "firmware";
-			reg = <0x50000 0x2000000>;
+			factory: partition@40000 {
+				label = "factory";
+				reg = <0x40000 0x10000>;
+			};
+
+			partition@50000 {
+				label = "firmware";
+				reg = <0x50000 0x1fb0000>;
+			};
 		};
 	};
 };
@@ -131,7 +142,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "wdt", "rgmii2", "jtag", "uart2", "uart3", "i2c";
+			ralink,group = "jtag", "uart2", "wdt";
 			ralink,function = "gpio";
 		};
 	};

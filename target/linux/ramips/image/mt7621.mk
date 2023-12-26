@@ -115,7 +115,8 @@ define Device/newifi-d1
   DTS := Newifi-D1
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
   DEVICE_TITLE := Newifi D1
-  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
+  DEVICE_PACKAGES := kmod-usb3 kmod-sdhci kmod-sdhci-mt7620 \
+	kmod-usb-ledtrig-usbport -uboot-envtools
 endef
 TARGET_DEVICES += newifi-d1
 
