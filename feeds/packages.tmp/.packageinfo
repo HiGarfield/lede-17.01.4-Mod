@@ -47058,7 +47058,7 @@ Pushpal Sidhu <psidhu.devel@gmail.com>
 Source-Makefile: feeds/packages/utils/exfatprogs/Makefile
 Package: exfat-mkfs
 Submenu: Filesystem
-Version: 1.2.0-1
+Version: 1.2.2-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -47068,7 +47068,7 @@ Category: Utilities
 Repository: base
 Title: Utility for creating an exFAT File System
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: exfatprogs-1.2.0.tar.gz
+Source: exfatprogs-1.2.2.tar.gz
 License: GPL-2.0-only
 LicenseFiles: COPYING
 Type: ipkg
@@ -47079,7 +47079,7 @@ Daniel Golle <daniel@makrotopia.org>
 
 Package: exfat-fsck
 Submenu: Filesystem
-Version: 1.2.0-1
+Version: 1.2.2-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -47089,7 +47089,7 @@ Category: Utilities
 Repository: base
 Title: Utility for checking/repairing an exFAT File System
 Maintainer: Daniel Golle <daniel@makrotopia.org>
-Source: exfatprogs-1.2.0.tar.gz
+Source: exfatprogs-1.2.2.tar.gz
 License: GPL-2.0-only
 LicenseFiles: COPYING
 Type: ipkg
@@ -48373,7 +48373,7 @@ Hsing-Wang Liao <kuoruan@gmail.com>
 
 Source-Makefile: feeds/packages/utils/lsof/Makefile
 Package: lsof
-Version: 4.99.0-1
+Version: 4.99.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtirpc
 Conflicts: 
 Menu-Depends: 
@@ -48383,7 +48383,7 @@ Category: Utilities
 Repository: base
 Title: LiSt Open Files - a diagnostic tool
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: lsof-4.99.0.tar.gz
+Source: lsof-4.99.3.tar.gz
 License: Unique
 LicenseFiles: COPYING
 Type: ipkg
