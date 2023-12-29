@@ -42,6 +42,7 @@ validate_section_dropbear()
 		'SSHKeepAlive:uinteger:300' \
 		'IdleTimeout:uinteger:0' \
 		'MaxAuthTries:uinteger:3' \
+		'RecvWindowSize:uinteger:0' \
 		'mdns:bool:1'
 }
 
@@ -67,6 +68,12 @@ dropbear_instance()
 	PIDCOUNT="$(( ${PIDCOUNT} + 1))"
 	local pid_file="/var/run/${NAME}.${PIDCOUNT}.pid"
 
+	# Increase default receive window size to increase
+	# throughput on high latency links
+	if [ "${RecvWindowSize}" -eq "0" ]; then
+		RecvWindowSize="262144"
+	fi
+
 	procd_open_instance
 	procd_set_param command "$PROG" -F -P "$pid_file"
 	[ "${PasswordAuth}" -eq 0 ] && procd_append_param command -s
@@ -79,6 +86,8 @@ dropbear_instance()
 	[ "${IdleTimeout}" -ne 0 ] && procd_append_param command -I "${IdleTimeout}"
 	[ "${SSHKeepAlive}" -ne 0 ] && procd_append_param command -K "${SSHKeepAlive}"
 	[ "${MaxAuthTries}" -ne 0 ] && procd_append_param command -T "${MaxAuthTries}"
+	[ "${RecvWindowSize}" -gt 0 -a "${RecvWindowSize}" -le 1048576 ] && \
+		procd_append_param command -W "${RecvWindowSize}"
 	[ "${mdns}" -ne 0 ] && procd_add_mdns "ssh" "tcp" "$Port" "daemon=dropbear"
 	procd_set_param respawn
 	procd_close_instance
