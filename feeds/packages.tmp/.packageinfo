@@ -827,7 +827,7 @@ Ondrej Caletka <ondrej@caletka.cz>
 Source-Makefile: feeds/packages/kernel/exfat/Makefile
 Package: kmod-fs-exfat
 Submenu: Filesystems
-Version: <LINUX_VERSION>+3ad149047d1acf158f327b3f0279d3d8b03bc894-0
+Version: <LINUX_VERSION>+68072a2dc3bf9d73e8bda9b82fa3f93a7e9ff0a5-0
 Depends: +kmod-nls-base
 Conflicts: 
 Menu-Depends: 
@@ -836,7 +836,7 @@ Section: kernel
 Category: Kernel modules
 Title: exFAT kernel module
 Maintainer: 
-Source: exfat-3ad149047d1acf158f327b3f0279d3d8b03bc894.tar.xz
+Source: exfat-68072a2dc3bf9d73e8bda9b82fa3f93a7e9ff0a5.tar.xz
 License: GPL-2.0-only
 Type: ipkg
 Description: exFAT kernel module
@@ -48025,7 +48025,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: b0152bc4e8c8464294f089351cf7a19afe6987e2-0
+Version: c324a08b1d319e29396729b82a0a9b3c16acdfcb-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -48036,7 +48036,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-b0152bc4e8c8464294f089351cf7a19afe6987e2.tar.xz
+Source: irqbalance-c324a08b1d319e29396729b82a0a9b3c16acdfcb.tar.xz
 Type: ipkg
 Description:  The purpose of irqbalance is to distribute hardware interrupts across
  processors/cores on a multiprocessor/multicore system in order to
