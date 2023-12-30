@@ -1,6 +1,6 @@
 --- a/activate.c
 +++ b/activate.c
-@@ -95,11 +95,11 @@ error:
+@@ -98,11 +98,11 @@ error:
  	case ENOSPC: /* Specified CPU APIC is full. */
  	case EAGAIN: /* Interrupted by signal. */
  	case EBUSY: /* Affinity change already in progress. */
