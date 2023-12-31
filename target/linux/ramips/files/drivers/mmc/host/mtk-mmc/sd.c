@@ -44,6 +44,7 @@
 #include <linux/mmc/mmc.h>
 #include <linux/mmc/sd.h>
 #include <linux/mmc/sdio.h>
+#include <linux/dma-direction.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
 
@@ -98,6 +99,9 @@
 #define MAX_PHY_SGMTS       (MAX_BD_NUM)
 #define MAX_SGMT_SZ         (MAX_DMA_CNT)
 #define MAX_REQ_SZ          (MAX_SGMT_SZ * 8)
+
+#define mmc_get_dma_dir(data) \
+	((data)->flags & MMC_DATA_WRITE ? DMA_TO_DEVICE : DMA_FROM_DEVICE)
 
 static int cd_active_low = 1;
 
