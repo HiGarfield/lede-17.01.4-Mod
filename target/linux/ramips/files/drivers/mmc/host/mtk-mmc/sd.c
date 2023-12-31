@@ -150,10 +150,6 @@
 #define MAX_SGMT_SZ         (MAX_DMA_CNT)
 #define MAX_REQ_SZ          (MAX_SGMT_SZ * 8)  
 
-#ifdef MT6575_SD_DEBUG
-static struct msdc_regs *msdc_reg[HOST_MAX_NUM];
-#endif 
-
 static int mtk_sw_poll;
 
 static int cd_active_low = 1;
@@ -164,7 +160,6 @@ static int cd_active_low = 1;
 //#define PERI_MSDC2_PDN    (17)
 //#define PERI_MSDC3_PDN    (18)
 
-struct msdc_host *msdc_6575_host[] = {NULL,NULL,NULL,NULL};
 #if 0 /* --- by chhung */
 /* gate means clock power down */
 static int g_clk_gate = 0; 
@@ -581,6 +576,8 @@ static void msdc_tasklet_card(struct work_struct *work)
 	else
 	        inserted = (status & MSDC_PS_CDSTS) ? 1 : 0;
     }
+    if (host->mmc->caps & MMC_CAP_NEEDS_POLL)
+        inserted = 1;
 
 #if 0
     change = host->card_inserted ^ inserted;
@@ -2328,6 +2325,8 @@ static int msdc_ops_get_cd(struct mmc_host *mmc)
 		present = (sdr_read32(MSDC_PS) & MSDC_PS_CDSTS) ? 0 : 1; 
         else
 		present = (sdr_read32(MSDC_PS) & MSDC_PS_CDSTS) ? 1 : 0; 
+   if (host->mmc->caps & MMC_CAP_NEEDS_POLL)
+       present = 1;
         host->card_inserted = present;  
 #endif        
         spin_unlock_irqrestore(&host->lock, flags);
@@ -2592,10 +2591,6 @@ static void msdc_init_hw(struct msdc_host *host)
     u32 base = host->base;
     struct msdc_hw *hw = host->hw;
 
-#ifdef MT6575_SD_DEBUG	
-    msdc_reg[host->id] = (struct msdc_regs *)host->base;
-#endif
-
     /* Power on */
 #if 0 /* --- by chhung */
     msdc_vcore_on(host);
@@ -2783,11 +2778,11 @@ static int msdc_drv_probe(struct platform_device *pdev)
     if ((hw->flags & MSDC_SDIO_IRQ) || (hw->flags & MSDC_EXT_SDIO_IRQ))
         mmc->caps |= MMC_CAP_SDIO_IRQ;  /* yes for sdio */
 
-	cd_active_low = !of_property_read_bool(pdev->dev.of_node, "mediatek,cd-high");
-	mtk_sw_poll = of_property_read_bool(pdev->dev.of_node, "mediatek,cd-poll");
+    cd_active_low = !of_property_read_bool(pdev->dev.of_node, "mediatek,cd-high");
+    mtk_sw_poll = of_property_read_bool(pdev->dev.of_node, "mediatek,cd-poll");
 
-	if (mtk_sw_poll)
-		mmc->caps |= MMC_CAP_NEEDS_POLL;
+    if (mtk_sw_poll)
+        mmc->caps |= MMC_CAP_NEEDS_POLL;
 
     /* MMC core transfer sizes tunable parameters */
 #if LINUX_VERSION_CODE > KERNEL_VERSION(3,10,0)
@@ -2804,7 +2799,9 @@ static int msdc_drv_probe(struct platform_device *pdev)
     host = mmc_priv(mmc);
     host->hw        = hw;
     host->mmc       = mmc;
-    host->id        = pdev->id;
+    BUG_ON(pdev->id < -1);
+    BUG_ON(pdev->id >= ARRAY_SIZE(drv_mode));
+    host->id        = (pdev->id == -1) ? 0 : pdev->id;
     host->error     = 0;
     host->irq       = irq;    
     host->base      = (unsigned long) base;
@@ -2832,8 +2829,6 @@ static int msdc_drv_probe(struct platform_device *pdev)
     host->dma.bd =  dma_alloc_coherent(NULL, MAX_BD_NUM  * sizeof(bd_t),  &host->dma.bd_addr,  GFP_KERNEL); 
     BUG_ON((!host->dma.gpd) || (!host->dma.bd));    
     msdc_init_gpd_bd(host, &host->dma);
-    /*for emmc*/
-    msdc_6575_host[pdev->id] = host;
     
 #if 0
     tasklet_init(&host->card_tasklet, msdc_tasklet_card, (ulong)host);
@@ -2980,7 +2975,7 @@ static const struct of_device_id mt7620_sdhci_match[] = {
 	{ .compatible = "ralink,mt7620-sdhci" },
 	{},
 };
-MODULE_DEVICE_TABLE(of, rt288x_wdt_match);
+MODULE_DEVICE_TABLE(of, mt7620_sdhci_match);
 
 static struct platform_driver mt_msdc_driver = {
     .probe   = msdc_drv_probe,
@@ -2991,7 +2986,6 @@ static struct platform_driver mt_msdc_driver = {
 #endif
     .driver  = {
         .name  = DRV_NAME,
-        .owner = THIS_MODULE,
 	.of_match_table = mt7620_sdhci_match,
     },
 };
@@ -3061,7 +3055,3 @@ static void __exit mt_msdc_exit(void)
 module_init(mt_msdc_init);
 module_exit(mt_msdc_exit);
 MODULE_LICENSE("GPL");
-MODULE_DESCRIPTION("MediaTek MT6575 SD/MMC Card Driver");
-MODULE_AUTHOR("Infinity Chen <infinity.chen@mediatek.com>");
-
-EXPORT_SYMBOL(msdc_6575_host);

@@ -37,6 +37,7 @@
 #define MT6575_SD_H
 
 #include <linux/bitops.h>
+#include <linux/interrupt.h>
 #include <linux/mmc/host.h>
 
 // #include <mach/mt6575_reg_base.h> /* --- by chhung */
