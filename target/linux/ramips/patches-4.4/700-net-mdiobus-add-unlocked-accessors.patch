@@ -1,0 +1,139 @@
+From b2b8b06f18281c637da274b18e330bc52351637e Mon Sep 17 00:00:00 2001
+From: Russell King <rmk+kernel@armlinux.org.uk>
+Date: Tue, 2 Jan 2018 10:58:27 +0000
+Subject: [PATCH] net: mdiobus: add unlocked accessors
+
+commit 34dc08e4be208539b7c4aa8154a610e1736705e8 upstream.
+
+Add unlocked versions of the bus accessors, which allows access to the
+bus with all the tracing. These accessors validate that the bus mutex
+is held, which is a basic requirement for all mii bus accesses.
+
+Reviewed-by: Florian Fainelli <f.fainelli@gmail.com>
+Signed-off-by: Russell King <rmk+kernel@armlinux.org.uk>
+Signed-off-by: David S. Miller <davem@davemloft.net>
+---
+ drivers/net/phy/mdio_bus.c | 57 +++++++++++++++++++++++++++++++++++---
+ include/linux/phy.h        |  4 +++
+ 2 files changed, 57 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
+index 054429f6..628f8c2f 100644
+--- a/drivers/net/phy/mdio_bus.c
++++ b/drivers/net/phy/mdio_bus.c
+@@ -390,6 +390,30 @@ struct phy_device *mdiobus_scan(struct mii_bus *bus, int addr)
+ }
+ EXPORT_SYMBOL(mdiobus_scan);
+ 
++/**
++ * __mdiobus_read - Unlocked version of the mdiobus_read function
++ * @bus: the mii_bus struct
++ * @addr: the phy address
++ * @regnum: register number to read
++ *
++ * Read a MDIO bus register. Caller must hold the mdio bus lock.
++ *
++ * NOTE: MUST NOT be called from interrupt context.
++ */
++int __mdiobus_read(struct mii_bus *bus, int addr, u32 regnum)
++{
++	int retval;
++
++	BUG_ON(in_interrupt());
++
++	WARN_ON_ONCE(!mutex_is_locked(&bus->mdio_lock));
++
++	retval = bus->read(bus, addr, regnum);
++
++	return retval;
++}
++EXPORT_SYMBOL(__mdiobus_read);
++
+ /**
+  * mdiobus_read_nested - Nested version of the mdiobus_read function
+  * @bus: the mii_bus struct
+@@ -410,7 +434,7 @@ int mdiobus_read_nested(struct mii_bus *bus, int addr, u32 regnum)
+ 	BUG_ON(in_interrupt());
+ 
+ 	mutex_lock_nested(&bus->mdio_lock, SINGLE_DEPTH_NESTING);
+-	retval = bus->read(bus, addr, regnum);
++	retval = __mdiobus_read(bus, addr, regnum);
+ 	mutex_unlock(&bus->mdio_lock);
+ 
+ 	return retval;
+@@ -434,13 +458,38 @@ int mdiobus_read(struct mii_bus *bus, int addr, u32 regnum)
+ 	BUG_ON(in_interrupt());
+ 
+ 	mutex_lock(&bus->mdio_lock);
+-	retval = bus->read(bus, addr, regnum);
++	retval = __mdiobus_read(bus, addr, regnum);
+ 	mutex_unlock(&bus->mdio_lock);
+ 
+ 	return retval;
+ }
+ EXPORT_SYMBOL(mdiobus_read);
+ 
++/**
++ * __mdiobus_write - Unlocked version of the mdiobus_write function
++ * @bus: the mii_bus struct
++ * @addr: the phy address
++ * @regnum: register number to write
++ * @val: value to write to @regnum
++ *
++ * Write a MDIO bus register. Caller must hold the mdio bus lock.
++ *
++ * NOTE: MUST NOT be called from interrupt context.
++ */
++int __mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val)
++{
++	int err;
++
++	BUG_ON(in_interrupt());
++
++	WARN_ON_ONCE(!mutex_is_locked(&bus->mdio_lock));
++
++	err = bus->write(bus, addr, regnum, val);
++
++	return err;
++}
++EXPORT_SYMBOL(__mdiobus_write);
++
+ /**
+  * mdiobus_write_nested - Nested version of the mdiobus_write function
+  * @bus: the mii_bus struct
+@@ -462,7 +511,7 @@ int mdiobus_write_nested(struct mii_bus *bus, int addr, u32 regnum, u16 val)
+ 	BUG_ON(in_interrupt());
+ 
+ 	mutex_lock_nested(&bus->mdio_lock, SINGLE_DEPTH_NESTING);
+-	err = bus->write(bus, addr, regnum, val);
++	err = __mdiobus_write(bus, addr, regnum, val);
+ 	mutex_unlock(&bus->mdio_lock);
+ 
+ 	return err;
+@@ -487,7 +536,7 @@ int mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val)
+ 	BUG_ON(in_interrupt());
+ 
+ 	mutex_lock(&bus->mdio_lock);
+-	err = bus->write(bus, addr, regnum, val);
++	err = __mdiobus_write(bus, addr, regnum, val);
+ 	mutex_unlock(&bus->mdio_lock);
+ 
+ 	return err;
+diff --git a/include/linux/phy.h b/include/linux/phy.h
+index 818d0d0f..61509f01 100644
+--- a/include/linux/phy.h
++++ b/include/linux/phy.h
+@@ -208,6 +208,10 @@ static inline struct mii_bus *devm_mdiobus_alloc(struct device *dev)
+ 
+ void devm_mdiobus_free(struct device *dev, struct mii_bus *bus);
+ struct phy_device *mdiobus_scan(struct mii_bus *bus, int addr);
++
++int __mdiobus_read(struct mii_bus *bus, int addr, u32 regnum);
++int __mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val);
++
+ int mdiobus_read(struct mii_bus *bus, int addr, u32 regnum);
+ int mdiobus_read_nested(struct mii_bus *bus, int addr, u32 regnum);
+ int mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val);
+-- 
+2.25.1
+
