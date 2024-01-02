@@ -1,8 +1,6 @@
-diff --git a/include/linux/gfp.h b/include/linux/gfp.h
-index 8942af08..100542f1 100644
 --- a/include/linux/gfp.h
 +++ b/include/linux/gfp.h
-@@ -492,9 +492,14 @@ extern void free_hot_cold_page(struct page *page, bool cold);
+@@ -492,9 +492,14 @@ extern void free_hot_cold_page(struct pa
  extern void free_hot_cold_page_list(struct list_head *list, bool cold);
  
  struct page_frag_cache;
@@ -17,15 +15,12 @@ index 8942af08..100542f1 100644
  
  extern void __free_kmem_pages(struct page *page, unsigned int order);
  extern void free_kmem_pages(unsigned long addr, unsigned int order);
-diff --git a/include/linux/rcupdate.h b/include/linux/rcupdate.h
-index 0a93e9d1..ef1e9404 100644
 --- a/include/linux/rcupdate.h
 +++ b/include/linux/rcupdate.h
-@@ -811,6 +811,22 @@ static inline void rcu_preempt_sleep_check(void)
-  */
+@@ -812,6 +812,22 @@ static inline void rcu_preempt_sleep_che
  #define rcu_pointer_handoff(p) (p)
  
-+/**
+ /**
 + * rcu_swap_protected() - swap an RCU and a regular pointer
 + * @rcu_ptr: RCU pointer
 + * @ptr: regular pointer
@@ -41,14 +36,13 @@ index 0a93e9d1..ef1e9404 100644
 +	(ptr) = __tmp;							\
 +} while (0)
 +
- /**
++/**
   * rcu_read_lock() - mark the beginning of an RCU read-side critical section
   *
-diff --git a/mm/page_alloc.c b/mm/page_alloc.c
-index 9535d3e3..d8ad2e02 100644
+  * When synchronize_rcu() is invoked on one CPU while other CPUs
 --- a/mm/page_alloc.c
 +++ b/mm/page_alloc.c
-@@ -3400,6 +3400,20 @@ static struct page *__page_frag_refill(struct page_frag_cache *nc,
+@@ -3400,6 +3400,20 @@ static struct page *__page_frag_refill(s
  	return page;
  }
  
@@ -130,11 +124,10 @@ index 9535d3e3..d8ad2e02 100644
  /*
   * Frees a page fragment allocated out of either a compound or order 0 page.
   */
-@@ -3466,6 +3534,18 @@ void __free_page_frag(void *addr)
- }
+@@ -3467,6 +3535,18 @@ void __free_page_frag(void *addr)
  EXPORT_SYMBOL(__free_page_frag);
  
-+/*
+ /*
 + * Frees a page fragment allocated out of either a compound or order 0 page.
 + */
 +void page_frag_free(void *addr)
@@ -146,6 +139,7 @@ index 9535d3e3..d8ad2e02 100644
 +}
 +EXPORT_SYMBOL(page_frag_free);
 +
- /*
++/*
   * alloc_kmem_pages charges newly allocated pages to the kmem resource counter
   * of the current memory cgroup.
+  *

@@ -12,8 +12,6 @@ Subject: [PATCH 2/2] net-patch-linux-kernel-to-support-shortcut-fe
  net/netfilter/nf_conntrack_proto_tcp.c | 10 ++++++++--
  6 files changed, 63 insertions(+), 2 deletions(-)
 
-diff --git a/include/linux/if_bridge.h b/include/linux/if_bridge.h
-index ef5661b9..de79c001 100644
 --- a/include/linux/if_bridge.h
 +++ b/include/linux/if_bridge.h
 @@ -51,6 +51,8 @@ struct br_ip_list {
@@ -25,8 +23,6 @@ index ef5661b9..de79c001 100644
  
  typedef int br_should_route_hook_t(struct sk_buff *skb);
  extern br_should_route_hook_t __rcu *br_should_route_hook;
-diff --git a/include/linux/skbuff.h b/include/linux/skbuff.h
-index f08895ac..2eeb1552 100644
 --- a/include/linux/skbuff.h
 +++ b/include/linux/skbuff.h
 @@ -645,6 +645,9 @@ struct sk_buff {
@@ -39,8 +35,6 @@ index f08895ac..2eeb1552 100644
  	__u8			inner_protocol_type:1;
  	__u8			remcsum_offload:1;
  	__u8			gro_skip:1;
-diff --git a/net/Kconfig b/net/Kconfig
-index 1824c31f..878f6886 100644
 --- a/net/Kconfig
 +++ b/net/Kconfig
 @@ -401,3 +401,6 @@ config HAVE_BPF_JIT
@@ -50,11 +44,9 @@ index 1824c31f..878f6886 100644
 +
 +config SHORTCUT_FE
 +	bool "Enables kernel network stack path for Shortcut Forwarding Engine"
-diff --git a/net/bridge/br_if.c b/net/bridge/br_if.c
-index c7a28154..4a1bec7c 100644
 --- a/net/bridge/br_if.c
 +++ b/net/bridge/br_if.c
-@@ -596,3 +596,26 @@ void br_port_flags_change(struct net_bridge_port *p, unsigned long mask)
+@@ -596,3 +596,26 @@ void br_port_flags_change(struct net_bri
  	if (mask & BR_AUTO_MASK)
  		nbp_update_port_count(br);
  }
@@ -81,11 +73,9 @@ index c7a28154..4a1bec7c 100644
 +	u64_stats_update_end(&stats->syncp);
 +}
 +EXPORT_SYMBOL_GPL(br_dev_update_stats);
-diff --git a/net/core/dev.c b/net/core/dev.c
-index c7046979..996f8b6a 100644
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -2773,8 +2773,17 @@ static int xmit_one(struct sk_buff *skb, struct net_device *dev,
+@@ -2773,8 +2773,17 @@ static int xmit_one(struct sk_buff *skb,
  	unsigned int len;
  	int rc;
  
@@ -103,7 +93,7 @@ index c7046979..996f8b6a 100644
  
  #ifdef CONFIG_ETHERNET_PACKET_MANGLE
  	if (!dev->eth_mangle_tx ||
-@@ -3877,6 +3886,11 @@ void netdev_rx_handler_unregister(struct net_device *dev)
+@@ -3877,6 +3886,11 @@ void netdev_rx_handler_unregister(struct
  }
  EXPORT_SYMBOL_GPL(netdev_rx_handler_unregister);
  
@@ -115,7 +105,7 @@ index c7046979..996f8b6a 100644
  /*
   * Limit the use of PFMEMALLOC reserves to those protocols that implement
   * the special handling of PFMEMALLOC skbs.
-@@ -3920,6 +3934,9 @@ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc)
+@@ -3920,6 +3934,9 @@ static int __netif_receive_skb_core(stru
  	int ret = NET_RX_DROP;
  	__be16 type;
  
@@ -139,8 +129,6 @@ index c7046979..996f8b6a 100644
  #ifdef CONFIG_NET_CLS_ACT
  	if (skb->tc_verd & TC_NCLS) {
  		skb->tc_verd = CLR_TC_NCLS(skb->tc_verd);
-diff --git a/net/netfilter/nf_conntrack_proto_tcp.c b/net/netfilter/nf_conntrack_proto_tcp.c
-index 01ff7584..5ba225d8 100644
 --- a/net/netfilter/nf_conntrack_proto_tcp.c
 +++ b/net/netfilter/nf_conntrack_proto_tcp.c
 @@ -34,12 +34,18 @@
@@ -164,6 +152,3 @@ index 01ff7584..5ba225d8 100644
  
  /* If it is set to zero, we disable picking up already established
     connections. */
--- 
-2.25.1
-

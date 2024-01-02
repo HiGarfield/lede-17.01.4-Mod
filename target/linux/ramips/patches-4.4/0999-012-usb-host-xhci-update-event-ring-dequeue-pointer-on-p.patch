@@ -18,15 +18,12 @@ Signed-off-by: Peter Chen <peter.chen@nxp.com>
  drivers/usb/host/xhci-ring.c | 61 ++++++++++++++++++++++++++----------
  1 file changed, 44 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
-index e4919fcb..38fb732e 100644
 --- a/drivers/usb/host/xhci-ring.c
 +++ b/drivers/usb/host/xhci-ring.c
-@@ -2729,6 +2729,42 @@ static int xhci_handle_event(struct xhci_hcd *xhci)
- 	return 1;
+@@ -2730,6 +2730,42 @@ static int xhci_handle_event(struct xhci
  }
  
-+/*
+ /*
 + * Update Event Ring Dequeue Pointer:
 + * - When all events have finished
 + * - To avoid "Event Ring Full Error" condition
@@ -62,10 +59,11 @@ index e4919fcb..38fb732e 100644
 +	xhci_write_64(xhci, temp_64, &xhci->ir_set->erst_dequeue);
 +}
 +
- /*
++/*
   * xHCI spec says we can get an interrupt, and if the HC has an error condition,
   * we might get bad data out of the event ring.  Section 4.10.2.7 has a list of
-@@ -2740,7 +2776,7 @@ irqreturn_t xhci_irq(struct usb_hcd *hcd)
+  * indicators of an event TRB error, but we check the status *first* to be safe.
+@@ -2740,7 +2776,7 @@ irqreturn_t xhci_irq(struct usb_hcd *hcd
  	u32 status;
  	u64 temp_64;
  	union xhci_trb *event_ring_deq;
@@ -106,6 +104,3 @@ index e4919fcb..38fb732e 100644
  
  	spin_unlock(&xhci->lock);
  
--- 
-2.25.1
-

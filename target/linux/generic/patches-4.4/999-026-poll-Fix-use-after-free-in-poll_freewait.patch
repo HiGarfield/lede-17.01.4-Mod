@@ -98,8 +98,6 @@ Signed-off-by: Lu Jialin <lujialin4@huawei.com>
  fs/select.c | 20 +++++++++++++++++++-
  1 file changed, 19 insertions(+), 1 deletion(-)
 
-diff --git a/fs/select.c b/fs/select.c
-index f4dd55fc..5c529fb0 100644
 --- a/fs/select.c
 +++ b/fs/select.c
 @@ -130,7 +130,17 @@ EXPORT_SYMBOL(poll_initwait);
@@ -121,7 +119,7 @@ index f4dd55fc..5c529fb0 100644
  	fput(entry->filp);
  }
  
-@@ -213,6 +223,14 @@ static int pollwake(wait_queue_t *wait, unsigned mode, int sync, void *key)
+@@ -213,6 +223,14 @@ static int pollwake(wait_queue_t *wait,
  	entry = container_of(wait, struct poll_table_entry, wait);
  	if (key && !((unsigned long)key & entry->key))
  		return 0;
@@ -136,6 +134,3 @@ index f4dd55fc..5c529fb0 100644
  	return __pollwake(wait, mode, sync, key);
  }
  
--- 
-2.25.1
-

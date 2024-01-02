@@ -30,7 +30,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
 --- a/arch/mips/ralink/mt7621.c
 +++ b/arch/mips/ralink/mt7621.c
-@@ -20,6 +20,7 @@
+@@ -23,6 +23,7 @@
  #include <asm/mips-cpc.h>
  #include <asm/mach-ralink/ralink_regs.h>
  #include <asm/mach-ralink/mt7621.h>
@@ -38,7 +38,7 @@ Signed-off-by: Felix Fietkau <nbd@nbd.name>
  
  #include <pinmux.h>
  
-@@ -163,6 +164,20 @@ void __init ralink_of_remap(void)
+@@ -198,6 +199,20 @@ void __init ralink_of_remap(void)
  		panic("Failed to remap core resources");
  }
  

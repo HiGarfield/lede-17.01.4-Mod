@@ -17,11 +17,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index a850d7e6..420e6035 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -3383,7 +3383,7 @@ int usb_port_resume(struct usb_device *udev, pm_message_t msg)
+@@ -3383,7 +3383,7 @@ int usb_port_resume(struct usb_device *u
  	u16		portchange, portstatus;
  
  	if (!test_and_set_bit(port1, hub->child_usage_bits)) {
@@ -30,6 +28,3 @@ index a850d7e6..420e6035 100644
  		if (status < 0) {
  			dev_dbg(&udev->dev, "can't resume usb port, status %d\n",
  					status);
--- 
-2.25.1
-

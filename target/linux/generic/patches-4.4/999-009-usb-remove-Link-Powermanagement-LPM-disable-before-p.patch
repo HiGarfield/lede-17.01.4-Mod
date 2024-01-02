@@ -31,11 +31,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 13 +------------
  1 file changed, 1 insertion(+), 12 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index f5c0ea87..8742cd93 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -4606,6 +4606,7 @@ hub_port_init(struct usb_hub *hub, struct usb_device *udev, int port1,
+@@ -4606,6 +4606,7 @@ hub_port_init(struct usb_hub *hub, struc
  		retval = usb_get_bos_descriptor(udev);
  		if (!retval) {
  			udev->lpm_capable = usb_device_supports_lpm(udev);
@@ -43,7 +41,7 @@ index f5c0ea87..8742cd93 100644
  			usb_set_lpm_parameters(udev);
  		}
  	}
-@@ -5462,16 +5463,6 @@ static int usb_reset_and_verify_device(struct usb_device *udev)
+@@ -5462,16 +5463,6 @@ static int usb_reset_and_verify_device(s
  	 */
  	usb_disable_usb2_hardware_lpm(udev);
  
@@ -69,6 +67,3 @@ index f5c0ea87..8742cd93 100644
  	hub_port_logical_disconnect(parent_hub, port1);
  	return -ENODEV;
  }
--- 
-2.25.1
-

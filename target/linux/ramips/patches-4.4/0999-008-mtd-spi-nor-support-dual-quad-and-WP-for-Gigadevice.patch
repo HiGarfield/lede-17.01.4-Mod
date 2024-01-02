@@ -1,6 +1,6 @@
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -791,9 +791,21 @@ static const struct flash_info spi_nor_ids[] = {
+@@ -791,9 +791,21 @@ static const struct flash_info spi_nor_i
  	{ "mb85rs1mt", INFO(0x047f27, 0, 128 * 1024, 1, SPI_NOR_NO_ERASE) },
  
  	/* GigaDevice */

@@ -1,6 +1,5 @@
-diff -Naur a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
---- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2019-05-12 10:54:05.402861619 +0800
-+++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2019-05-12 11:03:33.597917091 +0800
+--- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
++++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
 @@ -134,7 +134,7 @@
  #define QCA955X_PCI_CTRL_SIZE	0x100
  
@@ -10,7 +9,7 @@ diff -Naur a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h b/arch/mips/include/
  #define QCA955X_WMAC_BASE	(AR71XX_APB_BASE + 0x00100000)
  #define QCA955X_WMAC_SIZE	0x20000
  #define QCA955X_EHCI0_BASE	0x1b000000
-@@ -1171,6 +1171,11 @@
+@@ -1179,6 +1179,11 @@
   */
  
  #define QCA955X_GMAC_REG_ETH_CFG	0x00
@@ -21,10 +20,10 @@ diff -Naur a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h b/arch/mips/include/
 +#define QCA955X_GMAC_REG_SGMII_DEBUG	0x58
  
  #define QCA955X_ETH_CFG_RGMII_EN	BIT(0)
- #define QCA955X_ETH_CFG_GE0_MII_EN	BIT(1)
-@@ -1194,4 +1199,18 @@
- #define QCA955X_ETH_CFG_TXE_DELAY_MASK	0x3
- #define QCA955X_ETH_CFG_TXE_DELAY_SHIFT	20
+ #define QCA955X_ETH_CFG_MII_GE0		BIT(1)
+@@ -1212,4 +1217,18 @@
+ #define QCA956X_ETH_CFG_SW_APB_ACCESS		BIT(10)
+ #define QCA956X_ETH_CFG_SW_ACC_MSB_FIRST	BIT(13)
  
 +#define QCA955X_SGMII_RESET_RX_CLK_N_RESET	0x0
 +#define QCA955X_SGMII_RESET_RX_CLK_N		BIT(0)

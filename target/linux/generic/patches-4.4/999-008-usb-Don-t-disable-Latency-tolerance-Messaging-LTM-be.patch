@@ -33,11 +33,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 13 +++----------
  1 file changed, 3 insertions(+), 10 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 3c5c9c92..f5c0ea87 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -5462,22 +5462,15 @@ static int usb_reset_and_verify_device(struct usb_device *udev)
+@@ -5462,22 +5462,15 @@ static int usb_reset_and_verify_device(s
  	 */
  	usb_disable_usb2_hardware_lpm(udev);
  
@@ -63,6 +61,3 @@ index 3c5c9c92..f5c0ea87 100644
  
  	bos = udev->bos;
  	udev->bos = NULL;
--- 
-2.25.1
-

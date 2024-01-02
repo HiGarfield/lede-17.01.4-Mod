@@ -18,7 +18,7 @@
  
 --- a/Documentation/mtd/spi-nor.txt
 +++ b/Documentation/mtd/spi-nor.txt
-@@ -60,3 +60,6 @@ The main API is spi_nor_scan(). Before you call the hook, a driver should
+@@ -60,3 +60,6 @@ The main API is spi_nor_scan(). Before y
  initialize the necessary fields for spi_nor{}. Please see
  drivers/mtd/spi-nor/spi-nor.c for detail. Please also refer to fsl-quadspi.c
  when you want to write a new driver for a SPI NOR controller.
@@ -35,7 +35,7 @@
  
  #define	MAX_CMD_SIZE		6
  struct m25p {
-@@ -260,11 +261,17 @@ static int m25p_probe(struct spi_device *spi)
+@@ -260,11 +261,17 @@ static int m25p_probe(struct spi_device
  static int m25p_remove(struct spi_device *spi)
  {
  	struct m25p	*flash = spi_get_drvdata(spi);
@@ -53,7 +53,7 @@
  /*
   * Do NOT add to this array without reading the following:
   *
-@@ -328,6 +335,7 @@ static struct spi_driver m25p80_driver = {
+@@ -328,6 +335,7 @@ static struct spi_driver m25p80_driver =
  	.id_table	= m25p_ids,
  	.probe	= m25p_probe,
  	.remove	= m25p_remove,
@@ -63,7 +63,7 @@
  	 * should clearly be entered on suspend() to minimize power use.
 --- a/drivers/mtd/spi-nor/spi-nor.c
 +++ b/drivers/mtd/spi-nor/spi-nor.c
-@@ -1257,6 +1257,28 @@ static int spi_nor_check(struct spi_nor *nor)
+@@ -1257,6 +1257,28 @@ static int spi_nor_check(struct spi_nor
  	return 0;
  }
  
@@ -92,7 +92,7 @@
  int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
  {
  	const struct flash_info *info = NULL;
-@@ -1395,6 +1417,9 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+@@ -1395,6 +1417,9 @@ int spi_nor_scan(struct spi_nor *nor, co
  		nor->flash_read = SPI_NOR_FAST;
  	}
  
@@ -102,7 +102,7 @@
  	/* Some devices cannot do fast-read, no matter what DT tells us */
  	if (info->flags & SPI_NOR_NO_FR)
  		nor->flash_read = SPI_NOR_NORMAL;
-@@ -1448,6 +1473,8 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+@@ -1448,6 +1473,8 @@ int spi_nor_scan(struct spi_nor *nor, co
  
  	nor->read_dummy = spi_nor_read_dummy_cycles(nor);
  

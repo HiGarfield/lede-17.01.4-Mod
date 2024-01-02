@@ -27,8 +27,6 @@ Signed-off-by: Pablo Neira Ayuso <pablo@netfilter.org>
  net/netfilter/nf_conntrack_core.c             | 30 +++++++++----------
  2 files changed, 22 insertions(+), 21 deletions(-)
 
-diff --git a/Documentation/networking/nf_conntrack-sysctl.txt b/Documentation/networking/nf_conntrack-sysctl.txt
-index f55599c6..e52299bc 100644
 --- a/Documentation/networking/nf_conntrack-sysctl.txt
 +++ b/Documentation/networking/nf_conntrack-sysctl.txt
 @@ -10,9 +10,8 @@ nf_conntrack_acct - BOOLEAN
@@ -58,8 +56,6 @@ index f55599c6..e52299bc 100644
  
  nf_conntrack_tcp_be_liberal - BOOLEAN
  	0 - disabled (default)
-diff --git a/net/netfilter/nf_conntrack_core.c b/net/netfilter/nf_conntrack_core.c
-index 2fe3345d..b9c8264a 100644
 --- a/net/netfilter/nf_conntrack_core.c
 +++ b/net/netfilter/nf_conntrack_core.c
 @@ -1681,26 +1681,24 @@ int nf_conntrack_init_start(void)
@@ -83,14 +79,13 @@ index 2fe3345d..b9c8264a 100644
 -			nf_conntrack_htable_size = 16384;
 -		if (nf_conntrack_htable_size < 32)
 -			nf_conntrack_htable_size = 32;
--
++			nf_conntrack_htable_size = 65536;
+ 
 -		/* Use a max. factor of four by default to get the same max as
 -		 * with the old struct list_heads. When a table size is given
 -		 * we use the old value of 8 to avoid reducing the max.
 -		 * entries. */
 -		max_factor = 4;
-+			nf_conntrack_htable_size = 65536;
-+
 +		if (nf_conntrack_htable_size < 1024)
 +			nf_conntrack_htable_size = 1024;
 +		/* Use a max. factor of one by default to keep the average
@@ -103,6 +98,3 @@ index 2fe3345d..b9c8264a 100644
  	}
  	nf_conntrack_max = max_factor * nf_conntrack_htable_size;
  
--- 
-2.25.1
-

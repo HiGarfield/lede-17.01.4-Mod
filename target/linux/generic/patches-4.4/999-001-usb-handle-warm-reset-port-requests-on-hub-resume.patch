@@ -21,11 +21,9 @@ Signed-off-by: Sasha Levin <sashal@kernel.org>
  drivers/usb/core/hub.c | 7 +++++++
  1 file changed, 7 insertions(+)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index e87b9173..9f3f3d8f 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -102,6 +102,8 @@ EXPORT_SYMBOL_GPL(ehci_cf_port_reset_rwsem);
+@@ -102,6 +102,8 @@ EXPORT_SYMBOL_GPL(ehci_cf_port_reset_rws
  static void hub_release(struct kref *kref);
  static int usb_reset_and_verify_device(struct usb_device *udev);
  static int hub_port_disable(struct usb_hub *hub, int port1, int set_state);
@@ -34,7 +32,7 @@ index e87b9173..9f3f3d8f 100644
  
  static inline char *portspeed(struct usb_hub *hub, int portstatus)
  {
-@@ -1092,6 +1094,11 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
+@@ -1092,6 +1094,11 @@ static void hub_activate(struct usb_hub
  						   USB_PORT_FEAT_ENABLE);
  		}
  
@@ -46,6 +44,3 @@ index e87b9173..9f3f3d8f 100644
  		/*
  		 * Add debounce if USB3 link is in polling/link training state.
  		 * Link will automatically transition to Enabled state after
--- 
-2.25.1
-

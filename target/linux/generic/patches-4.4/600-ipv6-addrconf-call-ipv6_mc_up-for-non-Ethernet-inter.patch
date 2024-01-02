@@ -55,7 +55,7 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
 
 --- a/net/ipv6/addrconf.c
 +++ b/net/ipv6/addrconf.c
-@@ -3082,6 +3082,10 @@ static void addrconf_dev_config(struct net_device *dev)
+@@ -3082,6 +3082,10 @@ static void addrconf_dev_config(struct n
  	    (dev->type != ARPHRD_TUNNEL6) &&
  	    (dev->type != ARPHRD_6LOWPAN)) {
  		/* Alas, we support only Ethernet autoconfiguration. */

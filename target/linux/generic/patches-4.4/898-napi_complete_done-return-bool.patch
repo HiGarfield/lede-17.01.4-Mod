@@ -1,6 +1,6 @@
 --- a/include/linux/netdevice.h
 +++ b/include/linux/netdevice.h
-@@ -448,15 +448,16 @@ static inline bool napi_reschedule(struct napi_struct *napi)
+@@ -448,15 +448,16 @@ static inline bool napi_reschedule(struc
  }
  
  void __napi_complete(struct napi_struct *n);
@@ -21,7 +21,7 @@
  }
 --- a/net/core/dev.c
 +++ b/net/core/dev.c
-@@ -4773,7 +4773,7 @@ void __napi_complete(struct napi_struct *n)
+@@ -4781,7 +4781,7 @@ void __napi_complete(struct napi_struct
  }
  EXPORT_SYMBOL(__napi_complete);
  
@@ -30,7 +30,7 @@
  {
  	unsigned long flags;
  
-@@ -4782,7 +4782,7 @@ void napi_complete_done(struct napi_struct *n, int work_done)
+@@ -4790,7 +4790,7 @@ void napi_complete_done(struct napi_stru
  	 * just in case its running on a different cpu
  	 */
  	if (unlikely(test_bit(NAPI_STATE_NPSVC, &n->state)))
@@ -39,7 +39,7 @@
  
  	if (n->gro_list) {
  		unsigned long timeout = 0;
-@@ -4804,6 +4804,7 @@ void napi_complete_done(struct napi_struct *n, int work_done)
+@@ -4812,6 +4812,7 @@ void napi_complete_done(struct napi_stru
  		__napi_complete(n);
  		local_irq_restore(flags);
  	}

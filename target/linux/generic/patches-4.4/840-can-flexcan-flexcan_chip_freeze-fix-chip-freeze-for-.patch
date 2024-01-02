@@ -31,7 +31,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
 
 --- a/drivers/net/can/flexcan.c
 +++ b/drivers/net/can/flexcan.c
-@@ -379,9 +379,15 @@ static int flexcan_chip_disable(struct flexcan_priv *priv)
+@@ -379,9 +379,15 @@ static int flexcan_chip_disable(struct f
  static int flexcan_chip_freeze(struct flexcan_priv *priv)
  {
  	struct flexcan_regs __iomem *regs = priv->regs;

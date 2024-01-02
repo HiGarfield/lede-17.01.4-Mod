@@ -17,11 +17,9 @@ Signed-off-by: Chunfeng Yun <chunfeng.yun@mediatek.com>
  drivers/usb/host/xhci-mem.c | 4 ++++
  1 file changed, 4 insertions(+)
 
-diff --git a/drivers/usb/host/xhci-mem.c b/drivers/usb/host/xhci-mem.c
-index ef350c3..b1f27aa 100644
 --- a/drivers/usb/host/xhci-mem.c
 +++ b/drivers/usb/host/xhci-mem.c
-@@ -1667,6 +1667,10 @@ void xhci_endpoint_copy(struct xhci_hcd *xhci,
+@@ -1667,6 +1667,10 @@ void xhci_endpoint_copy(struct xhci_hcd
  	in_ep_ctx->ep_info2 = out_ep_ctx->ep_info2;
  	in_ep_ctx->deq = out_ep_ctx->deq;
  	in_ep_ctx->tx_info = out_ep_ctx->tx_info;
@@ -32,6 +30,3 @@ index ef350c3..b1f27aa 100644
  }
  
  /* Copy output xhci_slot_ctx to the input xhci_slot_ctx.
--- 
-1.9.1
-

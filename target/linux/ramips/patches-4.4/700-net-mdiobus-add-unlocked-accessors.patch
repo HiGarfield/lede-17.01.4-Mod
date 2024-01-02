@@ -17,15 +17,12 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  include/linux/phy.h        |  4 +++
  2 files changed, 57 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/net/phy/mdio_bus.c b/drivers/net/phy/mdio_bus.c
-index 054429f6..628f8c2f 100644
 --- a/drivers/net/phy/mdio_bus.c
 +++ b/drivers/net/phy/mdio_bus.c
-@@ -390,6 +390,30 @@ struct phy_device *mdiobus_scan(struct mii_bus *bus, int addr)
- }
+@@ -391,6 +391,30 @@ struct phy_device *mdiobus_scan(struct m
  EXPORT_SYMBOL(mdiobus_scan);
  
-+/**
+ /**
 + * __mdiobus_read - Unlocked version of the mdiobus_read function
 + * @bus: the mii_bus struct
 + * @addr: the phy address
@@ -49,10 +46,11 @@ index 054429f6..628f8c2f 100644
 +}
 +EXPORT_SYMBOL(__mdiobus_read);
 +
- /**
++/**
   * mdiobus_read_nested - Nested version of the mdiobus_read function
   * @bus: the mii_bus struct
-@@ -410,7 +434,7 @@ int mdiobus_read_nested(struct mii_bus *bus, int addr, u32 regnum)
+  * @addr: the phy address
+@@ -410,7 +434,7 @@ int mdiobus_read_nested(struct mii_bus *
  	BUG_ON(in_interrupt());
  
  	mutex_lock_nested(&bus->mdio_lock, SINGLE_DEPTH_NESTING);
@@ -61,7 +59,7 @@ index 054429f6..628f8c2f 100644
  	mutex_unlock(&bus->mdio_lock);
  
  	return retval;
-@@ -434,13 +458,38 @@ int mdiobus_read(struct mii_bus *bus, int addr, u32 regnum)
+@@ -434,7 +458,7 @@ int mdiobus_read(struct mii_bus *bus, in
  	BUG_ON(in_interrupt());
  
  	mutex_lock(&bus->mdio_lock);
@@ -70,10 +68,10 @@ index 054429f6..628f8c2f 100644
  	mutex_unlock(&bus->mdio_lock);
  
  	return retval;
- }
+@@ -442,6 +466,31 @@ int mdiobus_read(struct mii_bus *bus, in
  EXPORT_SYMBOL(mdiobus_read);
  
-+/**
+ /**
 + * __mdiobus_write - Unlocked version of the mdiobus_write function
 + * @bus: the mii_bus struct
 + * @addr: the phy address
@@ -98,10 +96,11 @@ index 054429f6..628f8c2f 100644
 +}
 +EXPORT_SYMBOL(__mdiobus_write);
 +
- /**
++/**
   * mdiobus_write_nested - Nested version of the mdiobus_write function
   * @bus: the mii_bus struct
-@@ -462,7 +511,7 @@ int mdiobus_write_nested(struct mii_bus *bus, int addr, u32 regnum, u16 val)
+  * @addr: the phy address
+@@ -462,7 +511,7 @@ int mdiobus_write_nested(struct mii_bus
  	BUG_ON(in_interrupt());
  
  	mutex_lock_nested(&bus->mdio_lock, SINGLE_DEPTH_NESTING);
@@ -110,7 +109,7 @@ index 054429f6..628f8c2f 100644
  	mutex_unlock(&bus->mdio_lock);
  
  	return err;
-@@ -487,7 +536,7 @@ int mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val)
+@@ -487,7 +536,7 @@ int mdiobus_write(struct mii_bus *bus, i
  	BUG_ON(in_interrupt());
  
  	mutex_lock(&bus->mdio_lock);
@@ -119,11 +118,9 @@ index 054429f6..628f8c2f 100644
  	mutex_unlock(&bus->mdio_lock);
  
  	return err;
-diff --git a/include/linux/phy.h b/include/linux/phy.h
-index 818d0d0f..61509f01 100644
 --- a/include/linux/phy.h
 +++ b/include/linux/phy.h
-@@ -208,6 +208,10 @@ static inline struct mii_bus *devm_mdiobus_alloc(struct device *dev)
+@@ -208,6 +208,10 @@ static inline struct mii_bus *devm_mdiob
  
  void devm_mdiobus_free(struct device *dev, struct mii_bus *bus);
  struct phy_device *mdiobus_scan(struct mii_bus *bus, int addr);
@@ -134,6 +131,3 @@ index 818d0d0f..61509f01 100644
  int mdiobus_read(struct mii_bus *bus, int addr, u32 regnum);
  int mdiobus_read_nested(struct mii_bus *bus, int addr, u32 regnum);
  int mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val);
--- 
-2.25.1
-
