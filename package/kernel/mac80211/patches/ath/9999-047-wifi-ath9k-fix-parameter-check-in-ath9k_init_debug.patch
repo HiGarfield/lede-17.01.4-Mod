@@ -1,0 +1,30 @@
+From aa073827789e418e60a3d01b67aa253c7be1ea9e Mon Sep 17 00:00:00 2001
+From: Minjie Du <duminjie@vivo.com>
+Date: Wed, 12 Jul 2023 19:47:40 +0800
+Subject: [PATCH] wifi: ath9k: fix parameter check in ath9k_init_debug()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Make IS_ERR() judge the debugfs_create_dir() function return
+in ath9k_init_debug()
+
+Signed-off-by: Minjie Du <duminjie@vivo.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://lore.kernel.org/r/20230712114740.13226-1-duminjie@vivo.com
+---
+ drivers/net/wireless/ath/ath9k/debug.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/ath/ath9k/debug.c
++++ b/drivers/net/wireless/ath/ath9k/debug.c
+@@ -1578,7 +1578,7 @@ int ath9k_init_debug(struct ath_hw *ah)
+ 
+ 	sc->debug.debugfs_phy = debugfs_create_dir("ath9k",
+ 						   sc->hw->wiphy->debugfsdir);
+-	if (!sc->debug.debugfs_phy)
++	if (IS_ERR(sc->debug.debugfs_phy))
+ 		return -ENOMEM;
+ 
+ #ifdef CPTCFG_ATH_DEBUG
