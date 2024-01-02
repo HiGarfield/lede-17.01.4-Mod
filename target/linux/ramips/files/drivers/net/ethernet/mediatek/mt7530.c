@@ -319,18 +319,6 @@ mt7530_set_vlan_enable(struct switch_dev *dev,
 	return 0;
 }
 
-static inline int
-__mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val)
-{
-	return bus->write(bus, addr, regnum, val);
-}
-
-static inline int
-__mdiobus_read(struct mii_bus *bus, int addr, u32 regnum)
-{
-	return bus->read(bus, addr, regnum);
-}
-
 static u32
 mt7530_r32(struct mt7530_priv *priv, u32 reg)
 {
