@@ -9,11 +9,9 @@ Subject: [PATCH] usb: dwc3: Issue core soft reset before enabling run/stop
  drivers/usb/dwc3/gadget.c | 12 ++++++++++++
  3 files changed, 17 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index d8c45e81..8fd24c6d 100644
 --- a/drivers/usb/dwc3/core.c
 +++ b/drivers/usb/dwc3/core.c
-@@ -64,7 +64,7 @@ void dwc3_set_mode(struct dwc3 *dwc, u32 mode)
+@@ -64,7 +64,7 @@ void dwc3_set_mode(struct dwc3 *dwc, u32
   * dwc3_core_soft_reset - Issues core soft reset and PHY reset
   * @dwc: pointer to our context structure
   */
@@ -22,7 +20,7 @@ index d8c45e81..8fd24c6d 100644
  {
  	u32		reg;
  	int		ret;
-@@ -265,7 +265,7 @@ static int dwc3_alloc_event_buffers(struct dwc3 *dwc, unsigned length)
+@@ -265,7 +265,7 @@ static int dwc3_alloc_event_buffers(stru
   *
   * Returns 0 on success otherwise negative errno.
   */
@@ -31,8 +29,6 @@ index d8c45e81..8fd24c6d 100644
  {
  	struct dwc3_event_buffer	*evt;
  	int				n;
-diff --git a/drivers/usb/dwc3/core.h b/drivers/usb/dwc3/core.h
-index 8dfc94d3..32012084 100644
 --- a/drivers/usb/dwc3/core.h
 +++ b/drivers/usb/dwc3/core.h
 @@ -1021,6 +1021,9 @@ struct dwc3_gadget_ep_cmd_params {
@@ -45,11 +41,9 @@ index 8dfc94d3..32012084 100644
  #if IS_ENABLED(CONFIG_USB_DWC3_HOST) || IS_ENABLED(CONFIG_USB_DWC3_DUAL_ROLE)
  int dwc3_host_init(struct dwc3 *dwc);
  void dwc3_host_exit(struct dwc3 *dwc);
-diff --git a/drivers/usb/dwc3/gadget.c b/drivers/usb/dwc3/gadget.c
-index 5e015631..9869b1f5 100644
 --- a/drivers/usb/dwc3/gadget.c
 +++ b/drivers/usb/dwc3/gadget.c
-@@ -1553,6 +1553,18 @@ static int dwc3_gadget_pullup(struct usb_gadget *g, int is_on)
+@@ -1553,6 +1553,18 @@ static int dwc3_gadget_pullup(struct usb
  
  	is_on = !!is_on;
  
@@ -68,6 +62,3 @@ index 5e015631..9869b1f5 100644
  	spin_lock_irqsave(&dwc->lock, flags);
  	ret = dwc3_gadget_run_stop(dwc, is_on, false);
  	spin_unlock_irqrestore(&dwc->lock, flags);
--- 
-2.25.1
-

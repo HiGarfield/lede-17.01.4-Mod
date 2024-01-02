@@ -64,11 +64,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 5 -----
  1 file changed, 5 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 2dbee186..6767732d 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -1170,11 +1170,6 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
+@@ -1170,11 +1170,6 @@ static void hub_activate(struct usb_hub
  #ifdef CONFIG_PM
  			udev->reset_resume = 1;
  #endif
@@ -80,6 +78,3 @@ index 2dbee186..6767732d 100644
  
  		} else {
  			/* The power session is gone; tell hub_wq */
--- 
-2.25.1
-

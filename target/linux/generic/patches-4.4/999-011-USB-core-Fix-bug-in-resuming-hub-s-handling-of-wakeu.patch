@@ -53,11 +53,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 947a1623..29a11671 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -1164,7 +1164,7 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
+@@ -1164,7 +1164,7 @@ static void hub_activate(struct usb_hub
  			 */
  			if (portchange || (hub_is_superspeed(hub->hdev) &&
  						port_resumed))
@@ -66,6 +64,3 @@ index 947a1623..29a11671 100644
  
  		} else if (udev->persist_enabled) {
  #ifdef CONFIG_PM
--- 
-2.25.1
-

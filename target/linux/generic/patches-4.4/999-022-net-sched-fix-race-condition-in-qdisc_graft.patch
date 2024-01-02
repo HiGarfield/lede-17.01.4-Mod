@@ -235,11 +235,9 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  net/sched/sch_api.c | 7 ++++---
  1 file changed, 4 insertions(+), 3 deletions(-)
 
-diff --git a/net/sched/sch_api.c b/net/sched/sch_api.c
-index 194ab888..53ba9daa 100644
 --- a/net/sched/sch_api.c
 +++ b/net/sched/sch_api.c
-@@ -845,11 +845,12 @@ static int qdisc_graft(struct net_device *dev, struct Qdisc *parent,
+@@ -845,11 +845,12 @@ static int qdisc_graft(struct net_device
  
  skip:
  		if (!ingress) {
@@ -255,6 +253,3 @@ index 194ab888..53ba9daa 100644
  
  			if (new && new->ops->attach)
  				new->ops->attach(new);
--- 
-2.25.1
-

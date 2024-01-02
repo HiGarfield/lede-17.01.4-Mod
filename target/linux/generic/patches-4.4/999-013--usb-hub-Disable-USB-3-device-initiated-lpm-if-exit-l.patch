@@ -28,15 +28,12 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 68 ++++++++++++++++++++++++++++++++++--------
  1 file changed, 56 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index fc527804..a850d7e6 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -3826,6 +3826,47 @@ static int usb_set_lpm_timeout(struct usb_device *udev,
- 	return 0;
+@@ -3827,6 +3827,47 @@ static int usb_set_lpm_timeout(struct us
  }
  
-+/*
+ /*
 + * Don't allow device intiated U1/U2 if the system exit latency + one bus
 + * interval is greater than the minimum service interval of any active
 + * periodic endpoint. See USB 3.2 section 9.4.9
@@ -77,10 +74,11 @@ index fc527804..a850d7e6 100644
 +	return true;
 +}
 +
- /*
++/*
   * Enable the hub-initiated U1/U2 idle timeouts, and enable device-initiated
   * U1/U2 entry.
-@@ -3898,20 +3939,23 @@ static void usb_enable_link_state(struct usb_hcd *hcd, struct usb_device *udev,
+  *
+@@ -3898,20 +3939,23 @@ static void usb_enable_link_state(struct
  	 * U1/U2_ENABLE
  	 */
  	if (udev->actconfig &&
@@ -116,6 +114,3 @@ index fc527804..a850d7e6 100644
  /*
   * Disable the hub-initiated U1/U2 idle timeouts, and disable device-initiated
   * U1/U2 entry.
--- 
-2.25.1
-

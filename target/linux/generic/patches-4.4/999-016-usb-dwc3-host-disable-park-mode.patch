@@ -51,11 +51,9 @@ Signed-off-by: Li Jun <jun.li@nxp.com>
  drivers/usb/dwc3/core.c | 13 +++++++++++++
  1 file changed, 13 insertions(+)
 
-diff --git a/drivers/usb/dwc3/core.c b/drivers/usb/dwc3/core.c
-index 4378e758..0c63dc2b 100644
 --- a/drivers/usb/dwc3/core.c
 +++ b/drivers/usb/dwc3/core.c
-@@ -637,6 +637,19 @@ static int dwc3_core_init(struct dwc3 *dwc)
+@@ -637,6 +637,19 @@ static int dwc3_core_init(struct dwc3 *d
  	if (dwc->revision < DWC3_REVISION_190A)
  		reg |= DWC3_GCTL_U2RSTECN;
  
@@ -75,6 +73,3 @@ index 4378e758..0c63dc2b 100644
  	dwc3_core_num_eps(dwc);
  
  	dwc3_writel(dwc->regs, DWC3_GCTL, reg);
--- 
-2.25.1
-

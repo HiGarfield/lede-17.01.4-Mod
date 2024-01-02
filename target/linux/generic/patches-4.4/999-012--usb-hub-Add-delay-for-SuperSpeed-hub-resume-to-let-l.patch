@@ -71,11 +71,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 5 ++++-
  1 file changed, 4 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 29a11671..fc527804 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -1050,7 +1050,10 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
+@@ -1050,7 +1050,10 @@ static void hub_activate(struct usb_hub
  		} else {
  			hub_power_on(hub, true);
  		}
@@ -87,6 +85,3 @@ index 29a11671..fc527804 100644
   init2:
  
  	/*
--- 
-2.25.1
-

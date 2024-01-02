@@ -21,8 +21,6 @@ Acked-by: Alan Stern <stern@rowland.harvard.edu>
  drivers/usb/core/hub.c | 197 +++++++++++++++++++++++------------------
  1 file changed, 111 insertions(+), 86 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 9f3f3d8f..2dbee186 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
 @@ -4702,6 +4702,91 @@ hub_power_remaining(struct usb_hub *hub)
@@ -117,7 +115,7 @@ index 9f3f3d8f..2dbee186 100644
  static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,
  		u16 portchange)
  {
-@@ -4939,7 +5024,9 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
+@@ -4939,7 +5024,9 @@ static void hub_port_connect_change(stru
  {
  	struct usb_port *port_dev = hub->ports[port1 - 1];
  	struct usb_device *udev = port_dev->child;
@@ -127,7 +125,7 @@ index 9f3f3d8f..2dbee186 100644
  
  	dev_dbg(&port_dev->dev, "status %04x, change %04x, %s\n", portstatus,
  			portchange, portspeed(hub, portstatus));
-@@ -4960,7 +5047,30 @@ static void hub_port_connect_change(struct usb_hub *hub, int port1,
+@@ -4960,7 +5047,30 @@ static void hub_port_connect_change(stru
  	if ((portstatus & USB_PORT_STAT_CONNECTION) && udev &&
  			udev->state != USB_STATE_NOTATTACHED) {
  		if (portstatus & USB_PORT_STAT_ENABLE) {
@@ -251,6 +249,3 @@ index 9f3f3d8f..2dbee186 100644
  /**
   * usb_reset_and_verify_device - perform a USB port reset to reinitialize a device
   * @udev: device to reset (not in SUSPENDED or NOTATTACHED state)
--- 
-2.25.1
-

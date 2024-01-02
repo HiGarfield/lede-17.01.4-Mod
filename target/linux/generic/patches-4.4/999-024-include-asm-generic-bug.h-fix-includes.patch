@@ -7,8 +7,6 @@ Subject: [PATCH] include/asm-generic/bug.h: fix includes
  include/asm-generic/bug.h | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/include/asm-generic/bug.h b/include/asm-generic/bug.h
-index af2c3d4a..e362bdb9 100644
 --- a/include/asm-generic/bug.h
 +++ b/include/asm-generic/bug.h
 @@ -10,7 +10,7 @@
@@ -20,6 +18,3 @@ index af2c3d4a..e362bdb9 100644
  
  #ifdef CONFIG_BUG
  
--- 
-2.25.1
-

@@ -64,11 +64,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/urb.c | 12 ++++++++++++
  2 files changed, 26 insertions(+)
 
-diff --git a/drivers/usb/core/hcd.c b/drivers/usb/core/hcd.c
-index 99c146f4..b2ea8ed8 100644
 --- a/drivers/usb/core/hcd.c
 +++ b/drivers/usb/core/hcd.c
-@@ -1635,6 +1635,13 @@ int usb_hcd_submit_urb (struct urb *urb, gfp_t mem_flags)
+@@ -1635,6 +1635,13 @@ int usb_hcd_submit_urb (struct urb *urb,
  		urb->hcpriv = NULL;
  		INIT_LIST_HEAD(&urb->urb_list);
  		atomic_dec(&urb->use_count);
@@ -82,7 +80,7 @@ index 99c146f4..b2ea8ed8 100644
  		atomic_dec(&urb->dev->urbnum);
  		if (atomic_read(&urb->reject))
  			wake_up(&usb_kill_urb_queue);
-@@ -1744,6 +1751,13 @@ static void __usb_hcd_giveback_urb(struct urb *urb)
+@@ -1744,6 +1751,13 @@ static void __usb_hcd_giveback_urb(struc
  
  	usb_anchor_resume_wakeups(anchor);
  	atomic_dec(&urb->use_count);
@@ -96,8 +94,6 @@ index 99c146f4..b2ea8ed8 100644
  	if (unlikely(atomic_read(&urb->reject)))
  		wake_up(&usb_kill_urb_queue);
  	usb_put_urb(urb);
-diff --git a/drivers/usb/core/urb.c b/drivers/usb/core/urb.c
-index ba16f953..520ee97d 100644
 --- a/drivers/usb/core/urb.c
 +++ b/drivers/usb/core/urb.c
 @@ -655,6 +655,12 @@ void usb_kill_urb(struct urb *urb)
@@ -126,6 +122,3 @@ index ba16f953..520ee97d 100644
  
  	if (!urb->dev || !urb->ep)
  		return;
--- 
-2.25.1
-

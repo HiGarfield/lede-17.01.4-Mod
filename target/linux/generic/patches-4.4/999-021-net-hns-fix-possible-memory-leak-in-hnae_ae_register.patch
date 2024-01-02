@@ -35,11 +35,9 @@ Signed-off-by: Jakub Kicinski <kuba@kernel.org>
  drivers/net/ethernet/hisilicon/hns/hnae.c | 4 +++-
  1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/net/ethernet/hisilicon/hns/hnae.c b/drivers/net/ethernet/hisilicon/hns/hnae.c
-index 3ce41efe..0417259c 100644
 --- a/drivers/net/ethernet/hisilicon/hns/hnae.c
 +++ b/drivers/net/ethernet/hisilicon/hns/hnae.c
-@@ -410,8 +410,10 @@ int hnae_ae_register(struct hnae_ae_dev *hdev, struct module *owner)
+@@ -410,8 +410,10 @@ int hnae_ae_register(struct hnae_ae_dev
  	hdev->cls_dev.release = hnae_release;
  	(void)dev_set_name(&hdev->cls_dev, "hnae%d", hdev->id);
  	ret = device_register(&hdev->cls_dev);
@@ -51,6 +49,3 @@ index 3ce41efe..0417259c 100644
  
  	__module_get(THIS_MODULE);
  
--- 
-2.25.1
-

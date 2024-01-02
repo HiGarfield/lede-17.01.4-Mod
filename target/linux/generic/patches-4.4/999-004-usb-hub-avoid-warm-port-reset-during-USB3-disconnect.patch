@@ -29,11 +29,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 24 +++++++++++++++++++-----
  1 file changed, 19 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 6767732d..9d1ded4d 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -2589,6 +2589,8 @@ static unsigned hub_is_wusb(struct usb_hub *hub)
+@@ -2589,6 +2589,8 @@ static unsigned hub_is_wusb(struct usb_h
  #define SET_CONFIG_TRIES	(2 * (use_both_schemes + 1))
  #define USE_NEW_SCHEME(i)	((i) / 2 == (int)old_scheme_first)
  
@@ -42,7 +40,7 @@ index 6767732d..9d1ded4d 100644
  #define HUB_ROOT_RESET_TIME	50	/* times are in msec */
  #define HUB_SHORT_RESET_TIME	10
  #define HUB_BH_RESET_TIME	50
-@@ -5099,6 +5101,7 @@ static void port_event(struct usb_hub *hub, int port1)
+@@ -5099,6 +5101,7 @@ static void port_event(struct usb_hub *h
  	struct usb_device *udev = port_dev->child;
  	struct usb_device *hdev = hub->hdev;
  	u16 portstatus, portchange;
@@ -50,20 +48,21 @@ index 6767732d..9d1ded4d 100644
  
  	connect_change = test_bit(port1, hub->change_bits);
  	clear_bit(port1, hub->event_bits);
-@@ -5172,17 +5175,27 @@ static void port_event(struct usb_hub *hub, int port1)
+@@ -5172,17 +5175,27 @@ static void port_event(struct usb_hub *h
  		connect_change = 1;
  
  	/*
 -	 * Warm reset a USB3 protocol port if it's in
 -	 * SS.Inactive state.
+-	 */
+-	if (hub_port_warm_reset_required(hub, port1, portstatus)) {
+-		dev_dbg(&port_dev->dev, "do warm reset\n");
+-		if (!udev || !(portstatus & USB_PORT_STAT_CONNECTION)
 +	 * Avoid trying to recover a USB3 SS.Inactive port with a warm reset if
 +	 * the device was disconnected. A 12ms disconnect detect timer in
 +	 * SS.Inactive state transitions the port to RxDetect automatically.
 +	 * SS.Inactive link error state is common during device disconnect.
- 	 */
--	if (hub_port_warm_reset_required(hub, port1, portstatus)) {
--		dev_dbg(&port_dev->dev, "do warm reset\n");
--		if (!udev || !(portstatus & USB_PORT_STAT_CONNECTION)
++	 */
 +	while (hub_port_warm_reset_required(hub, port1, portstatus)) {
 +		if ((i++ < DETECT_DISCONNECT_TRIES) && udev) {
 +			u16 unused;
@@ -83,7 +82,7 @@ index 6767732d..9d1ded4d 100644
  			usb_unlock_port(port_dev);
  			usb_lock_device(udev);
  			usb_reset_device(udev);
-@@ -5190,6 +5203,7 @@ static void port_event(struct usb_hub *hub, int port1)
+@@ -5190,6 +5203,7 @@ static void port_event(struct usb_hub *h
  			usb_lock_port(port_dev);
  			connect_change = 0;
  		}
@@ -91,6 +90,3 @@ index 6767732d..9d1ded4d 100644
  	}
  
  	if (connect_change)
--- 
-2.25.1
-

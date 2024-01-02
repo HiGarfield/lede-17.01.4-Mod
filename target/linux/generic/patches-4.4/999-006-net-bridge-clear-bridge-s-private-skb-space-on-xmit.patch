@@ -18,11 +18,9 @@ Signed-off-by: David S. Miller <davem@davemloft.net>
  net/bridge/br_device.c | 2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/net/bridge/br_device.c b/net/bridge/br_device.c
-index 2c8095a5..8b75582a 100644
 --- a/net/bridge/br_device.c
 +++ b/net/bridge/br_device.c
-@@ -41,6 +41,8 @@ netdev_tx_t br_dev_xmit(struct sk_buff *skb, struct net_device *dev)
+@@ -41,6 +41,8 @@ netdev_tx_t br_dev_xmit(struct sk_buff *
  	const struct nf_br_ops *nf_ops;
  	u16 vid = 0;
  
@@ -31,6 +29,3 @@ index 2c8095a5..8b75582a 100644
  	rcu_read_lock();
  	nf_ops = rcu_dereference(nf_br_ops);
  	if (nf_ops && nf_ops->br_dev_xmit_hook(skb)) {
--- 
-2.25.1
-

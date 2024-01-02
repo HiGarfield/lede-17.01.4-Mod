@@ -27,15 +27,15 @@
  	unsigned long flags;
 --- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
 +++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
-@@ -411,6 +411,7 @@
+@@ -375,6 +375,7 @@
  #define QCA955X_PLL_CPU_CONFIG_REG		0x00
  #define QCA955X_PLL_DDR_CONFIG_REG		0x04
  #define QCA955X_PLL_CLK_CTRL_REG		0x08
 +#define QCA955X_PLL_PCIE_CONFIG_REG		0x0c
  #define QCA955X_PLL_ETH_XMII_CONTROL_REG	0x28
  #define QCA955X_PLL_ETH_SGMII_CONTROL_REG	0x48
- #define QCA955X_PLL_ETH_SGMII_SERDES_REG	0x4c
-@@ -565,6 +566,7 @@
+ 
+@@ -497,6 +498,7 @@
  #define QCA953X_RESET_REG_PCIE_WMAC_INT_STATUS	0xac
  
  #define QCA955X_RESET_REG_RESET_MODULE		0x1c
@@ -45,14 +45,14 @@
  
 --- a/arch/mips/include/asm/mach-ath79/ath79.h
 +++ b/arch/mips/include/asm/mach-ath79/ath79.h
-@@ -178,6 +178,7 @@ static inline u32 ath79_reset_rr(unsigne
+@@ -177,6 +177,7 @@ static inline u32 ath79_reset_rr(unsigne
  
  void ath79_device_reset_set(u32 mask);
  void ath79_device_reset_clear(u32 mask);
 +void ath79_device_reset2_clear(u32 mask);
  u32 ath79_device_reset_get(u32 mask);
  
- void ath79_cpu_irq_init(unsigned irq_wb_chan2, unsigned irq_wb_chan3);
+ #endif /* __ASM_MACH_ATH79_H */
 --- a/arch/mips/pci/pci-ar724x.c
 +++ b/arch/mips/pci/pci-ar724x.c
 @@ -335,18 +335,37 @@ static void ar724x_pci_hw_init(struct ar

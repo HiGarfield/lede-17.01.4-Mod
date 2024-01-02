@@ -9,7 +9,7 @@
  #define PAGE_SHARED	__pgprot(_PAGE_PRESENT | _PAGE_WRITE | _PAGE_READ | \
  				 _page_cachable_default)
  #define PAGE_COPY	__pgprot(_PAGE_PRESENT | _PAGE_READ | _PAGE_NO_EXEC | \
-@@ -436,13 +436,14 @@ static inline pte_t pte_modify(pte_t pte, pgprot_t newprot)
+@@ -436,13 +436,14 @@ static inline pte_t pte_modify(pte_t pte
  	pte.pte_low  &= (_PAGE_MODIFIED | _PAGE_ACCESSED | _PFNX_MASK);
  	pte.pte_high &= (_PFN_MASK | _CACHE_MASK);
  	pte.pte_low  |= pgprot_val(newprot) & ~_PFNX_MASK;
@@ -26,7 +26,7 @@
  }
  #endif
  
-@@ -605,7 +606,8 @@ static inline struct page *pmd_page(pmd_t pmd)
+@@ -605,7 +606,8 @@ static inline struct page *pmd_page(pmd_
  
  static inline pmd_t pmd_modify(pmd_t pmd, pgprot_t newprot)
  {

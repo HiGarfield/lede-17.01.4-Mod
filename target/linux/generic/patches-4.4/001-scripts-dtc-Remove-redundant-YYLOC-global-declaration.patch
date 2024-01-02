@@ -42,8 +42,6 @@ Change-Id: I7f299451e99aab09375883546e47505ec0937c26
  scripts/dtc/dtc-lexer.lex.c_shipped | 1 -
  2 files changed, 2 deletions(-)
 
-diff --git a/scripts/dtc/dtc-lexer.l b/scripts/dtc/dtc-lexer.l
-index 0ee1caf0..a9b58b71 100644
 --- a/scripts/dtc/dtc-lexer.l
 +++ b/scripts/dtc/dtc-lexer.l
 @@ -38,7 +38,6 @@ LINECOMMENT	"//".*\n
@@ -54,8 +52,6 @@ index 0ee1caf0..a9b58b71 100644
  extern bool treesource_error;
  
  /* CAUTION: this will stop working if we ever use yyless() or yyunput() */
-diff --git a/scripts/dtc/dtc-lexer.lex.c_shipped b/scripts/dtc/dtc-lexer.lex.c_shipped
-index 11cd78e7..26932b00 100644
 --- a/scripts/dtc/dtc-lexer.lex.c_shipped
 +++ b/scripts/dtc/dtc-lexer.lex.c_shipped
 @@ -637,7 +637,6 @@ char *yytext;
@@ -66,6 +62,3 @@ index 11cd78e7..26932b00 100644
  extern bool treesource_error;
  
  /* CAUTION: this will stop working if we ever use yyless() or yyunput() */
--- 
-2.25.1
-

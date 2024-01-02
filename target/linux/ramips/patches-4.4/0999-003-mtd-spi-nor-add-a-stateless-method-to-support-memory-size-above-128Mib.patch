@@ -11,7 +11,7 @@
  };
  
  #define JEDEC_MFR(info)	((info)->id[0])
-@@ -182,6 +186,78 @@ static inline struct spi_nor *mtd_to_spi_nor(struct mtd_info *mtd)
+@@ -182,6 +186,78 @@ static inline struct spi_nor *mtd_to_spi
  	return mtd->priv;
  }
  
@@ -90,7 +90,7 @@
  /* Enable/disable 4-byte addressing mode. */
  static inline int set_4byte(struct spi_nor *nor, const struct flash_info *info,
  			    int enable)
-@@ -1361,27 +1437,10 @@ int spi_nor_scan(struct spi_nor *nor, const char *name, enum read_mode mode)
+@@ -1361,27 +1437,10 @@ int spi_nor_scan(struct spi_nor *nor, co
  	else if (mtd->size > 0x1000000) {
  		/* enable 4-byte addressing if the device exceeds 16MiB */
  		nor->addr_width = 4;

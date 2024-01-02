@@ -1,6 +1,6 @@
 --- a/arch/mips/ralink/mt7621.c
 +++ b/arch/mips/ralink/mt7621.c
-@@ -21,6 +21,7 @@
+@@ -24,6 +24,7 @@
  #include <asm/mach-ralink/ralink_regs.h>
  #include <asm/mach-ralink/mt7621.h>
  #include <asm/mips-boards/launch.h>
@@ -8,7 +8,7 @@
  
  #include <pinmux.h>
  
-@@ -178,6 +179,58 @@ bool plat_cpu_core_present(int core)
+@@ -213,6 +214,58 @@ bool plat_cpu_core_present(int core)
  	return true;
  }
  

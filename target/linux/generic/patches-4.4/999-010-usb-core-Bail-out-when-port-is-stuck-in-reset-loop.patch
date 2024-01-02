@@ -33,11 +33,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 8 ++++++--
  1 file changed, 6 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 8742cd93..947a1623 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -2759,8 +2759,12 @@ static int hub_port_reset(struct usb_hub *hub, int port1,
+@@ -2759,8 +2759,12 @@ static int hub_port_reset(struct usb_hub
  						status);
  		}
  
@@ -52,6 +50,3 @@ index 8742cd93..947a1623 100644
  			usb_clear_port_feature(hub->hdev, port1,
  					USB_PORT_FEAT_C_RESET);
  
--- 
-2.25.1
-

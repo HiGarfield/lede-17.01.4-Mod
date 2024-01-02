@@ -49,11 +49,9 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  drivers/usb/core/hub.c | 1 +
  1 file changed, 1 insertion(+)
 
-diff --git a/drivers/usb/core/hub.c b/drivers/usb/core/hub.c
-index 420e6035..0eb96335 100644
 --- a/drivers/usb/core/hub.c
 +++ b/drivers/usb/core/hub.c
-@@ -1149,6 +1149,7 @@ static void hub_activate(struct usb_hub *hub, enum hub_activation_type type)
+@@ -1149,6 +1149,7 @@ static void hub_activate(struct usb_hub
  			 * PORT_OVER_CURRENT is not. So check for any of them.
  			 */
  			if (udev || (portstatus & USB_PORT_STAT_CONNECTION) ||
@@ -61,6 +59,3 @@ index 420e6035..0eb96335 100644
  			    (portstatus & USB_PORT_STAT_OVERCURRENT) ||
  			    (portchange & USB_PORT_STAT_C_OVERCURRENT))
  				set_bit(port1, hub->change_bits);
--- 
-2.25.1
-

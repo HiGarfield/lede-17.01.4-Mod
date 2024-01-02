@@ -13,11 +13,9 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  drivers/pinctrl/pinctrl-rt2880.c | 20 +++++++++++++++++---
  1 file changed, 17 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/pinctrl/pinctrl-rt2880.c b/drivers/pinctrl/pinctrl-rt2880.c
-index 3d2d1c2a..61cd2c50 100644
 --- a/drivers/pinctrl/pinctrl-rt2880.c
 +++ b/drivers/pinctrl/pinctrl-rt2880.c
-@@ -207,10 +207,24 @@ static int rt2880_pmx_group_enable(struct pinctrl_dev *pctrldev,
+@@ -207,10 +207,24 @@ static int rt2880_pmx_group_enable(struc
  	int i;
  	int shift;
  
@@ -45,6 +43,3 @@ index 3d2d1c2a..61cd2c50 100644
  	}
  
  	p->groups[group].enabled = 1;
--- 
-2.25.1
-
