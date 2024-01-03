@@ -302,7 +302,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  	}
  
  	for (i = 0; i < IEEE80211_NUM_TIDS; i++)
-@@ -1837,6 +1837,27 @@ void ieee80211_sta_set_buffered(struct i
+@@ -1838,6 +1838,27 @@ void ieee80211_sta_set_buffered(struct i
  }
  EXPORT_SYMBOL(ieee80211_sta_set_buffered);
  
@@ -330,7 +330,7 @@ Signed-off-by: Johannes Berg <johannes.berg@intel.com>
  int sta_info_move_state(struct sta_info *sta,
  			enum ieee80211_sta_state new_state)
  {
-@@ -2207,6 +2228,23 @@ void sta_set_sinfo(struct sta_info *sta,
+@@ -2208,6 +2229,23 @@ void sta_set_sinfo(struct sta_info *sta,
  		sinfo->filled |= BIT_ULL(NL80211_STA_INFO_TX_FAILED);
  	}
  

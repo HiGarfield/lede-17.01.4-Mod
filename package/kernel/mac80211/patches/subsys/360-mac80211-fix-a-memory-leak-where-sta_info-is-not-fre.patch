@@ -65,7 +65,7 @@ Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
  	}
  
  	local->num_sta++;
-@@ -636,8 +636,8 @@ static int sta_info_insert_finish(struct
+@@ -637,8 +637,8 @@ static int sta_info_insert_finish(struct
   out_drop_sta:
  	local->num_sta--;
  	synchronize_net();
