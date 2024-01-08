@@ -1,0 +1,19 @@
+From 267750aaa041dbe8dda64a69fe18121a2e6dd92b Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Tue, 9 Jan 2024 02:58:01 +0800
+Subject: [PATCH] ath9k: set interrupts after failing to reset channel
+
+---
+ drivers/net/wireless/ath/ath9k/main.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/drivers/net/wireless/ath/ath9k/main.c
++++ b/drivers/net/wireless/ath/ath9k/main.c
+@@ -334,6 +334,7 @@ static int ath_reset_internal(struct ath
+ 		ath_err(common,
+ 			"Unable to reset channel, reset status %d\n", r);
+ 
++		ath9k_hw_set_interrupts(ah);
+ 		ath9k_hw_enable_interrupts(ah);
+ 		ath9k_queue_reset(sc, RESET_TYPE_BB_HANG);
+ 
