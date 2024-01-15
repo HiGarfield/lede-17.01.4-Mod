@@ -1,0 +1,25 @@
+From 8c4e1385716f0caaec212dd5f66d3d97a8cb68f2 Mon Sep 17 00:00:00 2001
+From: Janthon <59256720+JanthonAlyn@users.noreply.github.com>
+Date: Sun, 7 Jan 2024 10:43:30 +0800
+Subject: [PATCH] Update configure.ac
+
+Fixed autoreconf warning.
+
+configure.ac:731: warning: The 'AM_PROG_MKDIR_P' macro is deprecated, and its use is discouraged.
+configure.ac:731: You should use the Autoconf-provided 'AC_PROG_MKDIR_P' macro instead,
+configure.ac:731: and use '$(MKDIR_P)' instead of '$(mkdir_p)'in your Makefile.am files.
+---
+ configure.ac | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -737,7 +737,7 @@ fi
+ 
+ # Checks for library functions.
+ AM_GNU_GETTEXT([external])
+-AM_GNU_GETTEXT_VERSION([0.18])
++AM_GNU_GETTEXT_VERSION([0.19])
+ AC_FUNC_ERROR_AT_LINE
+ AC_PROG_GCC_TRADITIONAL
+ 
