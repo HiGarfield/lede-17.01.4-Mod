@@ -1,0 +1,246 @@
+From 0aa23a39d9ed6c0ddb0f4f40a636765d0a95e043 Mon Sep 17 00:00:00 2001
+From: luzpaz <luzpaz@users.noreply.github.com>
+Date: Sun, 14 Jan 2024 16:22:28 +0000
+Subject: [PATCH] Fix various typos
+
+Found via `codespell -q 3 -S "./deps,./ChangeLog.old,./LICENSE.OpenSSL,./doc/manual-src/pt,./doc/sphinx_themes/sphinx_rtd_theme/locale" -L ans,anull,clen,dependant,filetest,fo,hel,nd,orign,padd,parm,servent,tennant,worl,windows`
+---
+ configure.ac                             | 4 ++--
+ src/AbstractHttpServerResponseCommand.cc | 2 +-
+ src/HttpResponse.h                       | 2 +-
+ src/LogFactory.h                         | 4 ++--
+ src/NameResolver.h                       | 2 +-
+ src/PortEventPoll.cc                     | 2 +-
+ src/ServerStat.h                         | 2 +-
+ src/WinTLSSession.cc                     | 2 +-
+ src/getaddrinfo.c                        | 2 +-
+ src/usage_text.h                         | 2 +-
+ test/AllTest.cc                          | 2 +-
+ test/FileTest.cc                         | 4 ++--
+ test/RequestTest.cc                      | 4 ++--
+ test/RpcMethodTest.cc                    | 4 ++--
+ test/SocketCoreTest.cc                   | 2 +-
+ test/UriSplitTest.cc                     | 2 +-
+ 16 files changed, 21 insertions(+), 21 deletions(-)
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -39,7 +39,7 @@ case "$host" in
+     # available from <time.h> even without (un)helpful interference
+     # from <pthread.h>, and also defines __USE_MINGW_ANSI_STDIO.
+     EXTRACPPFLAGS="$EXTRACPPFLAGS -D_POSIX_C_SOURCE=1"
+-    # Build with ASLR (dynamicbase) and NX compatiblity (nxcompat)
++    # Build with ASLR (dynamicbase) and NX compatibility (nxcompat)
+     # Enable pie once upstream/binutils gets fixed to produce correct
+     # binaries with it.
+     EXTRALDFLAGS="$EXTRALDFLAGS -Wl,--dynamicbase -Wl,--nxcompat"
+@@ -749,7 +749,7 @@ AC_FUNC_STRFTIME
+ AC_FUNC_VPRINTF
+ AC_FUNC_FORK
+ AC_FUNC_STRTOD
+-# Don't use AC_FUNC_MMAP becaue it fails on some platforms (e.g.,
++# Don't use AC_FUNC_MMAP because it fails on some platforms (e.g.,
+ # OpenWRT) which have mmap and it works in the way we use in aria2.
+ # Instead use mmap in AC_CHECK_FUNCS list.
+ AC_CHECK_FUNCS([__argz_count \
+--- a/src/AbstractHttpServerResponseCommand.cc
++++ b/src/AbstractHttpServerResponseCommand.cc
+@@ -122,7 +122,7 @@ bool AbstractHttpServerResponseCommand::
+   else {
+     if (timeoutTimer_.difference(global::wallclock()) >= 30_s) {
+       A2_LOG_INFO(fmt("CUID#%" PRId64
+-                      " - HttpServer: Timeout while trasmitting response.",
++                      " - HttpServer: Timeout while transmitting response.",
+                       getCuid()));
+       return true;
+     }
+--- a/src/HttpResponse.h
++++ b/src/HttpResponse.h
+@@ -66,7 +66,7 @@ public:
+ 
+   /**
+    * Returns filename.
+-   * If content-disposition header is privided in response header,
++   * If content-disposition header is provided in response header,
+    * this function returns the filename from it.
+    * If it is not there, returns the part of filename from the request URL.
+    */
+--- a/src/LogFactory.h
++++ b/src/LogFactory.h
+@@ -84,7 +84,7 @@ public:
+   static void setLogLevel(Logger::LEVEL level);
+ 
+   /**
+-   * Set log level to output to file by string represention of log
++   * Set log level to output to file by string representation of log
+    * level.  Possible values are: debug, info, notice, warn, error
+    */
+   static void setLogLevel(const std::string& level);
+@@ -95,7 +95,7 @@ public:
+   static void setConsoleLogLevel(Logger::LEVEL level);
+ 
+   /**
+-   * Set log level to output to console by string represention of log
++   * Set log level to output to console by string representation of log
+    * level.  Possible values are: debug, info, notice, warn, error
+    */
+   static void setConsoleLogLevel(const std::string& level);
+--- a/src/NameResolver.h
++++ b/src/NameResolver.h
+@@ -50,7 +50,7 @@ public:
+   NameResolver();
+ 
+   /**
+-   * Reolved addresses are pushed into addresses.
++   * Resolved addresses are pushed into addresses.
+    */
+   void resolve(std::vector<std::string>& resolvedAddresses,
+                const std::string& hostname);
+--- a/src/PortEventPoll.cc
++++ b/src/PortEventPoll.cc
+@@ -103,7 +103,7 @@ void PortEventPoll::poll(const struct ti
+   int res;
+   uint_t nget = 1;
+   // If port_getn was interrupted by signal, it can consume events but
+-  // not updat nget!. For this very annoying bug, we have to check
++  // not update nget!. For this very annoying bug, we have to check
+   // actually event is filled or not.
+   portEvents_[0].portev_user = (void*)-1;
+   res = port_getn(port_, portEvents_, portEventsSize_, &nget, &timeout);
+--- a/src/ServerStat.h
++++ b/src/ServerStat.h
+@@ -91,7 +91,7 @@ public:
+   // This method doesn't update _lastUpdate.
+   void setStatus(STATUS status);
+ 
+-  // status should be one of the followings: "OK", "ERROR".
++  // status should be one of the following: "OK", "ERROR".
+   // Giving other string will not change the status of this object.
+   // This method doesn't update _lastUpdate.
+   void setStatus(const std::string& status);
+--- a/src/WinTLSSession.cc
++++ b/src/WinTLSSession.cc
+@@ -440,7 +440,7 @@ ssize_t WinTLSSession::readData(void* da
+ 
+   // Can be filled from decBuffer entirely?
+   if (decBuf_.size() >= len) {
+-    A2_LOG_DEBUG("WinTLS: Fullfilling req from buffer");
++    A2_LOG_DEBUG("WinTLS: Fulfilling req from buffer");
+     memcpy(data, decBuf_.data(), len);
+     decBuf_.eat(len);
+     return len;
+--- a/src/getaddrinfo.c
++++ b/src/getaddrinfo.c
+@@ -293,7 +293,7 @@ static int is_address(s) const char* s;
+ }
+ 
+ /*
+- * Calcurate length of the string `s', where `s' is set by
++ * Calculate length of the string `s', where `s' is set by
+  * sprintf(s, "%d", n).
+  */
+ static int itoa_length(n)
+--- a/src/usage_text.h
++++ b/src/usage_text.h
+@@ -98,7 +98,7 @@
+ #define TEXT_PROXY_METHOD                                               \
+   _(" --proxy-method=METHOD        Set the method to use in proxy request.")
+ #define TEXT_REFERER                                                    \
+-  _(" --referer=REFERER            Set an http referrrer (Referer). This affects\n" \
++  _(" --referer=REFERER            Set an http referrer (Referer). This affects\n" \
+     "                              all http/https downloads. If \"*\" is given,\n" \
+     "                              the download URI is also used as the referrer.\n" \
+     "                              This may be useful when used together with\n" \
+--- a/test/AllTest.cc
++++ b/test/AllTest.cc
+@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
+ 
+   // By default, SocketCore uses AF_UNSPEC for getaddrinfo hints to
+   // resolve address. Sometime SocketCore::bind() and
+-  // SocketCore::establishConnection() use difference protocl family
++  // SocketCore::establishConnection() use difference protocol family
+   // and latter cannot connect to former. To avoid this situation, we
+   // limit protocol family to AF_INET for unit tests.
+   aria2::SocketCore::setProtocolFamily(AF_INET);
+--- a/test/FileTest.cc
++++ b/test/FileTest.cc
+@@ -129,7 +129,7 @@ void FileTest::testMkdir()
+     CPPUNIT_ASSERT(d.mkdirs());
+ 
+     CPPUNIT_ASSERT(d.exists());
+-    // this test failes because d.mkdir returns false when the directory is
++    // this test fails because d.mkdir returns false when the directory is
+     // already exists.
+     CPPUNIT_ASSERT(!d.mkdirs());
+   }
+@@ -147,7 +147,7 @@ void FileTest::testMkdir()
+     CPPUNIT_ASSERT(d.mkdirs());
+ 
+     CPPUNIT_ASSERT(nd.exists());
+-    // this test failes because d.mkdir returns false when the directory is
++    // this test fails because d.mkdir returns false when the directory is
+     // already exists.
+     CPPUNIT_ASSERT(!d.mkdirs());
+   }
+--- a/test/RequestTest.cc
++++ b/test/RequestTest.cc
+@@ -74,7 +74,7 @@ void RequestTest::testSetUri2()
+ 
+   CPPUNIT_ASSERT(v);
+ 
+-  // referer is unchaged
++  // referer is unchanged
+   CPPUNIT_ASSERT_EQUAL(std::string("http://aria.rednoah.com:8080"),
+                        req.getReferer());
+   CPPUNIT_ASSERT_EQUAL(std::string("http"), req.getProtocol());
+@@ -124,7 +124,7 @@ void RequestTest::testRedirectUri()
+   // See redirect count is incremented.
+   CPPUNIT_ASSERT_EQUAL(2, req.getRedirectCount());
+ 
+-  // Give abosulute path
++  // Give absolute path
+   CPPUNIT_ASSERT(req.redirectUri("/abspath/to/file"));
+   CPPUNIT_ASSERT_EQUAL(std::string("http://aria.rednoah.co.jp/abspath/to/file"),
+                        req.getCurrentUri());
+--- a/test/RpcMethodTest.cc
++++ b/test/RpcMethodTest.cc
+@@ -875,7 +875,7 @@ void RpcMethodTest::testTellWaiting()
+   CPPUNIT_ASSERT_EQUAL(0, res.code);
+   resParams = downcast<List>(res.param);
+   CPPUNIT_ASSERT_EQUAL((size_t)4, resParams->size());
+-  // nagative offset and normalized offset < 0
++  // negative offset and normalized offset < 0
+   req = RpcRequest(TellWaitingRpcMethod::getMethodName(), List::g());
+   req.params->append(Integer::g(-5));
+   req.params->append(Integer::g(100));
+@@ -883,7 +883,7 @@ void RpcMethodTest::testTellWaiting()
+   CPPUNIT_ASSERT_EQUAL(0, res.code);
+   resParams = downcast<List>(res.param);
+   CPPUNIT_ASSERT_EQUAL((size_t)0, resParams->size());
+-  // nagative offset and normalized offset == 0
++  // negative offset and normalized offset == 0
+   req = RpcRequest(TellWaitingRpcMethod::getMethodName(), List::g());
+   req.params->append(Integer::g(-4));
+   req.params->append(Integer::g(100));
+--- a/test/SocketCoreTest.cc
++++ b/test/SocketCoreTest.cc
+@@ -227,7 +227,7 @@ void SocketCoreTest::testVerifyHostname(
+     CPPUNIT_ASSERT(net::verifyHostname("::1", dnsNames, ipAddrs, commonName));
+   }
+   {
+-    // If iPAddress is privided, don't match with commonName
++    // If iPAddress is provided, don't match with commonName
+     std::vector<std::string> dnsNames, ipAddrs;
+     unsigned char binAddr[16];
+     size_t len;
+--- a/test/UriSplitTest.cc
++++ b/test/UriSplitTest.cc
+@@ -82,7 +82,7 @@ void UriSplitTest::testUriSplit()
+ 
+   // According to RFC 3986, @ in userinfo is illegal. But many people
+   // have e-mail account as username and don't understand
+-  // percent-encoding and keep getting erros putting it in URI in
++  // percent-encoding and keep getting errors putting it in URI in
+   // unecoded form. Because of this, we support @ in username.
+   uri = "http://user@foo.com:pass@aria2.sf.net/path/";
+   memset(&res, 0, sizeof(res));
