@@ -18,7 +18,7 @@ jobs:
     steps:
       - name: Repository dispatch
         if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push' }}
-        uses: HiGarfield/repository-dispatch@v2
+        uses: HiGarfield/repository-dispatch@main
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ secrets.SECOND_REPO }}
