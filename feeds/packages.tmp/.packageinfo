@@ -32785,7 +32785,7 @@ Luke McKee <hojuruku@gmail.com>
 Source-Makefile: feeds/packages/net/miniupnpc/Makefile
 Package: miniupnpc
 Submenu: Firewall
-Version: 2.0.20170509-1
+Version: 2.2.6-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libminiupnpc
 Conflicts: 
 Menu-Depends: 
@@ -32794,16 +32794,18 @@ Section: net
 Category: Network
 Repository: base
 Title: Lightweight UPnP client
-Maintainer: Steven Barth <cyrus@openwrt.org>
-Source: miniupnpc-2.0.20170509.tar.gz
+Maintainer: 
+Source: miniupnpc-2.2.6.tar.gz
+License: BSD-3-Clause
+LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP client
-http://miniupnp.tuxfamily.org/
-Steven Barth <cyrus@openwrt.org>
+https://miniupnp.tuxfamily.org
+
 @@
 
 Package: libminiupnpc
-Version: 2.0.20170509-1
+Version: 2.2.6-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -32812,12 +32814,14 @@ Section: libs
 Category: Libraries
 Repository: base
 Title: Lightweight UPnP library
-Maintainer: Steven Barth <cyrus@openwrt.org>
-Source: miniupnpc-2.0.20170509.tar.gz
+Maintainer: 
+Source: miniupnpc-2.2.6.tar.gz
+License: BSD-3-Clause
+LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP library
-http://miniupnp.tuxfamily.org/
-Steven Barth <cyrus@openwrt.org>
+https://miniupnp.tuxfamily.org
+
 @@
 
 
