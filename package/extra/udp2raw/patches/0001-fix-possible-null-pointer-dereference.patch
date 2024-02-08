@@ -1,0 +1,33 @@
+From: HiGarfield <HiGarfield@126.com>
+Date: Sun, 8 Oct 2023 11:34:17 +0800
+Subject: [PATCH] fix possible null pointer dereference
+
+cppcheck reports:
+network.cpp:1717:22: error: Null pointer dereference: payload [ctunullpointer]
+    memcpy(tcp_data, payload, payloadlen);
+                     ^
+client.cpp:193:22: note: Calling function send_raw0, 2nd argument is null
+            send_raw0(raw_info, 0, 0);
+                     ^
+network.cpp:2534:20: note: Calling function send_raw_tcp, 2nd argument is null
+            return send_raw_tcp(raw_info, payload, payloadlen);
+                   ^
+network.cpp:1717:22: note: Dereferencing argument payload that is null
+    memcpy(tcp_data, payload, payloadlen);
+                     ^
+---
+ network.cpp | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/network.cpp
++++ b/network.cpp
+@@ -1714,7 +1714,8 @@ int send_raw_tcp(raw_info_t &raw_info, c
+ 
+     char *tcp_data = send_raw_tcp_buf + +tcph->doff * 4;
+ 
+-    memcpy(tcp_data, payload, payloadlen);
++    if (payload)
++        memcpy(tcp_data, payload, payloadlen);
+     int tcp_totlen = tcph->doff * 4 + payloadlen;
+ 
+     if (raw_ip_version == AF_INET) {
