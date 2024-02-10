@@ -8,6 +8,7 @@
  *  by the Free Software Foundation.
  */
 
+#include <linux/gpio.h>
 #include <linux/platform_device.h>
 
 #include <asm/mach-ath79/ath79.h>
@@ -28,6 +29,8 @@
 
 #define TL_WR941ND_GPIO_BTN_RESET	3
 #define TL_WR941ND_GPIO_BTN_QSS		7
+
+#define TL_WR941ND_GPIO_USB_POWER	6
 
 #define TL_WR941ND_KEYS_POLL_INTERVAL	20	/* msecs */
 #define TL_WR941ND_KEYS_DEBOUNCE_INTERVAL (3 * TL_WR941ND_KEYS_POLL_INTERVAL)
@@ -116,6 +119,10 @@ static void __init tl_wr941nd_setup(void)
 					ARRAY_SIZE(tl_wr941nd_gpio_keys),
 					tl_wr941nd_gpio_keys);
 	ath79_register_wmac(eeprom, mac);
+
+	gpio_request_one(TL_WR941ND_GPIO_USB_POWER,
+			 GPIOF_OUT_INIT_HIGH | GPIOF_EXPORT_DIR_FIXED,
+			 "USB power");
 	ath79_register_usb();
 }
 
