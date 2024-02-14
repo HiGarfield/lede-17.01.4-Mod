@@ -1,0 +1,30 @@
+From 90ae745802a03e6a285a4e8bc042335daf664d56 Mon Sep 17 00:00:00 2001
+From: Yang Li <yang.lee@linux.alibaba.com>
+Date: Wed, 15 Nov 2023 09:00:17 +0800
+Subject: [PATCH] wifi: rt2x00: Simplify bool conversion
+
+./drivers/net/wireless/ralink/rt2x00/rt2800lib.c:1331:47-52: WARNING: conversion to bool not needed here
+./drivers/net/wireless/ralink/rt2x00/rt2800lib.c:1332:47-52: WARNING: conversion to bool not needed here
+
+Reported-by: Abaci Robot <abaci@linux.alibaba.com>
+Closes: https://bugzilla.openanolis.cn/show_bug.cgi?id=7531
+Signed-off-by: Yang Li <yang.lee@linux.alibaba.com>
+Signed-off-by: Kalle Valo <kvalo@kernel.org>
+Link: https://lore.kernel.org/r/20231115010017.112081-1-yang.lee@linux.alibaba.com
+---
+ drivers/net/wireless/ralink/rt2x00/rt2800lib.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
+@@ -1363,8 +1363,8 @@ static bool rt2800_watchdog_dma_busy(str
+ 	else
+ 		rt2x00dev->txdma_busy = 0;
+ 
+-	busy_rx = rt2x00dev->rxdma_busy > 30 ? true : false;
+-	busy_tx = rt2x00dev->txdma_busy > 30 ? true : false;
++	busy_rx = rt2x00dev->rxdma_busy > 30;
++	busy_tx = rt2x00dev->txdma_busy > 30;
+ 
+ 	if (!busy_rx && !busy_tx)
+ 		return false;

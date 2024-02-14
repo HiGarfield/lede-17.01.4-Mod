@@ -1,0 +1,56 @@
+From f6a5c5dcebcd4a9a6ccf41c3e19cd09b4c804b8c Mon Sep 17 00:00:00 2001
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Date: Wed, 23 Aug 2023 21:23:34 +0300
+Subject: [PATCH] wifi: ath9k: use u32 for txgain indexes
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Since both 'ar9550_hw_get_modes_txgain_index()' and
+'ar9561_hw_get_modes_txgain_index()' never returns
+negative values, prefer 'u32' over 'int' and adjust
+'ar9003_hw_process_ini()' accordingly.
+
+Suggested-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Reviewed-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://lore.kernel.org/r/20230823182401.196270-2-dmantipov@yandex.ru
+---
+ drivers/net/wireless/ath/ath9k/ar9003_phy.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- a/drivers/net/wireless/ath/ath9k/ar9003_phy.c
++++ b/drivers/net/wireless/ath/ath9k/ar9003_phy.c
+@@ -779,10 +779,10 @@ static void ar9003_hw_prog_ini(struct at
+ 	}
+ }
+ 
+-static int ar9550_hw_get_modes_txgain_index(struct ath_hw *ah,
++static u32 ar9550_hw_get_modes_txgain_index(struct ath_hw *ah,
+ 					    struct ath9k_channel *chan)
+ {
+-	int ret;
++	u32 ret;
+ 
+ 	if (IS_CHAN_2GHZ(chan)) {
+ 		if (IS_CHAN_HT40(chan))
+@@ -804,7 +804,7 @@ static int ar9550_hw_get_modes_txgain_in
+ 	return ret;
+ }
+ 
+-static int ar9561_hw_get_modes_txgain_index(struct ath_hw *ah,
++static u32 ar9561_hw_get_modes_txgain_index(struct ath_hw *ah,
+ 					    struct ath9k_channel *chan)
+ {
+ 	if (IS_CHAN_2GHZ(chan)) {
+@@ -929,7 +929,7 @@ static int ar9003_hw_process_ini(struct
+ 	 * TXGAIN initvals.
+ 	 */
+ 	if (AR_SREV_9550(ah) || AR_SREV_9531(ah) || AR_SREV_9561(ah)) {
+-		int modes_txgain_index = 1;
++		u32 modes_txgain_index = 1;
+ 
+ 		if (AR_SREV_9550(ah))
+ 			modes_txgain_index = ar9550_hw_get_modes_txgain_index(ah, chan);
