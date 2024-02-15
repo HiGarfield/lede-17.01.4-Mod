@@ -23,12 +23,12 @@ auto_share_ro = s:taboption("general", Flag, "auto_share_ro",
 auto_share_ro.default = 0
 auto_share_ro:depends("auto_share", "1")
 
-local auto_share_enabled = 0
+local auto_share_enabled = false
 luci.model.uci.cursor():foreach("samba", "samba", function(section)
-    if section.auto_share == "1" then auto_share_enabled = 1 end
+    if section.auto_share == "1" then auto_share_enabled = true end
 end)
 
-if auto_share_enabled == 1 then
+if auto_share_enabled then
     local auto_shared_paths = {}
     luci.model.uci.cursor("/var/run/config"):foreach("samba", "sambashare",
                                                      function(section)
@@ -43,7 +43,11 @@ if auto_share_enabled == 1 then
     end)
     if next(auto_shared_paths) then
         table.sort(auto_shared_paths, function(a, b)
-            return a.name < b.name
+            if a ~= nil and b ~= nil and a.name ~= nil and b.name ~= nil then
+                return a.name < b.name
+            else
+                return false
+            end
         end)
     end
 
@@ -73,7 +77,7 @@ end
 
 function tmpl.write(self, section, value)
 	value = value:gsub("\r\n?", "\n")
-	nixio.fs.writefile("//etc/samba/smb.conf.template", value)
+	nixio.fs.writefile("/etc/samba/smb.conf.template", value)
 end
 
 
