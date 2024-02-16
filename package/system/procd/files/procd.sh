@@ -46,8 +46,9 @@ PROCD_RELOAD_DELAY=1000
 _PROCD_SERVICE=
 
 procd_lock() {
-	local basescript=$(readlink "$initscript")
-	local service_name="$(basename ${basescript:-$initscript})"
+	:
+	# local basescript=$(readlink "$initscript")
+	# local service_name="$(basename ${basescript:-$initscript})"
 
 	# flock -n 1000 &> /dev/null
 	# if [ "$?" != "0" ]; then
@@ -407,12 +408,12 @@ _procd_add_instance() {
 
 procd_running() {
 	local service="$1"
-	local instance="${2:-instance1}"
-	local running
+	local instance="${2:-*}"
+	[ "$instance" = "*" ] || instance="'$instance'"
 
 	json_init
 	json_add_string name "$service"
-	running=$(_procd_ubus_call list | jsonfilter -e "@['$service'].instances['$instance'].running")
+	local running=$(_procd_ubus_call list | jsonfilter -l 1 -e "@['$service'].instances[$instance].running")
 
 	[ "$running" = "true" ]
 }
