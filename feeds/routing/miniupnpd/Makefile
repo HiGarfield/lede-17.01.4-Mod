@@ -56,6 +56,10 @@ define Build/Prepare
 	echo "OpenWrt" | tr \(\)\  _ >$(PKG_BUILD_DIR)/os.openwrt
 endef
 
+TARGET_CFLAGS := $(filter-out -O%,$(TARGET_CFLAGS))
+TARGET_CFLAGS += -flto -ffunction-sections -fdata-sections -O2
+TARGET_LDFLAGS += $(FPIC) -flto -Wl,--gc-sections
+
 MAKE_FLAGS += \
 	TARGET_OPENWRT=1 TEST=0 \
 	LIBS="" \
