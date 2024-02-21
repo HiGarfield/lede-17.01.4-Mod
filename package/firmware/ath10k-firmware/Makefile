@@ -14,7 +14,7 @@ PKG_MIRROR_HASH:=7ad7cbe78fff3a84dc9df18292bf4126b4668cb5e30d82ef7eae154be7f8340
 PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/kvalo/ath10k-firmware.git
+PKG_SOURCE_URL:=https://git.codelinaro.org/clo/ath-firmware/ath10k-firmware
 
 PKG_MAINTAINER:=Felix Fietkau <nbd@nbd.name>
 
