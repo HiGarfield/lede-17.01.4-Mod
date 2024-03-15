@@ -55,6 +55,9 @@ a3004ns)
 wnce2001)
 	set_wifi_led "$board:green:wlan"
 	;;
+5k-w20)
+	set_wifi_led "$board:green:wifi"
+	;;
 br-6475nd|\
 mzk-w300nh2)
 	set_wifi_led "$board:amber:wlan"

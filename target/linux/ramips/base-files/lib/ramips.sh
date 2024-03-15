@@ -37,6 +37,9 @@ ramips_board_detect() {
 	*"3g-6200nl")
 		name="3g-6200nl"
 		;;
+	*"5K W20")
+		name="5k-w20"
+		;;
 	*"A5-V11")
 		name="a5-v11"
 		;;
