@@ -49,6 +49,9 @@ get_status_led() {
 	3g-6200nl)
 		status_led="$board:green:internet"
 		;;
+	5k-w20)
+		status_led="$board:green:wifi"
+		;;
 	a5-v11|\
 	cs-qr10|\
 	d105|\

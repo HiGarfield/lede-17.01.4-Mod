@@ -16,6 +16,7 @@ platform_check_image() {
 	case "$board" in
 	3g150b|\
 	3g300m|\
+	5k-w20|\
 	a5-v11|\
 	ac1200pro|\
 	ai-br100|\

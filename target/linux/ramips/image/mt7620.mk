@@ -516,3 +516,11 @@ define Device/domywifi-dw22d-v2
   DEVICE_PACKAGES := kmod-mt76x0e kmod-usb2 kmod-usb-ohci kmod-sdhci kmod-sdhci-mt7620 kmod-usb-ledtrig-usbport
 endef
 TARGET_DEVICES += domywifi-dw22d-v2
+
+define Device/5k-w20
+  DTS := 5K-W20
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := 5K W20
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
+endef
+TARGET_DEVICES += 5k-w20
