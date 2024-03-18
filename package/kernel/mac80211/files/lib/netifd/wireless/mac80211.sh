@@ -207,6 +207,7 @@ mac80211_hostapd_setup_base() {
 			case "$channel" in
 				36|40|44|48|52|56|60|64) idx=50;;
 				100|104|108|112|116|120|124|128) idx=114;;
+				149|153|157|161|165|169|173|177) idx=163;;
 			esac
 			enable_ac=1
 			append base_cfg "vht_oper_chwidth=2" "$N"
