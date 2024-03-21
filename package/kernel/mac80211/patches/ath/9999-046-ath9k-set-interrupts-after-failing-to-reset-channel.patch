@@ -9,7 +9,7 @@ Subject: [PATCH] ath9k: set interrupts after failing to reset channel
 
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -334,6 +334,7 @@ static int ath_reset_internal(struct ath
+@@ -329,6 +329,7 @@ static int ath_reset_internal(struct ath
  		ath_err(common,
  			"Unable to reset channel, reset status %d\n", r);
  

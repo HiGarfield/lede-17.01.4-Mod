@@ -21,7 +21,7 @@ Link: https://lore.kernel.org/r/20230613134655.248728-1-dmantipov@yandex.ru
 
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -203,7 +203,7 @@ void ath_cancel_work(struct ath_softc *s
+@@ -202,7 +202,7 @@ void ath_cancel_work(struct ath_softc *s
  void ath_restart_work(struct ath_softc *sc)
  {
  	ieee80211_queue_delayed_work(sc->hw, &sc->hw_check_work,
@@ -30,7 +30,7 @@ Link: https://lore.kernel.org/r/20230613134655.248728-1-dmantipov@yandex.ru
  
  	if (AR_SREV_9340(sc->sc_ah) || AR_SREV_9330(sc->sc_ah))
  		ieee80211_queue_delayed_work(sc->hw, &sc->hw_pll_work,
-@@ -2246,7 +2246,7 @@ void __ath9k_flush(struct ieee80211_hw *
+@@ -2241,7 +2241,7 @@ void __ath9k_flush(struct ieee80211_hw *
  	}
  
  	ieee80211_queue_delayed_work(hw, &sc->hw_check_work,

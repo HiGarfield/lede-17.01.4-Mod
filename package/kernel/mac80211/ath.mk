@@ -77,7 +77,6 @@ define KernelPackage/ath/config
 
 	config PACKAGE_ATH_DEBUG
 		bool "Atheros wireless debugging"
-    default y
 		help
 		  Say Y, if you want to debug atheros wireless drivers.
 		  Only ath9k & ath10k make use of this.
@@ -95,14 +94,14 @@ define KernelPackage/ath/config
 		bool "Atheros spectral scan support"
 		depends on PACKAGE_ATH_DEBUG
 		select KERNEL_RELAY
-    default y
+		default y
 		help
 		  Say Y to enable access to the FFT/spectral data via debugfs.
 
 	config PACKAGE_ATH_DYNACK
 		bool "Enable Dynack support"
 		depends on PACKAGE_kmod-ath9k-common
-    default y
+		default y
 		help
 		  Enables support for Dynamic ACK estimation, which allows the fastest possible speed
 		  at any distance automatically by increasing/decreasing the max frame ACK time for

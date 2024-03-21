@@ -19,7 +19,7 @@ Link: https://lore.kernel.org/r/20230712114740.13226-1-duminjie@vivo.com
 
 --- a/drivers/net/wireless/ath/ath9k/debug.c
 +++ b/drivers/net/wireless/ath/ath9k/debug.c
-@@ -1578,7 +1578,7 @@ int ath9k_init_debug(struct ath_hw *ah)
+@@ -1576,7 +1576,7 @@ int ath9k_init_debug(struct ath_hw *ah)
  
  	sc->debug.debugfs_phy = debugfs_create_dir("ath9k",
  						   sc->hw->wiphy->debugfsdir);

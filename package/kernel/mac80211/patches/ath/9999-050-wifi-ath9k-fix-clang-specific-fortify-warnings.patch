@@ -68,7 +68,7 @@ Link: https://lore.kernel.org/r/20230829093856.234584-1-dmantipov@yandex.ru
 
 --- a/drivers/net/wireless/ath/ath9k/debug.c
 +++ b/drivers/net/wireless/ath/ath9k/debug.c
-@@ -1299,7 +1299,7 @@ void ath9k_get_et_strings(struct ieee802
+@@ -1297,7 +1297,7 @@ void ath9k_get_et_strings(struct ieee802
  			  u32 sset, u8 *data)
  {
  	if (sset == ETH_SS_STATS)

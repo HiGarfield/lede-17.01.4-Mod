@@ -79,7 +79,7 @@ Link: https://lore.kernel.org/r/20230609093744.1985-1-repk@triplefau.lt
 
 --- a/drivers/net/wireless/ath/ath9k/main.c
 +++ b/drivers/net/wireless/ath/ath9k/main.c
-@@ -865,7 +865,7 @@ static bool ath9k_txq_list_has_key(struc
+@@ -860,7 +860,7 @@ static bool ath9k_txq_list_has_key(struc
  static bool ath9k_txq_has_key(struct ath_softc *sc, u32 keyix)
  {
  	struct ath_hw *ah = sc->sc_ah;
@@ -88,7 +88,7 @@ Link: https://lore.kernel.org/r/20230609093744.1985-1-repk@triplefau.lt
  	struct ath_txq *txq;
  	bool key_in_use = false;
  
-@@ -883,8 +883,9 @@ static bool ath9k_txq_has_key(struct ath
+@@ -878,8 +878,9 @@ static bool ath9k_txq_has_key(struct ath
  		if (sc->sc_ah->caps.hw_caps & ATH9K_HW_CAP_EDMA) {
  			int idx = txq->txq_tailidx;
  
