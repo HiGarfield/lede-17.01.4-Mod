@@ -102,6 +102,7 @@ CONFIG_TARGET_ramips_mt7620_DEVICE_5k-w20=y
 # CONFIG_TARGET_ramips_mt7620_DEVICE_ArcherC20i is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_ArcherC50 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_ArcherMR200 is not set
+# CONFIG_TARGET_ramips_mt7620_DEVICE_treebear-x1 is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_wrtnode is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_miwifi-mini is not set
 # CONFIG_TARGET_ramips_mt7620_DEVICE_youku-yk1 is not set
