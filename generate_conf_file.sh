@@ -140,5 +140,6 @@ devices=(
 	"ramips_mt7620_DEVICE_miwifi-mini"
 	"ramips_mt7620_DEVICE_hc5661"
 	"ramips_mt7620_DEVICE_5k-w20"
+	"ramips_mt7620_DEVICE_treebear-x1"	
 )
 process_devices $devices
