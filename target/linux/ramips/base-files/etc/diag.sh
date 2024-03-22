@@ -49,6 +49,7 @@ get_status_led() {
 	3g-6200nl)
 		status_led="$board:green:internet"
 		;;
+	treebear-x1|\
 	5k-w20)
 		status_led="$board:green:wifi"
 		;;

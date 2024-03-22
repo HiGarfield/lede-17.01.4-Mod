@@ -490,6 +490,9 @@ ramips_board_detect() {
 	*"Timecloud")
 		name="timecloud"
 		;;
+	*"TreeBear X1")
+		name="treebear-x1"
+		;;
 	*"UBNT-ERX")
 		name="ubnt-erx"
 		;;

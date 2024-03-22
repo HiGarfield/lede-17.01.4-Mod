@@ -141,6 +141,7 @@ platform_check_image() {
 	tew-714tru|\
 	timecloud|\
 	tiny-ac|\
+	treebear-x1|\
 	ur-326n4g|\
 	ur-336un|\
 	v22rw-2x2|\
