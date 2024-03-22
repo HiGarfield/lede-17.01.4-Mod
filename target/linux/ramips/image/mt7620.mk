@@ -524,3 +524,11 @@ define Device/5k-w20
   DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci
 endef
 TARGET_DEVICES += 5k-w20
+
+define Device/treebear-x1
+  DTS := TREEBEAR-X1
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := TreeBear X1
+  DEVICE_PACKAGES := kmod-usb2 kmod-usb-ohci kmod-sdhci-mt7620
+endef
+TARGET_DEVICES += treebear-x1

@@ -304,6 +304,7 @@ ramips_setup_interfaces()
 			"1:lan" "2:lan" "0:wan" "6@eth0"
 		;;
 	y1|\
+	treebear-x1|\
 	miwifi-mini)
 		ucidef_add_switch "switch0" \
 			"0:lan:2" "1:lan:1" "4:wan" "6@eth0"
