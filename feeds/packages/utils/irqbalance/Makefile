@@ -5,13 +5,17 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=irqbalance
-PKG_RELEASE:=$(AUTORELEASE)
+PKG_VERSION:=1.9.4
+PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Irqbalance/irqbalance.git
-PKG_SOURCE_VERSION:=e6f1a2827bae48adcf92dc581e68a859e93674cd
-PKG_MIRROR_HASH:=b06f7baa559d0cda9d3abd13c266129a15d32b8c9c0e0f54da4eaa214bbbafce
+PKG_SOURCE_VERSION:=v$(PKG_VERSION)
+PKG_MIRROR_HASH:=92af1d0e6775e1b66bc34da95443d9f2d953ec0c3c276dc55f9558029f9c42b8
+
 PKG_MAINTAINER:=Hannu Nyman <hannu.nyman@iki.fi>
+PKG_LICENSE:=GPL-2.0-or-later
+PKG_LICENSE_FILES:=COPYING
 
 PKG_FIXUP:=autoreconf
 PKG_REMOVE_FILES:=autogen.sh
@@ -19,7 +23,6 @@ PKG_REMOVE_FILES:=autogen.sh
 PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/nls.mk
-
 include $(INCLUDE_DIR)/package.mk
 
 PKG_BUILD_DEPENDS += glib2
