@@ -6,7 +6,7 @@
 #include <dt-bindings/input/input.h>
 
 / {
-	compatible = "HD51-N", "ralink,mt7620a-soc";
+	compatible = "100MI,HD51-N", "ralink,mt7620a-soc";
 	model = "100MI NETBOX HD51-N";
 
 	gpio-leds {
@@ -34,18 +34,6 @@
 			linux,code = <KEY_RESTART>;
 		};
 	};
-};
-
-&gpio0 {
-	status = "okay";
-};
-
-&gpio1 {
-	status = "okay";
-};
-
-&gpio2 {
-	status = "okay";
 };
 
 &gpio3 {
@@ -87,7 +75,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "i2c", "uartf", "rgmii1", "rgmii2", "wled", "nd_sd";
+			ralink,group = "i2c", "uartf", "wled";
 			ralink,function = "gpio";
 		};
 
@@ -100,7 +88,6 @@
 
 &ethernet {
 	pinctrl-names = "default";
-	pinctrl-0 = <&ephy_pins>;
 	mtd-mac-address = <&factory 0x28>;
 	mediatek,portmap = "llllw";
 };
