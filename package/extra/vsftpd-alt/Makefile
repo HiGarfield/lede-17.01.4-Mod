@@ -48,6 +48,7 @@ endef
 
 ifneq ($(CONFIG_USE_MUSL),)
   NLSSTRING:=-lcrypt
+  TARGET_CFLAGS += -D_LARGEFILE64_SOURCE
 else ifneq ($(CONFIG_USE_GLIBC),)
   NLSSTRING:=-lcrypt
 else
