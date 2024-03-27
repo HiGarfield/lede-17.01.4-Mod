@@ -7,7 +7,7 @@ FLAGS:=-std=c++11 -Wall -Wextra \
 	-Wno-unused-variable -Wno-unused-parameter -Wno-missing-field-initializers
 EXTRA_FLAGS:=-ffunction-sections -fdata-sections \
 	-Wl,--gc-sections,--as-needed \
-	-Os -s -flto
+	-DNDEBUG -fno-exceptions -fno-rtti -Os -s -flto
 
 NAME:=udp2raw
 
