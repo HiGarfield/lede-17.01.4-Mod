@@ -1,0 +1,19 @@
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 5 Apr 2024 15:55:14 +0800
+Subject: [PATCH] initialize return value of sendto() in send_raw_packet()
+
+---
+ network.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/network.cpp
++++ b/network.cpp
+@@ -1065,7 +1065,7 @@ int send_raw_packet(raw_info_t &raw_info
+     const packet_info_t &send_info = raw_info.send_info;
+     const packet_info_t &recv_info = raw_info.recv_info;
+ 
+-    int ret;
++    int ret = -1;
+     if (lower_level == 0) {
+         if (raw_ip_version == AF_INET) {
+             struct sockaddr_in sin = {0};

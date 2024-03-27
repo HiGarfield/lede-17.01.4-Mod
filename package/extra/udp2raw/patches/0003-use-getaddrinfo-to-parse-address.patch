@@ -22,8 +22,7 @@ Ref:
  int address_t::from_str(char *str) {
      clear();
 +    char addr_str[256], port_str[6], drop;
-+    int is_ipv6, is_ipv4_or_domain, is_ipv4, is_domain;
-+    unsigned int a, b, c, d;
++    int is_ipv6, is_ipv4_or_domain;
  
 -    char ip_addr_str[100];
 -    u32_t port;
@@ -45,9 +44,6 @@ Ref:
 +        mylog(log_error, "invalid address: %s\n", str);
          myexit(-1);
      }
-+    is_ipv4 = sscanf(addr_str, "%3u.%3u.%3u.%3u%c", &a, &b, &c, &d, &drop) == 4 &&
-+              a <= 255 && b <= 255 && c <= 255 && d <= 255;
-+    is_domain = is_ipv4_or_domain && !is_ipv4;
  
 -    mylog(log_info, "ip_address is {%s}, port is {%u}\n", ip_addr_str, port);
 -
@@ -85,8 +81,12 @@ Ref:
 +    struct addrinfo *res;
 +    int ret;
 +    while ((ret = getaddrinfo(addr_str, port_str, NULL, &res)) != 0) {
-+        mylog(log_error, "failed to parse: %s, %d\n", str, ret);
-+        if (!is_domain || !retry_on_error || ret == EAI_MEMORY)
++#if defined(__MINGW32__)
++        mylog(log_error, "failed to parse: %s. %s\n", str, get_sock_error());
++#else
++        mylog(log_error, "failed to parse: %s. %d:%s\n", str, ret, gai_strerror(ret));
++#endif
++        if (!retry_on_error || !(ret == EAI_AGAIN || ret == EAI_NONAME))
              myexit(-1);
 -        }
 +        sleep(retry_on_error_interval);
