@@ -24,7 +24,7 @@
 		usb {
 			label = "hw24g:green:usb";
 			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
-			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
+			trigger-sources = <&xhci_ehci_port1>;
 			linux,default-trigger = "usbport";
 		};
 	};
@@ -129,7 +129,7 @@
 &pinctrl {
 	state_default: pinctrl0 {
 		gpio {
-			ralink,group = "i2c", "uart2", "uart3", "wdt";
+			ralink,group = "i2c", "jtag", "wdt";
 			ralink,function = "gpio";
 		};
 	};
