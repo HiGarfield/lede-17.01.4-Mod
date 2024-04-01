@@ -9,6 +9,7 @@ s.anonymous = true
 
 s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
+s:tab("smbuser", translate("Samba User Settings"))
 
 s:taboption("general", Value, "name", translate("Hostname"))
 s:taboption("general", Value, "description", translate("Description"))
@@ -80,6 +81,28 @@ function tmpl.write(self, section, value)
 	nixio.fs.writefile("/etc/samba/smb.conf.template", value)
 end
 
+smb_user = s:taboption("smbuser", Value, "smb_user", translate("Samba User"), "")
+for line in io.lines("/etc/passwd") do
+    smb_user:value(string.match(line, "(.-):"))
+end
+smb_user.cfgvalue = function(self, section)
+end
+smb_user.write = function(self, section, value)
+end
+
+smb_pass = s:taboption("smbuser", Value, "smb_pass", translate("Samba Password"), "")
+smb_pass.cfgvalue = function(self, section)
+end
+smb_pass.write = function(self, section, value)
+end
+
+set_smb_pass_btn = s:taboption("smbuser", Button, "set_smb_pass", "")
+set_smb_pass_btn.inputtitle = translate("Set Samba User's Password")
+set_smb_pass_btn.inputstyle = "apply"
+set_smb_pass_btn.write = function(self, section, value)
+    luci.sys.call("smbpasswd -a %s %s" % {smb_user:formvalue(section), smb_pass:formvalue(section)})
+    luci.sys.call("/etc/init.d/samba reload")
+end
 
 s = m:section(TypedSection, "sambashare", translate("Shared Directories"))
 s.anonymous = true

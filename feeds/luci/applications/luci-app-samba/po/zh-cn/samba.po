@@ -91,5 +91,17 @@ msgstr ""
 msgid "Workgroup"
 msgstr "工作组"
 
+msgid "Samba User Settings"
+msgstr "Samba用户设置"
+
+msgid "Samba User"
+msgstr "Samba用户"
+
+msgid "Samba Password"
+msgstr "Samba密码"
+
+msgid "Set Samba User's Password"
+msgstr "设置Samba用户的密码"
+
 #~ msgid "Physical Path"
 #~ msgstr "物理路径"
