@@ -9,9 +9,7 @@ download_model_file(){
 		echo "conf/.config.$1 does not exist!"
 		return
 	}
-	[ ! -d "out" ] && mkdir "out"
 	{
-		./clean_all.sh
 		cp -f "conf/.config.$1" ".config" &&
 		make defconfig &&
 		make -j8 download &&
@@ -20,8 +18,8 @@ download_model_file(){
 }
 
 clear
-
+./clean_all.sh
 for file in conf/.config.*; do
-	model_name="$(echo "$file" | sed 's/^conf\/\.config\.//g')"
+	model_name="${file##conf\/\.config\.}"
 	download_model_file "$model_name"
 done
