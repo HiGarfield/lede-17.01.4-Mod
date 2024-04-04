@@ -30,7 +30,7 @@ clear
 ./mount_build_dir.sh
 
 for file in conf/.config.*; do
-	model_name="$(echo "$file" | sed 's/^conf\/\.config\.//g')"
+	model_name="${file##conf\/\.config\.}"
 	make_model "$model_name"
 done
 
