@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/net/miniupnpc/Makefile
 Package: miniupnpc
 Submenu: Firewall
-Version: 2.2.6-1
+Version: 2.2.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libminiupnpc
 Conflicts: 
 Menu-Depends: 
@@ -11,17 +11,17 @@ Category: Network
 Repository: base
 Title: Lightweight UPnP client
 Maintainer: 
-Source: miniupnpc-2.2.6.tar.gz
+Source: miniupnpc-2.2.7.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP client
-https://miniupnp.tuxfamily.org
+http://miniupnp.free.fr
 
 @@
 
 Package: libminiupnpc
-Version: 2.2.6-1
+Version: 2.2.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -31,12 +31,12 @@ Category: Libraries
 Repository: base
 Title: Lightweight UPnP library
 Maintainer: 
-Source: miniupnpc-2.2.6.tar.gz
+Source: miniupnpc-2.2.7.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP library
-https://miniupnp.tuxfamily.org
+http://miniupnp.free.fr
 
 @@
 
