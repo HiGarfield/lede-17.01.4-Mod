@@ -32785,7 +32785,7 @@ Luke McKee <hojuruku@gmail.com>
 Source-Makefile: feeds/packages/net/miniupnpc/Makefile
 Package: miniupnpc
 Submenu: Firewall
-Version: 2.2.6-1
+Version: 2.2.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libminiupnpc
 Conflicts: 
 Menu-Depends: 
@@ -32795,17 +32795,17 @@ Category: Network
 Repository: base
 Title: Lightweight UPnP client
 Maintainer: 
-Source: miniupnpc-2.2.6.tar.gz
+Source: miniupnpc-2.2.7.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP client
-https://miniupnp.tuxfamily.org
+http://miniupnp.free.fr
 
 @@
 
 Package: libminiupnpc
-Version: 2.2.6-1
+Version: 2.2.7-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -32815,12 +32815,12 @@ Category: Libraries
 Repository: base
 Title: Lightweight UPnP library
 Maintainer: 
-Source: miniupnpc-2.2.6.tar.gz
+Source: miniupnpc-2.2.7.tar.gz
 License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP library
-https://miniupnp.tuxfamily.org
+http://miniupnp.free.fr
 
 @@
 
@@ -48029,7 +48029,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: e6f1a2827bae48adcf92dc581e68a859e93674cd-0
+Version: 6515fd9d55035c794ca3d62e2c3c12152a2061df-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -48040,7 +48040,9 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-e6f1a2827bae48adcf92dc581e68a859e93674cd.tar.xz
+Source: irqbalance-6515fd9d55035c794ca3d62e2c3c12152a2061df.tar.xz
+License: GPL-2.0-or-later
+LicenseFiles: COPYING
 Type: ipkg
 Description:  The purpose of irqbalance is to distribute hardware interrupts across
  processors/cores on a multiprocessor/multicore system in order to
