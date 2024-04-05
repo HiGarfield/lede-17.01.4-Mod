@@ -89,6 +89,34 @@ jobs:
           sed -i 's/HOST_BUILD_PARALLEL ?=/HOST_BUILD_PARALLEL ?= 1/g' include/host-build.mk
           sed -i 's/PKG_BUILD_PARALLEL ?=/PKG_BUILD_PARALLEL ?= 1/g' include/package.mk
 
+      - name: Generate toolchain cache mixkey
+        id: gen_toolchain_cache_mixkey
+        if: ${{ env.TARGET_DEVICE != 'dl' }}
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          target_device_arch="$(sed -n 's/^CONFIG_TARGET_BOARD=\"\(.*\)\"/\1/p' "conf/.config.$TARGET_DEVICE")"
+          gcc_hash=$(gcc --version | sha256sum | awk '{print substr($1,1,8)}')
+          ldd_hash=$(ldd --version | sha256sum | awk '{print substr($1,1,8)}')
+          toolchain_mixkey="${target_device_arch}-${gcc_hash}-${ldd_hash}"
+          echo "toolchain_mixkey=$toolchain_mixkey" >> $GITHUB_OUTPUT
+
+      - name: Cache toolchain
+        if: ${{ env.TARGET_DEVICE != 'dl' }}
+        uses: HiGarfield/cachewrtbuild@main
+        with:
+          ccache: 'true'
+          mixkey: ${{ steps.gen_toolchain_cache_mixkey.outputs.toolchain_mixkey }}
+          prefix: ${{ env.WORKING_DIR }}
+
+      - name: Restore cached dl
+        if: ${{ env.TARGET_DEVICE != 'dl' }}
+        id: restore_cached_dl
+        uses: actions/cache/restore@main
+        with:
+          path: ${{ env.WORKING_DIR }}/dl
+          key: ${{ github.repository_id }}-dl-${{ github.run_id }}
+          restore-keys: ${{ github.repository_id }}-dl-
+
       - name: Download dl
         if: ${{ env.TARGET_DEVICE == 'dl' }}
         id: download_dl
@@ -100,25 +128,6 @@ jobs:
           zip -j "${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip" dl/*
           sha256sum "${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip" | awk '{print $1}' >"${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip.sha256sum"
           echo "status=success" >> $GITHUB_OUTPUT
-
-      - name: Generate cache mixkey
-        id: gen_cache_mixkey
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          target_device_arch="$(sed -n 's/^CONFIG_TARGET_BOARD=\"\(.*\)\"/\1/p' "conf/.config.$TARGET_DEVICE")"
-          gcc_hash=$(gcc --version | sha256sum | awk '{print substr($1,1,8)}')
-          ldd_hash=$(ldd --version | sha256sum | awk '{print substr($1,1,8)}')
-          mixkey="${target_device_arch}-${gcc_hash}-${ldd_hash}"
-          echo "mixkey=$mixkey" >> $GITHUB_OUTPUT
-
-      - name: Cache
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
-        uses: HiGarfield/cachewrtbuild@main
-        with:
-          ccache: 'true'
-          mixkey: ${{ steps.gen_cache_mixkey.outputs.mixkey }}
-          prefix: ${{ env.WORKING_DIR }}
 
       - name: Load custom configuration
         if: ${{ env.TARGET_DEVICE != 'dl' }}
@@ -155,6 +164,14 @@ jobs:
             sha256sum "$f" | awk '{print $1}' >"${f}.sha256sum"
           done
           echo "status=success" >> $GITHUB_OUTPUT
+
+      - name: Save dl
+        if: ${{ env.TARGET_DEVICE == 'dl' }}
+        id: save_dl
+        uses: actions/cache/save@main
+        with:
+          path: ${{ env.WORKING_DIR }}/dl
+          key: ${{ github.repository_id }}-dl-${{ github.run_id }}
 
       - name: Upload binaries to release
         if: ${{ steps.compile.outputs.status == 'success' || steps.download_dl.outputs.status == 'success' }}
