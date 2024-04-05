@@ -74,3 +74,11 @@ jobs:
           mixkey: ${{ steps.gen_cache_mixkey.outputs.mixkey2 }}
           prefix: ${{ env.WORKING_DIR }}
           skip_saving: 'true'
+
+      - name: Restore cached dl
+        id: restore_cached_dl
+        uses: actions/cache/restore@main
+        with:
+          path: ${{ env.WORKING_DIR }}/dl
+          key: ${{ github.repository_id }}-dl-${{ github.run_id }}
+          restore-keys: ${{ github.repository_id }}-dl-
