@@ -22,6 +22,9 @@ ramips_board_detect() {
 	*"China Mobile LINK7")
 		name="link7"
 		;;
+	*"Ruijie RG-NBR700GW")
+		name="rg-nbr700gw"
+		;;
 	*"11AC NAS Router")
 		name="11acnas"
 		;;

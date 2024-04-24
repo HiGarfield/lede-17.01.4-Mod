@@ -110,6 +110,7 @@ platform_check_image() {
 	wr1200js|\
 	hw24g|\
 	link7|\
+	rg-nbr700gw|\
 	nixcore|\
 	nw718|\
 	omega2|\
