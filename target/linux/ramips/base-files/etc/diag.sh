@@ -108,6 +108,9 @@ get_status_led() {
 	link7)
 		status_led="$board:green:wps"
 		;;
+	rg-nbr700gw)
+		status_led="$board:green:sys"
+		;;
 	cf-wr800n|\
 	psg1208)
 		status_led="$board:white:wps"

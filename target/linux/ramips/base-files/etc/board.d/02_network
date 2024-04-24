@@ -106,6 +106,7 @@ ramips_setup_interfaces()
 	zbt-wg3526|\
 	zbt-wr8305rt|\
 	hd51-n|\
+	rg-nbr700gw|\
 	link7)
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"

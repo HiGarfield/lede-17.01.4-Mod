@@ -50,6 +50,14 @@ define Device/link7
 endef
 TARGET_DEVICES += link7
 
+define Device/rg-nbr700gw
+  DTS := RG-NBR700GW
+  IMAGE_SIZE := $(ralink_default_fw_size_16M)
+  DEVICE_TITLE := Ruijie RG-NBR700GW
+  DEVICE_PACKAGES := kmod-usb3
+endef
+TARGET_DEVICES += rg-nbr700gw
+
 define Device/a3004ns
   DTS := A3004NS
   IMAGE_SIZE := 16128k
