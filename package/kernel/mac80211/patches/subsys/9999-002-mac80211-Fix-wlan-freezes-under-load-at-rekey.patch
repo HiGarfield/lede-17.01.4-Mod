@@ -1,0 +1,159 @@
+From: Alexander Wetzel <alexander.wetzel@web.de>
+Date: Tue, 15 May 2018 12:22:02 +0200
+Subject: [PATCH] mac80211: Fix wlan freezes under load at rekey
+
+Rekeying a pairwise key with encryption offload and only keyid 0 has two
+potential races which can freeze the wlan conection till rekeyed again:
+
+ 1) For incomming packets:
+    If the local STA installs the key prior to the remote STA we still
+    have the old key active in the hardware for a short time after
+    mac80211 switched to the new key.
+    The card can still hand over packets decoded with the old key to
+    mac80211, bumping the new PN (IV) value to an incorrect high number and
+    tricking the local replay detection to drop all packets really sent
+    with the new key.
+
+ 2) For outgoing packets:
+    If mac80211 is providing the PN (IV) and hands over the cleartext
+    packets for encryption to the hardware immediately prior to a key
+    change the driver/card may process the queued packets after
+    switching to the new key.
+    This will immediatelly bump the PN (IV) value on the remote STA to
+    an incorrect high number, also freezing the connection.
+
+Both issues can be prevented by first replacing the key in the HW and
+makeing sure no aggregation sessions are running during the rekey.
+
+Signed-off-by: Alexander Wetzel <alexander.wetzel@web.de>
+---
+ net/mac80211/key.c | 53 ++++++++++++++++++++++++++++++++++------------
+ 1 file changed, 39 insertions(+), 14 deletions(-)
+
+--- a/net/mac80211/key.c
++++ b/net/mac80211/key.c
+@@ -247,6 +247,7 @@ static void ieee80211_key_disable_hw_acc
+ 	      (key->conf.flags & IEEE80211_KEY_FLAG_RESERVE_TAILROOM)))
+ 		increment_tailroom_need_count(sdata);
+ 
++	key->flags &= ~KEY_FLAG_UPLOADED_TO_HARDWARE;
+ 	ret = drv_set_key(key->local, DISABLE_KEY, sdata,
+ 			  sta ? &sta->sta : NULL, &key->conf);
+ 
+@@ -255,8 +256,26 @@ static void ieee80211_key_disable_hw_acc
+ 			  "failed to remove key (%d, %pM) from hardware (%d)\n",
+ 			  key->conf.keyidx,
+ 			  sta ? sta->sta.addr : bcast_addr, ret);
++}
+ 
+-	key->flags &= ~KEY_FLAG_UPLOADED_TO_HARDWARE;
++static void ieee80211_key_retire(struct ieee80211_key *key)
++{
++	struct ieee80211_local *local = key->local;
++	struct sta_info *sta = key->sta;
++
++	assert_key_lock(key->local);
++
++	/* Stop TX till we are on the new key */
++	key->flags |= KEY_FLAG_TAINTED;
++	ieee80211_clear_fast_xmit(sta);
++
++	if (ieee80211_hw_check(&local->hw, AMPDU_AGGREGATION)) {
++		set_sta_flag(sta, WLAN_STA_BLOCK_BA);
++		ieee80211_sta_tear_down_BA_sessions(
++		    sta, AGG_STOP_LOCAL_REQUEST);
++	}
++	ieee80211_flush_queues(key->local, key->sdata, false);
++	ieee80211_key_disable_hw_accel(key);
+ }
+ 
+ static void __ieee80211_set_default_key(struct ieee80211_sub_if_data *sdata,
+@@ -315,28 +334,38 @@ void ieee80211_set_default_mgmt_key(stru
+ }
+ 
+ 
+-static void ieee80211_key_replace(struct ieee80211_sub_if_data *sdata,
++static int ieee80211_key_replace(struct ieee80211_sub_if_data *sdata,
+ 				  struct sta_info *sta,
+ 				  bool pairwise,
+ 				  struct ieee80211_key *old,
+ 				  struct ieee80211_key *new)
+ {
+ 	int idx;
++	int ret;
+ 	bool defunikey, defmultikey, defmgmtkey;
+ 
+ 	/* caller must provide at least one old/new */
+ 	if (WARN_ON(!new && !old))
+-		return;
++		return 0;
+ 
+ 	if (new)
+ 		list_add_tail_rcu(&new->list, &sdata->key_list);
+ 
+ 	WARN_ON(new && old && new->conf.keyidx != old->conf.keyidx);
+ 
+-	if (old)
++	if (old) {
+ 		idx = old->conf.keyidx;
+-	else
++		if(new && sta && pairwise)
++			ieee80211_key_retire(old);
++	} else {
+ 		idx = new->conf.keyidx;
++	}
++
++	if (new && !new->local->wowlan) {
++		ret = ieee80211_key_enable_hw_accel(new);
++		if (ret)
++			return ret;
++	}
+ 
+ 	if (sta) {
+ 		if (pairwise) {
+@@ -344,6 +373,7 @@ static void ieee80211_key_replace(struct
+ 			set_sta_flag(sta, WLAN_STA_USES_ENCRYPTION);
+ 			sta->ptk_idx = idx;
+ 			ieee80211_check_fast_xmit(sta);
++			clear_sta_flag(sta, WLAN_STA_BLOCK_BA);
+ 		} else {
+ 			rcu_assign_pointer(sta->gtk[idx], new);
+ 		}
+@@ -380,6 +410,7 @@ static void ieee80211_key_replace(struct
+ 
+ 	if (old)
+ 		list_del_rcu(&old->list);
++	return 0;
+ }
+ 
+ struct ieee80211_key *
+@@ -655,7 +686,6 @@ int ieee80211_key_link(struct ieee80211_
+ 		       struct sta_info *sta)
+ {
+ 	static atomic_t key_color = ATOMIC_INIT(0);
+-	struct ieee80211_local *local = sdata->local;
+ 	struct ieee80211_key *old_key;
+ 	int idx = key->conf.keyidx;
+ 	bool pairwise = key->conf.flags & IEEE80211_KEY_FLAG_PAIRWISE;
+@@ -698,18 +728,13 @@ int ieee80211_key_link(struct ieee80211_
+ 
+ 	increment_tailroom_need_count(sdata);
+ 
+-	ieee80211_key_replace(sdata, sta, pairwise, old_key, key);
++	ret = ieee80211_key_replace(sdata, sta, pairwise, old_key, key);
+ 	ieee80211_key_destroy(old_key, delay_tailroom);
+ 
+ 	ieee80211_debugfs_key_add(key);
+ 
+-	if (!local->wowlan) {
+-		ret = ieee80211_key_enable_hw_accel(key);
+-		if (ret)
+-			ieee80211_key_free(key, delay_tailroom);
+-	} else {
+-		ret = 0;
+-	}
++	if (ret)
++		ieee80211_key_free(key, true);
+ 
+  out:
+ 	mutex_unlock(&sdata->local->key_mtx);
