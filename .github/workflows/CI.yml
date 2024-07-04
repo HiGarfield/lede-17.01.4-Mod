@@ -80,11 +80,9 @@ jobs:
           sudo -E apt-get -qq update
           sudo -E apt-get -qq install aria2
           sudo cp -f ".github/backup/apt-fast" /usr/local/sbin/apt-fast
-          sudo -E apt-fast -y -qq install build-essential gcc-9 g++-9 binutils bzip2 gettext flex python2.7 perl findutils diffutils unzip gawk util-linux subversion zlib1g-dev zip git coreutils
+          sudo -E apt-fast -y -qq install build-essential binutils bzip2 gettext flex python2.7 perl findutils diffutils unzip gawk util-linux subversion zlib1g-dev zip git coreutils
           sudo -E apt-get -qq autoremove --purge
           sudo -E apt-get -qq clean
-          sudo -E update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-9 9
-          sudo -E update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-9 9
           
           sed -i 's/HOST_BUILD_PARALLEL ?=/HOST_BUILD_PARALLEL ?= 1/g' include/host-build.mk
           sed -i 's/PKG_BUILD_PARALLEL ?=/PKG_BUILD_PARALLEL ?= 1/g' include/package.mk
