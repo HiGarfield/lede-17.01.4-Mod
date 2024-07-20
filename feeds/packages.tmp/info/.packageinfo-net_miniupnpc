@@ -16,7 +16,7 @@ License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP client
-http://miniupnp.free.fr
+https://miniupnp.tuxfamily.org
 
 @@
 
@@ -36,7 +36,7 @@ License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP library
-http://miniupnp.free.fr
+https://miniupnp.tuxfamily.org
 
 @@
 
