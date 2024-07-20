@@ -32800,7 +32800,7 @@ License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP client
-http://miniupnp.free.fr
+https://miniupnp.tuxfamily.org
 
 @@
 
@@ -32820,7 +32820,7 @@ License: BSD-3-Clause
 LicenseFiles: LICENSE
 Type: ipkg
 Description: Lightweight UPnP library
-http://miniupnp.free.fr
+https://miniupnp.tuxfamily.org
 
 @@
 
@@ -48029,7 +48029,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: f23549409c9ec1c99b644932d2974b12b566bc37-0
+Version: 77f3c1f65d11fdbc12f1583a70f11ff4654d523c-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -48040,7 +48040,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-f23549409c9ec1c99b644932d2974b12b566bc37.tar.xz
+Source: irqbalance-77f3c1f65d11fdbc12f1583a70f11ff4654d523c.tar.xz
 License: GPL-2.0-or-later
 LicenseFiles: COPYING
 Type: ipkg
