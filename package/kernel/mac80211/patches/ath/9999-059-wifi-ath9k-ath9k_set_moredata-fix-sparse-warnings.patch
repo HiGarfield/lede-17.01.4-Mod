@@ -1,0 +1,51 @@
+From 86fbcc5e08643ea381f997712f4cdb4b0f38ae50 Mon Sep 17 00:00:00 2001
+From: Kalle Valo <quic_kvalo@quicinc.com>
+Date: Wed, 20 Mar 2024 19:06:54 +0200
+Subject: [PATCH] wifi: ath9k: ath9k_set_moredata(): fix sparse warnings
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Sparse warns:
+
+drivers/net/wireless/ath/ath9k/xmit.c:1677:20: warning: incorrect type in initializer (different base types)
+drivers/net/wireless/ath/ath9k/xmit.c:1677:20:    expected unsigned short [usertype] mask
+drivers/net/wireless/ath/ath9k/xmit.c:1677:20:    got restricted __le16 [usertype]
+drivers/net/wireless/ath/ath9k/xmit.c:1681:17: warning: restricted __le16 degrades to integer
+drivers/net/wireless/ath/ath9k/xmit.c:1682:42: warning: restricted __le16 degrades to integer
+drivers/net/wireless/ath/ath9k/xmit.c:1682:36: warning: incorrect type in assignment (different base types)
+drivers/net/wireless/ath/ath9k/xmit.c:1682:36:    expected restricted __le16 [usertype] frame_control
+drivers/net/wireless/ath/ath9k/xmit.c:1682:36:    got int
+
+Fix ath9k_set_moredata() to use __le16 with masks and use if statement instead
+of multiply operator.
+
+Compile tested only.
+
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Link: https://msgid.link/20240320170656.3534265-2-kvalo@kernel.org
+---
+ drivers/net/wireless/ath/ath9k/xmit.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/ath/ath9k/xmit.c
++++ b/drivers/net/wireless/ath/ath9k/xmit.c
+@@ -1701,8 +1701,14 @@ static void
+ ath9k_set_moredata(struct ath_softc *sc, struct ath_buf *bf, bool val)
+ {
+ 	struct ieee80211_hdr *hdr;
+-	u16 mask = cpu_to_le16(IEEE80211_FCTL_MOREDATA);
+-	u16 mask_val = mask * val;
++	__le16 mask, mask_val;
++
++	mask = cpu_to_le16(IEEE80211_FCTL_MOREDATA);
++
++	if (val)
++		mask_val = mask;
++	else
++		mask_val = 0;
+ 
+ 	hdr = (struct ieee80211_hdr *) bf->bf_mpdu->data;
+ 	if ((hdr->frame_control & mask) != mask_val) {

@@ -1,0 +1,76 @@
+From a8e4b89417d9bbda6c588ba7d10e3ebd99c7b5e0 Mon Sep 17 00:00:00 2001
+From: Kalle Valo <quic_kvalo@quicinc.com>
+Date: Wed, 20 Mar 2024 19:06:56 +0200
+Subject: [PATCH] wifi: ath9k: eeprom: fix sparse endian warnings
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Sparse warns:
+
+drivers/net/wireless/ath/ath9k/eeprom_9287.c:82:9: warning: cast to restricted __le16
+drivers/net/wireless/ath/ath9k/eeprom_9287.c:82:9: warning: cast from restricted __le32
+drivers/net/wireless/ath/ath9k/eeprom_9287.c:83:9: warning: cast to restricted __le16
+drivers/net/wireless/ath/ath9k/eeprom_9287.c:83:9: warning: cast from restricted __le32
+drivers/net/wireless/ath/ath9k/eeprom_def.c:138:9: warning: cast to restricted __le16
+drivers/net/wireless/ath/ath9k/eeprom_def.c:138:9: warning: cast from restricted __le32
+drivers/net/wireless/ath/ath9k/eeprom_def.c:139:9: warning: cast to restricted __le16
+drivers/net/wireless/ath/ath9k/eeprom_def.c:139:9: warning: cast from restricted __le32
+drivers/net/wireless/ath/ath9k/eeprom_def.c:140:9: warning: cast to restricted __le16
+drivers/net/wireless/ath/ath9k/eeprom_def.c:140:9: warning: cast from restricted __le32
+drivers/net/wireless/ath/ath9k/eeprom_4k.c:79:9: warning: cast to restricted __le16
+drivers/net/wireless/ath/ath9k/eeprom_4k.c:79:9: warning: cast from restricted __le32
+
+antCtrlChain is an array of __le32 so le32_to_cpu() needs to be used.
+
+Compile tested only.
+
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Link: https://msgid.link/20240320170656.3534265-4-kvalo@kernel.org
+---
+ drivers/net/wireless/ath/ath9k/eeprom_4k.c   | 2 +-
+ drivers/net/wireless/ath/ath9k/eeprom_9287.c | 4 ++--
+ drivers/net/wireless/ath/ath9k/eeprom_def.c  | 6 +++---
+ 3 files changed, 6 insertions(+), 6 deletions(-)
+
+--- a/drivers/net/wireless/ath/ath9k/eeprom_4k.c
++++ b/drivers/net/wireless/ath/ath9k/eeprom_4k.c
+@@ -76,7 +76,7 @@ static bool ath9k_hw_4k_fill_eeprom(stru
+ static u32 ath9k_dump_4k_modal_eeprom(char *buf, u32 len, u32 size,
+ 				      struct modal_eep_4k_header *modal_hdr)
+ {
+-	PR_EEP("Chain0 Ant. Control", le16_to_cpu(modal_hdr->antCtrlChain[0]));
++	PR_EEP("Chain0 Ant. Control", le32_to_cpu(modal_hdr->antCtrlChain[0]));
+ 	PR_EEP("Ant. Common Control", le32_to_cpu(modal_hdr->antCtrlCommon));
+ 	PR_EEP("Chain0 Ant. Gain", modal_hdr->antennaGainCh[0]);
+ 	PR_EEP("Switch Settle", modal_hdr->switchSettling);
+--- a/drivers/net/wireless/ath/ath9k/eeprom_9287.c
++++ b/drivers/net/wireless/ath/ath9k/eeprom_9287.c
+@@ -79,8 +79,8 @@ static bool ath9k_hw_ar9287_fill_eeprom(
+ static u32 ar9287_dump_modal_eeprom(char *buf, u32 len, u32 size,
+ 				    struct modal_eep_ar9287_header *modal_hdr)
+ {
+-	PR_EEP("Chain0 Ant. Control", le16_to_cpu(modal_hdr->antCtrlChain[0]));
+-	PR_EEP("Chain1 Ant. Control", le16_to_cpu(modal_hdr->antCtrlChain[1]));
++	PR_EEP("Chain0 Ant. Control", le32_to_cpu(modal_hdr->antCtrlChain[0]));
++	PR_EEP("Chain1 Ant. Control", le32_to_cpu(modal_hdr->antCtrlChain[1]));
+ 	PR_EEP("Ant. Common Control", le32_to_cpu(modal_hdr->antCtrlCommon));
+ 	PR_EEP("Chain0 Ant. Gain", modal_hdr->antennaGainCh[0]);
+ 	PR_EEP("Chain1 Ant. Gain", modal_hdr->antennaGainCh[1]);
+--- a/drivers/net/wireless/ath/ath9k/eeprom_def.c
++++ b/drivers/net/wireless/ath/ath9k/eeprom_def.c
+@@ -135,9 +135,9 @@ static bool ath9k_hw_def_fill_eeprom(str
+ static u32 ath9k_def_dump_modal_eeprom(char *buf, u32 len, u32 size,
+ 				       struct modal_eep_header *modal_hdr)
+ {
+-	PR_EEP("Chain0 Ant. Control", le16_to_cpu(modal_hdr->antCtrlChain[0]));
+-	PR_EEP("Chain1 Ant. Control", le16_to_cpu(modal_hdr->antCtrlChain[1]));
+-	PR_EEP("Chain2 Ant. Control", le16_to_cpu(modal_hdr->antCtrlChain[2]));
++	PR_EEP("Chain0 Ant. Control", le32_to_cpu(modal_hdr->antCtrlChain[0]));
++	PR_EEP("Chain1 Ant. Control", le32_to_cpu(modal_hdr->antCtrlChain[1]));
++	PR_EEP("Chain2 Ant. Control", le32_to_cpu(modal_hdr->antCtrlChain[2]));
+ 	PR_EEP("Ant. Common Control", le32_to_cpu(modal_hdr->antCtrlCommon));
+ 	PR_EEP("Chain0 Ant. Gain", modal_hdr->antennaGainCh[0]);
+ 	PR_EEP("Chain1 Ant. Gain", modal_hdr->antennaGainCh[1]);
