@@ -1,0 +1,46 @@
+From 04f37357bd0b433f0cb25e91314c6110934ab449 Mon Sep 17 00:00:00 2001
+From: Kalle Valo <quic_kvalo@quicinc.com>
+Date: Wed, 20 Mar 2024 19:06:55 +0200
+Subject: [PATCH] wifi: ath9k: fix ath9k_use_msi declaration
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Sparse warns:
+
+drivers/net/wireless/ath/ath9k/init.c:79:5: warning: symbol 'ath9k_use_msi' was not declared. Should it be static?
+
+Move the extern to ath9k.h so that it's visible in init.c.
+
+Compile tested only.
+
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Acked-by: Jeff Johnson <quic_jjohnson@quicinc.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Link: https://msgid.link/20240320170656.3534265-3-kvalo@kernel.org
+---
+ drivers/net/wireless/ath/ath9k/ath9k.h | 1 +
+ drivers/net/wireless/ath/ath9k/pci.c   | 2 --
+ 2 files changed, 1 insertion(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/ath/ath9k/ath9k.h
++++ b/drivers/net/wireless/ath/ath9k/ath9k.h
+@@ -39,6 +39,7 @@ extern int ath9k_modparam_nohwcrypt;
+ extern int ath9k_led_blink;
+ extern bool is_ath9k_unloaded;
+ extern int ath9k_use_chanctx;
++extern int ath9k_use_msi;
+ 
+ /*************************/
+ /* Descriptor Management */
+--- a/drivers/net/wireless/ath/ath9k/pci.c
++++ b/drivers/net/wireless/ath/ath9k/pci.c
+@@ -21,8 +21,6 @@
+ #include <linux/module.h>
+ #include "ath9k.h"
+ 
+-extern int ath9k_use_msi;
+-
+ static const struct pci_device_id ath_pci_id_table[] = {
+ 	{ PCI_VDEVICE(ATHEROS, 0x0023) }, /* PCI   */
+ 	{ PCI_VDEVICE(ATHEROS, 0x0024) }, /* PCI-E */
