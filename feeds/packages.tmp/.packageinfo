@@ -48029,7 +48029,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: a3505494965959244e1b8f27b30b35bcf294275c-0
+Version: dd5a75a1c8154d083ce347d8b95afe7e9b003d31-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -48040,7 +48040,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-a3505494965959244e1b8f27b30b35bcf294275c.tar.xz
+Source: irqbalance-dd5a75a1c8154d083ce347d8b95afe7e9b003d31.tar.xz
 License: GPL-2.0-or-later
 LicenseFiles: COPYING
 Type: ipkg
