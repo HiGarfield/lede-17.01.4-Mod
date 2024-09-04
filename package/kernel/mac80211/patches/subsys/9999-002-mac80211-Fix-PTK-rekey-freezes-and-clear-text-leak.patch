@@ -1,0 +1,343 @@
+From 9336da27eebc9d8b0ac38f84f42b6af5cb6c2b7e Mon Sep 17 00:00:00 2001
+From: Alexander Wetzel <alexander@wetzel-home.de>
+Date: Fri, 31 Aug 2018 15:00:38 +0200
+Subject: [PATCH] mac80211: Fix PTK rekey freezes and clear text leak
+
+Rekeying PTK keys without "Extended Key ID for Individually Addressed
+Frames" did use a procedure not suitable to replace in-use keys and
+could caused the following issues:
+
+ 1) Freeze caused by incoming frames:
+    If the local STA installed the key prior to the remote STA we still
+    had the old key active in the hardware when mac80211 switched over
+    to the new key.
+    Therefore there was a window where the card could hand over frames
+    decoded with the old key to mac80211 and bump the new PN (IV) value
+    to an incorrect high number. When it happened the local replay
+    detection silently started to drop all frames sent with the new key.
+
+ 2) Freeze caused by outgoing frames:
+    If mac80211 was providing the PN (IV) and handed over a clear text
+    frame for encryption to the hardware prior to a key change the
+    driver/card could have processed the queued frame after switching
+    to the new key. This bumped the PN value on the remote STA to an
+    incorrect high number, tricking the remote STA to discard all frames
+    we sent later.
+
+ 3) Freeze caused by RX aggregation reorder buffer:
+    An aggregation session started with the old key and ending after the
+    switch to the new key also bumped the PN to an incorrect high number,
+    freezing the connection quite similar to 1).
+
+ 4) Freeze caused by repeating lost frames in an aggregation session:
+    A driver could repeat a lost frame and encrypt it with the new key
+    while in a TX aggregation session without updating the PN for the
+    new key. This also could freeze connections similar to 2).
+
+ 5) Clear text leak:
+    Removing encryption offload from the card cleared the encryption
+    offload flag only after the card had deleted the key and we did not
+    stop TX during the rekey. The driver/card could therefore get
+    unencrypted frames from mac80211 while no longer be instructed to
+    encrypt them.
+
+To prevent those issues the key install logic has been changed:
+ - Mac80211 divers known to be able to rekey PTK0 keys have to set
+   @NL80211_EXT_FEATURE_CAN_REPLACE_PTK0,
+ - mac80211 stops queuing frames depending on the key during the replace
+ - the key is first replaced in the hardware and after that in mac80211
+ - and mac80211 stops/blocks new aggregation sessions during the rekey.
+
+For drivers not setting
+@NL80211_EXT_FEATURE_CAN_REPLACE_PTK0 the user space must avoid PTK
+rekeys if "Extended Key ID for Individually Addressed Frames" is not
+being used. Rekeys for mac80211 drivers without this flag will generate a
+warning and use an extra call to ieee80211_flush_queues() to both
+highlight and try to prevent the issues with not updated drivers.
+
+The core of the fix changes the key install procedure from:
+ - atomic switch over to the new key in mac80211
+ - remove the old key in the hardware (stops encryption offloading, fall
+   back to software encryption with a potential clear text packet leak
+   in between)
+ - delete the inactive old key in mac80211
+ - enable hardware encryption offloading for the new key
+to:
+ - if it's a PTK mark the old key as tainted to drop TX frames with the
+   outgoing key
+ - replace the key in hardware with the new one
+ - atomic switch over to the new (not marked as tainted) key in
+   mac80211 (which also resumes TX)
+ - delete the inactive old key in mac80211
+
+With the new sequence the hardware will be unable to decrypt frames
+encrypted with the old key prior to switching to the new key in mac80211
+and thus prevent PNs from packets decrypted with the old key to be
+accounted against the new key.
+
+For that to work the drivers have to provide a clear boundary.
+Mac80211 drivers setting @NL80211_EXT_FEATURE_CAN_REPLACE_PTK0 confirm
+to provide it and mac80211 will then be able to correctly rekey in-use
+PTK keys with those drivers.
+
+The mac80211 requirements for drivers to set the flag have been added to
+the "Hardware crypto acceleration" documentation section. It drills down
+to:
+The drivers must not hand over frames decrypted with the old key to
+mac80211 once the call to set_key() with %DISABLE_KEY has been
+completed. It's allowed to either drop or continue to use the old key
+for any outgoing frames which are already in the queues, but it must not
+send out any of them unencrypted or encrypted with the new key.
+
+Even with the new boundary in place aggregation sessions with the
+reorder buffer are problematic:
+RX aggregation session started prior and completed after the rekey could
+still dump frames received with the old key at mac80211 after it
+switched over to the new key. This is side stepped by stopping all (RX
+and TX) aggregation sessions when replacing a PTK key and hardware key
+offloading.
+Stopping TX aggregation sessions avoids the need to get
+the PNs (IVs) updated in frames prepared for the old key and
+(re)transmitted after the switch to the new key. As a bonus it improves
+the compatibility when the remote STA is not handling rekeys as it
+should.
+
+When using software crypto aggregation sessions are not stopped.
+Mac80211 won't be able to decode the dangerous frames and discard them
+without special handling.
+
+Signed-off-by: Alexander Wetzel <alexander@wetzel-home.de>
+[trim overly long rekey warning]
+Signed-off-by: Johannes Berg <johannes.berg@intel.com>
+---
+ include/net/mac80211.h |  13 +++++
+ net/mac80211/key.c     | 110 +++++++++++++++++++++++++++++++++--------
+ net/mac80211/tx.c      |   4 ++
+ 3 files changed, 107 insertions(+), 20 deletions(-)
+
+--- a/include/net/mac80211.h
++++ b/include/net/mac80211.h
+@@ -2568,6 +2568,19 @@ ieee80211_padded_hdrlen(struct ieee80211
+  * The set_default_unicast_key() call updates the default WEP key index
+  * configured to the hardware for WEP encryption type. This is required
+  * for devices that support offload of data packets (e.g. ARP responses).
++ *
++ * Mac80211 drivers should set the @NL80211_EXT_FEATURE_CAN_REPLACE_PTK0 flag
++ * when they are able to replace in-use PTK keys according to to following
++ * requirements:
++ * 1) They do not hand over frames decrypted with the old key to
++      mac80211 once the call to set_key() with command %DISABLE_KEY has been
++      completed when also setting @IEEE80211_KEY_FLAG_GENERATE_IV for any key,
++   2) either drop or continue to use the old key for any outgoing frames queued
++      at the time of the key deletion (including re-transmits),
++   3) never send out a frame queued prior to the set_key() %SET_KEY command
++      encrypted with the new key and
++   4) never send out a frame unencrypted when it should be encrypted.
++   Mac80211 will not queue any new frames for a deleted key to the driver.
+  */
+ 
+ /**
+--- a/net/mac80211/key.c
++++ b/net/mac80211/key.c
+@@ -247,6 +247,7 @@ static void ieee80211_key_disable_hw_acc
+ 	      (key->conf.flags & IEEE80211_KEY_FLAG_RESERVE_TAILROOM)))
+ 		increment_tailroom_need_count(sdata);
+ 
++	key->flags &= ~KEY_FLAG_UPLOADED_TO_HARDWARE;
+ 	ret = drv_set_key(key->local, DISABLE_KEY, sdata,
+ 			  sta ? &sta->sta : NULL, &key->conf);
+ 
+@@ -255,8 +256,65 @@ static void ieee80211_key_disable_hw_acc
+ 			  "failed to remove key (%d, %pM) from hardware (%d)\n",
+ 			  key->conf.keyidx,
+ 			  sta ? sta->sta.addr : bcast_addr, ret);
++}
+ 
+-	key->flags &= ~KEY_FLAG_UPLOADED_TO_HARDWARE;
++static int ieee80211_hw_key_replace(struct ieee80211_key *old_key,
++				    struct ieee80211_key *new_key,
++				    bool ptk0rekey)
++{
++	struct ieee80211_sub_if_data *sdata;
++	struct ieee80211_local *local;
++	struct sta_info *sta;
++	int ret;
++
++	/* Aggregation sessions are OK when running on SW crypto.
++	 * A broken remote STA may cause issues not observed with HW
++	 * crypto, though.
++	 */
++	if (!(old_key->flags & KEY_FLAG_UPLOADED_TO_HARDWARE))
++		return 0;
++
++	assert_key_lock(old_key->local);
++	sta = old_key->sta;
++
++	/* PTK only using key ID 0 needs special handling on rekey */
++	if (new_key && sta && ptk0rekey) {
++		local = old_key->local;
++		sdata = old_key->sdata;
++
++		/* Stop TX till we are on the new key */
++		old_key->flags |= KEY_FLAG_TAINTED;
++		ieee80211_clear_fast_xmit(sta);
++
++		/* Aggregation sessions during rekey are complicated due to the
++		 * reorder buffer and retransmits. Side step that by blocking
++		 * aggregation during rekey and tear down running sessions.
++		 */
++		if (ieee80211_hw_check(&local->hw, AMPDU_AGGREGATION)) {
++			set_sta_flag(sta, WLAN_STA_BLOCK_BA);
++			ieee80211_sta_tear_down_BA_sessions(sta,
++							    AGG_STOP_LOCAL_REQUEST);
++		}
++
++		if (!wiphy_ext_feature_isset(local->hw.wiphy,
++					     NL80211_EXT_FEATURE_CAN_REPLACE_PTK0)) {
++			pr_warn_ratelimited("Rekeying PTK for STA %pM but driver can't safely do that.",
++					    sta->sta.addr);
++			/* Flushing the driver queues *may* help prevent
++			 * the clear text leaks and freezes.
++			 */
++			ieee80211_flush_queues(local, sdata, false);
++		}
++	}
++
++	ieee80211_key_disable_hw_accel(old_key);
++
++	if (new_key)
++		ret = ieee80211_key_enable_hw_accel(new_key);
++	else
++		ret = 0;
++
++	return ret;
+ }
+ 
+ static void __ieee80211_set_default_key(struct ieee80211_sub_if_data *sdata,
+@@ -315,39 +373,57 @@ void ieee80211_set_default_mgmt_key(stru
+ }
+ 
+ 
+-static void ieee80211_key_replace(struct ieee80211_sub_if_data *sdata,
++static int ieee80211_key_replace(struct ieee80211_sub_if_data *sdata,
+ 				  struct sta_info *sta,
+ 				  bool pairwise,
+ 				  struct ieee80211_key *old,
+ 				  struct ieee80211_key *new)
+ {
+ 	int idx;
++	int ret;
+ 	bool defunikey, defmultikey, defmgmtkey;
+ 
+ 	/* caller must provide at least one old/new */
+ 	if (WARN_ON(!new && !old))
+-		return;
++		return 0;
+ 
+ 	if (new)
+ 		list_add_tail_rcu(&new->list, &sdata->key_list);
+ 
+ 	WARN_ON(new && old && new->conf.keyidx != old->conf.keyidx);
+ 
+-	if (old)
++	if (old) {
+ 		idx = old->conf.keyidx;
+-	else
++		/* TODO: proper implement and test "Extended Key ID for
++		 * Individually Addressed Frames" from IEEE 802.11-2016.
++		 * Till then always assume only key ID 0 is used for
++		 * pairwise keys.*/
++		ret = ieee80211_hw_key_replace(old, new, pairwise);
++	} else {
+ 		idx = new->conf.keyidx;
++		if (new && !new->local->wowlan)
++			ret = ieee80211_key_enable_hw_accel(new);
++		else
++			ret = 0;
++	}
++
++	if (ret)
++		return ret;
+ 
+ 	if (sta) {
+ 		if (pairwise) {
+ 			rcu_assign_pointer(sta->ptk[idx], new);
+ 			set_sta_flag(sta, WLAN_STA_USES_ENCRYPTION);
+ 			sta->ptk_idx = idx;
+-			ieee80211_check_fast_xmit(sta);
++			if (new) {
++				clear_sta_flag(sta, WLAN_STA_BLOCK_BA);
++				ieee80211_check_fast_xmit(sta);
++			}
+ 		} else {
+ 			rcu_assign_pointer(sta->gtk[idx], new);
+ 		}
+-		ieee80211_check_fast_rx(sta);
++		if (new)
++			ieee80211_check_fast_rx(sta);
+ 	} else {
+ 		defunikey = old &&
+ 			old == key_mtx_dereference(sdata->local,
+@@ -380,6 +456,8 @@ static void ieee80211_key_replace(struct
+ 
+ 	if (old)
+ 		list_del_rcu(&old->list);
++
++	return 0;
+ }
+ 
+ struct ieee80211_key *
+@@ -575,9 +653,6 @@ static void ieee80211_key_free_common(st
+ static void __ieee80211_key_destroy(struct ieee80211_key *key,
+ 				    bool delay_tailroom)
+ {
+-	if (key->local)
+-		ieee80211_key_disable_hw_accel(key);
+-
+ 	if (key->local) {
+ 		struct ieee80211_sub_if_data *sdata = key->sdata;
+ 
+@@ -655,7 +730,6 @@ int ieee80211_key_link(struct ieee80211_
+ 		       struct sta_info *sta)
+ {
+ 	static atomic_t key_color = ATOMIC_INIT(0);
+-	struct ieee80211_local *local = sdata->local;
+ 	struct ieee80211_key *old_key;
+ 	int idx = key->conf.keyidx;
+ 	bool pairwise = key->conf.flags & IEEE80211_KEY_FLAG_PAIRWISE;
+@@ -698,17 +772,13 @@ int ieee80211_key_link(struct ieee80211_
+ 
+ 	increment_tailroom_need_count(sdata);
+ 
+-	ieee80211_key_replace(sdata, sta, pairwise, old_key, key);
+-	ieee80211_key_destroy(old_key, delay_tailroom);
++	ret = ieee80211_key_replace(sdata, sta, pairwise, old_key, key);
+ 
+-	ieee80211_debugfs_key_add(key);
+-
+-	if (!local->wowlan) {
+-		ret = ieee80211_key_enable_hw_accel(key);
+-		if (ret)
+-			ieee80211_key_free(key, delay_tailroom);
++	if (!ret) {
++		ieee80211_debugfs_key_add(key);
++		ieee80211_key_destroy(old_key, delay_tailroom);
+ 	} else {
+-		ret = 0;
++		ieee80211_key_free(key, delay_tailroom);
+ 	}
+ 
+  out:
+--- a/net/mac80211/tx.c
++++ b/net/mac80211/tx.c
+@@ -2998,6 +2998,10 @@ void ieee80211_check_fast_xmit(struct st
+ 		if (!(build.key->flags & KEY_FLAG_UPLOADED_TO_HARDWARE))
+ 			goto out;
+ 
++		/* Key is being removed */
++		if (build.key->flags & KEY_FLAG_TAINTED)
++			goto out;
++
+ 		switch (build.key->conf.cipher) {
+ 		case WLAN_CIPHER_SUITE_CCMP:
+ 		case WLAN_CIPHER_SUITE_CCMP_256:
