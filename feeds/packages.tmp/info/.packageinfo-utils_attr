@@ -1,7 +1,7 @@
 Source-Makefile: feeds/packages/utils/attr/Makefile
 Package: attr
 Submenu: Filesystem
-Version: 2.5.1-1
+Version: 2.5.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libattr
 Conflicts: 
 Menu-Depends: 
@@ -11,7 +11,7 @@ Category: Utilities
 Repository: base
 Title: Extended attributes (xattr) manipulation utils
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: attr-2.5.1.tar.gz
+Source: attr-2.5.2.tar.xz
 Type: ipkg
 Description:   Extended attributes support
  This package provides xattr manipulation utilities
@@ -24,7 +24,7 @@ Maxim Storchak <m.storchak@gmail.com>
 
 Package: libattr
 Submenu: Filesystem
-Version: 2.5.1-1
+Version: 2.5.2-3
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -34,7 +34,7 @@ Category: Libraries
 Repository: base
 Title: Extended attributes (xattr) manipulation library
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: attr-2.5.1.tar.gz
+Source: attr-2.5.2.tar.xz
 Type: ipkg
 Description:   Extended attributes support
  This package provides libattr
