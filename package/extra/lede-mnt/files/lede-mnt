@@ -1,0 +1,9 @@
+#!/bin/sh
+
+lede_mnt() {
+    [ -d /mnt ] && return
+    mkdir -p /tmp/mnt
+    [ -L /mnt ] || ln -s /tmp/mnt /mnt
+}
+
+boot_hook_add preinit_main lede_mnt
