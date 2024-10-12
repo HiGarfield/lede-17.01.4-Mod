@@ -92,7 +92,7 @@ set_mount() {
 				uci -q batch <<-EOI
 					set fstab.$new_mount.enabled=1
 					set fstab.$new_mount.uuid="$dev_uuid"
-					set fstab.$new_mount.target="/mnt/$device"
+					set fstab.$new_mount.target="/tmp/mnt/$device"
 					set fstab.$new_mount.fstype="$fstype"
 					set fstab.$new_mount.options="$mnt_opts"
 					commit fstab
