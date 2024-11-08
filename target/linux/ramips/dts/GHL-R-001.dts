@@ -7,7 +7,7 @@
 #include <dt-bindings/input/input.h>
 
 / {
-	model = "GeHua GHL-R-001-F";
+	model = "GeHua GHL-R-001";
 
 	chosen {
 		bootargs = "console=ttyS0,57600";
@@ -17,12 +17,12 @@
 		compatible = "gpio-leds";
 
 		internet {
-			label = "ghl-r-001-f:blue:internet";
+			label = "ghl-r-001:blue:internet";
 			gpios = <&gpio0 16 GPIO_ACTIVE_LOW>;
 		};
 
 		usb {
-			label = "ghl-r-001-f:blue:usb";
+			label = "ghl-r-001:blue:usb";
 			gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
 			trigger-sources = <&xhci_ehci_port1>, <&ehci_port2>;
 			linux,default-trigger = "usbport";

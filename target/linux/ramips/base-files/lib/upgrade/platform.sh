@@ -103,8 +103,7 @@ platform_check_image() {
 	nbg-419n2|\
 	newifi-d1|\
 	newifi-d2|\
-	ghl-r-001-e|\
-	ghl-r-001-f|\
+	ghl-r-001|\
 	yyets-le2|\
 	a3004ns|\
 	wr1200js|\
