@@ -376,11 +376,8 @@ ramips_board_detect() {
 	*"WR1200JS")
 		name="wr1200js"
 		;;
-	*"GHL-R-001-E")
-		name="ghl-r-001-e"
-		;;
-	*"GHL-R-001-F")
-		name="ghl-r-001-f"
+	*"GHL-R-001")
+		name="ghl-r-001"
 		;;
 	*"YYeTs-LE2")
 		name="yyets-le2"

@@ -136,21 +136,13 @@ define Device/newifi-d2
 endef
 TARGET_DEVICES += newifi-d2
 
-define Device/ghl-r-001-e
-  DTS := GHL-R-001-E
+define Device/ghl-r-001
+  DTS := GHL-R-001
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
-  DEVICE_TITLE := GeHua GHL-R-001-E
+  DEVICE_TITLE := GeHua GHL-R-001
   DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
 endef
-TARGET_DEVICES += ghl-r-001-e
-
-define Device/ghl-r-001-f
-  DTS := GHL-R-001-F
-  IMAGE_SIZE := $(ralink_default_fw_size_32M)
-  DEVICE_TITLE := GeHua GHL-R-001-F
-  DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
-endef
-TARGET_DEVICES += ghl-r-001-f
+TARGET_DEVICES += ghl-r-001
 
 define Device/yyets-le2
   DTS := YYETS-LE2

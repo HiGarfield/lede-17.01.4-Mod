@@ -291,8 +291,7 @@ oy-0001)
 pbr-d1)
 	set_usb_led "$board:orange:usb"
 	;;
-ghl-r-001-e|\
-ghl-r-001-f|\
+ghl-r-001|\
 pbr-m1)
 	ucidef_set_led_netdev "internet" "internet" "$board:blue:internet" "eth0.2"
 	;;
