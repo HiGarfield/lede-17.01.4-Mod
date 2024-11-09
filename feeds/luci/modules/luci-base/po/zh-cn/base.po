@@ -1619,9 +1619,6 @@ msgstr "加入网络: %q"
 msgid "Keep settings"
 msgstr "保留配置"
 
-msgid "Force upgrade without verification (dangerous!)"
-msgstr "无校验强制升级(危险!)"
-
 msgid "Kernel Log"
 msgstr "内核日志"
 
