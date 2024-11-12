@@ -123,4 +123,6 @@ rm -f /tmp/luci-indexcache
 
 /etc/init.d/network restart
 
+/etc/init.d/dropbear restart
+
 exit 0
