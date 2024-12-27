@@ -18,6 +18,26 @@ Description: WireGuard Status
 Dan Luedtke <mail@danrl.com>
 @@
 
+Package: luci-i18n-wireguard-ja
+Default: LUCI_LANG_ja||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-wireguard
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-wireguard - ja translation
+Maintainer: Dan Luedtke <mail@danrl.com>
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-wireguard - 日本語 (Japanese)
+Dan Luedtke <mail@danrl.com>
+@@
+
 Package: luci-i18n-wireguard-pt-br
 Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
@@ -35,26 +55,6 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-wireguard - Português do Brasil (Brazialian Portuguese)
-Dan Luedtke <mail@danrl.com>
-@@
-
-Package: luci-i18n-wireguard-zh-cn
-Default: LUCI_LANG_zh-cn||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-wireguard
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-wireguard - zh-cn translation
-Maintainer: Dan Luedtke <mail@danrl.com>
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-wireguard - 中文 (Chinese)
 Dan Luedtke <mail@danrl.com>
 @@
 
@@ -78,8 +78,8 @@ Description:     Translation for luci-app-wireguard - Svenska (Swedish)
 Dan Luedtke <mail@danrl.com>
 @@
 
-Package: luci-i18n-wireguard-ja
-Default: LUCI_LANG_ja||(ALL&&m)
+Package: luci-i18n-wireguard-zh-cn
+Default: LUCI_LANG_zh-cn||(ALL&&m)
 Version: x-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-wireguard
 Conflicts: 
@@ -89,12 +89,12 @@ Build-Depends: lua/host luci-base/host
 Section: luci
 Category: LuCI
 Repository: base
-Title: luci-app-wireguard - ja translation
+Title: luci-app-wireguard - zh-cn translation
 Maintainer: Dan Luedtke <mail@danrl.com>
 Source: 
 Type: ipkg
 Hidden: 1
-Description:     Translation for luci-app-wireguard - 日本語 (Japanese)
+Description:     Translation for luci-app-wireguard - 中文 (Chinese)
 Dan Luedtke <mail@danrl.com>
 @@
 

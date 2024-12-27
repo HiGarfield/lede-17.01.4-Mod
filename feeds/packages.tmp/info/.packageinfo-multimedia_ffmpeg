@@ -57,7 +57,7 @@ Build-Variant: full
 Section: multimedia
 Category: Multimedia
 Repository: base
-Title:  streaming server
+Title: streaming server
 Maintainer: Ted Hess <thess@kitschensync.net>
 Source: ffmpeg-3.2.2.tar.xz
 License: LGPL-2.1+ GPL-2+ LGPL-3

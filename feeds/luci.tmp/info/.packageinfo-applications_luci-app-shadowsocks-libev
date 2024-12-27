@@ -38,26 +38,6 @@ Description:     Translation for luci-app-shadowsocks-libev - Português do Bras
 
 @@
 
-Package: luci-i18n-shadowsocks-libev-zh-cn
-Default: LUCI_LANG_zh-cn||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-shadowsocks-libev
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-shadowsocks-libev - zh-cn translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-shadowsocks-libev - 中文 (Chinese)
-
-@@
-
 Package: luci-i18n-shadowsocks-libev-sv
 Default: LUCI_LANG_sv||(ALL&&m)
 Version: x-1
@@ -75,6 +55,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-shadowsocks-libev - Svenska (Swedish)
+
+@@
+
+Package: luci-i18n-shadowsocks-libev-zh-cn
+Default: LUCI_LANG_zh-cn||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-shadowsocks-libev
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-shadowsocks-libev - zh-cn translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-shadowsocks-libev - 中文 (Chinese)
 
 @@
 

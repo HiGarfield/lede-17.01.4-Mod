@@ -18,6 +18,26 @@ Description: MJPG-Streamer service configuration module
 
 @@
 
+Package: luci-i18n-mjpg-streamer-ja
+Default: LUCI_LANG_ja||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-mjpg-streamer
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-mjpg-streamer - ja translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-mjpg-streamer - 日本語 (Japanese)
+
+@@
+
 Package: luci-i18n-mjpg-streamer-pt-br
 Default: LUCI_LANG_pt-br||(ALL&&m)
 Version: x-1
@@ -55,26 +75,6 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-mjpg-streamer - 中文 (Chinese)
-
-@@
-
-Package: luci-i18n-mjpg-streamer-ja
-Default: LUCI_LANG_ja||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-mjpg-streamer
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-mjpg-streamer - ja translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-mjpg-streamer - 日本語 (Japanese)
 
 @@
 
