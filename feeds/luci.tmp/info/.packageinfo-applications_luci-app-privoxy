@@ -69,27 +69,6 @@ Description:     Translation for luci-app-privoxy - Português do Brasil (Brazia
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 
-Package: luci-i18n-privoxy-zh-cn
-Default: LUCI_LANG_zh-cn||(ALL&&m)
-Version: 1.0.6-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-privoxy
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-privoxy - zh-cn translation
-Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
-Source: 
-License: Apache-2.0
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-privoxy - 中文 (Chinese)
-Christian Schoenebeck <christian.schoenebeck@gmail.com>
-@@
-
 Package: luci-i18n-privoxy-sv
 Default: LUCI_LANG_sv||(ALL&&m)
 Version: 1.0.6-1
@@ -108,6 +87,27 @@ License: Apache-2.0
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-privoxy - Svenska (Swedish)
+Christian Schoenebeck <christian.schoenebeck@gmail.com>
+@@
+
+Package: luci-i18n-privoxy-zh-cn
+Default: LUCI_LANG_zh-cn||(ALL&&m)
+Version: 1.0.6-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-privoxy
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-privoxy - zh-cn translation
+Maintainer: Christian Schoenebeck <christian.schoenebeck@gmail.com>
+Source: 
+License: Apache-2.0
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-privoxy - 中文 (Chinese)
 Christian Schoenebeck <christian.schoenebeck@gmail.com>
 @@
 

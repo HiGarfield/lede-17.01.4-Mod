@@ -18,26 +18,6 @@ Description: Netlink based bandwidth accounting
 
 @@
 
-Package: luci-i18n-nlbwmon-zh-cn
-Default: LUCI_LANG_zh-cn||(ALL&&m)
-Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-nlbwmon
-Conflicts: 
-Menu-Depends: 
-Provides: 
-Build-Depends: lua/host luci-base/host 
-Section: luci
-Category: LuCI
-Repository: base
-Title: luci-app-nlbwmon - zh-cn translation
-Maintainer: 
-Source: 
-Type: ipkg
-Hidden: 1
-Description:     Translation for luci-app-nlbwmon - 中文 (Chinese)
-
-@@
-
 Package: luci-i18n-nlbwmon-ja
 Default: LUCI_LANG_ja||(ALL&&m)
 Version: x-1
@@ -55,6 +35,26 @@ Source:
 Type: ipkg
 Hidden: 1
 Description:     Translation for luci-app-nlbwmon - 日本語 (Japanese)
+
+@@
+
+Package: luci-i18n-nlbwmon-zh-cn
+Default: LUCI_LANG_zh-cn||(ALL&&m)
+Version: x-1
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread luci-app-nlbwmon
+Conflicts: 
+Menu-Depends: 
+Provides: 
+Build-Depends: lua/host luci-base/host 
+Section: luci
+Category: LuCI
+Repository: base
+Title: luci-app-nlbwmon - zh-cn translation
+Maintainer: 
+Source: 
+Type: ipkg
+Hidden: 1
+Description:     Translation for luci-app-nlbwmon - 中文 (Chinese)
 
 @@
 

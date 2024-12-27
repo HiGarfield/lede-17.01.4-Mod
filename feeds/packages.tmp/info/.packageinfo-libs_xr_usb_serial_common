@@ -2,7 +2,7 @@ Source-Makefile: feeds/packages/libs/xr_usb_serial_common/Makefile
 Package: kmod-usb-serial-xr_usb_serial_common
 Submenu: USB Support
 Version: <LINUX_VERSION>+1a-1
-Depends:  kmod-usb-serial
+Depends: kmod-usb-serial
 Conflicts: 
 Menu-Depends: 
 Provides: 
