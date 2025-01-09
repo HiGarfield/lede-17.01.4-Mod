@@ -58,6 +58,15 @@ msgstr "加密"
 msgid "Key"
 msgstr "密码"
 
+msgid "Mesh Key"
+msgstr "Mesh网络密码"
+
+msgid "inter-access point protocol"
+msgstr "接入点内部协议"
+
+msgid "Wireless Access Points (APs) running on different vendors can communicate with each other"
+msgstr "运行在不同供应商的无线访问点(AP)可以相互交流"
+
 msgid "Threshold for an good RSSI"
 msgstr "快速漫游接入值"
 
@@ -81,3 +90,9 @@ msgstr "IPv4 网关"
 
 msgid "Use custom DNS servers"
 msgstr "使用自定义的 DNS 服务器"
+
+msgid "2.4g wifi enable r"
+msgstr "2.4G wifi启用r"
+
+msgid "Enable 802.11r for 2.4G"
+msgstr "启用2.4G无线网络的802.11r协议"
