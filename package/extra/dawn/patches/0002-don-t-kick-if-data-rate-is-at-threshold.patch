@@ -1,4 +1,4 @@
-From 734a2d650603c3f7a5c7ce2a1a5ac398ee20cf63 Mon Sep 17 00:00:00 2001
+From 1806e0fbc6f32d5db3c1efc357f870ad24c0e064 Mon Sep 17 00:00:00 2001
 From: HarvsG <11440490+HarvsG@users.noreply.github.com>
 Date: Fri, 15 Sep 2023 11:00:05 +0100
 Subject: [PATCH] don't kick if data rate is at threshold
@@ -7,11 +7,9 @@ Subject: [PATCH] don't kick if data rate is at threshold
  src/storage/datastorage.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/src/storage/datastorage.c b/src/storage/datastorage.c
-index 7e6da46..655727a 100644
 --- a/src/storage/datastorage.c
 +++ b/src/storage/datastorage.c
-@@ -565,7 +565,7 @@ int kick_clients(struct dawn_mac bssid_mac, uint32_t id) {
+@@ -565,7 +565,7 @@ int kick_clients(struct dawn_mac bssid_m
                      // only use rx_rate for indicating if transmission is going on
                      // <= 6MBits <- probably no transmission
                      // tx_rate has always some weird value so don't use ist
@@ -20,6 +18,3 @@ index 7e6da46..655727a 100644
                          dawnlog_info("Client " MACSTR ": Don't kick due to active data transfer: RX rate %f exceeds %d limit\n", MAC2STR(j->client_addr.u8), rx_rate, dawn_metric.bandwidth_threshold);
                      }
                      else
--- 
-2.25.1
-

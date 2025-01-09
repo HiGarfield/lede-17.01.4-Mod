@@ -1,0 +1,21 @@
+From 9f8fe0fb9cce6e24f8136e9569b34989195d83a7 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 10 Jan 2025 02:56:53 +0800
+Subject: [PATCH] datastorage: fix a use-after-free bug
+
+---
+ src/storage/datastorage.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/src/storage/datastorage.c
++++ b/src/storage/datastorage.c
+@@ -1336,8 +1336,8 @@ void insert_macs_from_file() {
+     fclose(fp);
+     if (line)
+     {
+-        free(line);
+         dawn_unregmem(line);
++        free(line);
+     }
+ 
+     //exit(EXIT_SUCCESS);
