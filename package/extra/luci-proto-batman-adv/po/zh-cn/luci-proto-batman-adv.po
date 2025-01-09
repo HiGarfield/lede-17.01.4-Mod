@@ -1,0 +1,166 @@
+msgid ""
+"A batman-adv node can either run in server mode (sharing its internet "
+"connection with the mesh) or in client mode (searching for the most suitable "
+"internet connection in the mesh) or having the gateway support turned off "
+"entirely (which is the default setting)."
+msgstr ""
+"batman-adv 节点可以运行于在服务器模式（与 Mesh 共享其 Internet 连接）或客户端"
+"模式（在 Mesh 中搜索最合适的 Internet 连接）或完全关闭网关支持（这是默认设"
+"置）。"
+
+msgid "Access Point Isolation"
+msgstr "接入点隔离"
+
+msgid "Aggregate Originator Messages"
+msgstr "聚合发起者消息"
+
+msgid "Avoid Bridge Loops"
+msgstr "避免网桥回环"
+
+msgid "Batman Device"
+msgstr "Batman 设备"
+
+msgid "Batman Interface"
+msgstr "Batman 接口"
+
+msgid ""
+"Batman-adv has a built-in layer 2 fragmentation for unicast data flowing "
+"through the mesh which will allow to run batman-adv over interfaces / "
+"connections that don't allow to increase the MTU beyond the standard "
+"Ethernet packet size of 1500 bytes. When the fragmentation is enabled batman-"
+"adv will automatically fragment over-sized packets and defragment them on "
+"the other end. Per default fragmentation is enabled and inactive if the "
+"packet fits but it is possible to deactivate the fragmentation entirely."
+msgstr ""
+"Batman-adv 内置 2 层分段，用于流经网格的单播数据，这允许在不允许将 MTU 增加到"
+"超过 1500 字节的标准以太网数据包大小的接口/连接上运行 batman-adv。启用分段"
+"后，batman-adv 将自动对过大数据包进行分段并在另一端对它们去分段。 该功能默认"
+"处于启用状态，但如数据包大小适合则该功能不活跃，但不可以完全停用该功能。"
+
+msgid "Bonding Mode"
+msgstr "绑定模式"
+
+msgid "Client"
+msgstr "客户端"
+
+msgid "Distributed ARP Table"
+msgstr "分布式 ARP 表"
+
+msgid ""
+"Enables more efficient, group aware multicast forwarding infrastructure in "
+"batman-adv."
+msgstr "在 batman-adv 中启用更高效、分组感知的多播转发基础架构。"
+
+msgid "Fragmentation"
+msgstr "分段"
+
+msgid "Gateway Mode"
+msgstr "网关模式"
+
+msgid "Hop Penalty"
+msgstr "跳跃惩罚"
+
+msgid ""
+"In bridged LAN setups it is advisable to enable the bridge loop avoidance in "
+"order to avoid broadcast loops that can bring the entire LAN to a standstill."
+msgstr ""
+"在桥接 LAN 设置中，建议启用桥接环路避免功能，以避免可导致整个 LAN 停止的广播"
+"环路。"
+
+msgid "Mesh Routing"
+msgstr "Mesh 路由"
+
+msgid "Multicast Mode"
+msgstr "多播模式"
+
+msgid "Network Coding"
+msgstr "网络编码"
+
+msgid "Off"
+msgstr "关"
+
+msgid "Wired interface"
+msgstr "有线接口"
+
+msgid "Originator Interval"
+msgstr "发起人间隔"
+
+msgid "Override MTU"
+msgstr "重设 MTU"
+
+msgid "Choose the network you want to attach to this interface"
+msgstr "选择指派到此接口的网络"
+
+msgid ""
+"Prevents one wireless client to talk to another. This setting only affects "
+"packets without any VLAN tag (untagged packets)."
+msgstr ""
+"防止一个无线客户端与另一个客户端通信。 此设置仅影响没有任何 VLAN 标记的数据包"
+"（未打标记的数据包）。"
+
+msgid "Routing Algorithm"
+msgstr "路由算法"
+
+msgid "Server"
+msgstr "服务器"
+
+msgid "Mesh gate announcements"
+msgstr "网栅通告"
+
+msgid "Mesh rssi threshold"
+msgstr "网格 rssi 阈值"
+
+msgid "No need to enable this if using batman"
+msgstr "当使用 batman 时不需要启用"
+
+msgid "The algorithm that is used to discover mesh routes"
+msgstr "用于发现 mesh 路由的算法"
+
+msgid ""
+"The hop penalty setting allows to modify batman-adv's preference for "
+"multihop routes vs. short routes. The value is applied to the TQ of each "
+"forwarded OGM, thereby propagating the cost of an extra hop (the packet has "
+"to be received and retransmitted which costs airtime)"
+msgstr ""
+"跳跃惩罚设置允许修改 batman-adv 对多跳路由与短路由的偏好。该值应用于每个转发 "
+"OGM 的 TQ，从而传播额外跳的成本（必须接收和重新传输数据包，这会浪费传播时长）"
+
+msgid ""
+"The value specifies the interval (milliseconds) in which batman-adv floods "
+"the network with its protocol information."
+msgstr "该值指定 batman-adv 向网络发送其协议信息的时间间隔（毫秒）。"
+
+msgid "If you want to route mesh traffic over a wired network device, then please select it at this device selector. If you want to assign the batman-adv interface to a Wi-fi mesh then do not select the device here, but rather go to the wireless settings and select this interface as a network from there."
+msgstr "如果您想通过一个有线网络设备路由 mesh 流量，那么请在此设备选择器中选择它; 如果您想将 batman-adv 接口分配给 Wi-fi 网络，则不要在此设备选择器中选择它，而是转到无线设置并从那里选择此接口作为网络。"
+
+msgid "This is the batman-adv device where you want to link the physical device from above to. Firstly you need to creat a \"Batman Device\" named bat0, then select it at this device selector."
+msgstr "这是您要将上方的物理设备链接到的 batman-adv 设备。首先您需要建立一个名为 bat0 的 \"Batman 设备\"，然后在此设备选择器中选择它。"
+
+msgid ""
+"When enabled network coding increases the WiFi throughput by combining "
+"multiple frames into a single frame, thus reducing the needed air time."
+msgstr ""
+"启用后，网络编码通过将多个帧组合成单个帧来增加 WiFi 吞吐量，从而减少所需的传"
+"输时间。"
+
+msgid ""
+"When enabled the distributed ARP table forms a mesh-wide ARP cache that "
+"helps non-mesh clients to get ARP responses much more reliably and without "
+"much delay."
+msgstr ""
+"启用后，分布式 ARP 表形成一个 mesh 范围的 ARP 缓存，帮助非 mesh 客户端更可靠"
+"地获得 ARP 响应，并且没有太多延迟。"
+
+msgid ""
+"When running the mesh over multiple WiFi interfaces per node batman-adv is "
+"capable of optimizing the traffic flow to gain maximum performance."
+msgstr ""
+"当在每个节点的多个 WiFi 接口上运行 mesh 时，batman-adv 能够优化流量以获得最大"
+"性能。"
+
+msgid ""
+"reduces overhead by collecting and aggregating originator messages in a "
+"single packet rather than many small ones"
+msgstr "通过在单个数据包而不是许多小数据包中收集和聚合发起方消息来减少开销"
+
+
