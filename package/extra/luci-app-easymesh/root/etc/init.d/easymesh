@@ -15,6 +15,8 @@ load_easymesh_config() {
 	ap_ipaddr1=$(sed -n '1p' /etc/easymesh 2>/dev/null)
 	apRadio=$(uci -q get easymesh.config.apRadio)
 	kvr=$(uci -q get easymesh.config.kvr)
+	r_2g=$(uci -q get easymesh.config.r_2g)
+	iapp=$(uci -q get easymesh.config.iapp)
 	brlan=$(uci -q get network.@device[0].name)
 	role=$(uci -q get easymesh.config.role)
 }
@@ -90,23 +92,39 @@ add_wifi_mesh() {
 add_kvr() {
 	kvr=$(uci -q get easymesh.config.kvr)
 	mobility_domain=$(uci -q get easymesh.config.mobility_domain)
+	iapp=$(uci -q get easymesh.config.iapp)
+	r_2g=$(uci -q get easymesh.config.r_2g)
+	ap_2g=$(uci -X show wireless | grep 2g | awk -F'[.=]' '{print $2}')
 	for apall in $(uci -X show wireless | grep wifi-device | awk -F'[.=]' '{print $2}'); do
 		if [ "$kvr" = 1 ]; then
+			uci set wireless.default_$apall.encryption='psk2+ccmp'
 			uci set wireless.default_$apall.ieee80211k='1'
 			uci set wireless.default_$apall.rrm_neighbor_report='1'
 			uci set wireless.default_$apall.rrm_beacon_report='1'
 			uci set wireless.default_$apall.ieee80211v='1'
 			uci set wireless.default_$apall.bss_transition='1'
-			uci set wireless.default_$apall.ieee80211r='1'
-			uci set wireless.default_$apall.encryption='psk2+ccmp'
-			uci set wireless.default_$apall.mobility_domain=$mobility_domain
-			uci set wireless.default_$apall.ft_over_ds='1'
-			uci set wireless.default_$apall.ft_psk_generate_local='1'
+			if [ "$apall" != "$ap_2g" ] || [ "$r_2g" = 1 ]; then
+				uci set wireless.default_$apall.ieee80211r='1'
+				uci set wireless.default_$apall.mobility_domain=$mobility_domain
+				uci set wireless.default_$apall.ft_over_ds='0'
+				uci set wireless.default_$apall.reassociation_deadline='20000'
+				uci set wireless.default_$apall.ft_psk_generate_local='1'
+			else
+				uci -q delete wireless.default_$apall.ieee80211r
+			fi
 			uci commit wireless
 		else
 			uci -q delete wireless.default_$apall.ieee80211k
 			uci -q delete wireless.default_$apall.ieee80211v
+			uci -q delete wireless.default_$apall.bss_transition
 			uci -q delete wireless.default_$apall.ieee80211r
+			uci commit wireless
+		fi
+		if [ "$iapp" = 1 ]; then
+			uci set wireless.default_$apall.iapp_interface='br-lan'
+			uci commit wireless
+		else
+			uci -q delete wireless.default_$apall.iapp_interface
 			uci commit wireless
 		fi
 	done
