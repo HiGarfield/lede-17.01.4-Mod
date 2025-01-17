@@ -8,17 +8,23 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=libgpg-error
-PKG_VERSION:=1.12
-PKG_RELEASE:=2
+PKG_VERSION:=1.51
+PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)-$(PKG_VERSION).tar.bz2
-PKG_SOURCE_URL:=ftp://ftp.gnupg.org/gcrypt/libgpg-error
-PKG_HASH:=cafc9ed6a87c53a35175d5a1220a96ca386696eef2fa059cc0306211f246e55f
+PKG_SOURCE_URL:=https://mirrors.dotsrc.org/gcrypt/libgpg-error \
+		http://ring.ksc.gr.jp/archives/net/gnupg/libgpg-error \
+		https://www.gnupg.org/ftp/gcrypt/libgpg-error
+PKG_HASH:=be0f1b2db6b93eed55369cdf79f19f72750c8c7c39fc20b577e724545427e6b2
 
-PKG_BUILD_PARALLEL:=1
-PKG_INSTALL:=1
+PKG_MAINTAINER:=W. Michael Petullo <mike@flyn.org>
+PKG_LICENSE:=LGPL-2.1-or-later
+PKG_LICENSE_FILES:=COPYING
+PKG_CPE_ID:=cpe:/a:gnupg:libgpg-error
 
 PKG_FIXUP:=autoreconf
+PKG_INSTALL:=1
+PKG_BUILD_PARALLEL:=1
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -26,8 +32,7 @@ define Package/libgpg-error
   SECTION:=libs
   CATEGORY:=Libraries
   TITLE:=GnuPG error handling helper library
-  URL:=http://www.gnupg.org/related_software/libgpg-error/
-  MAINTAINER:=W. Michael Petullo <mike@flyn.org>
+  URL:=https://www.gnupg.org/related_software/libgpg-error/
 endef
 
 define Package/libgpg-error/description
@@ -38,12 +43,14 @@ define Package/libgpg-error/description
 	future.
 endef
 
-TARGET_CFLAGS += $(FPIC)
-
 CONFIGURE_ARGS += \
 	--enable-shared \
 	--enable-static \
-	--disable-rpath
+	--enable-install-gpg-error-config \
+	--disable-doc \
+	--disable-languages \
+	--disable-rpath \
+	--disable-tests
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(2)/bin $(1)/usr/bin
@@ -53,11 +60,23 @@ define Build/InstallDev
 	$(SED) \
 		's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/usr,g' \
 		$(2)/bin/gpg-error-config
-	ln -sf $(STAGING_DIR)/host/bin/gpg-error-config $(1)/usr/bin/gpg-error-config
+	$(LN) $(STAGING_DIR)/host/bin/gpg-error-config $(1)/usr/bin/gpg-error-config
+
+	$(INSTALL_BIN) \
+		$(PKG_INSTALL_DIR)/usr/bin/gpgrt-config \
+		$(2)/bin/
+	$(SED) \
+		's,^\(prefix\|exec_prefix\)=.*,\1=$(STAGING_DIR)/usr,g' \
+		$(2)/bin/gpgrt-config
+	$(LN) $(STAGING_DIR)/host/bin/gpgrt-config $(1)/usr/bin/gpgrt-config
 
 	$(INSTALL_DIR) $(1)/usr/include
 	$(INSTALL_DATA) \
 		$(PKG_INSTALL_DIR)/usr/include/gpg-error.h \
+		$(1)/usr/include/
+
+	$(INSTALL_DATA) \
+		$(PKG_INSTALL_DIR)/usr/include/gpgrt.h \
 		$(1)/usr/include/
 
 	$(INSTALL_DIR) $(1)/usr/lib
@@ -69,6 +88,15 @@ define Build/InstallDev
 	$(INSTALL_DATA) \
 		$(PKG_INSTALL_DIR)/usr/share/aclocal/gpg-error.m4 \
 		$(1)/usr/share/aclocal/
+
+	$(INSTALL_DATA) \
+		$(PKG_INSTALL_DIR)/usr/share/aclocal/gpgrt.m4 \
+		$(1)/usr/share/aclocal/
+
+	$(INSTALL_DIR) $(1)/usr/lib/pkgconfig
+	$(CP) \
+		$(PKG_INSTALL_DIR)/usr/lib/pkgconfig/gpg-error.pc \
+		$(1)/usr/lib/pkgconfig
 endef
 
 define Package/libgpg-error/install
