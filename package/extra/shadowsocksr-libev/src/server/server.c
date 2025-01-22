@@ -1942,12 +1942,12 @@ main(int argc, char **argv)
             text = (char*)malloc(strlen(protocol) - 11);
             memcpy(text, protocol, strlen(protocol) - 11);
             int length = strlen(protocol) - 11;
-            obfs = (char*)malloc(length);
+            free(protocol);
+            protocol = (char*)malloc(length);
             memset(protocol, 0x00, length);
             memcpy(protocol, text, length);
             LOGI("protocol compatible enable, %s", protocol);
             free(text);
-            free(protocol);
             protocol_compatible = 1;
         }
     }
