@@ -1,0 +1,42 @@
+From acc0e49e61ffffe2edefb74848b03b0ca98fc191 Mon Sep 17 00:00:00 2001
+From: Thorsten Blum <thorsten.blum@toblux.com>
+Date: Wed, 10 Jul 2024 20:57:44 +0200
+Subject: [PATCH] wifi: ath9k: Use swap() to improve ath9k_hw_get_nf_hist_mid()
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Use the swap() macro to simplify the ath9k_hw_get_nf_hist_mid() function
+and improve its readability.
+
+Fixes the following Coccinelle/coccicheck warning reported by
+swap.cocci:
+
+  WARNING opportunity for swap()
+
+Compile-tested only.
+
+Signed-off-by: Thorsten Blum <thorsten.blum@toblux.com>
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Signed-off-by: Kalle Valo <quic_kvalo@quicinc.com>
+Link: https://patch.msgid.link/20240710185743.709742-2-thorsten.blum@toblux.com
+---
+ drivers/net/wireless/ath/ath9k/calib.c | 7 ++-----
+ 1 file changed, 2 insertions(+), 5 deletions(-)
+
+--- a/drivers/net/wireless/ath/ath9k/calib.c
++++ b/drivers/net/wireless/ath/ath9k/calib.c
+@@ -32,11 +32,8 @@ static int16_t ath9k_hw_get_nf_hist_mid(
+ 
+ 	for (i = 0; i < ATH9K_NF_CAL_HIST_MAX - 1; i++) {
+ 		for (j = 1; j < ATH9K_NF_CAL_HIST_MAX - i; j++) {
+-			if (sort[j] > sort[j - 1]) {
+-				nfval = sort[j];
+-				sort[j] = sort[j - 1];
+-				sort[j - 1] = nfval;
+-			}
++			if (sort[j] > sort[j - 1])
++				swap(sort[j], sort[j - 1]);
+ 		}
+ 	}
+ 	nfval = sort[(ATH9K_NF_CAL_HIST_MAX - 1) >> 1];
