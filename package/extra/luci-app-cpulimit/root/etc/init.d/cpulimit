@@ -4,21 +4,23 @@ START=99
 USE_PROCD=1
 
 cpulimit_get() {
-	local enabled
-	local limit
-	local exename
-	local numcores
-	local include_children
-	config_get_bool enabled $1 enabled 0
+	local cfg="$1"
+	local enabled limit exename maxpercentage include_children
+
+	config_get_bool enabled "$cfg" enabled 0
 	[ "$enabled" -eq 1 ] || return 1
-	config_get limit $1 limit
+
+	config_get limit "$cfg" limit
 	[ -z "$limit" ] && return 1
-	numcores="$(cpulimit -h | awk -F 'percentage of cpu allowed from 0 to ' '/^[[:space:]]*-l, --limit=N/{print $2; exit}' | awk '{print $1/100; exit}')"
-	[ "$limit" -gt 0 -a "$limit" -le $((100 * numcores)) ] || return 1
-	config_get exename $1 exename
+
+	config_get exename "$cfg" exename
 	[ -z "$exename" ] && return 1
 	exename="$(basename "$exename")"
-	config_get_bool include_children $1 include_children 0
+
+	maxpercentage="$(cpulimit -h | sed -n 's/.*--limit=.*from 0 to \([0-9]*\).*/\1/p')"
+	[ "$limit" -gt 0 ] && [ "$limit" -le "$maxpercentage" ] || return 1
+
+	config_get_bool include_children "$cfg" include_children 0
 
 	procd_open_instance
 	procd_set_param command cpulimit
