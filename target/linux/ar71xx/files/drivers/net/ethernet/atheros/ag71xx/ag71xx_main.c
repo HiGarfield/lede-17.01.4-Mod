@@ -1216,7 +1216,7 @@ static int ag71xx_poll(struct napi_struct *napi, int limit)
 		DBG("%s: disable polling mode, rx=%d, tx=%d,limit=%d\n",
 			dev->name, rx_done, tx_done, limit);
 
-		napi_complete_done(napi, rx_done);
+		napi_complete(napi);
 
 		/* enable interrupts */
 		spin_lock_irqsave(&ag->lock, flags);
@@ -1235,7 +1235,7 @@ oom:
 		pr_info("%s: out of memory\n", dev->name);
 
 	mod_timer(&ag->oom_timer, jiffies + AG71XX_OOM_REFILL);
-	napi_complete_done(napi, rx_done);
+	napi_complete(napi);
 	return 0;
 }
 
