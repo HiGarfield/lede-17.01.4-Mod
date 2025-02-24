@@ -72,7 +72,7 @@ $(curdir)/dosfstools/compile := $(curdir)/autoconf/install $(curdir)/automake/in
 $(curdir)/libressl/compile := $(curdir)/pkg-config/install
 $(curdir)/mkimage/compile += $(curdir)/libressl/install
 $(curdir)/firmware-utils/compile += $(curdir)/libressl/install
-$(curdir)/cmake/compile += $(curdir)/libressl/install
+$(curdir)/cmake/compile += $(curdir)/libressl/install $(curdir)/ninja/compile
 
 ifneq ($(HOST_OS),Linux)
   tools-y += coreutils
