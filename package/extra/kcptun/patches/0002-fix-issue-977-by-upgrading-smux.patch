@@ -1,0 +1,31 @@
+From ff9a20549880856d079cde90d7620b59fa91b8a2 Mon Sep 17 00:00:00 2001
+From: xtaci <imap@live.com>
+Date: Fri, 27 Dec 2024 22:23:36 +0800
+Subject: [PATCH] fix issue #977 by upgrading smux
+
+---
+ vendor/github.com/xtaci/smux/session.go | 11 +++++++----
+ 1 file changed, 7 insertions(+), 4 deletions(-)
+
+--- a/vendor/github.com/xtaci/smux/session.go
++++ b/vendor/github.com/xtaci/smux/session.go
+@@ -300,12 +300,15 @@ func (s *Session) RemoteAddr() net.Addr
+ // notify the session that a stream has closed
+ func (s *Session) streamClosed(sid uint32) {
+ 	s.streamLock.Lock()
+-	if n := s.streams[sid].recycleTokens(); n > 0 { // return remaining tokens to the bucket
+-		if atomic.AddInt32(&s.bucket, int32(n)) > 0 {
+-			s.notifyBucket()
++	if stream, ok := s.streams[sid]; ok {
++		n := stream.recycleTokens()
++		if n > 0 { // return remaining tokens to the bucket
++			if atomic.AddInt32(&s.bucket, int32(n)) > 0 {
++				s.notifyBucket()
++			}
+ 		}
++		delete(s.streams, sid)
+ 	}
+-	delete(s.streams, sid)
+ 	s.streamLock.Unlock()
+ }
+ 

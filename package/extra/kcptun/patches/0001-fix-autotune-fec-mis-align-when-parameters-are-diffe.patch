@@ -7,8 +7,6 @@ Subject: [PATCH] fix autotune fec mis-align when parameters are different
  vendor/github.com/xtaci/kcp-go/v5/fec.go | 16 +++++++++++-----
  1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/vendor/github.com/xtaci/kcp-go/v5/fec.go b/vendor/github.com/xtaci/kcp-go/v5/fec.go
-index 0a203ee..af02ed8 100644
 --- a/vendor/github.com/xtaci/kcp-go/v5/fec.go
 +++ b/vendor/github.com/xtaci/kcp-go/v5/fec.go
 @@ -48,7 +48,8 @@ type fecDecoder struct {
@@ -21,7 +19,7 @@ index 0a203ee..af02ed8 100644
  }
  
  func newFECDecoder(dataShards, parityShards int) *fecDecoder {
-@@ -82,18 +83,17 @@ func (dec *fecDecoder) decode(in fecPacket) (recovered [][]byte) {
+@@ -82,18 +83,17 @@ func (dec *fecDecoder) decode(in fecPack
  	}
  
  	// check if FEC parameters is out of sync
@@ -43,7 +41,7 @@ index 0a203ee..af02ed8 100644
  		autoDS := dec.autoTune.FindPeriod(true)
  		autoPS := dec.autoTune.FindPeriod(false)
  
-@@ -112,11 +112,17 @@ func (dec *fecDecoder) decode(in fecPacket) (recovered [][]byte) {
+@@ -112,11 +112,17 @@ func (dec *fecDecoder) decode(in fecPack
  				dec.codec = codec
  				dec.decodeCache = make([][]byte, dec.shardSize)
  				dec.flagCache = make([]bool, dec.shardSize)
@@ -61,6 +59,3 @@ index 0a203ee..af02ed8 100644
  	// insertion
  	n := len(dec.rx) - 1
  	insertIdx := 0
--- 
-2.25.1
-
