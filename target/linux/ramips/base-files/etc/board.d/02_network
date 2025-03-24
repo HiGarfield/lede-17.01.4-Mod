@@ -1,9 +1,129 @@
 #!/bin/sh
 
+# shellcheck shell=dash
+
 . /lib/functions.sh
 . /lib/ramips.sh
 . /lib/functions/uci-defaults.sh
 . /lib/functions/system.sh
+
+
+# Function to validate MAC addresses
+#
+# This function validates two MAC addresses for consistency and uniqueness.
+# It checks if both MAC addresses are valid, if they are unicast addresses,
+# if they are globally unique, and if their OUI (Organizationally Unique Identifier)
+# is consistent.
+#
+# Parameters:
+#   lan_mac_addr: The MAC address of the LAN interface.
+#   wan_mac_addr: The MAC address of the WAN interface.
+#
+# Returns:
+#   0 if both MAC addresses are valid and consistent.
+#   1 if any of the MAC addresses is invalid or inconsistent.
+#
+# Example:
+#   validate_mac_addresses "00:11:22:33:44:55" "00:11:22:66:77:88"
+
+validate_mac_addresses() {
+    local lan_mac_addr="$1"
+    local wan_mac_addr="$2"
+    local current_mac lowercase_mac first_octet oui_part eui_part lan_oui wan_oui
+
+    # Parameter existence check
+    { [ -z "$lan_mac_addr" ] || [ -z "$wan_mac_addr" ]; } && return 1
+
+    # Process both MAC addresses
+    for current_mac in "$lan_mac_addr" "$wan_mac_addr"; do
+        # Convert to lowercase
+        lowercase_mac=$(echo "$current_mac" | tr 'A-F' 'a-f')
+
+        # Validate MAC format using regex
+        echo "$lowercase_mac" | grep -qE '^([0-9a-f]{2}:){5}[0-9a-f]{2}$' || return 1
+
+        # Verify unicast address (LSB of first octet)
+        first_octet=${lowercase_mac%%:*}
+        [ $((0x$first_octet & 0x01)) -ne 0 ] && return 1
+
+        # Ensure globally unique address (2nd LSB)
+        [ $((0x$first_octet & 0x02)) -ne 0 ] && return 1
+
+        # Check reserved OUI patterns
+        oui_part=$(echo "$lowercase_mac" | cut -d':' -f1-3)
+        case "$oui_part" in
+        "00:00:00" | "ff:ff:ff" | "00:00:0c" | "01:00:5e" | "33:33:"*)
+            # Reject invalid/broadcast/multicast OUIs
+            return 1
+            ;;
+        esac
+
+        # Validate EUI-48 identifier portion
+        eui_part=$(echo "$lowercase_mac" | cut -d':' -f4-6)
+        case "$eui_part" in
+        "00:00:00" | "ff:ff:ff")
+            # Reject invalid device identifiers
+            return 1
+            ;;
+        esac
+    done
+
+    # Verify OUI consistency between interfaces
+    lan_oui=$(echo "$lan_mac_addr" | tr 'A-F' 'a-f' | cut -d':' -f1-3)
+    wan_oui=$(echo "$wan_mac_addr" | tr 'A-F' 'a-f' | cut -d':' -f1-3)
+    [ "$lan_oui" != "$wan_oui" ] && return 1
+
+    return 0
+}
+
+generate_rand_mac() {
+    local hex_raw ouipart euipart full_mac byte1 byte1_hex
+    local oldIFS="$IFS" # Save the original field separator
+    while :; do
+        # Generate raw data (compatible with BusyBox)
+        hex_raw=$(head -c6 /dev/urandom | hexdump -v -e '/1 "%02x "') || continue
+
+        # Split byte data
+        IFS=' '         # Set space as the delimiter
+        set -- $hex_raw # Store in positional parameters
+        IFS="$oldIFS"   # Restore the original field separator
+        [ $# -ne 6 ] && continue
+
+        # Process the first byte
+        byte1=$((0x$1 & 0xFC)) # Force unicast + global address
+        byte1_hex="$(printf "%02x" "$byte1")"
+
+        # Construct MAC components
+        ouipart="$byte1_hex:$2:$3"
+        euipart="$4:$5:$6"
+        full_mac="$byte1_hex:$2:$3:$4:$5:$6"
+
+        # OUI blacklist check
+        case "$ouipart" in
+        "00:00:00" | \
+            "ff:ff:ff" | \
+            "00:00:0c" | \
+            "01:00:5e" | \
+            "33:33:"*)
+            continue
+            ;;
+        esac
+
+        # EUI blacklist check
+        case "$euipart" in
+        "00:00:00" | \
+            "ff:ff:f"*)
+            continue
+            ;;
+        esac
+
+        # Final format validation
+        echo "$full_mac" | grep -qE '^([0-9a-f]{2}:){5}[0-9a-f]{2}$' || continue
+        break
+    done
+
+    echo "$full_mac"
+}
 
 ramips_setup_rt3x5x_vlans()
 {
@@ -475,29 +595,13 @@ ramips_setup_macs()
 		lan_mac=$(mtd_get_mac_binary u-boot 0x1fc20)
 		wan_mac=$(mtd_get_mac_binary u-boot 0x1fc40)
 		# Fallback to EEPROM if reading from U-Boot fails.
-		if [ "${lan_mac:0:8}" = "00:00:00" ] ||
-		[ "${lan_mac:0:8}" = "ff:ff:ff" ] ||
-		[ "${lan_mac:9:8}" = "00:00:00" ] ||
-		[ "${lan_mac:9:8}" = "ff:ff:ff" ] ||
-		[ "${wan_mac:0:8}" = "00:00:00" ] ||
-		[ "${wan_mac:0:8}" = "ff:ff:ff" ] ||
-		[ "${wan_mac:9:8}" = "00:00:00" ] ||
-		[ "${wan_mac:9:8}" = "ff:ff:ff" ] ||
-		[ "${lan_mac:0:8}" != "${wan_mac:0:8}" ]; then
+		if ! validate_mac_addresses "$lan_mac" "$wan_mac"; then
 			lan_mac=$(mtd_get_mac_binary factory 0xe000)
 			wan_mac=$(mtd_get_mac_binary factory 0xe006)
 		fi
 		# Randomize MAC addresses if both previous methods fail.
-		if [ "${lan_mac:0:8}" = "00:00:00" ] ||
-		[ "${lan_mac:0:8}" = "ff:ff:ff" ] ||
-		[ "${lan_mac:9:8}" = "00:00:00" ] ||
-		[ "${lan_mac:9:8}" = "ff:ff:ff" ] ||
-		[ "${wan_mac:0:8}" = "00:00:00" ] ||
-		[ "${wan_mac:0:8}" = "ff:ff:ff" ] ||
-		[ "${wan_mac:9:8}" = "00:00:00" ] ||
-		[ "${wan_mac:9:8}" = "ff:ff:ff" ] ||
-		[ "${lan_mac:0:8}" != "${wan_mac:0:8}" ]; then
-			lan_mac=$(hexdump -v -n 6 -e '5/1 "%02x:" 1/1 "%02x"' /dev/urandom)
+		if ! validate_mac_addresses "$lan_mac" "$wan_mac"; then
+			lan_mac=$(generate_rand_mac)
 			wan_mac=$(macaddr_add "$lan_mac" 1)
 		fi
 		;;
