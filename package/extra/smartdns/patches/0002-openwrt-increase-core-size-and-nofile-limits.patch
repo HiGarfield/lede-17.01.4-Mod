@@ -1,3 +1,12 @@
+From 1b3f9390f011191b2906bb53ac5e6d5f957e44e0 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 31 Mar 2025 23:26:29 +0800
+Subject: [PATCH] openwrt: increase core size and nofile limits
+
+---
+ package/openwrt/files/etc/init.d/smartdns | 5 +++++
+ 1 file changed, 5 insertions(+)
+
 --- a/package/openwrt/files/etc/init.d/smartdns
 +++ b/package/openwrt/files/etc/init.d/smartdns
 @@ -872,6 +872,11 @@ load_service()
