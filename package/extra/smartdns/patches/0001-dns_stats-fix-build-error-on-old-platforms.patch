@@ -1,0 +1,96 @@
+From 549076db98e40342c23d1447647b329b616c065f Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 27 Mar 2025 02:07:15 +0800
+Subject: [PATCH] dns_stats: fix build error on old platforms
+
+---
+ src/dns_stats.c |  2 ++
+ src/dns_stats.h | 39 +++++++++++++++++++++++++++++++++------
+ 2 files changed, 35 insertions(+), 6 deletions(-)
+
+--- a/src/dns_stats.c
++++ b/src/dns_stats.c
+@@ -22,6 +22,8 @@
+ 
+ struct dns_stats dns_stats;
+ 
++char stats_lock = 0;
++
+ #define SAMPLE_PERIOD 5
+ 
+ void dns_stats_avg_time_update_add(struct dns_stats_avg_time *avg_time, uint64_t time)
+--- a/src/dns_stats.h
++++ b/src/dns_stats.h
+@@ -58,39 +58,66 @@ struct dns_server_stats {
+ 
+ extern struct dns_stats dns_stats;
+ 
++extern char stats_lock;
++
++#define ACQUIRE_LOCK()                                                                                                 \
++	do {                                                                                                               \
++	} while (__sync_lock_test_and_set(&stats_lock, 1))
++
++#define RELEASE_LOCK() __sync_lock_release(&stats_lock)
++
+ static inline uint64_t stats_read(const uint64_t *s)
+ {
+-	return READ_ONCE((*s));
++	uint64_t val;
++	ACQUIRE_LOCK();
++	val = *s;
++	RELEASE_LOCK();
++	return val;
+ }
+ 
+ static inline uint64_t stats_read_and_set(uint64_t *s, uint64_t v)
+ {
+-	return __sync_lock_test_and_set(s, v);
++	uint64_t old_val;
++	ACQUIRE_LOCK();
++	old_val = *s;
++	*s = v;
++	RELEASE_LOCK();
++	return old_val;
+ }
+ 
+ static inline void stats_set(uint64_t *s, uint64_t v)
+ {
++	ACQUIRE_LOCK();
+ 	*s = v;
++	RELEASE_LOCK();
+ }
+ 
+ static inline void stats_add(uint64_t *s, uint64_t v)
+ {
+-	(void)__sync_add_and_fetch(s, v);
++	ACQUIRE_LOCK();
++	*s += v;
++	RELEASE_LOCK();
+ }
+ 
+ static inline void stats_inc(uint64_t *s)
+ {
+-	(void)__sync_add_and_fetch(s, 1);
++	ACQUIRE_LOCK();
++	++(*s);
++	RELEASE_LOCK();
+ }
+ 
+ static inline void stats_sub(uint64_t *s, uint64_t v)
+ {
+-	(void)__sync_sub_and_fetch(s, v);
++	ACQUIRE_LOCK();
++	*s -= v;
++	RELEASE_LOCK();
+ }
+ 
+ static inline void stats_dec(uint64_t *s)
+ {
+-	(void)__sync_sub_and_fetch(s, 1);
++	ACQUIRE_LOCK();
++	--(*s);
++	RELEASE_LOCK();
+ }
+ 
+ void dns_stats_avg_time_update(struct dns_stats_avg_time *avg_time);
