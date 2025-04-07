@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/libs/expat/Makefile
 Package: libexpat
-Version: 2.5.0-1
+Version: 2.7.1-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -11,7 +11,7 @@ Category: Libraries
 Repository: base
 Title: An XML parsing library
 Maintainer: Ted Hess <thess@kitschensync.net>
-Source: expat-2.5.0.tar.xz
+Source: expat-2.7.1.tar.gz
 License: MIT
 LicenseFiles: COPYING
 Type: ipkg
