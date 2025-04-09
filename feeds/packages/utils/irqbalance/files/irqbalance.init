@@ -26,6 +26,8 @@ start_service() {
 		procd_set_param env IRQBALANCE_BANNED_CPULIST="$banned_cpulist"
 	fi
 
+	procd_set_param limits nofile="65535 65535"
+
 	procd_add_jail_mount_rw /proc
 	procd_set_param command /usr/sbin/irqbalance
 	procd_append_param command -f
