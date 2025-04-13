@@ -1,0 +1,209 @@
+From 72d493d324bf99268f0b0d6d6431e04faf06dda9 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Fri, 11 Apr 2025 23:28:12 +0800
+Subject: [PATCH] dns_server: fix potential crash issue.
+
+---
+ src/dns_client.c |  6 ++++
+ src/dns_conf.c   |  6 ----
+ src/dns_server.c | 79 +++++++++++++++++++++++++++---------------------
+ 3 files changed, 50 insertions(+), 41 deletions(-)
+
+--- a/src/dns_client.c
++++ b/src/dns_client.c
+@@ -3891,6 +3891,12 @@ static int _dns_client_send_https(struct
+ 						"Content-Length: %d\r\n"
+ 						"\r\n",
+ 						https_flag->path, https_flag->httphost, len);
++
++ 	if (http_len < 0 || http_len >= DNS_IN_PACKSIZE) {
++ 		tlog(TLOG_ERROR, "http header size is invalid.");
++ 		return -1;
++ 	}
++ 
+ 	memcpy(inpacket + http_len, packet, len);
+ 	http_len += len;
+ 
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -6528,12 +6528,6 @@ static void _dns_conf_group_post(void)
+ 
+ 	hash_for_each_safe(dns_conf_rule.group, i, tmp, group, node)
+ 	{
+-		if (dns_conf.cachesize == 0 && group->dns_response_mode == DNS_RESPONSE_MODE_FASTEST_RESPONSE) {
+-			group->dns_response_mode = DNS_RESPONSE_MODE_FASTEST_IP;
+-			tlog(TLOG_WARN, "force set response of group %s to %s as cache size is 0", group->group_name,
+-				 dns_conf_response_mode_enum[group->dns_response_mode].name);
+-		}
+-
+ 		if ((group->dns_rr_ttl_min > group->dns_rr_ttl_max) && group->dns_rr_ttl_max > 0) {
+ 			group->dns_rr_ttl_min = group->dns_rr_ttl_max;
+ 		}
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -1431,6 +1431,11 @@ static int _dns_server_reply_https(struc
+ 						"Content-Length: %d\r\n"
+ 						"\r\n",
+ 						len);
++	if (http_len < 0 || http_len >= DNS_IN_PACKSIZE) {
++ 		tlog(TLOG_ERROR, "http header size is invalid.");
++ 		return -1;
++ 	}
++ 
+ 	memcpy(inpacket + http_len, packet, len);
+ 	http_len += len;
+ 
+@@ -7678,6 +7683,15 @@ static int _dns_server_update_request_co
+ 	return 0;
+ }
+ 
++static void _dns_server_conn_head_init(struct dns_server_conn_head *conn, int fd, int type)
++{
++	memset(conn, 0, sizeof(*conn));
++	conn->fd = fd;
++	conn->type = type;
++	atomic_set(&conn->refcnt, 0);
++	INIT_LIST_HEAD(&conn->list);
++}
++
+ static int _dns_server_tcp_accept(struct dns_server_conn_tcp_server *tcpserver, struct epoll_event *event,
+ 								  unsigned long now)
+ {
+@@ -7699,14 +7713,12 @@ static int _dns_server_tcp_accept(struct
+ 	}
+ 	memset(tcpclient, 0, sizeof(*tcpclient));
+ 
+-	tcpclient->head.fd = fd;
+-	tcpclient->head.type = DNS_CONN_TYPE_TCP_CLIENT;
++	_dns_server_conn_head_init(&tcpclient->head, fd, DNS_CONN_TYPE_TCP_CLIENT);
+ 	tcpclient->head.server_flags = tcpserver->head.server_flags;
+ 	tcpclient->head.dns_group = tcpserver->head.dns_group;
+ 	tcpclient->head.ipset_nftset_rule = tcpserver->head.ipset_nftset_rule;
+ 	tcpclient->conn_idle_timeout = dns_conf.tcp_idle_time;
+ 
+-	atomic_set(&tcpclient->head.refcnt, 0);
+ 	memcpy(&tcpclient->addr, &addr, addr_len);
+ 	tcpclient->addr_len = addr_len;
+ 	tcpclient->localaddr_len = sizeof(struct sockaddr_storage);
+@@ -8303,6 +8315,7 @@ static int _dns_server_tls_accept(struct
+ {
+ 	struct sockaddr_storage addr;
+ 	struct dns_server_conn_tls_client *tls_client = NULL;
++	DNS_CONN_TYPE conn_type;
+ 	socklen_t addr_len = sizeof(addr);
+ 	int fd = -1;
+ 	SSL *ssl = NULL;
+@@ -8313,22 +8326,22 @@ static int _dns_server_tls_accept(struct
+ 		return -1;
+ 	}
+ 
+-	tls_client = malloc(sizeof(*tls_client));
+-	if (tls_client == NULL) {
+-		tlog(TLOG_ERROR, "malloc for tls_client failed.");
+-		goto errout;
+-	}
+-	memset(tls_client, 0, sizeof(*tls_client));
+-
+-	tls_client->tcp.head.fd = fd;
+ 	if (tls_server->head.type == DNS_CONN_TYPE_TLS_SERVER) {
+-		tls_client->tcp.head.type = DNS_CONN_TYPE_TLS_CLIENT;
++		conn_type = DNS_CONN_TYPE_TLS_CLIENT;
+ 	} else if (tls_server->head.type == DNS_CONN_TYPE_HTTPS_SERVER) {
+-		tls_client->tcp.head.type = DNS_CONN_TYPE_HTTPS_CLIENT;
++		conn_type = DNS_CONN_TYPE_HTTPS_CLIENT;
+ 	} else {
+ 		tlog(TLOG_ERROR, "invalid http server type.");
+ 		goto errout;
+ 	}
++
++	tls_client = malloc(sizeof(*tls_client));
++	if (tls_client == NULL) {
++		tlog(TLOG_ERROR, "malloc for tls_client failed.");
++		goto errout;
++	}
++	memset(tls_client, 0, sizeof(*tls_client));
++	_dns_server_conn_head_init(&tls_client->tcp.head, fd, conn_type);
+ 	tls_client->tcp.head.server_flags = tls_server->head.server_flags;
+ 	tls_client->tcp.head.dns_group = tls_server->head.dns_group;
+ 	tls_client->tcp.head.ipset_nftset_rule = tls_server->head.ipset_nftset_rule;
+@@ -9072,19 +9085,18 @@ static int _dns_server_socket_udp(struct
+ 	int fd = -1;
+ 
+ 	host_ip = bind_ip->ip;
+-	conn = malloc(sizeof(struct dns_server_conn_udp));
+-	if (conn == NULL) {
++	fd = _dns_create_socket(host_ip, SOCK_DGRAM);
++ 	if (fd <= 0) {
+ 		goto errout;
+ 	}
+-	INIT_LIST_HEAD(&conn->head.list);
+ 
+-	fd = _dns_create_socket(host_ip, SOCK_DGRAM);
+-	if (fd <= 0) {
++	conn = malloc(sizeof(struct dns_server_conn_udp));
++ 	if (conn == NULL) {
+ 		goto errout;
+ 	}
++	memset(conn, 0, sizeof(struct dns_server_conn_udp));
+ 
+-	conn->head.type = DNS_CONN_TYPE_UDP_SERVER;
+-	conn->head.fd = fd;
++	_dns_server_conn_head_init(&conn->head, fd, DNS_CONN_TYPE_UDP_SERVER);
+ 	_dns_server_set_flags(&conn->head, bind_ip);
+ 	_dns_server_conn_get(&conn->head);
+ 
+@@ -9109,11 +9121,6 @@ static int _dns_server_socket_tcp(struct
+ 	const int on = 1;
+ 
+ 	host_ip = bind_ip->ip;
+-	conn = malloc(sizeof(struct dns_server_conn_tcp_server));
+-	if (conn == NULL) {
+-		goto errout;
+-	}
+-	INIT_LIST_HEAD(&conn->head.list);
+ 
+ 	fd = _dns_create_socket(host_ip, SOCK_STREAM);
+ 	if (fd <= 0) {
+@@ -9122,8 +9129,12 @@ static int _dns_server_socket_tcp(struct
+ 
+ 	setsockopt(fd, SOL_TCP, TCP_FASTOPEN, &on, sizeof(on));
+ 
+-	conn->head.type = DNS_CONN_TYPE_TCP_SERVER;
+-	conn->head.fd = fd;
++	conn = malloc(sizeof(struct dns_server_conn_tcp_server));
++ 	if (conn == NULL) {
++ 		goto errout;
++ 	}
++ 	memset(conn, 0, sizeof(struct dns_server_conn_tcp_server));
++ 	_dns_server_conn_head_init(&conn->head, fd, DNS_CONN_TYPE_TCP_SERVER);
+ 	_dns_server_set_flags(&conn->head, bind_ip);
+ 	_dns_server_conn_get(&conn->head);
+ 
+@@ -9176,12 +9187,6 @@ static int _dns_server_socket_tls(struct
+ 		goto errout;
+ 	}
+ 
+-	conn = malloc(sizeof(struct dns_server_conn_tls_server));
+-	if (conn == NULL) {
+-		goto errout;
+-	}
+-	INIT_LIST_HEAD(&conn->head.list);
+-
+ 	fd = _dns_create_socket(host_ip, SOCK_STREAM);
+ 	if (fd <= 0) {
+ 		goto errout;
+@@ -9220,8 +9225,12 @@ static int _dns_server_socket_tls(struct
+ 		goto errout;
+ 	}
+ 
+-	conn->head.type = conn_type;
+-	conn->head.fd = fd;
++	conn = malloc(sizeof(struct dns_server_conn_tls_server));
++ 	if (conn == NULL) {
++ 		goto errout;
++ 	}
++ 	memset(conn, 0, sizeof(struct dns_server_conn_tls_server));
++ 	_dns_server_conn_head_init(&conn->head, fd, conn_type);
+ 	conn->ssl_ctx = ssl_ctx;
+ 	_dns_server_set_flags(&conn->head, bind_ip);
+ 	_dns_server_conn_get(&conn->head);

@@ -1,0 +1,53 @@
+From 27e91b788ee40ed6f6e398e8e13660d175605d71 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sat, 12 Apr 2025 16:43:34 +0800
+Subject: [PATCH] dns_server: fix DOT server crash issue.
+
+---
+ src/dns_server.c | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -8009,6 +8009,10 @@ static int _dns_server_tcp_recv(struct d
+ 			return 0;
+ 		}
+ 
++		if (unlikely(tcpclient->recvbuff.size < 0)) {
++			BUG("recv buffer size is invalid.");
++		}
++
+ 		len = _dns_server_tcp_socket_recv(tcpclient, tcpclient->recvbuff.buf + tcpclient->recvbuff.size,
+ 										  sizeof(tcpclient->recvbuff.buf) - tcpclient->recvbuff.size);
+ 		if (len < 0) {
+@@ -8051,6 +8055,12 @@ static int _dns_server_tcp_process_one_r
+ 	/* Handling multiple requests */
+ 	for (;;) {
+ 		ret = RECV_ERROR_FAIL;
++
++		if (proceed_len > tcpclient->recvbuff.size) {
++			tlog(TLOG_DEBUG, "proceed_len > recvbuff.size");
++			goto out;
++		}
++
+ 		if (tcpclient->head.type == DNS_CONN_TYPE_HTTPS_CLIENT) {
+ 			if ((total_len - proceed_len) <= 0) {
+ 				ret = RECV_ERROR_AGAIN;
+@@ -8062,7 +8072,7 @@ static int _dns_server_tcp_process_one_r
+ 				goto out;
+ 			}
+ 
+-			len = http_head_parse(http_head, (char *)tcpclient->recvbuff.buf, tcpclient->recvbuff.size);
++			len = http_head_parse(http_head, tcpclient->recvbuff.buf + proceed_len, tcpclient->recvbuff.size);
+ 			if (len < 0) {
+ 				if (len == -1) {
+ 					ret = 0;
+@@ -8083,7 +8093,7 @@ static int _dns_server_tcp_process_one_r
+ 
+ 				request_len = http_head_get_data_len(http_head);
+ 				if (request_len >= len) {
+-					tlog(TLOG_DEBUG, "request length is invalid.");
++					tlog(TLOG_DEBUG, "request length is invalid. len = %d", request_len);
+ 					goto errout;
+ 				}
+ 				request_data = (unsigned char *)http_head_get_data(http_head);

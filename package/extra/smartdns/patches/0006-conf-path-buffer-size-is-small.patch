@@ -1,0 +1,41 @@
+From a0040afb0b0c788ea4a8ac917da1f36703b78a2c Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sun, 13 Apr 2025 16:09:53 +0800
+Subject: [PATCH] conf: path buffer size is small.
+
+---
+ src/dns_conf.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -24,6 +24,7 @@
+ #include "util.h"
+ #include <errno.h>
+ #include <getopt.h>
++#include <limits.h>
+ #include <glob.h>
+ #include <libgen.h>
+ #include <stdio.h>
+@@ -5356,8 +5357,8 @@ static int _conf_dhcp_lease_dnsmasq_file
+ 
+ static int _config_foreach_file(const char *file_pattern, int (*callback)(const char *file, void *priv), void *priv)
+ {
+-	char file_path[DNS_MAX_PATH];
+-	char file_path_dir[DNS_MAX_PATH];
++	char file_path[PATH_MAX];
++	char file_path_dir[PATH_MAX];
+ 	glob_t globbuf = {0};
+ 
+ 	if (file_pattern == NULL) {
+@@ -6115,8 +6116,8 @@ static int conf_file_check_duplicate(con
+ 
+ static int conf_additional_file(const char *conf_file)
+ {
+-	char file_path[DNS_MAX_PATH];
+-	char file_path_dir[DNS_MAX_PATH];
++	char file_path[PATH_MAX];
++	char file_path_dir[PATH_MAX];
+ 
+ 	if (conf_file == NULL) {
+ 		return -1;
