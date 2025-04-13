@@ -1,4 +1,4 @@
-From 1749ce6caff58c2961db29b160687ff3eaac76e7 Mon Sep 17 00:00:00 2001
+From 64b1097bb431172e752ed1902d95cf918975c578 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 27 Mar 2025 02:07:15 +0800
 Subject: [PATCH] dns_stats: fix build error on old platforms

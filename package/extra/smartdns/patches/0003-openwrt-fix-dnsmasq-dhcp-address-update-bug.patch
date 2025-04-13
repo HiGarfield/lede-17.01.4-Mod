@@ -1,0 +1,20 @@
+From 44a767f83c75f245529c960086ca5a1ad0c47b14 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sat, 12 Apr 2025 16:57:06 +0800
+Subject: [PATCH] openwrt: fix dnsmasq dhcp address update bug.
+
+---
+ package/openwrt/files/etc/init.d/smartdns | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/package/openwrt/files/etc/init.d/smartdns
++++ b/package/openwrt/files/etc/init.d/smartdns
+@@ -87,7 +87,7 @@ stop_forward_dnsmasq()
+ set_main_dns()
+ {
+ 	local hostip
+-	hostip="$(uci -q get network.lan.ipaddr)"
++	hostip="$(uci -q get network.lan.ipaddr | sed 's/\/.*//g')"
+ 	dnsmasq_port="$(uci -q get dhcp.@dnsmasq[0].port)"
+ 	[ -z "$dnsmasq_port" ] && dnsmasq_port="53"
+ 	
