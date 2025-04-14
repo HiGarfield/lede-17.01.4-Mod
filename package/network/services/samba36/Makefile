@@ -108,6 +108,7 @@ CONFIGURE_ARGS += \
 	--disable-swat \
 	--disable-shared-libs \
 	--enable-as-needed \
+	--enable-pthreadpool \
 	--with-libiconv="$(ICONV_PREFIX)" \
 	--with-codepagedir=/etc/samba \
 	--with-configdir=/etc/samba \
