@@ -53,5 +53,14 @@ msgstr "硬盘%s已休眠。"
 msgid "Fails to spin down disk %s."
 msgstr "无法休眠硬盘%s。"
 
+msgid "Delete device"
+msgstr "移除设备"
+
+msgid "Disk %s has deleted."
+msgstr "硬盘%s已被移除。"
+
+msgid "Fails to delete disk %s."
+msgstr "无法移除硬盘%s。"
+
 #~ msgid "Enable debug"
 #~ msgstr "开启调试"
