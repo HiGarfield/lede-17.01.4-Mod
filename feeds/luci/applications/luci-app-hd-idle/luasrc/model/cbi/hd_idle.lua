@@ -55,4 +55,24 @@ spindown.write = function(self, section)
     end
 end
 
+delete_device = s:option(Button, "delete_device")
+delete_device.inputstyle = "apply"
+delete_device.render = function(self, section, scope)
+    if nixio.fs.stat("/dev/%s" % self.map:get(section, "disk"), "type") == "blk" then
+        self.title = translate("Delete device")
+        self.template = "cbi/button"
+    else
+        self.template = "cbi/dvalue"
+    end
+    Button.render(self, section, scope)
+end
+delete_device.write = function(self, section)
+    local disk_dev = self.map:get(section, "disk")
+    if luci.sys.call("hd-idle -t '%s' && echo 1 >'/sys/block/%s/device/delete' 2>/dev/null" % {disk_dev, disk_dev}) == 0 then
+        m.message = translate("Disk %s has deleted.") % disk_dev
+    else
+        m.message = translate("Fails to delete disk %s.") % disk_dev
+    end
+end
+
 return m
