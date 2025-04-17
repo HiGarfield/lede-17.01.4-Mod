@@ -2,7 +2,7 @@ Source-Makefile: feeds/luci/applications/luci-app-adblock/Makefile
 Package: luci-app-adblock
 Submenu: 3. Applications
 Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +adblock +luci-lib-jsonc
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +adblock +luci-lib-jsonc +wget
 Conflicts: 
 Menu-Depends: 
 Provides: 
