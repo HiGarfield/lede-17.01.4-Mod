@@ -19,7 +19,24 @@ disk = s:option(Value, "disk", translate("Disk"))
 disk.optional = false
 for dev in nixio.fs.glob("/dev/[sh]d[a-z]") do
     if nixio.fs.stat(dev, "type") == "blk" then
-        disk:value(nixio.fs.basename(dev))
+        local dev_name = nixio.fs.basename(dev)
+        local vendor_path = "/sys/block/%s/device/vendor" % dev_name
+        local model_path = "/sys/block/%s/device/model" % dev_name
+        local vendor = translate("Unknown")
+        local model = translate("Unknown")
+
+        -- Read vendor information from sysfs
+        if nixio.fs.access(vendor_path, "r") then
+            vendor = nixio.fs.readfile(vendor_path):gsub("%s+", " ")
+        end
+
+        -- Read model information from sysfs
+        if nixio.fs.access(model_path, "r") then
+            model = nixio.fs.readfile(model_path):gsub("%s+", " ")
+        end
+
+        -- Format display: device (vendor model)
+        disk:value(dev_name, "%s (%s %s)" % {dev_name, vendor, model})
     end
 end
 
