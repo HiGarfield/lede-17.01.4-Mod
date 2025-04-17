@@ -273,6 +273,9 @@ msgstr "暂停"
 msgid "Suspend / Resume Adblock"
 msgstr "暂停/恢复 主程序"
 
+msgid "Refresh"
+msgstr "刷新"
+
 msgid ""
 "Target directory for adblock backups. Please use only non-volatile disks, e."
 "g. an external usb stick."

@@ -21,8 +21,6 @@ function index()
 	entry({"admin", "services", "adblock", "advanced", "blacklist"}, form("adblock/blacklist_tab"), _("Edit Blacklist"), 110).leaf = true
 	entry({"admin", "services", "adblock", "advanced", "whitelist"}, form("adblock/whitelist_tab"), _("Edit Whitelist"), 120).leaf = true
 	entry({"admin", "services", "adblock", "advanced", "configuration"}, form("adblock/configuration_tab"), _("Edit Configuration"), 130).leaf = true
-	entry({"admin", "services", "adblock", "advanced", "query"}, template("adblock/query"), _("Query domains"), 140).leaf = true
-	entry({"admin", "services", "adblock", "advanced", "result"}, call("queryData"), nil, 150).leaf = true
 	entry({"admin", "services", "adblock", "logread"}, call("logread"), nil).leaf = true
 	entry({"admin", "services", "adblock", "status"}, call("status_update"), nil).leaf = true
 	entry({"admin", "services", "adblock", "action"}, call("adb_action"), nil).leaf = true
