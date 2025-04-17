@@ -23,8 +23,8 @@ adb_notify=0
 adb_notifycnt=0
 adb_triggerdelay=0
 adb_backup=0
-adb_backupdir="/mnt"
-adb_fetchutil="uclient-fetch"
+adb_backupdir="/etc/adblock"
+adb_fetchutil="wget"
 adb_dns="dnsmasq"
 adb_dnsprefix="adb_list"
 adb_dnsfile="${adb_dnsprefix}.overall"
@@ -107,55 +107,15 @@ f_envload()
 	config_load adblock
 	config_foreach parse_config source
 
-	# check dns backend
+	# dns backend is wget
 	#
-	case "${adb_dns}" in
-		dnsmasq)
-			adb_dnsinstance="${adb_dnsinstance:-"0"}"
-			adb_dnsuser="${adb_dnsuser:-"dnsmasq"}"
-			adb_dnsdir="${adb_dnsdir:-"/tmp/dnsmasq.d"}"
-			adb_dnsheader=""
-			adb_dnsdeny="awk '{print \"server=/\"\$0\"/\"}'"
-			adb_dnsallow="awk '{print \"server=/\"\$0\"/#\"}'"
-			adb_dnshalt="server=/#/"
-		;;
-		unbound)
-			adb_dnsinstance="${adb_dnsinstance:-"0"}"
-			adb_dnsuser="${adb_dnsuser:-"unbound"}"
-			adb_dnsdir="${adb_dnsdir:-"/var/lib/unbound"}"
-			adb_dnsheader=""
-			adb_dnsdeny="awk '{print \"local-zone: \042\"\$0\"\042 static\"}'"
-			adb_dnsallow="awk '{print \"local-zone: \042\"\$0\"\042 transparent\"}'"
-			adb_dnshalt="local-zone: \".\" static"
-		;;
-		named)
-			adb_dnsinstance="${adb_dnsinstance:-"0"}"
-			adb_dnsuser="${adb_dnsuser:-"bind"}"
-			adb_dnsdir="${adb_dnsdir:-"/var/lib/bind"}"
-			adb_dnsheader="\$TTL 2h"$'\n'"@ IN SOA localhost. root.localhost. (1 6h 1h 1w 2h)"$'\n'"  IN NS localhost."
-			adb_dnsdeny="awk '{print \"\"\$0\" CNAME .\n*.\"\$0\" CNAME .\"}'"
-			adb_dnsallow="awk '{print \"\"\$0\" CNAME rpz-passthru.\n*.\"\$0\" CNAME rpz-passthru.\"}'"
-			adb_dnshalt="* CNAME ."
-		;;
-		kresd)
-			adb_dnsinstance="${adb_dnsinstance:-"0"}"
-			adb_dnsuser="${adb_dnsuser:-"root"}"
-			adb_dnsdir="${adb_dnsdir:-"/etc/kresd"}"
-			adb_dnsheader="\$TTL 2h"$'\n'"@ IN SOA localhost. root.localhost. (1 6h 1h 1w 2h)"$'\n'"  IN NS  localhost."
-			adb_dnsdeny="awk '{print \"\"\$0\" CNAME .\n*.\"\$0\" CNAME .\"}'"
-			adb_dnsallow="awk '{print \"\"\$0\" CNAME rpz-passthru.\n*.\"\$0\" CNAME rpz-passthru.\"}'"
-			adb_dnshalt="* CNAME ."
-		;;
-		dnscrypt-proxy)
-			adb_dnsinstance="${adb_dnsinstance:-"0"}"
-			adb_dnsuser="${adb_dnsuser:-"nobody"}"
-			adb_dnsdir="${adb_dnsdir:-"/tmp"}"
-			adb_dnsheader=""
-			adb_dnsdeny="awk '{print \$0}'"
-			adb_dnsallow=""
-			adb_dnshalt=""
-		;;
-	esac
+	adb_dnsinstance="${adb_dnsinstance:-"0"}"
+	adb_dnsuser="${adb_dnsuser:-"dnsmasq"}"
+	adb_dnsdir="${adb_dnsdir:-"/tmp/dnsmasq.d"}"
+	adb_dnsheader=""
+	adb_dnsdeny="awk '{print \"server=/\"\$0\"/\"}'"
+	adb_dnsallow="awk '{print \"server=/\"\$0\"/#\"}'"
+	adb_dnshalt="server=/#/"
 
 	# check adblock status
 	#
@@ -216,40 +176,14 @@ f_envcheck()
 
 	# check fetch utility
 	#
-	case "${adb_fetchutil}" in
-		uclient-fetch)
-			if [ -f "/lib/libustream-ssl.so" ]
-			then
-				adb_fetchparm="${adb_fetchparm:-"--timeout=10 --no-check-certificate -O"}"
-				ssl_lib="libustream-ssl"
-			else
-				adb_fetchparm="${adb_fetchparm:-"--timeout=10 -O"}"
-			fi
-		;;
-		wget)
-			adb_fetchparm="${adb_fetchparm:-"--no-cache --no-cookies --max-redirect=0 --timeout=10 --no-check-certificate -O"}"
-			ssl_lib="built-in"
-		;;
-		wget-nossl)
-			adb_fetchparm="${adb_fetchparm:-"--no-cache --no-cookies --max-redirect=0 --timeout=10 -O"}"
-		;;
-		busybox)
-			adb_fetchparm="${adb_fetchparm:-"-O"}"
-		;;
-		curl)
-			adb_fetchparm="${adb_fetchparm:-"--connect-timeout 10 --insecure -o"}"
-			ssl_lib="built-in"
-		;;
-		aria2c)
-			adb_fetchparm="${adb_fetchparm:-"--timeout=10 --allow-overwrite=true --auto-file-renaming=false --check-certificate=false -o"}"
-			ssl_lib="built-in"
-		;;
-	esac
+	adb_fetchparm="${adb_fetchparm:-"--no-cache --no-cookies --max-redirect=0 --timeout=10 --no-check-certificate -O"}"
+	ssl_lib="built-in"
+
 	adb_fetchutil="$(command -v "${adb_fetchutil}")"
 
 	if [ ! -x "${adb_fetchutil}" ] || [ -z "${adb_fetchutil}" ] || [ -z "${adb_fetchparm}" ]
 	then
-		f_log "err" "download utility not found, please install 'uclient-fetch' with 'libustream-mbedtls' or the full 'wget' package"
+		f_log "err" "download utility not found, please install the full 'wget' package"
 	fi
 	adb_fetchinfo="${adb_fetchutil} (${ssl_lib:-"-"})"
 	f_temp
@@ -338,10 +272,6 @@ f_count()
 	if [ -s "${adb_dnsdir}/${adb_dnsfile}" ] && ([ -z "${mode}" ] || [ "${mode}" = "final" ])
 	then
 		adb_cnt="$(( $(wc -l 2>/dev/null < "${adb_dnsdir}/${adb_dnsfile}") - $(wc -l 2>/dev/null < "${adb_tmpdir}/tmp.add_whitelist") ))"
-		if [ "${adb_dns}" = "named" ] || [ "${adb_dns}" = "kresd" ]
-		then
-			adb_cnt="$(( (${adb_cnt} - $(printf '%s' "${adb_dnsheader}" | grep -c "^")) / 2 ))"
-		fi
 	elif [ -s "${adb_tmpfile}" ]
 	then
 		adb_cnt="$(wc -l 2>/dev/null < "${adb_tmpfile}")"
@@ -354,35 +284,15 @@ f_extconf()
 {
 	local uci_config port port_list="53 853 5353"
 
-	case "${adb_dns}" in
-		dnsmasq)
-			uci_config="dhcp"
-			if [ ${adb_enabled} -eq 1 ] && [ -z "$(uci_get dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile | grep -Fo "${adb_dnsdir}/${adb_dnsfile}")" ]
-			then
-				uci_set dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile "${adb_dnsdir}/${adb_dnsfile}"
-			elif [ ${adb_enabled} -eq 0 ] && [ -n "$(uci_get dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile | grep -Fo "${adb_dnsdir}/${adb_dnsfile}")" ]
-			then
-				uci_remove dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile
-			fi
-		;;
-		kresd)
-			uci_config="resolver"
-			if [ ${adb_enabled} -eq 1 ] && [ -z "$(uci_get resolver kresd rpz_file | grep -Fo "${adb_dnsdir}/${adb_dnsfile}")" ]
-			then
-				uci -q add_list resolver.kresd.rpz_file="${adb_dnsdir}/${adb_dnsfile}"
-			elif [ ${adb_enabled} -eq 0 ] && [ -n "$(uci_get resolver kresd rpz_file | grep -Fo "${adb_dnsdir}/${adb_dnsfile}")" ]
-			then
-				uci -q del_list resolver.kresd.rpz_file="${adb_dnsdir}/${adb_dnsfile}"
-			fi
-			if [ ${adb_enabled} -eq 1 ] && [ ${adb_dnsflush} -eq 0 ] && [ "$(uci_get resolver kresd keep_cache)" != "1" ]
-			then
-				uci_set resolver kresd keep_cache "1"
-			elif [ ${adb_enabled} -eq 0 ] || ([ ${adb_dnsflush} -eq 1 ] && [ "$(uci_get resolver kresd keep_cache)" = "1" ])
-			then
-				uci_set resolver kresd keep_cache "0"
-			fi
-		;;
-	esac
+	uci_config="dhcp"
+	if [ ${adb_enabled} -eq 1 ] && [ -z "$(uci_get dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile | grep -Fo "${adb_dnsdir}/${adb_dnsfile}")" ]
+	then
+		uci_set dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile "${adb_dnsdir}/${adb_dnsfile}"
+	elif [ ${adb_enabled} -eq 0 ] && [ -n "$(uci_get dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile | grep -Fo "${adb_dnsdir}/${adb_dnsfile}")" ]
+	then
+		uci_remove dhcp "@dnsmasq[${adb_dnsinstance}]" serversfile
+	fi
+
 	f_uci "${uci_config}"
 
 	uci_config="firewall"
@@ -417,38 +327,8 @@ f_dnsup()
 
 	if [ ${adb_dnsflush} -eq 0 ] && [ ${adb_enabled} -eq 1 ] && [ "${adb_rc}" -eq 0 ]
 	then
-		case "${adb_dns}" in
-			dnsmasq)
-				killall -q -HUP "${adb_dns}"
-				cache_rc=${?}
-			;;
-			unbound)
-				cache_util="$(command -v unbound-control)"
-				if [ -x "${cache_util}" ] && [ -d "${adb_tmpdir}" ] && [ -f "${adb_dnsdir}"/unbound.conf ]
-				then
-					"${cache_util}" -c "${adb_dnsdir}"/unbound.conf dump_cache > "${adb_tmpdir}"/adb_cache.dump 2>/dev/null
-				fi
-				"/etc/init.d/${adb_dns}" restart >/dev/null 2>&1
-			;;
-			kresd)
-				cache_util="keep_cache"
-				"/etc/init.d/${adb_dns}" restart >/dev/null 2>&1
-				cache_rc=${?}
-			;;
-			named)
-				cache_util="$(command -v rndc)"
-				if [ -x "${cache_util}" ] && [ -f /etc/bind/rndc.conf ]
-				then
-					"${cache_util}" -c /etc/bind/rndc.conf reload >/dev/null 2>&1
-					cache_rc=${?}
-				else
-					"/etc/init.d/${adb_dns}" restart >/dev/null 2>&1
-				fi
-			;;
-			*)
-				"/etc/init.d/${adb_dns}" restart >/dev/null 2>&1
-			;;
-		esac
+		killall -q -HUP "${adb_dns}"
+		cache_rc=${?}
 	else
 		"/etc/init.d/${adb_dns}" restart >/dev/null 2>&1
 	fi
@@ -459,25 +339,6 @@ f_dnsup()
 		dns_up="$(ubus -S call service list "{\"name\":\"${adb_dns}\"}" | jsonfilter -l1 -e "@[\"${adb_dns}\"].instances.*.running")"
 		if [ "${dns_up}" = "true" ]
 		then
-			case "${adb_dns}" in
-				unbound)
-					cache_util="$(command -v unbound-control)"
-					if [ -x "${cache_util}" ] && [ -d "${adb_tmpdir}" ] && [ -s "${adb_tmpdir}"/adb_cache.dump ]
-					then
-						while [ ${cnt} -le 10 ]
-						do
-							"${cache_util}" -c "${adb_dnsdir}"/unbound.conf load_cache < "${adb_tmpdir}"/adb_cache.dump >/dev/null 2>&1
-							cache_rc=${?}
-							if [ ${cache_rc} -eq 0 ]
-							then
-								break
-							fi
-							cnt=$((cnt+1))
-							sleep 1
-						done
-					fi
-				;;
-			esac
 			adb_rc=0
 			break
 		fi
@@ -658,33 +519,9 @@ f_query()
 	then
 		printf '%s\n' "::: invalid domain input, please submit a single domain, e.g. 'doubleclick.net'"
 	else
-		case "${adb_dns}" in
-			dnsmasq)
-				prefix=".*[\/\.]"
-				suffix="(\/)"
-				field=2
-			;;
-			unbound)
-				prefix=".*[\"\.]"
-				suffix="(static)"
-				field=3
-			;;
-			named)
-				prefix="[^\*].*[\.]"
-				suffix="( \.)"
-				field=1
-			;;
-			kresd)
-				prefix="[^\*].*[\.]"
-				suffix="( \.)"
-				field=1
-			;;
-			dnscrypt-proxy)
-				prefix=".*[\.]"
-				suffix=""
-				field=1
-			;;
-		esac
+		prefix=".*[\/\.]"
+		suffix="(\/)"
+		field=2
 		while [ "${domain}" != "${tld}" ]
 		do
 			search="${domain//./\.}"
