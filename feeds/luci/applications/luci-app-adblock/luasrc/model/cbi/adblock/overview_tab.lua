@@ -20,28 +20,6 @@ o1 = s:option(Flag, "adb_enabled", translate("Enable Adblock"))
 o1.default = o1.disabled
 o1.rmempty = false
 
-o2 = s:option(ListValue, "adb_dns", translate("DNS Backend (DNS Directory)"),
-	translate("List of supported DNS backends with their default list export directory. ")
-	.. translate("To overwrite the default path use the 'DNS Directory' option in the extra section below."))
-o2:value("dnsmasq", "dnsmasq (/tmp/dnsmasq.d)")
-o2:value("unbound", "unbound (/var/lib/unbound)")
-o2:value("named", "named (/var/lib/bind)")
-o2:value("kresd", "kresd (/etc/kresd)")
-o2:value("dnscrypt-proxy","dnscrypt-proxy (/tmp)")
-o2.default = "dnsmasq (/tmp/dnsmasq.d)"
-o2.rmempty = false
-
-o3 = s:option(ListValue, "adb_fetchutil", translate("Download Utility"),
-translate("List of supported and fully pre-configured download utilities."))
-o3:value("uclient-fetch")
-o3:value("wget")
-o3:value("curl")
-o3:value("aria2c")
-o3:value("wget-nossl", "wget-nossl (noSSL)")
-o3:value("busybox", "wget-busybox (noSSL)")
-o3.default = "uclient-fetch"
-o3.rmempty = false
-
 o4 = s:option(ListValue, "adb_trigger", translate("Startup Trigger"),
 	translate("List of available network interfaces. Usually the startup will be triggered by the 'wan' interface. ")
 	.. translate("Choose 'none' to disable automatic startups, 'timed' to use a classic timeout (default 30 sec.) or select another trigger interface."))
@@ -124,7 +102,7 @@ e6 = e:option(Value, "adb_backupdir", translate("Backup Directory"),
 	translate("Target directory for adblock backups. Please use only non-volatile disks, e.g. an external usb stick."))
 e6:depends("adb_backup", 1)
 e6.datatype = "directory"
-e6.default = "/mnt"
+e6.default = "/etc/adblock"
 e5.rmempty = true
 
 e7 = e:option(Flag, "adb_backup_mode", translate("Backup Mode"),
@@ -150,24 +128,6 @@ e9 = e:option(Flag, "adb_dnsflush", translate("Flush DNS Cache"),
 	translate("Flush DNS Cache after adblock processing."))
 e9.default = e9.disabled
 e9.rmempty = true
-
-e10 = e:option(Flag, "adb_notify", translate("Email Notification"),
-	translate("Send notification emails in case of a processing error or if domain count is &le; 0. ")
-	.. translate("Please note: this needs additional 'msmtp' package installation and setup."))
-e10.default = e10.disabled
-e10.rmempty = true
-
-e11 = e:option(Value, "adb_notifycnt", translate("Email Notification Count"),
-	translate("Raise the minimum email notification count, to get emails if the overall count is less or equal to the given limit (default 0), ")
-	.. translate("e.g. to receive an email notification with every adblock update set this value to 150000."))
-e11.default = 0
-e11.datatype = "min(0)"
-e11.optional = true
-
-e12 = e:option(Value, "adb_dnsdir", translate("DNS Directory"),
-	translate("Target directory for the generated blocklist 'adb_list.overall'."))
-e12.datatype = "directory"
-e12.optional = true
 
 e13 = e:option(Value, "adb_whitelist", translate("Whitelist File"),
 	translate("Full path to the whitelist file."))
