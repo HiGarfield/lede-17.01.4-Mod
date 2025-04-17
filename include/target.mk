@@ -25,7 +25,7 @@ luci-app-ssr-pro luci-app-kcptun luci-app-udp2raw \
 luci-app-sfe luci-app-vlmcsd luci-app-wol luci-app-guest-wifi \
 -wpad-mini -wpad wpad-mesh-openssl dnsmasq-full luci-app-smartdns \
 iptables-mod-fullconenat ddns-scripts_cloudflare.com-v4 \
-luci-app-autoreboot \
+luci-app-autoreboot luci-app-adblock \
 luci-app-arpbind luci-app-eqos \
 luci-app-pptp-server \
 luci-app-accesscontrol luci-app-cpulimit \
