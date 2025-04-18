@@ -1,0 +1,46 @@
+From 608f6a555f40ad0a4a6513b491912e5d0fb87e72 Mon Sep 17 00:00:00 2001
+From: Yuezhang Mo <Yuezhang.Mo@sony.com>
+Date: Wed, 27 Nov 2024 14:08:54 +0900
+Subject: [PATCH] exfat: fix out-of-bounds access of directory entries
+
+In the case of the directory size is greater than or equal to
+the cluster size, if start_clu becomes an EOF cluster(an invalid
+cluster) due to file system corruption, then the directory entry
+where ei->hint_femp.eidx hint is outside the directory, resulting
+in an out-of-bounds access, which may cause further file system
+corruption.
+
+This commit adds a check for start_clu, if it is an invalid cluster,
+the file or directory will be treated as empty.
+
+Cc: stable@vger.kernel.org
+Signed-off-by: Yuezhang Mo <Yuezhang.Mo@sony.com>
+Co-developed-by: Namjae Jeon <linkinjeon@kernel.org>
+Signed-off-by: Namjae Jeon <linkinjeon@kernel.org>
+---
+ namei.c | 9 +++++++--
+ 1 file changed, 7 insertions(+), 2 deletions(-)
+
+--- a/namei.c
++++ b/namei.c
+@@ -741,13 +741,18 @@ static int exfat_find(struct inode *dir,
+ 	info->type = exfat_get_entry_type(ep);
+ 	info->attr = le16_to_cpu(ep->dentry.file.attr);
+ 	info->size = le64_to_cpu(ep2->dentry.stream.valid_size);
++	info->start_clu = le32_to_cpu(ep2->dentry.stream.start_clu);
++ 	if (!is_valid_cluster(sbi, info->start_clu) && info->size) {
++ 		exfat_warn(sb, "start_clu is invalid cluster(0x%x)",
++ 				info->start_clu);
++ 		info->size = 0;
++ 	}
++ 
+ 	if (info->size == 0) {
+ 		info->flags = ALLOC_NO_FAT_CHAIN;
+ 		info->start_clu = EXFAT_EOF_CLUSTER;
+ 	} else {
+ 		info->flags = ep2->dentry.stream.flags;
+-		info->start_clu =
+-			le32_to_cpu(ep2->dentry.stream.start_clu);
+ 	}
+ 
+ 	exfat_get_entry_time(sbi, &info->crtime,

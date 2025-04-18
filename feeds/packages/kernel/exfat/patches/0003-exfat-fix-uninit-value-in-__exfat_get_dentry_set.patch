@@ -1,0 +1,33 @@
+From 62cbb1ea090e27987fd0ca02549ccd4b3e0f1335 Mon Sep 17 00:00:00 2001
+From: Namjae Jeon <linkinjeon@kernel.org>
+Date: Wed, 27 Nov 2024 14:09:42 +0900
+Subject: [PATCH] exfat: fix uninit-value in __exfat_get_dentry_set
+
+There is no check if stream size and start_clu are invalid.
+If start_clu is EOF cluster and stream size is 4096, It will
+cause uninit value access. because ei->hint_femp.eidx could
+be 128(if cluster size is 4K) and wrong hint will allocate
+next cluster. and this cluster will be same with the cluster
+that is allocated by exfat_extend_valid_size(). The previous
+patch will check invalid start_clu, but for clarity, initialize
+hint_femp.eidx to zero.
+
+Cc: stable@vger.kernel.org
+Reported-by: syzbot+01218003be74b5e1213a@syzkaller.appspotmail.com
+Tested-by: syzbot+01218003be74b5e1213a@syzkaller.appspotmail.com
+Reviewed-by: Yuezhang Mo <Yuezhang.Mo@sony.com>
+Signed-off-by: Namjae Jeon <linkinjeon@kernel.org>
+---
+ namei.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/namei.c
++++ b/namei.c
+@@ -404,6 +404,7 @@ static int exfat_find_empty_entry(struct
+ 		if (ei->start_clu == EXFAT_EOF_CLUSTER) {
+ 			ei->start_clu = clu.dir;
+ 			p_dir->dir = clu.dir;
++			hint_femp.eidx = 0;
+ 		}
+ 
+ 		/* append to the FAT chain */
