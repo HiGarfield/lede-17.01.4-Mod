@@ -1,0 +1,20 @@
+From b253ede7e78a9186d807a37ecfa9e80ac6142928 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sat, 19 Apr 2025 00:32:38 +0800
+Subject: [PATCH] dns_server: reduce ttl when upstream server fail.
+
+---
+ src/dns_server.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -66,7 +66,7 @@
+ #define DNS_MAX_EVENTS 256
+ #define IPV6_READY_CHECK_TIME 180
+ #define DNS_SERVER_TMOUT_TTL (5 * 60)
+-#define DNS_SERVER_FAIL_TTL (60)
++#define DNS_SERVER_FAIL_TTL (3)
+ #define DNS_SERVER_SOA_TTL (30)
+ #define DNS_SERVER_ADDR_TTL (60)
+ #define DNS_CONN_BUFF_SIZE 4096
