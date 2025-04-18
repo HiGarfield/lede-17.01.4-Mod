@@ -1,0 +1,29 @@
+From 9136783f09a90bec3a79f4f6e12373635ceafa32 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Thu, 17 Apr 2025 17:29:24 +0800
+Subject: [PATCH] dns_conf: fix conf_size int overflow bug.
+
+---
+ src/lib/conf.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/src/lib/conf.c
++++ b/src/lib/conf.c
+@@ -207,7 +207,7 @@ int conf_size(const char *item, void *da
+ 		return -1;
+ 	}
+ 
+-	size = num * base;
++	size = (size_t)num * base;
+ 	if (size > item_size->max) {
+ 		size = item_size->max;
+ 	} else if (size < item_size->min) {
+@@ -240,7 +240,7 @@ int conf_ssize(const char *item, void *d
+ 	}
+ 
+ 	num = atoi(value);
+-	size = num * base;
++	size = (ssize_t)num * base;
+ 	if (size > item_size->max) {
+ 		size = item_size->max;
+ 	} else if (size < item_size->min) {
