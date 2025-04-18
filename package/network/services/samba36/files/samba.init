@@ -83,15 +83,21 @@ smb_add_share() {
 	[ -n "$browseable" ] && echo -e "\tbrowseable = $browseable" >>/var/etc/smb.conf
 }
 
+get_enabled() {
+	local enabled_value
+	config_get_bool enabled_value "$1" enabled 0
+	[ "$enabled_value" -eq 1 ] && enabled=1
+}
+
 get_auto_share() {
 	local auto_share_value
-	config_get auto_share_value "$1" auto_share 0
+	config_get_bool auto_share_value "$1" auto_share 0
 	[ "$auto_share_value" -eq 1 ] && auto_share=1
 }
 
 get_auto_share_ro() {
 	local auto_share_ro_value
-	config_get auto_share_ro_value "$1" auto_share_ro 0
+	config_get_bool auto_share_ro_value "$1" auto_share_ro 0
 	[ "$auto_share_ro_value" -eq 1 ] && auto_share_ro=1
 }
 
@@ -112,9 +118,12 @@ autosamba_unlock() {
 }
 
 init_config() {
+	local enabled=0
 	local auto_share=0
 	local auto_share_ro=0
 	config_load samba
+	config_foreach get_enabled samba
+	[ "$enabled" -eq 0 ] && exit 0
 	config_foreach get_auto_share samba
 	config_foreach get_auto_share_ro samba
 	[ "$auto_share" -eq 1 ] && {
