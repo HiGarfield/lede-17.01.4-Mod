@@ -1,0 +1,44 @@
+From 981e75babe1d3f28b782a95acaaf967c884eff72 Mon Sep 17 00:00:00 2001
+From: Yuezhang Mo <Yuezhang.Mo@sony.com>
+Date: Wed, 27 Nov 2024 14:17:54 +0900
+Subject: [PATCH] exfat: fix memory leak in exfat_load_bitmap()
+
+If the first directory entry in the root directory is not a bitmap
+directory entry, 'bh' will not be released and reassigned, which
+will cause a memory leak.
+
+Fixes: 1e49a94cf707 ("exfat: add bitmap operations")
+Cc: stable@vger.kernel.org
+Signed-off-by: Yuezhang Mo <Yuezhang.Mo@sony.com>
+Reviewed-by: Aoyama Wataru <wataru.aoyama@sony.com>
+Signed-off-by: Namjae Jeon <linkinjeon@kernel.org>
+---
+ balloc.c | 10 +++++-----
+ 1 file changed, 5 insertions(+), 5 deletions(-)
+
+--- a/balloc.c
++++ b/balloc.c
+@@ -106,11 +106,8 @@ int exfat_load_bitmap(struct super_block
+ 				return -EIO;
+ 
+ 			type = exfat_get_entry_type(ep);
+-			if (type == TYPE_UNUSED)
+-				break;
+-			if (type != TYPE_BITMAP)
+-				continue;
+-			if (ep->dentry.bitmap.flags == 0x0) {
++			if (type == TYPE_BITMAP &&
++			    ep->dentry.bitmap.flags == 0x0) {
+ 				int err;
+ 
+ 				err = exfat_allocate_bitmap(sb, ep);
+@@ -118,6 +115,9 @@ int exfat_load_bitmap(struct super_block
+ 				return err;
+ 			}
+ 			brelse(bh);
++
++			if (type == TYPE_UNUSED)
++				return -EINVAL;
+ 		}
+ 
+ 		if (exfat_get_next_cluster(sb, &clu.dir))
