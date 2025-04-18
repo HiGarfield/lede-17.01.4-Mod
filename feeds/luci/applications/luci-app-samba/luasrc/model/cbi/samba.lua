@@ -11,6 +11,7 @@ s:tab("general",  translate("General Settings"))
 s:tab("template", translate("Edit Template"))
 s:tab("smbuser", translate("Samba User Settings"))
 
+s:taboption("general", Flag, "enabled", translate("Enable")).default = 0
 s:taboption("general", Value, "name", translate("Hostname"))
 s:taboption("general", Value, "description", translate("Description"))
 s:taboption("general", Value, "workgroup", translate("Workgroup"))
