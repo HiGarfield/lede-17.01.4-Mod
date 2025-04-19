@@ -70,13 +70,10 @@ set_mount() {
 					;;
 				'ntfs')
 					fstype="ntfs-3g"
-					mnt_opts="noatime,iocharset=utf8,big_writes"
+					mnt_opts="noatime,big_writes"
 					;;
-				'exfat')
-					mnt_opts="noatime"
-					;;
-				'vfat')
-					mnt_opts="iocharset=utf8,umask=0000,dmask=0000,fmask=0000"
+				'exfat' | 'vfat')
+					mnt_opts="noatime,iocharset=utf8,umask=0000,dmask=0000,fmask=0000"
 					;;
 				*)
 					skip_flag=1
