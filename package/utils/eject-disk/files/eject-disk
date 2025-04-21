@@ -1,0 +1,76 @@
+#!/bin/sh
+
+# shellcheck shell=dash
+
+set -e
+
+# 日志记录函数
+_log() {
+    logger -t "eject-disk" "$@"
+    echo "$@"
+}
+
+# 检查参数
+if [ $# -ne 1 ]; then
+    _log "Usage: $0 <USB_block_device> (e.g. sda)"
+    exit 1
+fi
+
+BASEDEV="$(basename "$1")"
+DEVICE="/dev/$BASEDEV"
+SYS_BLOCK_PATH="/sys/block/$BASEDEV"
+
+### 设备验证阶段 ###
+# 基础设备检查
+case "$BASEDEV" in
+*[0-9])
+    _log "Error: Specify the entire disk (e.g. sda), not a partition"
+    exit 1
+    ;;
+esac
+
+if [ ! -b "$DEVICE" ] || [ ! -d "$SYS_BLOCK_PATH" ]; then
+    _log "Error: $BASEDEV is not a valid block device"
+    exit 1
+fi
+
+### 资源释放阶段 ###
+# 获取所有关联挂载点
+MOUNTPOINTS=$(grep -E "^${DEVICE}(p[0-9]+|([0-9]+))" /proc/mounts | awk '{print $2}')
+
+# 执行卸载
+for MOUNTPOINT in $MOUNTPOINTS; do
+    force-unmount "$MOUNTPOINT" || {
+        _log "Error: Failed to unmount $MOUNTPOINT"
+        exit 1
+    }
+done
+
+# 关闭swap
+SWAP_TARGETS=$(grep -E "^${DEVICE}(p[0-9]+|([0-9]+))" /proc/swaps | awk '{print $1}')
+for SWAP in $SWAP_TARGETS; do
+    _log "Disabling swap on $SWAP"
+    swapoff "$SWAP"
+done
+
+# 数据同步
+sync
+
+### 物理操作阶段 ###
+# 硬盘停转
+_log "Spinning down $BASEDEV"
+hd-idle -t "$BASEDEV" || true
+
+# 设备删除
+DEVICE_DELETE="$SYS_BLOCK_PATH/device/delete"
+DEVICE_REMOVE="$SYS_BLOCK_PATH/device/remove"
+if [ -w "$DEVICE_DELETE" ]; then
+    _log "Deleting $BASEDEV"
+    echo 1 >"$DEVICE_DELETE"
+elif [ -w "$DEVICE_REMOVE" ]; then
+    _log "Removing $BASEDEV"
+    echo 1 >"$DEVICE_REMOVE"
+fi
+
+_log "Disk $BASEDEV is ejected successfully"
+exit 0
