@@ -85,7 +85,7 @@ delete_device.render = function(self, section, scope)
 end
 delete_device.write = function(self, section)
     local disk_dev = self.map:get(section, "disk")
-    if luci.sys.call("hd-idle -t '%s' && echo 1 >'/sys/block/%s/device/delete' 2>/dev/null" % {disk_dev, disk_dev}) == 0 then
+    if luci.sys.call("eject-disk '%s' 2>/dev/null" % disk_dev) == 0 then
         m.message = translate("Disk %s has deleted.") % disk_dev
     else
         m.message = translate("Fails to delete disk %s.") % disk_dev
