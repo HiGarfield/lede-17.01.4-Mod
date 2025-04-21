@@ -1,74 +1,159 @@
 #!/bin/sh
+
+# shellcheck shell=dash
+
 . /usr/share/libubox/jshn.sh
 
 _log() {
-	logger -t "force-unmount" "$1"
+	logger -t "force-unmount" "$@"
+	echo "$@"
 }
 
-# compare_pid process_id pid
-# 当process_id与pid相等，或process_id是pid子进程时返回0，否则返回1
-compare_pid() {
-	local process_id=$1
-	local pid=$2
-	local p
-	[ -n "$pid" ] && [ -n "$process_id" ] || return 1
-	[ "$process_id" -eq "$pid" ] && return 0
-	for p in $(busybox pgrep -P "$pid"); do
-		compare_pid "$process_id" "$p" && return 0
+##
+# @brief 检查指定进程是否为祖先进程的后代
+#
+# 该函数用于检查给定的目标进程是否是指定祖先进程的后代（直接或间接子进程）。
+# 它通过读取/proc文件系统中的进程状态信息来实现。
+#
+# @param target_pid 待检查的目标进程ID
+# @param ancestor_pid 祖先进程ID
+# @return 0 - 目标进程是祖先进程的后代
+#         1 - 目标进程不是祖先进程的后代
+#
+# @usage
+#   is_descendant_process 12345 100   # 检查PID=12345是否是PID=100的后代
+#   if is_descendant_process "$child" "$parent"; then
+#       echo "是后代进程"
+#   else
+#       echo "非后代或参数错误"
+#   fi
+#
+# @note
+#   1. 该函数依赖/proc文件系统，仅在Linux环境下有效。
+#   2. 若目标进程已退出或/proc/[pid]/stat不可读，可能返回错误。
+#   3. 参数必须为整数，否则直接返回1。
+##
+is_descendant_process() {
+	local target_pid="$1"   # 待检查的目标进程
+	local ancestor_pid="$2" # 预期的祖先进程
+	local current_pid="$target_pid"
+
+	# 参数校验
+	{ [ -n "$target_pid" ] && [ -n "$ancestor_pid" ] &&
+		[ "$target_pid" -eq "$target_pid" ] 2>/dev/null &&
+		[ "$ancestor_pid" -eq "$ancestor_pid" ] 2>/dev/null; } ||
+		return 1
+
+	[ "$current_pid" -eq "$ancestor_pid" ] && return 0
+
+	while :; do
+		# 获取父进程ID
+		current_pid=$(awk -F')' '{
+            gsub(/^[[:space:]]+|[[:space:]]+$/, "", $NF);
+            split($NF, parts, /[[:space:]]+/);
+            print parts[2];
+            exit;
+        }' "/proc/$current_pid/stat" 2>/dev/null)
+
+		# 终止条件：无效PID或到达根进程
+		{ [ -z "$current_pid" ] ||
+			[ "$current_pid" -eq 0 ] ||
+			[ "$current_pid" -eq 1 ]; } &&
+			return 1
+
+		# 匹配祖先PID
+		[ "$current_pid" -eq "$ancestor_pid" ] && return 0
 	done
-	return 1
 }
 
-# stop_occupying_service mount_point
-# 停止所有占用挂载点的服务
-# example: stop_occupying_service /mnt/sda1
+##
+# @brief 停止占用指定挂载点的所有服务
+#
+# 该函数通过检测占用指定挂载点的所有进程，并检查其所属服务实例，
+# 停止所有与该挂载点关联的服务。
+#
+# @param mountpoint 需要检查的挂载点绝对路径（例如 "/mnt/usb"）
+# @return 0  - 正常停止服务
+#         1  - 读取服务列表失败
+#
+# @usage
+#   stop_occupying_service "/mnt/sda1"  # 停止所有占用挂载点 /mnt/sda1 的服务
+#
+# @dependencies 依赖以下组件：
+#   - lsof：用于获取占用挂载点的进程列表
+#   - ubus：通过 `ubus call service list` 获取服务信息
+#   - json：用于解析服务信息
+#
+# @note
+# - 该函数需要 root 权限才能终止其他用户的进程。
+# - 依赖 lsof 和 ubus 命令，确保已安装。
+# - 函数会输出日志信息，记录停止的服务。
+# - 函数会返回 0 表示正常停止，1 表示读取服务信息失败。
+##
 stop_occupying_service() {
-	local mountpoint process_id services service instances instance kill_flag pid running
+	local mountpoint process_id services service instances instance kill_flag pid running pids
+	mountpoint="$1"
+	pids=$(lsof -t "$mountpoint")
 
 	json_init
-	json_load "$(ubus call service list)"
+	json_load "$(ubus call service list)" || return 1
 	json_get_keys services
 
-	mountpoint="$1"
-	for process_id in $(lsof -t "$mountpoint"); do
-		for service in $services; do
-			kill_flag=0
-			if json_is_a $service object; then
-				json_select $service
-				if json_is_a instances object; then
-					json_select instances
-					json_get_keys instances
-					for instance in $instances; do
-						if json_is_a $instance object; then
-							json_select $instance
-							json_get_var pid pid
-							json_get_var running running
-							[ -n "$running" ] && [ "$running" -eq 1 ] &&
-								compare_pid "$process_id" "$pid" && kill_flag=1
-							json_select ..
-						fi
+	for service in $services; do
+		kill_flag=0
+		json_select "$service"
+		if json_is_a instances object; then
+			json_select instances
+			json_get_keys instances
+			for instance in $instances; do
+				[ $kill_flag -eq 1 ] && break
+				json_select "$instance"
+				json_get_var pid pid
+				json_get_var running running
+				[ -n "$running" ] && [ "$running" -eq 1 ] && {
+					for process_id in $pids; do
+						is_descendant_process "$process_id" "$pid" && {
+							kill_flag=1
+							break
+						}
 					done
-					json_select ..
-				fi
+				}
 				json_select ..
-			fi
-			[ $kill_flag -eq 1 ] && {
-				_log "stopping service: ${service}"
-				/etc/init.d/$service stop
-			}
-		done
+			done
+			json_select ..
+		fi
+		json_select ..
+
+		[ $kill_flag -eq 1 ] && {
+			_log "stopping service: ${service}"
+			/etc/init.d/"$service" stop
+		}
 	done
 }
 
-# kill_occupying_process mount_point force_kill
-# 结束所有占用挂载点的进程
-# example: kill_occupying_process /mnt/sda1 1
+##
+# @brief 终止占用指定挂载点的所有进程
+#
+# @param mountpoint  要检查的挂载点路径（必需）
+# @param force_kill  可选强制终止模式（数值类型）：
+#                    - 0（默认）：发送 SIGTERM（15）正常终止信号
+#                    - 非零值：发送 SIGKILL（9）强制立即终止
+#
+# @usage
+#   kill_occupying_process /mnt/usb   # 优雅终止进程
+#   kill_occupying_process /mnt/usb 1 # 强制终止进程
+#
+# @note
+# - 需要 root 权限才能终止其他用户的进程
+# - 依赖 lsof 命令，请确保已安装 lsof 包
+# - force_kill 设定为1，会强制立即终止进程，可能导致数据丢失，慎用
+##
 kill_occupying_process() {
 	local mountpoint process_id force_kill
 	mountpoint="$1"
-	force_kill="$2"
+	force_kill=$((${2:-0} != 0))
 	for process_id in $(lsof -t "$mountpoint"); do
-		_log "killing process: $(cat /proc/$process_id/comm)"
+		_log "killing process: $(cat "/proc/$process_id/comm")"
 		if [ "$force_kill" -eq 1 ]; then
 			kill -9 "$process_id"
 		else
@@ -83,14 +168,14 @@ MAX_TRY=5
 
 # 去除挂载点路径中连续多余的'/'，例如 /mnt//sda1 -> /mnt/sda1
 # 去除挂载点路径末尾的'/'，例如 /mnt/sda1/ -> /mnt/sda1
-mountpoint="$(echo "$1" | sed -e 's#/\+#/#g' -e 's#/*[[:space:]]*$##g')"
+mountpoint="$(echo "$1" | sed 's#//\+#/#g; s#/[[:space:]]*$##')"
 
 [ -e "$mountpoint" ] || {
-	_log "can't unmount ${mountpoint}: No such file or directory"
+	_log "can't unmount ${mountpoint}: no such mount point"
 	exit 1
 }
 
-if awk '{print $2}' /proc/mounts | grep -q "^${mountpoint}$"; then
+if grep -q "[[:blank:]]\+${mountpoint}[[:blank:]]\+" /proc/mounts; then
 	for try_count in $(seq $MAX_TRY); do
 		_log "unmounting ${mountpoint}: try count: ${try_count}"
 		stop_occupying_service "$mountpoint"
@@ -111,5 +196,5 @@ if awk '{print $2}' /proc/mounts | grep -q "^${mountpoint}$"; then
 	exit "$exit_code"
 else
 	_log "${mountpoint} is not mounted"
-	exit 1
+	exit 0
 fi
