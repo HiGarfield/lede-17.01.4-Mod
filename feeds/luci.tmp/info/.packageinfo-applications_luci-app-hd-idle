@@ -2,7 +2,7 @@ Source-Makefile: feeds/luci/applications/luci-app-hd-idle/Makefile
 Package: luci-app-hd-idle
 Submenu: 3. Applications
 Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +hd-idle
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +hd-idle +eject-disk
 Conflicts: 
 Menu-Depends: 
 Provides: 
