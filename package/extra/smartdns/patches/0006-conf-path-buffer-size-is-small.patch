@@ -1,4 +1,4 @@
-From a0040afb0b0c788ea4a8ac917da1f36703b78a2c Mon Sep 17 00:00:00 2001
+From f8626f2fe55c6db8e9f9ca917560214e273462ef Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Sun, 13 Apr 2025 16:09:53 +0800
 Subject: [PATCH] conf: path buffer size is small.

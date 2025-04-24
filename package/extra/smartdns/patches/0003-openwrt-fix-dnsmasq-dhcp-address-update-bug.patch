@@ -1,4 +1,4 @@
-From 44a767f83c75f245529c960086ca5a1ad0c47b14 Mon Sep 17 00:00:00 2001
+From 4b70f94bd97fe93ea5d048aca18db3a51745a550 Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Sat, 12 Apr 2025 16:57:06 +0800
 Subject: [PATCH] openwrt: fix dnsmasq dhcp address update bug.

@@ -1,13 +1,13 @@
-From 64b1097bb431172e752ed1902d95cf918975c578 Mon Sep 17 00:00:00 2001
+From 672af5fe0654f6be274f08d600c81da4e2d7a6ee Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 27 Mar 2025 02:07:15 +0800
 Subject: [PATCH] dns_stats: fix build error on old platforms
 
 ---
- src/dns_stats.c      |  2 ++
- src/dns_stats.h      | 41 ++++++++++++++++++++++++++++++++++-------
+ src/dns_stats.c      | 10 ++++++++
+ src/dns_stats.h      | 54 ++++++++++++++++++++++++++++++++++++++------
  src/include/atomic.h |  2 ++
- 3 files changed, 38 insertions(+), 7 deletions(-)
+ 3 files changed, 59 insertions(+), 7 deletions(-)
 
 --- a/src/dns_stats.c
 +++ b/src/dns_stats.c
@@ -15,24 +15,66 @@ Subject: [PATCH] dns_stats: fix build error on old platforms
  
  struct dns_stats dns_stats;
  
-+char stats_lock = 0;
++pthread_spinlock_t stats_lock;
 +
  #define SAMPLE_PERIOD 5
  
  void dns_stats_avg_time_update_add(struct dns_stats_avg_time *avg_time, uint64_t time)
+@@ -161,11 +163,19 @@ float dns_stats_server_stats_avg_time_ge
+ int dns_stats_init(void)
+ {
+ 	memset(&dns_stats, 0, sizeof(dns_stats));
++	if (pthread_spin_init(&stats_lock, PTHREAD_PROCESS_PRIVATE) != 0) {
++		perror("pthread_spin_init failed");
++		exit(EXIT_FAILURE);
++	}
+ 	return 0;
+ }
+ 
+ void dns_stats_exit(void)
+ {
+ 	memset(&dns_stats, 0, sizeof(dns_stats));
++	if (pthread_spin_destroy(&stats_lock) != 0) {
++		perror("pthread_spin_destroy failed");
++		exit(EXIT_FAILURE);
++	}
+ 	return;
+ }
+\ No newline at end of file
 --- a/src/dns_stats.h
 +++ b/src/dns_stats.h
-@@ -58,39 +58,66 @@ struct dns_server_stats {
+@@ -20,7 +20,10 @@
+ #define SMART_DNS_STATS_H
+ 
+ #include "atomic.h"
++#include <pthread.h>
+ #include <stdint.h>
++#include <stdio.h>
++#include <stdlib.h>
+ 
+ #ifdef __cplusplus
+ extern "C" {
+@@ -58,39 +61,76 @@ struct dns_server_stats {
  
  extern struct dns_stats dns_stats;
  
-+extern char stats_lock;
++extern pthread_spinlock_t stats_lock;
 +
 +#define ACQUIRE_LOCK()                                                                                                 \
 +	do {                                                                                                               \
-+	} while (__sync_lock_test_and_set(&stats_lock, 1))
++		if (pthread_spin_lock(&stats_lock) != 0) {                                                                     \
++			perror("pthread_spin_lock failed");                                                                        \
++			exit(EXIT_FAILURE);                                                                                        \
++		}                                                                                                              \
++	} while (0)
 +
-+#define RELEASE_LOCK() __sync_lock_release(&stats_lock)
++#define RELEASE_LOCK()                                                                                                 \
++	do {                                                                                                               \
++		if (pthread_spin_unlock(&stats_lock) != 0) {                                                                   \
++			perror("pthread_spin_unlock failed");                                                                      \
++			exit(EXIT_FAILURE);                                                                                        \
++		}                                                                                                              \
++	} while (0)
 +
  static inline uint64_t stats_read(const uint64_t *s)
  {
