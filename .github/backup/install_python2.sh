@@ -2,10 +2,10 @@
 set -e
 
 # Update package list
-sudo apt update
+sudo apt -qqq update
 
 # Install necessary dependencies
-sudo apt install -y -qq build-essential libssl-dev libbz2-dev \
+sudo apt -qqq install build-essential libssl-dev libbz2-dev \
     libreadline-dev libsqlite3-dev wget curl llvm \
     libxml2-dev libxslt1-dev zlib1g-dev libffi-dev
 
