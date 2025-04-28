@@ -1,4 +1,4 @@
-From 672af5fe0654f6be274f08d600c81da4e2d7a6ee Mon Sep 17 00:00:00 2001
+From 4e2e8c0ce5dcd6795782df51bbea77e922f325c5 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 27 Mar 2025 02:07:15 +0800
 Subject: [PATCH] dns_stats: fix build error on old platforms
@@ -6,8 +6,8 @@ Subject: [PATCH] dns_stats: fix build error on old platforms
 ---
  src/dns_stats.c      | 10 ++++++++
  src/dns_stats.h      | 54 ++++++++++++++++++++++++++++++++++++++------
- src/include/atomic.h |  2 ++
- 3 files changed, 59 insertions(+), 7 deletions(-)
+ src/include/atomic.h | 20 ++++++++++++----
+ 3 files changed, 73 insertions(+), 11 deletions(-)
 
 --- a/src/dns_stats.c
 +++ b/src/dns_stats.c
@@ -60,29 +60,29 @@ Subject: [PATCH] dns_stats: fix build error on old platforms
  
 +extern pthread_spinlock_t stats_lock;
 +
-+#define ACQUIRE_LOCK()                                                                                                 \
-+	do {                                                                                                               \
-+		if (pthread_spin_lock(&stats_lock) != 0) {                                                                     \
-+			perror("pthread_spin_lock failed");                                                                        \
-+			exit(EXIT_FAILURE);                                                                                        \
-+		}                                                                                                              \
-+	} while (0)
++static inline void acquire_stats_lock(void)
++{
++	if (pthread_spin_lock(&stats_lock) != 0) {
++		perror("pthread_spin_lock failed");
++		exit(EXIT_FAILURE);
++	}
++}
 +
-+#define RELEASE_LOCK()                                                                                                 \
-+	do {                                                                                                               \
-+		if (pthread_spin_unlock(&stats_lock) != 0) {                                                                   \
-+			perror("pthread_spin_unlock failed");                                                                      \
-+			exit(EXIT_FAILURE);                                                                                        \
-+		}                                                                                                              \
-+	} while (0)
++static inline void release_stats_lock(void)
++{
++	if (pthread_spin_unlock(&stats_lock) != 0) {
++		perror("pthread_spin_unlock failed");
++		exit(EXIT_FAILURE);
++	}
++}
 +
  static inline uint64_t stats_read(const uint64_t *s)
  {
 -	return READ_ONCE((*s));
 +	uint64_t val;
-+	ACQUIRE_LOCK();
++	acquire_stats_lock();
 +	val = READ_ONCE(*s);
-+	RELEASE_LOCK();
++	release_stats_lock();
 +	return val;
  }
  
@@ -90,62 +90,79 @@ Subject: [PATCH] dns_stats: fix build error on old platforms
  {
 -	return __sync_lock_test_and_set(s, v);
 +	uint64_t old_val;
-+	ACQUIRE_LOCK();
++	acquire_stats_lock();
 +	old_val = READ_ONCE(*s);
 +	WRITE_ONCE(*s, v);
-+	RELEASE_LOCK();
++	release_stats_lock();
 +	return old_val;
  }
  
  static inline void stats_set(uint64_t *s, uint64_t v)
  {
 -	*s = v;
-+	ACQUIRE_LOCK();
++	acquire_stats_lock();
 +	WRITE_ONCE(*s, v);
-+	RELEASE_LOCK();
++	release_stats_lock();
  }
  
  static inline void stats_add(uint64_t *s, uint64_t v)
  {
 -	(void)__sync_add_and_fetch(s, v);
-+	ACQUIRE_LOCK();
++	acquire_stats_lock();
 +	WRITE_ONCE(*s, READ_ONCE(*s) + v);
-+	RELEASE_LOCK();
++	release_stats_lock();
  }
  
  static inline void stats_inc(uint64_t *s)
  {
 -	(void)__sync_add_and_fetch(s, 1);
-+	ACQUIRE_LOCK();
++	acquire_stats_lock();
 +	WRITE_ONCE(*s, READ_ONCE(*s) + 1);
-+	RELEASE_LOCK();
++	release_stats_lock();
  }
  
  static inline void stats_sub(uint64_t *s, uint64_t v)
  {
 -	(void)__sync_sub_and_fetch(s, v);
-+	ACQUIRE_LOCK();
++	acquire_stats_lock();
 +	WRITE_ONCE(*s, READ_ONCE(*s) - v);
-+	RELEASE_LOCK();
++	release_stats_lock();
  }
  
  static inline void stats_dec(uint64_t *s)
  {
 -	(void)__sync_sub_and_fetch(s, 1);
-+	ACQUIRE_LOCK();
++	acquire_stats_lock();
 +	WRITE_ONCE(*s, READ_ONCE(*s) - 1);
-+	RELEASE_LOCK();
++	release_stats_lock();
  }
  
  void dns_stats_avg_time_update(struct dns_stats_avg_time *avg_time);
 --- a/src/include/atomic.h
 +++ b/src/include/atomic.h
-@@ -25,6 +25,8 @@
- #define READ_ONCE(x) \
- ({ typeof(x) ___x = ACCESS_ONCE(x); ___x; })
+@@ -20,10 +20,22 @@
+ #ifndef _GENERIC_ATOMIC_H
+ #define _GENERIC_ATOMIC_H
  
-+#define WRITE_ONCE(x, val) ((*(volatile typeof(x) *)&(x)) = (val))
+-#define ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
++#define ACCESS_ONCE(x) (*(volatile __typeof__(x) *)&(x))
+ 
+-#define READ_ONCE(x) \
+-({ typeof(x) ___x = ACCESS_ONCE(x); ___x; })
++#define READ_ONCE(x)                                                                                                   \
++	({                                                                                                                 \
++		__sync_synchronize();                                                                                          \
++		__typeof__(x) ___x = ACCESS_ONCE(x);                                                                           \
++		__sync_synchronize();                                                                                          \
++		___x;                                                                                                          \
++	})
 +
++#define WRITE_ONCE(x, v)                                                                                               \
++	do {                                                                                                               \
++		__sync_synchronize();                                                                                          \
++		ACCESS_ONCE(x) = (v);                                                                                          \
++		__sync_synchronize();                                                                                          \
++	} while (0)
+ 
  /**
   * Atomic type.
-  */
