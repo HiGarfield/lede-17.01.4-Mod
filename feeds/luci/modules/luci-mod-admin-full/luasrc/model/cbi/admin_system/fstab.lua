@@ -117,9 +117,9 @@ end
 
 unmount.write = function(self, section)
 	if non_system_mounts[section].umount then
-		luci.sys.call("/bin/force-unmount '%s'" % luci.util.shellstartsqescape(non_system_mounts[section].mountpoint))
+		luci.sys.call("/bin/force-unmount '%s' >/dev/null 2>&1" % luci.util.shellstartsqescape(non_system_mounts[section].mountpoint))
 		return luci.http.redirect(luci.dispatcher.build_url("admin/system", "fstab"))
-        end
+	end
 end
 
 mount = m:section(TypedSection, "mount", translate("Mount Points"), translate("Mount Points define at which point a memory device will be attached to the filesystem"))
