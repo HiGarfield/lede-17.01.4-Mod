@@ -101,8 +101,9 @@ set_smb_pass_btn = s:taboption("smbuser", Button, "set_smb_pass", "")
 set_smb_pass_btn.inputtitle = translate("Set Samba User's Password")
 set_smb_pass_btn.inputstyle = "apply"
 set_smb_pass_btn.write = function(self, section, value)
-    luci.sys.call("smbpasswd -a %s %s" % {smb_user:formvalue(section), smb_pass:formvalue(section)})
-    luci.sys.call("/etc/init.d/samba reload")
+    if luci.sys.call("smbpasswd -a '%s' '%s' >/dev/null 2>&1" % {smb_user:formvalue(section), smb_pass:formvalue(section)}) == 0 then
+        luci.sys.call("/etc/init.d/samba reload >/dev/null 2>&1")
+    end
 end
 
 s = m:section(TypedSection, "sambashare", translate("Shared Directories"))
