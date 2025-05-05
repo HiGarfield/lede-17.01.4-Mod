@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/utils/lsof/Makefile
 Package: lsof
-Version: 4.94.0-1
+Version: 4.99.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtirpc
 Conflicts: 
 Menu-Depends: 
@@ -10,9 +10,9 @@ Category: Utilities
 Repository: base
 Title: LiSt Open Files - a diagnostic tool
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: lsof_4.94.0.linux.tar.bz2
-License: Unique
-LicenseFiles: 00README
+Source: lsof-4.99.4.tar.gz
+License: lsof
+LicenseFiles: COPYING
 Type: ipkg
 Description: LiSt Open Files - a diagnostic tool
 http://people.freebsd.org/~abe/

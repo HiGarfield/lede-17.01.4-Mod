@@ -17227,7 +17227,7 @@ Steven Hessing <steven.hessing@gmail.com>
 
 Source-Makefile: feeds/packages/libs/libtirpc/Makefile
 Package: libtirpc
-Version: 1.3.1-1
+Version: 1.3.4-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -17237,14 +17237,14 @@ Section: libs
 Category: Libraries
 Repository: base
 Title: Library TI RPC for RPC bindings
-Maintainer: Andy Walsh <andy.walsh44+github@gmail.com>
-Source: libtirpc-1.3.1.tar.bz2
+Maintainer: 
+Source: libtirpc-1.3.4.tar.bz2
 License: BSD-3-Clause
 LicenseFiles: COPYING
 Type: ipkg
 Description: Library TI RPC for RPC bindings
 http://libtirpc.sourceforge.net/
-Andy Walsh <andy.walsh44+github@gmail.com>
+
 @@
 
 
@@ -48381,7 +48381,7 @@ Hsing-Wang Liao <kuoruan@gmail.com>
 
 Source-Makefile: feeds/packages/utils/lsof/Makefile
 Package: lsof
-Version: 4.94.0-1
+Version: 4.99.4-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtirpc
 Conflicts: 
 Menu-Depends: 
@@ -48391,9 +48391,9 @@ Category: Utilities
 Repository: base
 Title: LiSt Open Files - a diagnostic tool
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: lsof_4.94.0.linux.tar.bz2
-License: Unique
-LicenseFiles: 00README
+Source: lsof-4.99.4.tar.gz
+License: lsof
+LicenseFiles: COPYING
 Type: ipkg
 Description: LiSt Open Files - a diagnostic tool
 http://people.freebsd.org/~abe/
