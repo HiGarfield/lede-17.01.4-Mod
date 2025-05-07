@@ -1,0 +1,24 @@
+From b0fad3bc08b117b0e442ad7f0d836ba4c5ef431c Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Tue, 6 May 2025 21:31:04 +0800
+Subject: [PATCH] audit: fix audit-num default value issue.
+
+---
+ src/dns_conf.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -6463,8 +6463,11 @@ static void _dns_conf_default_value_init
+ 	dns_conf.cache_checkpoint_time = DNS_DEFAULT_CHECKPOINT_TIME;
+ 	dns_conf.cache_persist = 2;
+ 	dns_conf.log_num = 8;
+-	dns_conf.log_size = 1024 * 1024;
++	dns_conf.log_size = 1024 * 128;
+ 	dns_conf.log_level = TLOG_ERROR;
++	dns_conf.audit_num = 2;
++	dns_conf.audit_file_mode = 0640;
++	dns_conf.audit_size = 1024 * 128;
+ 	dns_conf.resolv_hostname = 1;
+ 	dns_conf.cachesize = -1;
+ 	dns_conf.cache_max_memsize = -1;

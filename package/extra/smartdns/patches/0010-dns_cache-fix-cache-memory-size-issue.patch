@@ -1,0 +1,37 @@
+From 9ea7a58bcfdf6ff60aabf1be37d33be1a9d83741 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Tue, 6 May 2025 21:41:04 +0800
+Subject: [PATCH] dns_cache: fix cache memory size issue.
+
+---
+ src/dns_cache.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/src/dns_cache.c
++++ b/src/dns_cache.c
+@@ -672,6 +672,7 @@ static int _dns_cache_read_record(int fd
+ {
+ 	unsigned int i = 0;
+ 	ssize_t ret = 0;
++	int data_size = 0;
+ 	struct dns_cache_record cache_record;
+ 	struct dns_cache_data_head data_head;
+ 	struct dns_cache_data *cache_data = NULL;
+@@ -704,7 +705,8 @@ static int _dns_cache_read_record(int fd
+ 			goto errout;
+ 		}
+ 
+-		cache_data = malloc(data_head.size + sizeof(data_head));
++		data_size = data_head.size + sizeof(data_head);
++		cache_data = malloc(data_size);
+ 		if (cache_data == NULL) {
+ 			tlog(TLOG_ERROR, "malloc cache data failed %s", strerror(errno));
+ 			goto errout;
+@@ -722,6 +724,7 @@ static int _dns_cache_read_record(int fd
+ 		cache_record.info.is_visited = 0;
+ 		cache_record.info.domain[DNS_MAX_CNAME_LEN - 1] = '\0';
+ 		cache_record.info.dns_group_name[DNS_GROUP_NAME_LEN - 1] = '\0';
++		atomic_add(data_size, &dns_cache_head.mem_size);
+ 		ret = callback(&cache_record, cache_data);
+ 		dns_cache_data_put(cache_data);
+ 		cache_data = NULL;
