@@ -1,0 +1,37 @@
+From da5316352c6c8cab979424b6ad0b7ff408d15712 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sat, 10 May 2025 18:20:04 +0800
+Subject: [PATCH] conf: fix the problem of setting multiple server groups
+
+---
+ src/dns_conf.c | 12 +++++++++++-
+ 1 file changed, 11 insertions(+), 1 deletion(-)
+
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -412,6 +412,7 @@ static int _dns_conf_get_group_set(const
+ 
+ 	for (i = 0; i < group->server_num; i++) {
+ 		if (group->servers[i] == server) {
++			/* already in group */
+ 			return 0;
+ 		}
+ 	}
+@@ -955,7 +956,16 @@ static int _config_server(int argc, char
+ 			break;
+ 		}
+ 		case 'g': {
+-			group_name = optarg;
++			/* first group, add later */
++			if (group_name == NULL) {
++				group_name = optarg;
++				break;
++			}
++
++			if (_dns_conf_get_group_set(optarg, server) != 0) {
++				tlog(TLOG_ERROR, "add group failed.");
++				goto errout;
++			}
+ 			break;
+ 		}
+ 		case 'p': {
