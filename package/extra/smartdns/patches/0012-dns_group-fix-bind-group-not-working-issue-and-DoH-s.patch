@@ -1,0 +1,85 @@
+From 6090f7d7b8d113c1a4888c7cc9afd127340012ed Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sat, 17 May 2025 22:59:25 +0800
+Subject: [PATCH] dns_group: fix bind group not working issue and DoH server
+ issue.
+
+---
+ src/dns_client.c |  8 ++++++--
+ src/dns_server.c | 13 +++++++++----
+ 2 files changed, 15 insertions(+), 6 deletions(-)
+
+--- a/src/dns_client.c
++++ b/src/dns_client.c
+@@ -2723,7 +2723,7 @@ static int _dns_client_process_udp_proxy
+ 	tlog(TLOG_DEBUG, "recv udp packet from %s, len: %d, latency: %d",
+ 		 get_host_by_addr(from_host, sizeof(from_host), (struct sockaddr *)&from), len, latency);
+ 
+-	if (latency < server_info->drop_packet_latency_ms) {
++	if (latency > 0 && latency < server_info->drop_packet_latency_ms) {
+ 		tlog(TLOG_DEBUG, "drop packet from %s, latency: %d", from_host, latency);
+ 		return 0;
+ 	}
+@@ -2818,7 +2818,7 @@ static int _dns_client_process_udp(struc
+ 	/* update recv time */
+ 	time(&server_info->last_recv);
+ 
+-	if (latency < server_info->drop_packet_latency_ms) {
++	if (latency > 0 && latency < server_info->drop_packet_latency_ms) {
+ 		tlog(TLOG_DEBUG, "drop packet from %s, latency: %d", from_host, latency);
+ 		return 0;
+ 	}
+@@ -3774,6 +3774,10 @@ static int _dns_client_send_data_to_buff
+ 	event.events = EPOLLIN | EPOLLOUT;
+ 	event.data.ptr = server_info;
+ 	if (epoll_ctl(client.epoll_fd, EPOLL_CTL_MOD, server_info->fd, &event) != 0) {
++		if (errno == ENOENT) {
++			/* fd not found, ignore */
++			return 0;
++		}
+ 		tlog(TLOG_ERROR, "epoll ctl failed, %s", strerror(errno));
+ 		return -1;
+ 	}
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -7047,6 +7047,10 @@ static int _dns_server_setup_request_con
+ 		return 0;
+ 	}
+ 
++	if (request->conn && request->conn->dns_group != NULL && request->dns_group_name[0] == '\0') {
++		safe_strncpy(request->dns_group_name, request->conn->dns_group, sizeof(request->dns_group_name));
++	}
++
+ 	rule_group = dns_server_get_rule_group(request->dns_group_name);
+ 	if (rule_group == NULL) {
+ 		return -1;
+@@ -7094,9 +7098,6 @@ static void _dns_server_setup_dns_group_
+ {
+ 	const char *group_name = NULL;
+ 	const char *temp_group_name = NULL;
+-	if (request->conn) {
+-		group_name = request->conn->dns_group;
+-	}
+ 
+ 	temp_group_name = _dns_server_get_request_server_groupname(request);
+ 	if (temp_group_name != NULL) {
+@@ -7948,6 +7949,10 @@ static int _dns_server_ssl_poll_event(st
+ 
+ 	fd_event.data.ptr = tls_client;
+ 	if (epoll_ctl(server.epoll_fd, EPOLL_CTL_MOD, tls_client->tcp.head.fd, &fd_event) != 0) {
++		if (errno == ENOENT) {
++			/* fd not found, ignore */
++			return 0;
++		}
+ 		tlog(TLOG_ERROR, "epoll ctl failed, %s", strerror(errno));
+ 		goto errout;
+ 	}
+@@ -8072,7 +8077,7 @@ static int _dns_server_tcp_process_one_r
+ 				goto out;
+ 			}
+ 
+-			len = http_head_parse(http_head, tcpclient->recvbuff.buf + proceed_len, tcpclient->recvbuff.size);
++			len = http_head_parse(http_head, tcpclient->recvbuff.buf + proceed_len, tcpclient->recvbuff.size - proceed_len);
+ 			if (len < 0) {
+ 				if (len == -1) {
+ 					ret = 0;
