@@ -146,7 +146,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  }
  EXPORT_SYMBOL_GPL(rt2800_watchdog);
  
-@@ -12138,7 +12195,7 @@ int rt2800_probe_hw(struct rt2x00_dev *r
+@@ -12139,7 +12196,7 @@ int rt2800_probe_hw(struct rt2x00_dev *r
  		__set_bit(REQUIRE_TASKLET_CONTEXT, &rt2x00dev->cap_flags);
  	}
  

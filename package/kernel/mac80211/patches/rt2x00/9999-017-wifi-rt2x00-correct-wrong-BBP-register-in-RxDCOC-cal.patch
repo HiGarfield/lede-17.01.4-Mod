@@ -19,7 +19,7 @@ Link: https://lore.kernel.org/r/TYAP286MB0315B13B89DF57B6B27BB854BCAFA@TYAP286MB
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -8792,7 +8792,7 @@ static void rt2800_rxdcoc_calibration(st
+@@ -8793,7 +8793,7 @@ static void rt2800_rxdcoc_calibration(st
  	rt2800_rfcsr_write_bank(rt2x00dev, 5, 4, saverfb5r4);
  	rt2800_rfcsr_write_bank(rt2x00dev, 7, 4, saverfb7r4);
  

@@ -109,7 +109,7 @@ v2: use rt2800_wait_bbp_rf_ready(), fix indentation
 +		rt2x00_warn(rt2x00dev, "Timeout waiting for MAC status in RXIQ calibration\n");
 +
 +	bbpval = bbp4 & (~0x18);
-+	bbpval = bbp4 | 0x00;
++	bbpval = bbpval | 0x00;
 +	rt2800_bbp_write(rt2x00dev, 4, bbpval);
 +
 +	bbpval = rt2800_bbp_read(rt2x00dev, 21);
@@ -191,13 +191,13 @@ v2: use rt2800_wait_bbp_rf_ready(), fix indentation
 +	for (ch_idx = 0; ch_idx < 2; ch_idx = ch_idx + 1) {
 +		if (ch_idx == 0) {
 +			rfval = rfb0r1 & (~0x3);
-+			rfval = rfb0r1 | 0x1;
++			rfval = rfval | 0x1;
 +			rt2800_rfcsr_write_bank(rt2x00dev, 0, 1, rfval);
 +			rfval = rfb0r2 & (~0x33);
-+			rfval = rfb0r2 | 0x11;
++			rfval = rfval | 0x11;
 +			rt2800_rfcsr_write_bank(rt2x00dev, 0, 2, rfval);
 +			rfval = rfb0r42 & (~0x50);
-+			rfval = rfb0r42 | 0x10;
++			rfval = rfval | 0x10;
 +			rt2800_rfcsr_write_bank(rt2x00dev, 0, 42, rfval);
 +
 +			rt2800_register_write(rt2x00dev, RF_CONTROL0, 0x00001006);
@@ -210,13 +210,13 @@ v2: use rt2800_wait_bbp_rf_ready(), fix indentation
 +			rt2800_bbp_dcoc_write(rt2x00dev, 1, 0x00);
 +		} else {
 +			rfval = rfb0r1 & (~0x3);
-+			rfval = rfb0r1 | 0x2;
++			rfval = rfval | 0x2;
 +			rt2800_rfcsr_write_bank(rt2x00dev, 0, 1, rfval);
 +			rfval = rfb0r2 & (~0x33);
-+			rfval = rfb0r2 | 0x22;
++			rfval = rfval | 0x22;
 +			rt2800_rfcsr_write_bank(rt2x00dev, 0, 2, rfval);
 +			rfval = rfb0r42 & (~0x50);
-+			rfval = rfb0r42 | 0x40;
++			rfval = rfval | 0x40;
 +			rt2800_rfcsr_write_bank(rt2x00dev, 0, 42, rfval);
 +
 +			rt2800_register_write(rt2x00dev, RF_CONTROL0, 0x00002006);
