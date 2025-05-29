@@ -220,7 +220,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  }
  
  static void rt3883_bbp_adjust(struct rt2x00_dev *rt2x00dev,
-@@ -8635,7 +8635,7 @@ static void rt2800_r_calibration(struct
+@@ -8636,7 +8636,7 @@ static void rt2800_r_calibration(struct
  	u8 bytevalue = 0;
  	int rcalcode;
  	u8 r_cal_code = 0;
@@ -229,7 +229,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  	u8 rfvalue;
  	u32 MAC_RF_BYPASS0, MAC_RF_CONTROL0, MAC_PWR_PIN_CFG;
  	u32 maccfg;
-@@ -8696,7 +8696,7 @@ static void rt2800_r_calibration(struct
+@@ -8697,7 +8697,7 @@ static void rt2800_r_calibration(struct
  	if (bytevalue > 128)
  		d1 = bytevalue - 256;
  	else
@@ -238,7 +238,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  	rt2800_bbp_write(rt2x00dev, 22, 0x0);
  	rt2800_rfcsr_write_bank(rt2x00dev, 0, 35, 0x01);
  
-@@ -8706,7 +8706,7 @@ static void rt2800_r_calibration(struct
+@@ -8707,7 +8707,7 @@ static void rt2800_r_calibration(struct
  	if (bytevalue > 128)
  		d2 = bytevalue - 256;
  	else
@@ -247,7 +247,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  	rt2800_bbp_write(rt2x00dev, 22, 0x0);
  
  	rcalcode = rt2800_calcrcalibrationcode(rt2x00dev, d1, d2);
-@@ -8808,7 +8808,7 @@ static void rt2800_rxdcoc_calibration(st
+@@ -8809,7 +8809,7 @@ static void rt2800_rxdcoc_calibration(st
  static u32 rt2800_do_sqrt_accumulation(u32 si)
  {
  	u32 root, root_pre, bit;
@@ -256,7 +256,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  
  	bit = 1 << 15;
  	root = 0;
-@@ -9435,11 +9435,11 @@ static void rt2800_loft_search(struct rt
+@@ -9436,11 +9436,11 @@ static void rt2800_loft_search(struct rt
  			       u8 alc_idx, u8 dc_result[][RF_ALC_NUM][2])
  {
  	u32 p0 = 0, p1 = 0, pf = 0;
@@ -270,7 +270,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  
  	rt2800_bbp_write(rt2x00dev, 158, 0xb0);
  	rt2800_bbp_write(rt2x00dev, 159, 0x80);
-@@ -9489,17 +9489,17 @@ static void rt2800_loft_search(struct rt
+@@ -9490,17 +9490,17 @@ static void rt2800_loft_search(struct rt
  static void rt2800_iq_search(struct rt2x00_dev *rt2x00dev, u8 ch_idx, u8 *ges, u8 *pes)
  {
  	u32 p0 = 0, p1 = 0, pf = 0;
@@ -294,7 +294,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  
  	for (bidx = 5; bidx >= 1; bidx--) {
  		for (gop = 0; gop < 2; gop++) {
-@@ -10148,11 +10148,11 @@ static int rt2800_rf_lp_config(struct rt
+@@ -10149,11 +10149,11 @@ static int rt2800_rf_lp_config(struct rt
  	return 0;
  }
  
@@ -308,7 +308,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  
  	rt2800_bbp_dcoc_write(rt2x00dev, 0, 0x82);
  
-@@ -10184,7 +10184,7 @@ static void rt2800_bw_filter_calibration
+@@ -10185,7 +10185,7 @@ static void rt2800_bw_filter_calibration
  	u8 rx_filter_target_20m = 0x27, rx_filter_target_40m = 0x31;
  	int loop = 0, is_ht40, cnt;
  	u8 bbp_val, rf_val;
@@ -317,7 +317,7 @@ Link: https://lore.kernel.org/r/20221019155541.3410813-1-Jason@zx2c4.com
  	u8 saverfb5r00, saverfb5r01, saverfb5r03, saverfb5r04, saverfb5r05;
  	u8 saverfb5r06, saverfb5r07;
  	u8 saverfb5r08, saverfb5r17, saverfb5r18, saverfb5r19, saverfb5r20;
-@@ -11701,9 +11701,9 @@ static int rt2800_probe_hw_mode(struct r
+@@ -11702,9 +11702,9 @@ static int rt2800_probe_hw_mode(struct r
  {
  	struct hw_mode_spec *spec = &rt2x00dev->spec;
  	struct channel_info *info;

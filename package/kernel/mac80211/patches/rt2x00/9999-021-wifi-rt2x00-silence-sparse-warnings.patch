@@ -15,7 +15,7 @@ Link: https://msgid.link/20240223114023.ce0c714124e9.I2b5710b761f63522574fbe7654
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -11065,13 +11065,13 @@ static void rt2800_efuse_read(struct rt2
+@@ -11066,13 +11066,13 @@ static void rt2800_efuse_read(struct rt2
  	/* Apparently the data is read from end to start */
  	reg = rt2800_register_read_lock(rt2x00dev, efuse_data3_reg);
  	/* The returned value is in CPU order, but eeprom is le */
