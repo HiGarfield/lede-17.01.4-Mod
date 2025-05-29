@@ -66,7 +66,7 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
  		rt2800_config_channel(rt2x00dev, libconf->conf,
  				      &libconf->rf, &libconf->channel);
  		rt2800_config_txpower(rt2x00dev, libconf->conf->chandef.chan,
-@@ -11859,12 +11878,20 @@ static int rt2800_probe_hw_mode(struct r
+@@ -11860,12 +11879,20 @@ static int rt2800_probe_hw_mode(struct r
  	}
  
  	/*
@@ -88,7 +88,7 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
  	spec->channels_info = info;
  
  	default_power1 = rt2800_eeprom_addr(rt2x00dev, EEPROM_TXPOWER_BG1);
-@@ -12251,27 +12278,30 @@ int rt2800_get_survey(struct ieee80211_h
+@@ -12252,27 +12279,30 @@ int rt2800_get_survey(struct ieee80211_h
  		      struct survey_info *survey)
  {
  	struct rt2x00_dev *rt2x00dev = hw->priv;

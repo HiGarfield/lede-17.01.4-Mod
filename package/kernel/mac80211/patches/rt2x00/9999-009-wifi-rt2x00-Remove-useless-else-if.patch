@@ -21,7 +21,7 @@ Link: https://lore.kernel.org/r/20230106022731.111243-1-jiapeng.chong@linux.alib
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -9029,8 +9029,6 @@ static void rt2800_rxiq_calibration(stru
+@@ -9030,8 +9030,6 @@ static void rt2800_rxiq_calibration(stru
  
  				if (i < 2 && (bbptemp & 0x800000))
  					result = (bbptemp & 0xffffff) - 0x1000000;
