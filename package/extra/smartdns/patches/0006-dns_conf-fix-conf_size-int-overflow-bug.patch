@@ -1,4 +1,4 @@
-From 5ea99c4370c6dd8b508531f8af0cc1765699af2f Mon Sep 17 00:00:00 2001
+From ed7349c390501c6b6b523e65d9e48dbc5b25133d Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Thu, 17 Apr 2025 17:29:24 +0800
 Subject: [PATCH] dns_conf: fix conf_size int overflow bug.

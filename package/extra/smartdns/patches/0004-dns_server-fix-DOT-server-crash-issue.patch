@@ -1,4 +1,4 @@
-From 1d88231a5df58f9c69b53125a0fe2f561306695c Mon Sep 17 00:00:00 2001
+From e5e6ac705c6cf8f8fcd73076cb9611e289596941 Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Sat, 12 Apr 2025 16:43:34 +0800
 Subject: [PATCH] dns_server: fix DOT server crash issue.
