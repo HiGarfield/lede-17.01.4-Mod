@@ -1,0 +1,406 @@
+From 5678496d3700787a4741a2decdfd6440c2fddf4b Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sat, 31 May 2025 12:18:32 +0800
+Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
+ builtins
+
+---
+ src/Makefile         |  2 ++
+ src/dns_client.c     |  4 ++++
+ src/dns_server.c     |  3 ++-
+ src/dns_stats.h      | 14 ++++++------
+ src/include/atomic.h | 51 +++++++++++++++++++-------------------------
+ src/tlog.c           | 40 ++++++++++++++++++++--------------
+ 6 files changed, 61 insertions(+), 53 deletions(-)
+
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -64,6 +64,8 @@ endif
+ CXXFLAGS=-O2 -g -Wall -std=c++11 
+ override CXXFLAGS +=-Iinclude
+ 
++override LDFLAGS += -latomic
++
+ ifeq ($(STATIC), yes)
+  override CFLAGS += -DBUILD_STATIC
+  override LDFLAGS += -lssl -lcrypto -Wl,--whole-archive -lpthread -Wl,--no-whole-archive -ldl -lm -static -rdynamic
+--- a/src/dns_client.c
++++ b/src/dns_client.c
+@@ -1443,6 +1443,10 @@ static void _dns_client_close_socket(str
+ 		server_info->ssl_write_len = -1;
+ 	}
+ 
++	if (server_info->fd <= 0) {
++		return;
++	}
++
+ 	/* remove fd from epoll */
+ 	epoll_ctl(client.epoll_fd, EPOLL_CTL_DEL, server_info->fd, NULL);
+ 
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -2452,11 +2452,12 @@ static int _dns_server_reply_all_pending
+ 	struct dns_request *tmp = NULL;
+ 	int ret = 0;
+ 
++	pthread_mutex_lock(&server.request_pending_lock);
+ 	if (request->request_pending_list == NULL) {
++		pthread_mutex_unlock(&server.request_pending_lock);
+ 		return 0;
+ 	}
+ 
+-	pthread_mutex_lock(&server.request_pending_lock);
+ 	pending_list = request->request_pending_list;
+ 	request->request_pending_list = NULL;
+ 	hlist_del_init(&pending_list->node);
+--- a/src/dns_stats.h
++++ b/src/dns_stats.h
+@@ -60,37 +60,37 @@ extern struct dns_stats dns_stats;
+ 
+ static inline uint64_t stats_read(const uint64_t *s)
+ {
+-	return READ_ONCE((*s));
++	return __atomic_load_n(s, __ATOMIC_SEQ_CST);
+ }
+ 
+ static inline uint64_t stats_read_and_set(uint64_t *s, uint64_t v)
+ {
+-	return __sync_lock_test_and_set(s, v);
++	return __atomic_test_and_set(s, v);
+ }
+ 
+ static inline void stats_set(uint64_t *s, uint64_t v)
+ {
+-	*s = v;
++	__atomic_store_n(s, v, __ATOMIC_SEQ_CST);
+ }
+ 
+ static inline void stats_add(uint64_t *s, uint64_t v)
+ {
+-	(void)__sync_add_and_fetch(s, v);
++	(void)__atomic_add_fetch(s, v, __ATOMIC_SEQ_CST);
+ }
+ 
+ static inline void stats_inc(uint64_t *s)
+ {
+-	(void)__sync_add_and_fetch(s, 1);
++	(void)__atomic_add_fetch(s, 1, __ATOMIC_SEQ_CST);
+ }
+ 
+ static inline void stats_sub(uint64_t *s, uint64_t v)
+ {
+-	(void)__sync_sub_and_fetch(s, v);
++	(void)__atomic_sub_fetch(s, v, __ATOMIC_SEQ_CST);
+ }
+ 
+ static inline void stats_dec(uint64_t *s)
+ {
+-	(void)__sync_sub_and_fetch(s, 1);
++	(void)__atomic_sub_fetch(s, 1, __ATOMIC_SEQ_CST);
+ }
+ 
+ void dns_stats_avg_time_update(struct dns_stats_avg_time *avg_time);
+--- a/src/include/atomic.h
++++ b/src/include/atomic.h
+@@ -16,15 +16,9 @@
+  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  */
+ 
+-
+ #ifndef _GENERIC_ATOMIC_H
+ #define _GENERIC_ATOMIC_H
+ 
+-#define ACCESS_ONCE(x) (*(volatile typeof(x) *)&(x))
+-
+-#define READ_ONCE(x) \
+-({ typeof(x) ___x = ACCESS_ONCE(x); ___x; })
+-
+ /**
+  * Atomic type.
+  */
+@@ -32,7 +26,7 @@ typedef struct {
+ 	long counter;
+ } atomic_t;
+ 
+-#define ATOMIC_INIT(i)  { (i) }
++#define ATOMIC_INIT(i) {(i)}
+ 
+ /**
+  * Read atomic variable
+@@ -42,7 +36,7 @@ typedef struct {
+  */
+ static inline long atomic_read(const atomic_t *v)
+ {
+-	return READ_ONCE((v)->counter);
++	return __atomic_load_n(&v->counter, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -52,7 +46,7 @@ static inline long atomic_read(const ato
+  */
+ static inline void atomic_set(atomic_t *v, long i)
+ {
+-    v->counter = i;
++	__atomic_store_n(&v->counter, i, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -60,9 +54,9 @@ static inline void atomic_set(atomic_t *
+  * @param i integer value to add
+  * @param v pointer of type atomic_t
+  */
+-static inline void atomic_add( long i, atomic_t *v )
++static inline void atomic_add(long i, atomic_t *v)
+ {
+-	(void)__sync_add_and_fetch(&v->counter, i);
++	__atomic_add_fetch(&v->counter, i, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -72,9 +66,9 @@ static inline void atomic_add( long i, a
+  *
+  * Atomically subtracts @i from @v.
+  */
+-static inline void atomic_sub( long i, atomic_t *v )
++static inline void atomic_sub(long i, atomic_t *v)
+ {
+-	(void)__sync_sub_and_fetch(&v->counter, i);
++	__atomic_sub_fetch(&v->counter, i, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -86,9 +80,9 @@ static inline void atomic_sub( long i, a
+  * true if the result is zero, or false for all
+  * other cases.
+  */
+-static inline long atomic_sub_and_test( long i, atomic_t *v )
++static inline long atomic_sub_and_test(long i, atomic_t *v)
+ {
+-	return !(__sync_sub_and_fetch(&v->counter, i));
++	return !(__atomic_sub_fetch(&v->counter, i, __ATOMIC_SEQ_CST));
+ }
+ 
+ /**
+@@ -97,9 +91,9 @@ static inline long atomic_sub_and_test(
+  *
+  * Atomically increments @v by 1.
+  */
+-static inline void atomic_inc( atomic_t *v )
++static inline void atomic_inc(atomic_t *v)
+ {
+-	(void)__sync_add_and_fetch(&v->counter, 1);
++	__atomic_add_fetch(&v->counter, 1, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -109,9 +103,9 @@ static inline void atomic_inc( atomic_t
+  * Atomically decrements @v by 1.  Note that the guaranteed
+  * useful range of an atomic_t is only 24 bits.
+  */
+-static inline void atomic_dec( atomic_t *v )
++static inline void atomic_dec(atomic_t *v)
+ {
+-	(void)__sync_sub_and_fetch(&v->counter, 1);
++	__atomic_sub_fetch(&v->counter, 1, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -120,9 +114,9 @@ static inline void atomic_dec( atomic_t
+  *
+  * Atomically increments @v by 1.
+  */
+-static inline long atomic_inc_return( atomic_t *v )
++static inline long atomic_inc_return(atomic_t *v)
+ {
+-	return __sync_add_and_fetch(&v->counter, 1);
++	return __atomic_add_fetch(&v->counter, 1, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -132,9 +126,9 @@ static inline long atomic_inc_return( at
+  * Atomically decrements @v by 1.  Note that the guaranteed
+  * useful range of an atomic_t is only 24 bits.
+  */
+-static inline long atomic_dec_return( atomic_t *v )
++static inline long atomic_dec_return(atomic_t *v)
+ {
+-	return __sync_sub_and_fetch(&v->counter, 1);
++	return __atomic_sub_fetch(&v->counter, 1, __ATOMIC_SEQ_CST);
+ }
+ 
+ /**
+@@ -147,7 +141,7 @@ static inline long atomic_dec_return( at
+  */
+ static inline long atomic_dec_and_test( atomic_t *v )
+ {
+-	return !(__sync_sub_and_fetch(&v->counter, 1));
++	return !(__atomic_sub_fetch(&v->counter, 1, __ATOMIC_SEQ_CST));
+ }
+ 
+ /**
+@@ -158,9 +152,9 @@ static inline long atomic_dec_and_test(
+  * and returns true if the result is zero, or false for all
+  * other cases.
+  */
+-static inline long atomic_inc_and_test( atomic_t *v )
++static inline long atomic_inc_and_test(atomic_t *v)
+ {
+-	return !(__sync_add_and_fetch(&v->counter, 1));
++	return !(__atomic_add_fetch(&v->counter, 1, __ATOMIC_SEQ_CST));
+ }
+ 
+ /**
+@@ -172,10 +166,9 @@ static inline long atomic_inc_and_test(
+  * if the result is negative, or false when
+  * result is greater than or equal to zero.
+  */
+-static inline long atomic_add_negative( long i, atomic_t *v )
++static inline long atomic_add_negative(long i, atomic_t *v)
+ {
+-	return (__sync_add_and_fetch(&v->counter, i) < 0);
++	return (__atomic_add_fetch(&v->counter, i, __ATOMIC_SEQ_CST) < 0);
+ }
+ 
+ #endif
+-
+--- a/src/tlog.c
++++ b/src/tlog.c
+@@ -159,7 +159,7 @@ typedef int (*vprint_callback)(char *buf
+ 
+ static struct tlog tlog;
+ static tlog_level tlog_set_level = TLOG_INFO;
+-unsigned int tlog_localtime_lock;
++volatile unsigned int tlog_localtime_lock = 0;
+ 
+ static const char *tlog_level_str[] = {
+     "DEBUG",
+@@ -170,27 +170,35 @@ static const char *tlog_level_str[] = {
+     "FATAL",
+ };
+ 
+-static inline void _tlog_spin_lock(unsigned int *lock)
++static inline void _tlog_spin_lock(volatile unsigned int *lock)
+ {
+     while (1) {
+         int i;
+         for (i = 0; i < 10000; i++) {
+-            if (__sync_bool_compare_and_swap(lock, 0, 1)) {
++            unsigned int expected = 0;
++            if (__atomic_compare_exchange_n(lock,
++                                           &expected,
++                                           1,
++                                           0,
++                                           __ATOMIC_ACQUIRE,
++                                           __ATOMIC_RELAXED)) {
+                 return;
+             }
++            __atomic_thread_fence(__ATOMIC_ACQUIRE);
+         }
+         sched_yield();
+     }
+ }
+ 
+-static inline void _tlog_spin_unlock(unsigned int *lock)
++static inline void _tlog_spin_unlock(volatile unsigned int *lock)
+ {
+-    __sync_bool_compare_and_swap(lock, 1, 0);
++    __atomic_store_n(lock, 0, __ATOMIC_RELEASE);
++    __atomic_thread_fence(__ATOMIC_SEQ_CST);
+ }
+ 
+ static int _tlog_mkdir(const char *path)
+ {
+-    char path_c[PATH_MAX];
++    char path_c[PATH_MAX + 1];
+     char *path_end;
+     char str;
+     int len;
+@@ -892,7 +900,7 @@ static int _tlog_get_oldest_callback(con
+ 
+     if (oldestlog->mtime == 0 || oldestlog->mtime > sb.st_mtime) {
+         oldestlog->mtime = sb.st_mtime;
+-        strncpy(oldestlog->name, entry->d_name, sizeof(oldestlog->name));
++        strncpy(oldestlog->name, entry->d_name, sizeof(oldestlog->name) - 1);
+         oldestlog->name[sizeof(oldestlog->name) - 1] = '\0';
+         return 0;
+     }
+@@ -1199,7 +1207,7 @@ static int _tlog_archive_log(struct tlog
+ 
+ static void _tlog_get_log_name_dir(struct tlog_log *log)
+ {
+-    char log_file[PATH_MAX];
++    char log_file[PATH_MAX + 1];
+     if (log->fd > 0) {
+         close(log->fd);
+         log->fd = -1;
+@@ -1248,7 +1256,7 @@ static int _tlog_write(struct tlog_log *
+         log->rename_pending = 0;
+     }
+ 
+-    if (log->logcount <= 0) {
++    if (log->logcount <= 0 || log->logsize <= 0) {
+         return 0;
+     }
+ 
+@@ -1663,7 +1671,7 @@ static void *_tlog_work(void *arg)
+         log_len = 0;
+         log_extlen = 0;
+         log_extend = 0;
+-        if (tlog.run == 0) {
++        if (__atomic_load_n(&tlog.run, __ATOMIC_RELAXED) == 0) {
+             if (_tlog_any_has_data() == 0) {
+                 break;
+             }
+@@ -1683,7 +1691,7 @@ static void *_tlog_work(void *arg)
+         }
+ 
+         /* if buffer is empty, wait */
+-        if (_tlog_any_has_data_locked() == 0 && tlog.run) {
++        if (_tlog_any_has_data_locked() == 0 && __atomic_load_n(&tlog.run, __ATOMIC_RELAXED)) {
+             log = _tlog_wait_log_locked(log);
+             if (log == NULL) {
+                 pthread_mutex_unlock(&tlog.lock);
+@@ -1909,7 +1917,7 @@ tlog_log *tlog_open(const char *logfile,
+ {
+     struct tlog_log *log = NULL;
+ 
+-    if (tlog.run == 0) {
++    if (__atomic_load_n(&tlog.run, __ATOMIC_RELAXED) == 0) {
+         fprintf(stderr, "tlog: tlog is not initialized.\n");
+         return NULL;
+     }
+@@ -2090,7 +2098,7 @@ int tlog_init(const char *logfile, int m
+     pthread_attr_init(&attr);
+     pthread_cond_init(&tlog.cond, NULL);
+     pthread_mutex_init(&tlog.lock, NULL);
+-    tlog.run = 1;
++    __atomic_store_n(&tlog.run, 1, __ATOMIC_RELAXED);
+ 
+     log = tlog_open(logfile, maxlogsize, maxlogcount, buffsize, flag);
+     if (log == NULL) {
+@@ -2120,14 +2128,14 @@ int tlog_init(const char *logfile, int m
+ errout:
+     if (tlog.tid) {
+         void *retval = NULL;
+-        tlog.run = 0;
++        __atomic_store_n(&tlog.run, 0, __ATOMIC_RELAXED);
+         pthread_join(tlog.tid, &retval);
+         tlog.tid = 0;
+     }
+ 
+     pthread_cond_destroy(&tlog.cond);
+     pthread_mutex_destroy(&tlog.lock);
+-    tlog.run = 0;
++    __atomic_store_n(&tlog.run, 0, __ATOMIC_RELAXED);
+     tlog.root = NULL;
+     tlog.root_format = NULL;
+ 
+@@ -2144,7 +2152,7 @@ void tlog_exit(void)
+ 
+     if (tlog.tid) {
+         void *ret = NULL;
+-        tlog.run = 0;
++        __atomic_store_n(&tlog.run, 0, __ATOMIC_RELAXED);
+         pthread_mutex_lock(&tlog.lock);
+         pthread_cond_signal(&tlog.cond);
+         pthread_mutex_unlock(&tlog.lock);

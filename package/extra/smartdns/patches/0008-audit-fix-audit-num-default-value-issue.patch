@@ -1,4 +1,4 @@
-From b0fad3bc08b117b0e442ad7f0d836ba4c5ef431c Mon Sep 17 00:00:00 2001
+From 299b482fdaafd19bf5fd7b653b31e0e365b90938 Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Tue, 6 May 2025 21:31:04 +0800
 Subject: [PATCH] audit: fix audit-num default value issue.

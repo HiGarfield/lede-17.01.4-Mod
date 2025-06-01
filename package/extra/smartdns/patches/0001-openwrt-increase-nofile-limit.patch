@@ -1,4 +1,4 @@
-From b658de6e368406199c80125d19fd1f74067984a9 Mon Sep 17 00:00:00 2001
+From d715080b30b3327a2ebcec7f1801abfee78536ae Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 10 Apr 2025 00:28:09 +0800
 Subject: [PATCH] openwrt: increase nofile limit

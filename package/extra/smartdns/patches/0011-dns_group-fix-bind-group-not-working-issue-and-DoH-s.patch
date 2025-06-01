@@ -1,4 +1,4 @@
-From 6090f7d7b8d113c1a4888c7cc9afd127340012ed Mon Sep 17 00:00:00 2001
+From f8a0858c40d18217df91a85f002d9cc3eadeecd2 Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Sat, 17 May 2025 22:59:25 +0800
 Subject: [PATCH] dns_group: fix bind group not working issue and DoH server

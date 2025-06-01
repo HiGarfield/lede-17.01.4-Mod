@@ -1,4 +1,4 @@
-From 6e178a2383308096338a8f9e9efb7f46289ef3f4 Mon Sep 17 00:00:00 2001
+From d56e34c10451536d051d68423ae915f4ecc85820 Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Fri, 11 Apr 2025 23:28:12 +0800
 Subject: [PATCH] dns_server: fix potential crash issue.

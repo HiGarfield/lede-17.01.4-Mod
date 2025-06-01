@@ -1,4 +1,4 @@
-From aafb3b0bc27e40375730aa9297dc0b8f3416b995 Mon Sep 17 00:00:00 2001
+From 8f77e06a364c799d684d97d1b59a40c32405ee48 Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Sat, 19 Apr 2025 00:32:38 +0800
 Subject: [PATCH] dns_server: reduce ttl when upstream server fail.

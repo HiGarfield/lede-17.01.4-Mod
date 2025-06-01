@@ -1,4 +1,4 @@
-From 9ea7a58bcfdf6ff60aabf1be37d33be1a9d83741 Mon Sep 17 00:00:00 2001
+From 5be930b096d4f4398c2cb586233ac67903e6739a Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Tue, 6 May 2025 21:41:04 +0800
 Subject: [PATCH] dns_cache: fix cache memory size issue.
