@@ -2288,7 +2288,7 @@ CONFIG_PACKAGE_getrandom=y
 CONFIG_PACKAGE_jsonfilter=y
 CONFIG_PACKAGE_lede-info=y
 CONFIG_PACKAGE_lede-keyring=y
-# CONFIG_PACKAGE_libatomic is not set
+CONFIG_PACKAGE_libatomic=y
 CONFIG_PACKAGE_libc=y
 CONFIG_PACKAGE_libgcc=y
 CONFIG_PACKAGE_libpthread=y
