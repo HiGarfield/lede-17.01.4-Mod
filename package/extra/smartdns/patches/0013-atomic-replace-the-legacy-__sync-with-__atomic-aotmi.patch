@@ -1,4 +1,4 @@
-From 5678496d3700787a4741a2decdfd6440c2fddf4b Mon Sep 17 00:00:00 2001
+From 61f08f696cbfc21ee21872aa07e50a48267df87e Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Sat, 31 May 2025 12:18:32 +0800
 Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
@@ -66,7 +66,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
  static inline uint64_t stats_read_and_set(uint64_t *s, uint64_t v)
  {
 -	return __sync_lock_test_and_set(s, v);
-+	return __atomic_test_and_set(s, v);
++	return __atomic_exchange_n(s, v, __ATOMIC_SEQ_CST);
  }
  
  static inline void stats_set(uint64_t *s, uint64_t v)
