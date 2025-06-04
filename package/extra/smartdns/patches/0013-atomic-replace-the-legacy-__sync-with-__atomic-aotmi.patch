@@ -1,4 +1,4 @@
-From 61f08f696cbfc21ee21872aa07e50a48267df87e Mon Sep 17 00:00:00 2001
+From 3832599d54c21dd6cc9ef67ca75c77827b8f56d7 Mon Sep 17 00:00:00 2001
 From: Nick Peng <pymumu@gmail.com>
 Date: Sat, 31 May 2025 12:18:32 +0800
 Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
@@ -10,8 +10,8 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
  src/dns_server.c     |  3 ++-
  src/dns_stats.h      | 14 ++++++------
  src/include/atomic.h | 51 +++++++++++++++++++-------------------------
- src/tlog.c           | 40 ++++++++++++++++++++--------------
- 6 files changed, 61 insertions(+), 53 deletions(-)
+ src/tlog.c           | 32 +++++++++++++--------------
+ 6 files changed, 53 insertions(+), 53 deletions(-)
 
 --- a/src/Makefile
 +++ b/src/Makefile
@@ -270,42 +270,34 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
  static struct tlog tlog;
  static tlog_level tlog_set_level = TLOG_INFO;
 -unsigned int tlog_localtime_lock;
-+volatile unsigned int tlog_localtime_lock = 0;
++char tlog_localtime_lock = 0;
  
  static const char *tlog_level_str[] = {
      "DEBUG",
-@@ -170,27 +170,35 @@ static const char *tlog_level_str[] = {
+@@ -170,12 +170,12 @@ static const char *tlog_level_str[] = {
      "FATAL",
  };
  
 -static inline void _tlog_spin_lock(unsigned int *lock)
-+static inline void _tlog_spin_lock(volatile unsigned int *lock)
++static inline void _tlog_spin_lock(char *lock)
  {
      while (1) {
          int i;
          for (i = 0; i < 10000; i++) {
 -            if (__sync_bool_compare_and_swap(lock, 0, 1)) {
-+            unsigned int expected = 0;
-+            if (__atomic_compare_exchange_n(lock,
-+                                           &expected,
-+                                           1,
-+                                           0,
-+                                           __ATOMIC_ACQUIRE,
-+                                           __ATOMIC_RELAXED)) {
++            if (__atomic_test_and_set(lock, __ATOMIC_ACQUIRE) == 0) {
                  return;
              }
-+            __atomic_thread_fence(__ATOMIC_ACQUIRE);
          }
-         sched_yield();
+@@ -183,14 +183,14 @@ static inline void _tlog_spin_lock(unsig
      }
  }
  
 -static inline void _tlog_spin_unlock(unsigned int *lock)
-+static inline void _tlog_spin_unlock(volatile unsigned int *lock)
++static inline void _tlog_spin_unlock(char *lock)
  {
 -    __sync_bool_compare_and_swap(lock, 1, 0);
-+    __atomic_store_n(lock, 0, __ATOMIC_RELEASE);
-+    __atomic_thread_fence(__ATOMIC_SEQ_CST);
++    __atomic_clear(lock, __ATOMIC_RELEASE);
  }
  
  static int _tlog_mkdir(const char *path)
@@ -315,7 +307,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
      char *path_end;
      char str;
      int len;
-@@ -892,7 +900,7 @@ static int _tlog_get_oldest_callback(con
+@@ -892,7 +892,7 @@ static int _tlog_get_oldest_callback(con
  
      if (oldestlog->mtime == 0 || oldestlog->mtime > sb.st_mtime) {
          oldestlog->mtime = sb.st_mtime;
@@ -324,7 +316,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
          oldestlog->name[sizeof(oldestlog->name) - 1] = '\0';
          return 0;
      }
-@@ -1199,7 +1207,7 @@ static int _tlog_archive_log(struct tlog
+@@ -1199,7 +1199,7 @@ static int _tlog_archive_log(struct tlog
  
  static void _tlog_get_log_name_dir(struct tlog_log *log)
  {
@@ -333,7 +325,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
      if (log->fd > 0) {
          close(log->fd);
          log->fd = -1;
-@@ -1248,7 +1256,7 @@ static int _tlog_write(struct tlog_log *
+@@ -1248,7 +1248,7 @@ static int _tlog_write(struct tlog_log *
          log->rename_pending = 0;
      }
  
@@ -342,7 +334,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
          return 0;
      }
  
-@@ -1663,7 +1671,7 @@ static void *_tlog_work(void *arg)
+@@ -1663,7 +1663,7 @@ static void *_tlog_work(void *arg)
          log_len = 0;
          log_extlen = 0;
          log_extend = 0;
@@ -351,7 +343,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
              if (_tlog_any_has_data() == 0) {
                  break;
              }
-@@ -1683,7 +1691,7 @@ static void *_tlog_work(void *arg)
+@@ -1683,7 +1683,7 @@ static void *_tlog_work(void *arg)
          }
  
          /* if buffer is empty, wait */
@@ -360,7 +352,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
              log = _tlog_wait_log_locked(log);
              if (log == NULL) {
                  pthread_mutex_unlock(&tlog.lock);
-@@ -1909,7 +1917,7 @@ tlog_log *tlog_open(const char *logfile,
+@@ -1909,7 +1909,7 @@ tlog_log *tlog_open(const char *logfile,
  {
      struct tlog_log *log = NULL;
  
@@ -369,7 +361,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
          fprintf(stderr, "tlog: tlog is not initialized.\n");
          return NULL;
      }
-@@ -2090,7 +2098,7 @@ int tlog_init(const char *logfile, int m
+@@ -2090,7 +2090,7 @@ int tlog_init(const char *logfile, int m
      pthread_attr_init(&attr);
      pthread_cond_init(&tlog.cond, NULL);
      pthread_mutex_init(&tlog.lock, NULL);
@@ -378,7 +370,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
  
      log = tlog_open(logfile, maxlogsize, maxlogcount, buffsize, flag);
      if (log == NULL) {
-@@ -2120,14 +2128,14 @@ int tlog_init(const char *logfile, int m
+@@ -2120,14 +2120,14 @@ int tlog_init(const char *logfile, int m
  errout:
      if (tlog.tid) {
          void *retval = NULL;
@@ -395,7 +387,7 @@ Subject: [PATCH] atomic: replace the legacy __sync with __atomic aotmic
      tlog.root = NULL;
      tlog.root_format = NULL;
  
-@@ -2144,7 +2152,7 @@ void tlog_exit(void)
+@@ -2144,7 +2144,7 @@ void tlog_exit(void)
  
      if (tlog.tid) {
          void *ret = NULL;
