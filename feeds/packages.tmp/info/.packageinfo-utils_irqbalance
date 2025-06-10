@@ -1,6 +1,6 @@
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: d913f60d8413c718a74eb3c197026919c78a44cb-0
+Version: 8e8945e5092caf45605dfb1e66165e2eb9ec1f56-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -11,7 +11,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-d913f60d8413c718a74eb3c197026919c78a44cb.tar.xz
+Source: irqbalance-8e8945e5092caf45605dfb1e66165e2eb9ec1f56.tar.xz
 License: GPL-2.0-or-later
 LicenseFiles: COPYING
 Type: ipkg
