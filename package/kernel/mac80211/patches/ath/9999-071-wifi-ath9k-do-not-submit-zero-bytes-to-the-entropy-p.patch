@@ -1,0 +1,39 @@
+From 72bb920797d16b50450b3c8e5116081b78a851bb Mon Sep 17 00:00:00 2001
+From: Dmitry Antipov <dmantipov@yandex.ru>
+Date: Thu, 23 Jan 2025 17:10:58 +0300
+Subject: [PATCH] wifi: ath9k: do not submit zero bytes to the entropy pool
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+In 'ath_cmn_process_fft()', it doesn't make too much sense to
+add zero bytes in attempt to improve randomness. So swap calls
+to 'memset()' and 'add_device_randomness()' to feed the pool
+with actual FFT results rather than zeroes. Compile tested only.
+
+Signed-off-by: Dmitry Antipov <dmantipov@yandex.ru>
+Fixes: 2aa56cca3571 ("ath9k: Mix the received FFT bins to the random pool")
+Acked-by: Toke Høiland-Jørgensen <toke@toke.dk>
+Link: https://patch.msgid.link/20250123141058.1696502-1-dmantipov@yandex.ru
+Signed-off-by: Jeff Johnson <jeff.johnson@oss.qualcomm.com>
+---
+ drivers/net/wireless/ath/ath9k/common-spectral.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/drivers/net/wireless/ath/ath9k/common-spectral.c
++++ b/drivers/net/wireless/ath/ath9k/common-spectral.c
+@@ -652,12 +652,12 @@ int ath_cmn_process_fft(struct ath_spec_
+ 				fft_handler(rs, spec_priv, sample_buf,
+ 					    tsf, freq, chan_type);
+ 
+-				memset(sample_buf, 0, SPECTRAL_SAMPLE_MAX_LEN);
+-
+ 				/* Mix the received bins to the /dev/random
+ 				 * pool
+ 				 */
+ 				add_device_randomness(sample_buf, num_bins);
++
++				memset(sample_buf, 0, SPECTRAL_SAMPLE_MAX_LEN);
+ 			}
+ 
+ 			/* Process a normal frame */
