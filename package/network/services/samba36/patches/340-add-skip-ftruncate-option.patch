@@ -1,0 +1,95 @@
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 13 Jun 2025 18:33:30 +0800
+Subject: [PATCH] add 'skip ftruncate' option
+
+---
+ source3/modules/vfs_default.c | 28 ++++++++++++++++++++++++++++
+ source3/param/loadparm.c      | 12 ++++++++++++
+ 2 files changed, 40 insertions(+)
+
+--- a/source3/modules/vfs_default.c
++++ b/source3/modules/vfs_default.c
+@@ -25,6 +25,13 @@
+ #include "ntioctl.h"
+ #include "smbprofile.h"
+ 
++#ifndef MSDOS_SUPER_MAGIC
++#define MSDOS_SUPER_MAGIC	0x4d44		/* MD */
++#endif
++#ifndef EXFAT_SUPER_MAGIC
++#define EXFAT_SUPER_MAGIC	0x2011BAB0	/* exFAT */
++#endif
++
+ #undef DBGC_CLASS
+ #define DBGC_CLASS DBGC_VFS
+ 
+@@ -933,6 +940,27 @@ static int vfswrap_ftruncate(vfs_handle_
+ 		return result;
+ 	}
+ 
++	/* Avoid truncating files on FAT/exFAT filesystems.
++       ftruncate() on such filesystems can time out when the file size 
++	   approaches 300MB-600MB (system speed dependent). */
++	if(lp_skip_ftruncate(SNUM(fsp->conn)) && !fsp->is_sparse) {
++		struct statfs s;
++		if(fstatfs(fsp->fh->fd, &s)) {	/* get filesystem type */
++			syslog("Samba: fstatfs fail\n");
++			goto done;
++		}
++		if(s.f_type == EXFAT_SUPER_MAGIC) {
++			syslog("Samba: exFAT Filesystem, length: 0x%X\n", len);
++			goto done;
++		}
++ 		else if(s.f_type == MSDOS_SUPER_MAGIC) {
++ 			syslog("Samba: vFAT/FAT Filesystem, length: 0x%X\n", len);
++			goto done;
++		} else {
++			syslog("Samba: Skip Filesystem: 0x%X\n", s.f_type);
++		}
++	}
++
+ 	/* we used to just check HAVE_FTRUNCATE_EXTEND and only use
+ 	   sys_ftruncate if the system supports it. Then I discovered that
+ 	   you can have some filesystems that support ftruncate
+--- a/source3/param/loadparm.c
++++ b/source3/param/loadparm.c
+@@ -498,6 +498,7 @@ struct service {
+ 	bool bWidelinks;
+ 	bool bSymlinks;
+ 	bool bSyncAlways;
++	bool bSkipFtruncate;
+ 	bool bStrictAllocate;
+ 	bool bStrictSync;
+ 	char magic_char;
+@@ -643,6 +644,7 @@ static struct service sDefault = {
+ 	false,			/* bWidelinks */
+ 	True,			/* bSymlinks */
+ 	False,			/* bSyncAlways */
++	False,			/* bSkipFtruncate */
+ 	False,			/* bStrictAllocate */
+ 	False,			/* bStrictSync */
+ 	'~',			/* magic char */
+@@ -2559,6 +2561,15 @@ static struct parm_struct parm_table[] =
+ 		.flags		= FLAG_ADVANCED | FLAG_SHARE,
+ 	},
+ 	{
++		.label		= "skip ftruncate",
++		.type		= P_BOOL,
++		.p_class	= P_LOCAL,
++		.ptr		= &sDefault.bSkipFtruncate,
++		.special	= NULL,
++		.enum_list	= NULL,
++		.flags		= FLAG_ADVANCED | FLAG_SHARE,
++	},
++	{
+ 		.label		= "use mmap",
+ 		.type		= P_BOOL,
+ 		.p_class	= P_GLOBAL,
+@@ -6045,6 +6056,7 @@ FN_LOCAL_BOOL(lp_onlyuser, bOnlyUser)
+ FN_LOCAL_PARM_BOOL(lp_manglednames, bMangledNames)
+ FN_LOCAL_BOOL(lp_symlinks, bSymlinks)
+ FN_LOCAL_BOOL(lp_syncalways, bSyncAlways)
++FN_LOCAL_BOOL(lp_skip_ftruncate, bSkipFtruncate)
+ FN_LOCAL_BOOL(lp_strict_allocate, bStrictAllocate)
+ FN_LOCAL_BOOL(lp_strict_sync, bStrictSync)
+ FN_LOCAL_BOOL(lp_map_system, bMap_system)
