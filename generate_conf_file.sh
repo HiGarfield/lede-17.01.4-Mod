@@ -127,6 +127,7 @@ devices=(
 	"ramips_mt7621_DEVICE_link7"
 	"ramips_mt7621_DEVICE_yyets-le2"
 	"ramips_mt7621_DEVICE_rg-nbr700gw"
+	"ramips_mt7621_DEVICE_ew1200"
 )
 process_devices $devices "1004kc"
 
