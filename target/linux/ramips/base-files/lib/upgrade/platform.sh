@@ -54,6 +54,7 @@ platform_check_image() {
 	dwr-512-b|\
 	e1700|\
 	esr-9753|\
+	ew1200|\
 	ex2700|\
 	f7c027|\
 	firewrt|\
