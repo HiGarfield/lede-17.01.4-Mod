@@ -1,7 +1,7 @@
 From 654653e718f6c55c6f29fd94cc8152a92c8166ac Mon Sep 17 00:00:00 2001
 From: Shiji Yang <yangshiji66@outlook.com>
 Date: Tue, 24 Dec 2024 08:36:32 +0800
-Subject: [PATCH 1/2] rt2x00: respect the rt2800 hardware TX queue index
+Subject: [PATCH] rt2x00: respect the rt2800 hardware TX queue index
 
 The Ralink TX queue register index is different from the Linux
 IEEE80211 queue id definition. Their conversion table is as follows:
