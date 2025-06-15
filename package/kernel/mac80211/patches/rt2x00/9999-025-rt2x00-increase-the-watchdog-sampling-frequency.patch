@@ -1,7 +1,7 @@
 From aec50d1a30349759de0ac535f54c3441bf7ebef7 Mon Sep 17 00:00:00 2001
 From: Shiji Yang <yangshiji66@outlook.com>
 Date: Sun, 22 Dec 2024 17:06:59 +0800
-Subject: [PATCH 2/2] rt2x00: increase the watchdog sampling frequency
+Subject: [PATCH] rt2x00: increase the watchdog sampling frequency
 
 Increase the sampling frequency of the watchdog when the hung
 counter reaches the threshold to avoid some unnecessary resets.

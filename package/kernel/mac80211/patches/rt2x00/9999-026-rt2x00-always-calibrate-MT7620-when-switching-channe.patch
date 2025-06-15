@@ -13,7 +13,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -5770,6 +5770,9 @@ static void rt2800_config_ps(struct rt2x
+@@ -5767,6 +5767,9 @@ static void rt2800_config_ps(struct rt2x
  	}
  }
  
@@ -23,7 +23,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  void rt2800_config(struct rt2x00_dev *rt2x00dev,
  		   struct rt2x00lib_conf *libconf,
  		   const unsigned int flags)
-@@ -5784,10 +5787,18 @@ void rt2800_config(struct rt2x00_dev *rt
+@@ -5781,10 +5784,18 @@ void rt2800_config(struct rt2x00_dev *rt
  		 */
  		rt2800_update_survey(rt2x00dev);
  
@@ -42,7 +42,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  	}
  	if (flags & IEEE80211_CONF_CHANGE_POWER)
  		rt2800_config_txpower(rt2x00dev, libconf->conf->chandef.chan,
-@@ -10864,7 +10875,7 @@ static void rt2800_restore_rf_bbp_rt6352
+@@ -10859,7 +10870,7 @@ static void rt2800_restore_rf_bbp_rt6352
  	}
  }
  
@@ -51,7 +51,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  {
  	if (rt2x00_has_cap_external_pa(rt2x00dev) ||
  	    rt2x00_has_cap_external_lna_bg(rt2x00dev)) {
-@@ -10873,6 +10884,10 @@ static void rt2800_calibration_rt6352(st
+@@ -10868,6 +10879,10 @@ static void rt2800_calibration_rt6352(st
  	}
  
  	rt2800_r_calibration(rt2x00dev);
@@ -62,7 +62,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  	rt2800_rf_self_txdc_cal(rt2x00dev);
  	rt2800_rxdcoc_calibration(rt2x00dev);
  	rt2800_bw_filter_calibration(rt2x00dev, true);
-@@ -10980,10 +10995,6 @@ int rt2800_enable_radio(struct rt2x00_de
+@@ -10975,10 +10990,6 @@ int rt2800_enable_radio(struct rt2x00_de
  	rt2800_init_bbp(rt2x00dev);
  	rt2800_init_rfcsr(rt2x00dev);
  
