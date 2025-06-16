@@ -53,7 +53,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
 +
 +	if (rt2x00dev->rxdma_busy > 25 || rt2x00dev->txdma_busy > 25) {
 +		int cnt;
-+		for (cnt = 0; cnt < 10; cnt++) {
++		for (cnt = 0; cnt < 10 && (rt2x00dev->rxdma_busy || rt2x00dev->txdma_busy); cnt++) {
 +			msleep(5);
 +			reg_cfg = rt2800_register_read(rt2x00dev, WPDMA_GLO_CFG);
 +			reg_int = rt2800_register_read(rt2x00dev, INT_SOURCE_CSR);
