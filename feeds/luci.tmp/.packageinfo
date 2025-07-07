@@ -13392,7 +13392,7 @@ Source-Makefile: feeds/luci/applications/luci-app-samba/Makefile
 Package: luci-app-samba
 Submenu: 3. Applications
 Version: x-1
-Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +samba36-server
+Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +samba36-server +@BUSYBOX_CONFIG_ADDUSER +@BUSYBOX_CONFIG_FEATURE_CHECK_NAMES
 Conflicts: 
 Menu-Depends: 
 Provides: 
