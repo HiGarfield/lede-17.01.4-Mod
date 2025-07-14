@@ -48381,7 +48381,7 @@ Hsing-Wang Liao <kuoruan@gmail.com>
 
 Source-Makefile: feeds/packages/utils/lsof/Makefile
 Package: lsof
-Version: 4.99.4-1
+Version: 4.99.5-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libtirpc
 Conflicts: 
 Menu-Depends: 
@@ -48391,7 +48391,7 @@ Category: Utilities
 Repository: base
 Title: LiSt Open Files - a diagnostic tool
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: lsof-4.99.4.tar.gz
+Source: lsof-4.99.5.tar.gz
 License: lsof
 LicenseFiles: COPYING
 Type: ipkg
