@@ -1,0 +1,47 @@
+From f458003f168077ba9922c2a022e534e78a5edefc Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Sun, 20 Jul 2025 11:15:04 +0800
+Subject: [PATCH] radix: fix ipv4 mapped ipv6 address.
+
+---
+ src/lib/radix.c | 16 +++++++++++++++-
+ 1 file changed, 15 insertions(+), 1 deletion(-)
+
+--- a/src/lib/radix.c
++++ b/src/lib/radix.c
+@@ -558,12 +558,24 @@ sanitise_mask(unsigned char *addr, unsig
+ 		addr[i] = 0;
+ }
+ 
++static void
++update_addr(const char **addr_ptr, const char *addr, size_t len)
++{
++	const char *ipv6_prefix = "::ffff:0:0";
++
++	if (strncmp(addr, "::ffff", len) == 0) 
++		*addr_ptr = ipv6_prefix;
++	else
++		*addr_ptr = (char *)addr;
++}
++
+ prefix_t
+ *prefix_pton(const char *string, long len, prefix_t *prefix, const char **errmsg)
+ {
+ 	char save[256], *cp, *ep;
+ 	struct addrinfo hints, *ai;
+ 	void *addr;
++	const char *addr_str = NULL;
+ 	prefix_t *ret;
+ 	size_t slen;
+ 	int r;
+@@ -593,7 +605,9 @@ prefix_t
+ 	memset(&hints, '\0', sizeof(hints));
+ 	hints.ai_flags = AI_NUMERICHOST;
+ 
+-	if ((r = getaddrinfo(save, NULL, &hints, &ai)) != 0) {
++	update_addr(&addr_str, save, slen);
++
++	if ((r = getaddrinfo(addr_str, NULL, &hints, &ai)) != 0) {
+ 		snprintf(save, sizeof(save), "getaddrinfo: %s:",
+ 		    gai_strerror(r));
+ 		*errmsg = save;

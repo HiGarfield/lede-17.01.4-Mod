@@ -1,0 +1,35 @@
+From 8209c49a2189bbc46c8ad96fa5a0786319018496 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Thu, 17 Jul 2025 23:04:17 +0800
+Subject: [PATCH] ipv6: fix ipv4 in ipv6 address issue.
+
+---
+ src/dns_conf.c   | 5 +----
+ src/dns_server.c | 2 +-
+ 2 files changed, 2 insertions(+), 5 deletions(-)
+
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -2234,10 +2234,7 @@ static int _conf_domain_rule_address(cha
+ 		case AF_INET6: {
+ 			struct sockaddr_in6 *addr_in6 = NULL;
+ 			addr_in6 = (struct sockaddr_in6 *)&addr;
+-			if (IN6_IS_ADDR_V4MAPPED(&addr_in6->sin6_addr) && ipv4_num < DNS_MAX_REPLY_IP_NUM) {
+-				memcpy(ipv4_addr[ipv4_num], addr_in6->sin6_addr.s6_addr + 12, DNS_RR_A_LEN);
+-				ipv4_num++;
+-			} else if (ipv6_num < DNS_MAX_REPLY_IP_NUM) {
++			if (ipv6_num < DNS_MAX_REPLY_IP_NUM) {
+ 				memcpy(ipv6_addr[ipv6_num], addr_in6->sin6_addr.s6_addr, DNS_RR_AAAA_LEN);
+ 				ipv6_num++;
+ 			}
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -3346,7 +3346,7 @@ static void _dns_server_ping_result(stru
+ 				request->ping_time = rtt;
+ 				request->has_cname = 0;
+ 				request->has_ip = 1;
+-				memcpy(request->ip_addr, addr_in6->sin6_addr.s6_addr + 12, 4);
++				memcpy(request->ip_addr, addr_in6->sin6_addr.s6_addr, 16);
+ 				request->ip_addr_type = DNS_T_A;
+ 				if (addr_map && addr_map->cname[0] != 0) {
+ 					request->has_cname = 1;

@@ -1,0 +1,91 @@
+From 2293b206e9609b40516065502298bfe5498b1e1d Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Thu, 17 Jul 2025 23:03:44 +0800
+Subject: [PATCH] dns_cache: try to fix crash issue.
+
+---
+ src/dns_cache.c       | 10 ++++++++--
+ src/lib/timer_wheel.c | 15 ++++++++-------
+ 2 files changed, 16 insertions(+), 9 deletions(-)
+
+--- a/src/dns_cache.c
++++ b/src/dns_cache.c
+@@ -119,11 +119,16 @@ void dns_cache_get(struct dns_cache *dns
+ 
+ void dns_cache_release(struct dns_cache *dns_cache)
+ {
++	int refcnt = 0;
+ 	if (dns_cache == NULL) {
+ 		return;
+ 	}
+ 
+-	if (!atomic_dec_and_test(&dns_cache->ref)) {
++	refcnt = atomic_dec_return(&dns_cache->ref);
++	if (refcnt > 0) {
++		return;
++	} else if (refcnt < 0) {
++		BUG("dns_cache refcnt is invalid: %d", refcnt);
+ 		return;
+ 	}
+ 
+@@ -132,6 +137,7 @@ void dns_cache_release(struct dns_cache
+ 
+ static void _dns_cache_remove(struct dns_cache *dns_cache)
+ {
++	dns_cache->del_pending = 0;
+ 	hash_del(&dns_cache->node);
+ 	list_del_init(&dns_cache->list);
+ 	dns_timer_del(&dns_cache->timer);
+@@ -176,7 +182,7 @@ struct dns_cache_data *dns_cache_new_dat
+ static void dns_cache_timer_release(struct tw_base *base, struct tw_timer_list *timer, void *data)
+ {
+ 	struct dns_cache *dns_cache = data;
+-	dns_cache_delete(dns_cache);
++	dns_cache_release(dns_cache);
+ }
+ 
+ static void dns_cache_expired(struct tw_base *base, struct tw_timer_list *timer, void *data, unsigned long timestamp)
+--- a/src/lib/timer_wheel.c
++++ b/src/lib/timer_wheel.c
+@@ -167,7 +167,6 @@ void tw_add_timer(struct tw_base *base,
+ int tw_del_timer(struct tw_base *base, struct tw_timer_list *timer)
+ {
+ 	int ret = 0;
+-	int call_del = 0;
+ 
+ 	pthread_spin_lock(&base->lock);
+ 	{
+@@ -175,16 +174,16 @@ int tw_del_timer(struct tw_base *base, s
+ 			ret = 1;
+ 			_tw_detach_timer(timer);
+ 			if (timer->del_function) {
+-				call_del = 1;
++				tw_del_func del_func = timer->del_function;
++				timer->del_function = NULL;
++				pthread_spin_unlock(&base->lock);
++				del_func(base, timer, timer->data);
++				pthread_spin_lock(&base->lock);
+ 			}
+ 		}
+ 	}
+ 	pthread_spin_unlock(&base->lock);
+ 
+-	if (call_del) {
+-		timer->del_function(base, timer, timer->data);
+-	}
+-
+ 	return ret;
+ }
+ 
+@@ -285,8 +284,10 @@ static inline void run_timers(struct tw_
+ 
+ 			pthread_spin_lock(&base->lock);
+ 			if ((timer_pending(timer) == 0 && timer->del_function)) {
++				tw_del_func del_func = timer->del_function;
++				timer->del_function = NULL;
+ 				pthread_spin_unlock(&base->lock);
+-				timer->del_function(base, timer, timer->data);
++				del_func(base, timer, timer->data);
+ 				pthread_spin_lock(&base->lock);
+ 			}
+ 		}
