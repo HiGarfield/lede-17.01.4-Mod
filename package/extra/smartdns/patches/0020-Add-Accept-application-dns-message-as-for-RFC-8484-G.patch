@@ -1,0 +1,22 @@
+From b34b2c06360f731e4864cdaf137722c89fd9dd5c Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?=E9=97=B2=E4=BA=BA=E4=B8=80=E6=9E=9A?= <qgtxqj@gmail.com>
+Date: Thu, 14 Aug 2025 22:33:02 +0800
+Subject: [PATCH] Add "Accept: application/dns-message" as for RFC 8484
+ Guidance
+
+The DoH client SHOULD include an HTTP Accept request header field to indicate what type of content can be understood in response.
+Irrespective of the value of the Accept request header field, the client MUST be prepared to process "application/dns-message" (as described in Section 6) responses but MAY also process other DNS-related media types it receives.
+---
+ src/dns_client.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/src/dns_client.c
++++ b/src/dns_client.c
+@@ -3896,6 +3896,7 @@ static int _dns_client_send_https(struct
+ 						"Host: %s\r\n"
+ 						"User-Agent: smartdns\r\n"
+ 						"Content-Type: application/dns-message\r\n"
++						"Accept: application/dns-message\r\n"	
+ 						"Content-Length: %d\r\n"
+ 						"\r\n",
+ 						https_flag->path, https_flag->httphost, len);
