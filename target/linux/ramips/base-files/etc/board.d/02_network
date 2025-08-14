@@ -606,6 +606,16 @@ ramips_setup_macs()
 			wan_mac=$(macaddr_add "$lan_mac" 1)
 		fi
 		;;
+	link7)
+		local factory_part=$(find_mtd_chardev factory)
+		local hash_hex=$(dd if="$factory_part" 2>/dev/null | sha256sum |
+			awk '{print substr($1,1,6)}')
+		local hash_hex1=$(echo "$hash_hex" | cut -c1-2)
+		local hash_hex2=$(echo "$hash_hex" | cut -c3-4)
+		local hash_hex3=$(echo "$hash_hex" | cut -c5-6)
+		lan_mac="64:05:e9:$hash_hex1:$hash_hex2:$hash_hex3"
+		wan_mac=$(macaddr_add "$lan_mac" 1)
+		;;
 	*)
 		lan_mac=$(cat /sys/class/net/eth0/address)
 		wan_mac=$(macaddr_add "$lan_mac" 1)
