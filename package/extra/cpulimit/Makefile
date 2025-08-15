@@ -5,8 +5,8 @@ PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/HiGarfield/cpulimit.git
-PKG_SOURCE_VERSION:=d12014ef92c3935c0a343d4d4d150e14603a6fc7
-PKG_MIRROR_HASH:=1626aefa99430e327140c467f0cae9e77a468af71048dbb8612aa38759c4ba53
+PKG_SOURCE_VERSION:=afa2254316ed20320b928eb07fb53af10b05e7db
+PKG_MIRROR_HASH:=d0af017d4c4724eef8faa5c8349a6c12f1f6fc86481dc58b97e663fc29d910c6
 
 include $(INCLUDE_DIR)/package.mk
 
@@ -20,7 +20,7 @@ endef
 MAKE_PATH:=src
 MAKE_VARS += UNAME="Linux"
 TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -lrt -Wl,--gc-sections,--as-needed -flto
+TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -flto
 
 define Package/cpulimit/install
 	$(INSTALL_DIR) $(1)/usr/bin
