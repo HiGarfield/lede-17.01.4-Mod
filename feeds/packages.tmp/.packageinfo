@@ -42521,7 +42521,7 @@ Config:
 Source-Makefile: feeds/packages/utils/acl/Makefile
 Package: acl
 Submenu: Filesystem
-Version: 2.3.1-0
+Version: 2.3.2-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libacl
 Conflicts: 
 Menu-Depends: 
@@ -42531,7 +42531,7 @@ Category: Utilities
 Repository: base
 Title: Access control list (ACL) manipulation utils
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: acl-2.3.1.tar.gz
+Source: acl-2.3.2.tar.xz
 License: LGPL-2.1 GPL-2.0
 LicenseFiles: doc/COPYING doc/COPYING.LGPL
 Type: ipkg
@@ -42546,7 +42546,7 @@ Maxim Storchak <m.storchak@gmail.com>
 
 Package: libacl
 Submenu: Filesystem
-Version: 2.3.1-0
+Version: 2.3.2-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libattr
 Conflicts: 
 Menu-Depends: 
@@ -42556,7 +42556,7 @@ Category: Libraries
 Repository: base
 Title: Access control list (ACL) manipulation library
 Maintainer: Maxim Storchak <m.storchak@gmail.com>
-Source: acl-2.3.1.tar.gz
+Source: acl-2.3.2.tar.xz
 License: LGPL-2.1 GPL-2.0
 LicenseFiles: doc/COPYING doc/COPYING.LGPL
 Type: ipkg
