@@ -17227,7 +17227,7 @@ Steven Hessing <steven.hessing@gmail.com>
 
 Source-Makefile: feeds/packages/libs/libtirpc/Makefile
 Package: libtirpc
-Version: 1.3.6-1
+Version: 1.3.7-2
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +libpthread
 Conflicts: 
 Menu-Depends: 
@@ -17238,7 +17238,7 @@ Category: Libraries
 Repository: base
 Title: Library TI RPC for RPC bindings
 Maintainer: 
-Source: libtirpc-1.3.6.tar.bz2
+Source: libtirpc-1.3.7.tar.bz2
 License: BSD-3-Clause
 LicenseFiles: COPYING
 Type: ipkg
