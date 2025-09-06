@@ -1,0 +1,271 @@
+From c9771fa559bb010566ffe7f43554146697e60f71 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Tue, 2 Sep 2025 23:19:41 +0800
+Subject: [PATCH] lint: fix lint warnings.
+
+---
+ src/dns_conf.c        |  7 +++----
+ src/dns_server.c      | 14 +++++++-------
+ src/http_parse.c      |  8 ++++----
+ src/lib/bitops.c      |  1 +
+ src/lib/conf.c        |  6 +++---
+ src/lib/idna.c        |  2 +-
+ src/lib/nftset.c      |  8 ++++----
+ src/lib/radix.c       |  3 ++-
+ src/lib/timer_wheel.c |  2 +-
+ src/smartdns.c        |  2 +-
+ src/util.c            |  2 +-
+ 11 files changed, 28 insertions(+), 27 deletions(-)
+
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -2163,12 +2163,11 @@ static int _conf_domain_rule_address(cha
+ 
+ 	do {
+ 		field = ptr;
+-		ptr = strstr(ptr, ",");
+-
+ 		if (field == NULL || *field == '\0') {
+ 			break;
+ 		}
+ 
++		ptr = strstr(ptr, ",");
+ 		if (ptr) {
+ 			*ptr = 0;
+ 		}
+@@ -2712,11 +2711,11 @@ static int _config_speed_check_mode_pars
+ 	ptr = tmpbuff;
+ 	do {
+ 		field = ptr;
+-		ptr = strstr(ptr, ",");
+ 		if (field == NULL || order >= DOMAIN_CHECK_NUM) {
+ 			return 0;
+ 		}
+-
++		
++		ptr = strstr(ptr, ",");
+ 		if (ptr) {
+ 			*ptr = 0;
+ 		}
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -3322,12 +3322,13 @@ static void _dns_server_ping_result(stru
+ 	int may_complete = 0;
+ 	int threshold = 100;
+ 	struct dns_ip_address *addr_map = NULL;
+-	int last_rtt = request->ping_time;
+-
++	int last_rtt = 0; 
++	
+ 	if (request == NULL) {
+ 		return;
+ 	}
+ 
++	last_rtt = request->ping_time;
+ 	if (result == PING_RESULT_END) {
+ 		_dns_server_request_release(request);
+ 		fast_ping_stop(ping_host);
+@@ -3548,7 +3549,7 @@ static void _dns_server_neighbor_cache_f
+ 
+ static struct neighbor_cache_item *_dns_server_neighbor_cache_get_item(const uint8_t *net_addr, int net_addr_len)
+ {
+-	struct neighbor_cache_item *item, *item_result = NULL;
++	struct neighbor_cache_item *item = NULL, *item_result = NULL;
+ 	uint32_t key = 0;
+ 
+ 	key = jhash(net_addr, net_addr_len, 0);
+@@ -3581,10 +3582,10 @@ static int _dns_server_neighbor_cache_ad
+ 	item = _dns_server_neighbor_cache_get_item(net_addr, net_addr_len);
+ 	if (item == NULL) {
+ 		item = malloc(sizeof(*item));
+-		memset(item, 0, sizeof(*item));
+ 		if (item == NULL) {
+ 			return -1;
+ 		}
++		memset(item, 0, sizeof(*item));
+ 		INIT_LIST_HEAD(&item->list);
+ 		INIT_HLIST_NODE(&item->node);
+ 	}
+@@ -4167,7 +4168,7 @@ static int _dns_server_process_answer_HT
+ 	}
+ 
+ 	https_svcb = request->https_svcb;
+-	if (https_svcb == 0) {
++	if (https_svcb == NULL) {
+ 		/* ignore non-matched query type */
+ 		tlog(TLOG_WARN, "https svcb not set");
+ 		return -1;
+@@ -5127,7 +5128,7 @@ static int _dns_server_parser_addr_from_
+ 		return -1;
+ 	}
+ 
+-	int ret = sscanf(arpa, "%hhd.%hhd.%hhd.%hhd.in-addr.arpa", &addr[3], &addr[2], &addr[1], &addr[0]);
++	int ret = sscanf(arpa, "%hhu.%hhu.%hhu.%hhu.in-addr.arpa", &addr[3], &addr[2], &addr[1], &addr[0]);
+ 	if (ret == 4 && strstr(arpa, ".in-addr.arpa") != NULL) {
+ 		*addr_len = 4;
+ 		return 0;
+@@ -7305,7 +7306,6 @@ static int _dns_server_do_query(struct d
+ clean_exit:
+ 	return 0;
+ errout:
+-	request = NULL;
+ 	return ret;
+ }
+ 
+--- a/src/http_parse.c
++++ b/src/http_parse.c
+@@ -121,7 +121,7 @@ struct http_head_fields *http_head_first
+ const char *http_head_get_fields_value(struct http_head *http_head, const char *name)
+ {
+ 	uint32_t key;
+-	struct http_head_fields *filed;
++	struct http_head_fields *filed = NULL;
+ 
+ 	key = hash_string_case(name);
+ 	hash_for_each_possible(http_head->field_map, filed, node, key)
+@@ -184,7 +184,7 @@ int http_head_lookup_fields(struct http_
+ const char *http_head_get_params_value(struct http_head *http_head, const char *name)
+ {
+ 	uint32_t key;
+-	struct http_params *params;
++	struct http_params *params = NULL;
+ 
+ 	key = hash_string_case(name);
+ 	hash_for_each_possible(http_head->params_map, params, node, key)
+@@ -572,8 +572,8 @@ int http_head_parse(struct http_head *ht
+ 
+ void http_head_destroy(struct http_head *http_head)
+ {
+-	struct http_head_fields *fields, *tmp;
+-	struct http_params *params, *tmp_params;
++	struct http_head_fields *fields = NULL, *tmp;
++	struct http_params *params = NULL, *tmp_params;
+ 
+ 	list_for_each_entry_safe(fields, tmp, &http_head->field_head.list, list)
+ 	{
+--- a/src/lib/bitops.c
++++ b/src/lib/bitops.c
+@@ -168,4 +168,5 @@ unsigned long __sw_hweight64(uint64_t w)
+ 	return (res + (res >> 32)) & 0x00000000000000FFul;
+ #endif
+ #endif
++	return 0;
+ }
+\ No newline at end of file
+--- a/src/lib/conf.c
++++ b/src/lib/conf.c
+@@ -286,9 +286,9 @@ int conf_enum(const char *item, void *da
+ 
+ void conf_getopt_reset(void)
+ {
+-	static struct option long_options[] = {{"-", 0, 0, 0}, {0, 0, 0, 0}};
++	static struct option long_options[] = {{"-", 0, NULL, 0}, {NULL, 0, NULL, 0}};
+ 	int argc = 2;
+-	char *argv[3] = {"reset", "", 0};
++	char *argv[3] = {"reset", "", NULL};
+ 
+ 	optind = 0;
+ 	opterr = 0;
+@@ -448,7 +448,7 @@ static int conf_parse_args(char *key, ch
+ 	}
+ 
+ 	*argc = count;
+-	argv[count] = 0;
++	argv[count] = NULL;
+ 
+ 	return 0;
+ }
+--- a/src/lib/idna.c
++++ b/src/lib/idna.c
+@@ -101,7 +101,7 @@ static unsigned _utf8_decode(const char
+ 	return _utf8_decode_slow(p, pe, a);
+ }
+ 
+-static int _utf8_to_punycode_label(const char *s, const char *se, char **d, char *de)
++static int _utf8_to_punycode_label(const char *s, const char *se, char **d, const char *de)
+ {
+ 	static const char alphabet[] = "abcdefghijklmnopqrstuvwxyz0123456789";
+ 	const char *ss;
+--- a/src/lib/nftset.c
++++ b/src/lib/nftset.c
+@@ -146,7 +146,7 @@ static int _nftset_start_batch(void *buf
+ 	req->h.nlmsg_type = NFNL_MSG_BATCH_BEGIN;
+ 	req->h.nlmsg_seq = time(NULL);
+ 
+-	req->m.res_id = NFNL_SUBSYS_NFTABLES;
++	req->m.res_id = htons(NFNL_SUBSYS_NFTABLES);
+ 
+ 	if (nextbuf) {
+ 		*nextbuf = (uint8_t *)buf + req->h.nlmsg_len;
+@@ -164,7 +164,7 @@ static int _nftset_end_batch(void *buf,
+ 	req->h.nlmsg_type = NFNL_MSG_BATCH_END;
+ 	req->h.nlmsg_seq = time(NULL);
+ 
+-	req->m.res_id = NFNL_SUBSYS_NFTABLES;
++	req->m.res_id = htons(NFNL_SUBSYS_NFTABLES);
+ 
+ 	if (nextbuf) {
+ 		*nextbuf = (uint8_t *)buf + req->h.nlmsg_len;
+@@ -313,7 +313,7 @@ static int _nftset_get_nftset(int nffami
+ 	req->h.nlmsg_seq = time(NULL);
+ 
+ 	req->m.nfgen_family = nffamily;
+-	req->m.res_id = NFNL_SUBSYS_NFTABLES;
++	req->m.res_id = htons(NFNL_SUBSYS_NFTABLES);
+ 	req->m.version = 0;
+ 
+ 	struct nlmsghdr *n = &req->h;
+@@ -527,7 +527,7 @@ int nftset_del(const char *familyname, c
+ 
+ 	ret = _nftset_get_flags(nffamily, tablename, setname, &flags);
+ 	if (ret == 0) {
+-		ret = _nftset_process_setflags(flags, addr, addr_len, 0, &addr_end, &addr_end_len);
++		ret = _nftset_process_setflags(flags, addr, addr_len, NULL, &addr_end, &addr_end_len);
+ 		if (ret != 0) {
+ 			return -1;
+ 		}
+--- a/src/lib/radix.c
++++ b/src/lib/radix.c
+@@ -572,7 +572,8 @@ update_addr(const char **addr_ptr, const
+ prefix_t
+ *prefix_pton(const char *string, long len, prefix_t *prefix, const char **errmsg)
+ {
+-	char save[256], *cp, *ep;
++	static char save[256];
++	char *cp, *ep;
+ 	struct addrinfo hints, *ai;
+ 	void *addr;
+ 	const char *addr_str = NULL;
+--- a/src/lib/timer_wheel.c
++++ b/src/lib/timer_wheel.c
+@@ -378,7 +378,7 @@ struct tw_base *tw_init_timers(void)
+ 		INIT_LIST_HEAD(base->tv1.vec + j);
+ 	}
+ 
+-	ret = gettimeofday(&tv, 0);
++	ret = gettimeofday(&tv, NULL);
+ 	if (ret < 0) {
+ 		goto errout1;
+ 	}
+--- a/src/smartdns.c
++++ b/src/smartdns.c
+@@ -109,7 +109,7 @@ static void _smartdns_get_version(char *
+ #endif
+ }
+ 
+-const char *smartdns_version()
++const char *smartdns_version(void)
+ {
+ 	static char str_ver[256] = {0};
+ 	if (str_ver[0] == 0) {
+--- a/src/util.c
++++ b/src/util.c
+@@ -986,7 +986,7 @@ static int _ipset_operate(const char *ip
+ 	netlink_head->nlmsg_len += NETLINK_ALIGN(sizeof(struct ipset_netlink_msg));
+ 	netlink_msg->family = af;
+ 	netlink_msg->version = NFNETLINK_V0;
+-	netlink_msg->res_id = htons(0);
++	netlink_msg->res_id = htons(NFNL_SUBSYS_IPSET);
+ 
+ 	proto = IPSET_PROTOCOL;
+ 	_ipset_add_attr(netlink_head, IPSET_ATTR_PROTOCOL, sizeof(proto), &proto);

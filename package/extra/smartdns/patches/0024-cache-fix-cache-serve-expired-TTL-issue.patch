@@ -1,0 +1,179 @@
+From 1dd55b63f509991b8ca44dca4cc8c57b025dc64c Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Fri, 5 Sep 2025 22:56:29 +0800
+Subject: [PATCH] cache: fix cache serve-expired TTL issue.
+
+---
+ etc/smartdns/smartdns.conf | 12 ++++++++----
+ src/dns_cache.c            | 24 ++++++++++++++++--------
+ src/dns_conf.c             |  8 +++++++-
+ src/dns_stats.c            | 33 +++++++++++++++------------------
+ src/dns_stats.h            |  1 +
+ 5 files changed, 47 insertions(+), 31 deletions(-)
+
+--- a/etc/smartdns/smartdns.conf
++++ b/etc/smartdns/smartdns.conf
+@@ -77,7 +77,7 @@ bind [::]:53
+ # cache-persist no
+ 
+ # cache persist file
+-# cache-file /tmp/smartdns.cache
++# cache-file /var/cache/smartdns.cache
+ 
+ # cache persist time
+ # cache-checkpoint-time [second]
+@@ -93,11 +93,11 @@ bind [::]:53
+ 
+ # cache serve expired TTL
+ # serve-expired-ttl [num]
+-# serve-expired-ttl 0
++# serve-expired-ttl 86400
+ 
+ # reply TTL value to use when replying with expired data
+ # serve-expired-reply-ttl [num]
+-# serve-expired-reply-ttl 30
++# serve-expired-reply-ttl 3
+ 
+ # List of hosts that supply bogus NX domain results 
+ # bogus-nxdomain [ip/subnet]
+@@ -187,7 +187,7 @@ log-level info
+ # audit-enable yes
+ # audit-SOA [yes|no]: enable or disable log soa result.
+ # audit-size size of each audit file, support k,m,g
+-# audit-file /var/log/smartdns-audit.log
++# audit-file /var/log/smartdns/smartdns-audit.log
+ # audit-console [yes|no]: output audit log to console.
+ # audit-syslog [yes|no]: output audit log to syslog.
+ # audit-file-mode [mode]: file mode of audit file.
+@@ -404,6 +404,10 @@ log-level info
+ # group-match [-g|group group-name] [-domain domain] [-client-ip [ip-cidr|mac|ip-set]]
+ # group-end
+ 
++# data directory
++# data-dir [path]
++# data-dir /var/lib/smartdns
++
+ # load plugin
+ # plugin [path/to/file] [args]
+ # plugin /usr/libsmartdns-ui.so --p 8080 -i 0.0.0.0 -r /usr/share/smartdns/wwwroot
+--- a/src/dns_cache.c
++++ b/src/dns_cache.c
+@@ -640,18 +640,26 @@ static int _dns_cache_read_to_cache(stru
+ 		info->replace_time = now;
+ 	}
+ 
++	int passed_time = now - info->replace_time;
++	int timeout = info->timeout - passed_time;
++
+ 	struct dns_conf_group *rule_group = dns_server_get_rule_group(info->dns_group_name);
+-	expired_time = rule_group->dns_serve_expired_prefetch_time;
+-	if (expired_time == 0) {
+-		expired_time = rule_group->dns_serve_expired_ttl / 2;
+-		if (expired_time == 0 || expired_time > EXPIRED_DOMAIN_PREFETCH_TIME) {
+-			expired_time = EXPIRED_DOMAIN_PREFETCH_TIME;
++
++	if (rule_group->dns_prefetch) {
++		if (rule_group->dns_serve_expired) {
++			expired_time = rule_group->dns_serve_expired_prefetch_time;
++			if (expired_time == 0) {
++				expired_time = rule_group->dns_serve_expired_ttl / 2;
++				if (expired_time == 0 || expired_time > EXPIRED_DOMAIN_PREFETCH_TIME) {
++					expired_time = EXPIRED_DOMAIN_PREFETCH_TIME;
++				}
++			}
++		} else {
++			timeout -= 3;
+ 		}
+ 	}
+ 
+-	int passed_time = now - info->replace_time;
+-	int timeout = info->timeout - passed_time;
+-	if ((timeout > expired_time + info->ttl) && expired_time >= 0) {
++	if ((timeout > expired_time + info->ttl) && expired_time > 0) {
+ 		timeout = expired_time + info->ttl;
+ 	}
+ 
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -536,7 +536,13 @@ static int _config_rule_group_setup_valu
+ 	group_rule->dns_dualstack_ip_selection_threshold = 10;
+ 	group_rule->dns_rr_ttl_min = 600;
+ 	group_rule->dns_serve_expired = 1;
+-	group_rule->dns_serve_expired_ttl = 24 * 3600 * 3;
++	
++	if (group_rule->dns_prefetch == 1) {
++		group_rule->dns_serve_expired_ttl = 24 * 3600 * 7;
++	} else {
++		group_rule->dns_serve_expired_ttl = 24 * 3600;
++	}
++	
+ 	group_rule->dns_serve_expired_reply_ttl = 3;
+ 	group_rule->dns_max_reply_ip_num = DNS_MAX_REPLY_IP_NUM;
+ 	group_rule->dns_response_mode = dns_conf.default_response_mode;
+--- a/src/dns_stats.c
++++ b/src/dns_stats.c
+@@ -22,8 +22,6 @@
+ 
+ struct dns_stats dns_stats;
+ 
+-#define SAMPLE_PERIOD 5
+-
+ void dns_stats_avg_time_update_add(struct dns_stats_avg_time *avg_time, uint64_t time)
+ {
+ 	if (avg_time == NULL) {
+@@ -44,30 +42,29 @@ void dns_stats_avg_time_update(struct dn
+ 		return;
+ 	}
+ 
+-	float sample_avg = (float)time / count;
++	double sample_avg = (double)time / count;
+ 
+-	if (avg_time->avg_time == 0) {
++	if (avg_time->count == 0) {
+ 		avg_time->avg_time = sample_avg;
+-	} else {
+-		int base = 1000;
+-		if (count > 100) {
+-			count = 100;
+-		}
+-
+-		float weight_new = (float)count / base;
+-		float weight_prev = 1.0 - weight_new;
++		avg_time->count = count;
++		return;
++	}
+ 
+-		avg_time->avg_time = (avg_time->avg_time * weight_prev) + (sample_avg * weight_new);
++	int base = 1000;
++	if (count > 100) {
++		count = 100;
+ 	}
++
++	double weight_new = (double)count / base;
++	double weight_prev = 1.0 - weight_new;
++
++	avg_time->avg_time = (avg_time->avg_time * weight_prev) + (sample_avg * weight_new);
++	avg_time->count += count;
+ }
+ 
+ void dns_stats_period_run_second(void)
+ {
+-	static int last_total = 0;
+-	last_total++;
+-	if (last_total % SAMPLE_PERIOD == 0) {
+-		dns_stats_avg_time_update(&dns_stats.avg_time);
+-	}
++	dns_stats_avg_time_update(&dns_stats.avg_time);
+ }
+ 
+ float dns_stats_avg_time_get(void)
+--- a/src/dns_stats.h
++++ b/src/dns_stats.h
+@@ -28,6 +28,7 @@ extern "C" {
+ 
+ struct dns_stats_avg_time {
+ 	uint64_t total; /* Hight 4 bytes, count, Low 4 bytes time*/
++	uint64_t count;
+ 	float avg_time;
+ };
+ 
