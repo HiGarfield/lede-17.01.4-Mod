@@ -1,0 +1,21 @@
+From 8cd49034b6c31da60f70fe33b4ae5568dbcad88b Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Thu, 4 Sep 2025 22:10:26 +0800
+Subject: [PATCH] audit: audit internal dns query.
+
+---
+ src/dns_server.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -878,7 +878,8 @@ static void _dns_server_audit_log(struct
+ 		return;
+ 	}
+ 
+-	if (request->conn == NULL) {
++	/* skip log prefetch request and dualstack selection request */
++	if (request->prefetch || request->dualstack_selection_query) {
+ 		return;
+ 	}
+ 
