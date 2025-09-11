@@ -10,8 +10,8 @@ This reverts commit 2cf6232fd170a24b801d71d497947d7aabd12015.
 
 --- a/src/config.c
 +++ b/src/config.c
-@@ -206,6 +206,31 @@ static const struct { const char *name;
- 	{ .name = NULL, },
+@@ -251,6 +251,31 @@ static const char *svc_param_key_names[D
+ 	[DNR_SVC_OHTTP] = "ohttp",
  };
  
 +static int mkdir_p(char *dir, mode_t mask)
