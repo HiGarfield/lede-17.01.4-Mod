@@ -1,0 +1,93 @@
+From 4ad9d561333f73fc2810a87bd911c7e57ab1a5ef Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 15 Sep 2025 16:11:32 +0800
+Subject: [PATCH] Fix compilation errors by adding braces to switch case blocks
+
+The original code failed to compile due to variable declarations within
+switch case statements without enclosing braces. This caused errors
+because variables cannot be declared in a case without a block scope.
+
+Changes made:
+1. Added explicit braces {} around:
+   - DNR_SVC_MANDATORY case block
+   - DNR_SVC_ALPN case block
+   - DNR_SVC_PORT case block
+2. Added braces around the 'done' label code block
+
+These changes resolve the compilation errors while maintaining identical
+functionality. The added braces create proper block scopes for variable
+declarations, ensuring C language standards compliance without altering
+any program logic.
+---
+ src/config.c | 28 ++++++++++++++++------------
+ 1 file changed, 16 insertions(+), 12 deletions(-)
+
+--- a/src/config.c
++++ b/src/config.c
+@@ -739,7 +739,7 @@ static int parse_dnr_str(char *str, stru
+ 			continue;
+ 
+ 		switch (svc_key) {
+-		case DNR_SVC_MANDATORY:
++		case DNR_SVC_MANDATORY: {
+ 			uint16_t mkeys[DNR_SVC_MAX];
+ 
+ 			svc_val_len = 0;
+@@ -771,8 +771,9 @@ static int parse_dnr_str(char *str, stru
+ 			memcpy(dnr.svc + dnr.svc_len + 4, mkeys, svc_val_len);
+ 			dnr.svc_len += 4 + svc_val_len;
+ 			break;
++		}
+ 
+-		case DNR_SVC_ALPN:
++		case DNR_SVC_ALPN: {
+ 			size_t len_off;
+ 
+ 			tmp = realloc(dnr.svc, dnr.svc_len + 4);
+@@ -809,8 +810,9 @@ static int parse_dnr_str(char *str, stru
+ 			svc_val_len_be = ntohs(svc_val_len);
+ 			memcpy(dnr.svc + len_off, &svc_val_len_be, sizeof(svc_val_len_be));
+ 			break;
++		}
+ 
+-		case DNR_SVC_PORT:
++		case DNR_SVC_PORT: {
+ 			uint16_t port;
+ 
+ 			if (sscanf(svc_val_str, "%" SCNu16, &port) != 1) {
+@@ -831,6 +833,7 @@ static int parse_dnr_str(char *str, stru
+ 			memcpy(dnr.svc + dnr.svc_len + 4, &port, sizeof(port));
+ 			dnr.svc_len += 6;
+ 			break;
++		}
+ 
+ 		case DNR_SVC_NO_DEFAULT_ALPN:
+ 			/* fall through */
+@@ -872,16 +875,17 @@ static int parse_dnr_str(char *str, stru
+ 		}
+ 	}
+ 
+-done:
+-	struct dnr_options *tmp;
+-	tmp = realloc(iface->dnr, (iface->dnr_cnt + 1) * sizeof(dnr));
+-	if (!tmp)
+-		goto err;
+-
+-	iface->dnr = tmp;
+-	memcpy(iface->dnr + iface->dnr_cnt, &dnr, sizeof(dnr));
+-	iface->dnr_cnt++;
+-	return 0;
++done: {
++		struct dnr_options *tmp;
++		tmp = realloc(iface->dnr, (iface->dnr_cnt + 1) * sizeof(dnr));
++		if (!tmp)
++			goto err;
++
++		iface->dnr = tmp;
++		memcpy(iface->dnr + iface->dnr_cnt, &dnr, sizeof(dnr));
++		iface->dnr_cnt++;
++		return 0;
++	}
+ 
+ err:
+ 	free(dnr.adn);
