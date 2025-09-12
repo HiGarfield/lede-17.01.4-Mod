@@ -1,0 +1,62 @@
+From e3b51923ea7b0a3b7f18b0e926b9295a0ea63230 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Thu, 11 Sep 2025 23:57:17 +0800
+Subject: [PATCH] mdns: fix mdns issue
+
+---
+ package/openwrt/files/etc/init.d/smartdns | 2 ++
+ src/dns_conf.c                            | 6 ++++++
+ test/cases/test-mdns.cc                   | 2 ++
+ 3 files changed, 10 insertions(+)
+
+--- a/package/openwrt/files/etc/init.d/smartdns
++++ b/package/openwrt/files/etc/init.d/smartdns
+@@ -200,6 +200,7 @@ load_server()
+ 	config_get addition_arg "$section" "addition_arg" ""
+ 	config_get set_mark "$section" "set_mark" ""
+ 	config_get_bool use_proxy "$section" "use_proxy" "0"
++	config_get fallback "$section" "fallback" "0"
+ 
+ 	[ "$enabled" = "0" ] && return
+ 
+@@ -235,6 +236,7 @@ load_server()
+ 	[ -z "$spki_pin" ] || ADDITIONAL_ARGS="$ADDITIONAL_ARGS -spki-pin $spki_pin"
+ 	[ -z "$set_mark" ] || ADDITIONAL_ARGS="$ADDITIONAL_ARGS -set-mark $set_mark"
+ 	[ "$use_proxy" = "0" ] || ADDITIONAL_ARGS="$ADDITIONAL_ARGS -proxy default-proxy"
++	[ "$fallback" = "1" ] && addition_arg="$addition_arg -fallback"
+ 
+ 	if [ -z "$port" ] || [ "$IS_URI" = "1" ]; then
+ 		DNS_ADDRESS="$ip"
+--- a/src/dns_conf.c
++++ b/src/dns_conf.c
+@@ -630,6 +630,11 @@ static int _config_current_group_pop_to(
+ 	return 0;
+ }
+ 
++static int _config_current_group_pop_to_default(void)
++{
++	return _config_current_group_pop_to(dns_conf_default_group_info);
++}
++
+ static int _config_current_group_pop_all(void)
+ {
+ 	while (dns_conf_current_group_info != NULL && dns_conf_current_group_info != dns_conf_default_group_info) {
+@@ -6563,6 +6568,7 @@ static void _dns_conf_group_post(void)
+ 
+ static int _dns_conf_load_post(void)
+ {
++	_config_current_group_pop_to_default();
+ 	_config_setup_smartdns_domain();
+ 	_dns_conf_speed_check_mode_verify();
+ 
+--- a/test/cases/test-mdns.cc
++++ b/test/cases/test-mdns.cc
+@@ -70,6 +70,8 @@ TEST(mDNS, query)
+ server 127.0.0.1:61053
+ dualstack-ip-selection no
+ mdns-lookup yes
++group-begin test
++address -
+ )""");
+ 	smartdns::Client client;
+ 
