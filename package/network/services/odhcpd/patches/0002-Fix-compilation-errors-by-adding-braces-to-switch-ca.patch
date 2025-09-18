@@ -24,7 +24,7 @@ any program logic.
 
 --- a/src/config.c
 +++ b/src/config.c
-@@ -739,7 +739,7 @@ static int parse_dnr_str(char *str, stru
+@@ -758,7 +758,7 @@ static int parse_dnr_str(char *str, stru
  			continue;
  
  		switch (svc_key) {
@@ -33,7 +33,7 @@ any program logic.
  			uint16_t mkeys[DNR_SVC_MAX];
  
  			svc_val_len = 0;
-@@ -771,8 +771,9 @@ static int parse_dnr_str(char *str, stru
+@@ -790,8 +790,9 @@ static int parse_dnr_str(char *str, stru
  			memcpy(dnr.svc + dnr.svc_len + 4, mkeys, svc_val_len);
  			dnr.svc_len += 4 + svc_val_len;
  			break;
@@ -44,7 +44,7 @@ any program logic.
  			size_t len_off;
  
  			tmp = realloc(dnr.svc, dnr.svc_len + 4);
-@@ -809,8 +810,9 @@ static int parse_dnr_str(char *str, stru
+@@ -828,8 +829,9 @@ static int parse_dnr_str(char *str, stru
  			svc_val_len_be = ntohs(svc_val_len);
  			memcpy(dnr.svc + len_off, &svc_val_len_be, sizeof(svc_val_len_be));
  			break;
@@ -55,7 +55,7 @@ any program logic.
  			uint16_t port;
  
  			if (sscanf(svc_val_str, "%" SCNu16, &port) != 1) {
-@@ -831,6 +833,7 @@ static int parse_dnr_str(char *str, stru
+@@ -850,6 +852,7 @@ static int parse_dnr_str(char *str, stru
  			memcpy(dnr.svc + dnr.svc_len + 4, &port, sizeof(port));
  			dnr.svc_len += 6;
  			break;
@@ -63,7 +63,7 @@ any program logic.
  
  		case DNR_SVC_NO_DEFAULT_ALPN:
  			/* fall through */
-@@ -872,16 +875,17 @@ static int parse_dnr_str(char *str, stru
+@@ -891,16 +894,17 @@ static int parse_dnr_str(char *str, stru
  		}
  	}
  
