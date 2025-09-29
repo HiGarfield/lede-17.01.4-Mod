@@ -13700,7 +13700,7 @@ W. Michael Petullo <mike@flyn.org>
 
 Source-Makefile: feeds/packages/libs/expat/Makefile
 Package: libexpat
-Version: 2.7.1-1
+Version: 2.7.3-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread 
 Conflicts: 
 Menu-Depends: 
@@ -13710,14 +13710,14 @@ Section: libs
 Category: Libraries
 Repository: base
 Title: An XML parsing library
-Maintainer: Ted Hess <thess@kitschensync.net>
-Source: expat-2.7.1.tar.gz
+Maintainer: 
+Source: expat-2.7.3.tar.gz
 License: MIT
 LicenseFiles: COPYING
 Type: ipkg
 Description:  A fast, non-validating, stream-oriented XML parsing library.
 https://libexpat.github.io/
-Ted Hess <thess@kitschensync.net>
+
 @@
 
 
