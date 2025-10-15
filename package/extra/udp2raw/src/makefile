@@ -1,5 +1,7 @@
+RM ?= rm -f
+
 # Git version retrieval
-UDP2RAW_GIT_VER ?= $(or $(shell git rev-parse HEAD 2>/dev/null),unknown)
+UDP2RAW_GIT_VER := $(shell git describe --always --dirty 2>/dev/null || echo "unknown")
 UDP2RAW_GIT_VER_CODE := "const char *gitversion = \"$(UDP2RAW_GIT_VER)\";"
 
 # Compiler flags
@@ -16,8 +18,6 @@ EXTRA_FLAGS := \
     -fdata-sections \
     -Wl,--gc-sections,--as-needed \
     -DNDEBUG \
-    -fno-exceptions \
-    -fno-rtti \
     -Os \
     -flto \
     -s
@@ -28,35 +28,34 @@ NAME := udp2raw
 # Source files
 COMMON := $(filter-out pcap_wrapper.cpp, $(wildcard *.cpp lib/*.cpp))
 SOURCES := $(COMMON) $(wildcard lib/aes_faster_c/*.cpp)
-SOURCES_AES_ACC = $(COMMON) $(wildcard lib/aes_acc/aes*.c) \
-                  lib/aes_acc/asm/$@.S
-
-# Libraries
-LIBS := -lpthread -isystem libev -lrt
-
-# Compiler options
-COMPILE_OPT := -I. $(LIBS) $(FLAGS) $(EXTRA_FLAGS) -o $(NAME)
+AES_ACC_C_SOURCES := $(wildcard lib/aes_acc/aes*.c)
+AES_ACC_ASM_SOURCES := $(wildcard lib/aes_acc/asm/*.S)
 
 # Assembly targets
-AES_ACC_TARGETS := $(basename $(notdir $(wildcard lib/aes_acc/asm/*.S)))
+AES_ACC_TARGETS := $(basename $(notdir $(AES_ACC_ASM_SOURCES)))
+
+# Libraries
+LIBS := -isystem libev -pthread -lrt
+
+# Compiler options
+COMPILE_OPT := -I. $(LIBS) $(FLAGS) $(EXTRA_FLAGS)
 
 # Phony targets
-.PHONY: linux $(AES_ACC_TARGETS) git_version clean
-.DEFAULT_GOAL := linux
+.PHONY: all linux $(AES_ACC_TARGETS) git_version clean
+all: linux
 
 # Build targets
 linux: git_version
-	$(CXX) $(SOURCES) $(COMPILE_OPT)
+	$(CXX) $(SOURCES) $(COMPILE_OPT) -o $(NAME)
 
 $(AES_ACC_TARGETS): git_version
-	$(CXX) $(SOURCES_AES_ACC) $(COMPILE_OPT)
+	$(CXX) $(COMMON) $(AES_ACC_C_SOURCES) lib/aes_acc/asm/$@.S $(COMPILE_OPT) -o $(NAME)
 
 # Git version header generation
 git_version:
-	@$(RM) git_version.h
+	-@$(RM) git_version.h
 	@echo $(UDP2RAW_GIT_VER_CODE) > git_version.h
 
 # Clean up
 clean:
-	@echo "Cleaning up..."
 	-$(RM) $(NAME) git_version.h

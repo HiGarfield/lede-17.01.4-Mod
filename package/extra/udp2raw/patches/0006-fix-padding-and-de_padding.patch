@@ -7,11 +7,9 @@ Subject: [PATCH] fix padding and de_padding
  encrypt.cpp | 28 ++++++++++++++++++----------
  1 file changed, 18 insertions(+), 10 deletions(-)
 
-diff --git a/encrypt.cpp b/encrypt.cpp
-index 8fea0e4..d4162c6 100644
 --- a/encrypt.cpp
 +++ b/encrypt.cpp
-@@ -272,24 +272,32 @@ int cipher_xor_decrypt(const char *data, char *output, int &len, char *key) {
+@@ -272,24 +272,32 @@ int cipher_xor_decrypt(const char *data,
  
  int padding(char *data, int &data_len, int padding_num) {
      int old_len = data_len;
@@ -54,6 +52,3 @@ index 8fea0e4..d4162c6 100644
  void aes_ecb_encrypt(const char *data, char *output) {
      static int first_time = 1;
      char *key = (char *)cipher_key_encrypt;
--- 
-2.43.0
-
