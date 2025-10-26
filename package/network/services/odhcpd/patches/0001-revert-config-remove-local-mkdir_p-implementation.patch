@@ -10,7 +10,7 @@ This reverts commit 2cf6232fd170a24b801d71d497947d7aabd12015.
 
 --- a/src/config.c
 +++ b/src/config.c
-@@ -295,6 +295,31 @@ static const char *svc_param_key_names[D
+@@ -310,6 +310,31 @@ static const char *svc_param_key_names[D
  	[DNR_SVC_OHTTP] = "ohttp",
  };
  
