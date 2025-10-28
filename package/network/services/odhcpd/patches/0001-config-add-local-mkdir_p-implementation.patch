@@ -1,9 +1,8 @@
-From 9ce7b3da4200d10e197b3d1b0301645fa27250d7 Mon Sep 17 00:00:00 2001
+From 10b0a82884c98e4a0d7002079eaf7601b536e9bb Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 24 Mar 2022 20:46:07 +0800
-Subject: [PATCH] revert "config: remove local mkdir_p implementation"
+Subject: [PATCH] config: add local mkdir_p implementation
 
-This reverts commit 2cf6232fd170a24b801d71d497947d7aabd12015.
 ---
  src/config.c | 25 +++++++++++++++++++++++++
  1 file changed, 25 insertions(+)
