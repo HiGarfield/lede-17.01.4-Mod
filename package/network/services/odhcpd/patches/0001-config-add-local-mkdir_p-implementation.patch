@@ -9,7 +9,7 @@ Subject: [PATCH] config: add local mkdir_p implementation
 
 --- a/src/config.c
 +++ b/src/config.c
-@@ -310,6 +310,31 @@ static const char *svc_param_key_names[D
+@@ -312,6 +312,31 @@ static const char *svc_param_key_names[D
  	[DNR_SVC_OHTTP] = "ohttp",
  };
  

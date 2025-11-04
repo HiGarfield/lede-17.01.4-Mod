@@ -12,7 +12,7 @@ Subject: [PATCH] fix build errors on older platforms
 
 --- a/src/config.c
 +++ b/src/config.c
-@@ -945,7 +945,7 @@ static int parse_dnr_str(char *str, stru
+@@ -947,7 +947,7 @@ static int parse_dnr_str(char *str, stru
  			continue;
  
  		switch (svc_key) {
@@ -21,7 +21,7 @@ Subject: [PATCH] fix build errors on older platforms
  			uint16_t mkeys[DNR_SVC_MAX];
  
  			svc_val_len = 0;
-@@ -977,8 +977,9 @@ static int parse_dnr_str(char *str, stru
+@@ -979,8 +979,9 @@ static int parse_dnr_str(char *str, stru
  			memcpy(dnr.svc + dnr.svc_len + 4, mkeys, svc_val_len);
  			dnr.svc_len += 4 + svc_val_len;
  			break;
@@ -32,7 +32,7 @@ Subject: [PATCH] fix build errors on older platforms
  			size_t len_off;
  
  			tmp = realloc(dnr.svc, dnr.svc_len + 4);
-@@ -1015,8 +1016,9 @@ static int parse_dnr_str(char *str, stru
+@@ -1017,8 +1018,9 @@ static int parse_dnr_str(char *str, stru
  			svc_val_len_be = ntohs(svc_val_len);
  			memcpy(dnr.svc + len_off, &svc_val_len_be, sizeof(svc_val_len_be));
  			break;
@@ -43,7 +43,7 @@ Subject: [PATCH] fix build errors on older platforms
  			uint16_t port;
  
  			if (sscanf(svc_val_str, "%" SCNu16, &port) != 1) {
-@@ -1037,6 +1039,7 @@ static int parse_dnr_str(char *str, stru
+@@ -1039,6 +1041,7 @@ static int parse_dnr_str(char *str, stru
  			memcpy(dnr.svc + dnr.svc_len + 4, &port, sizeof(port));
  			dnr.svc_len += 6;
  			break;
@@ -51,7 +51,7 @@ Subject: [PATCH] fix build errors on older platforms
  
  		case DNR_SVC_NO_DEFAULT_ALPN:
  			/* fall through */
-@@ -1078,16 +1081,17 @@ static int parse_dnr_str(char *str, stru
+@@ -1080,16 +1083,17 @@ static int parse_dnr_str(char *str, stru
  		}
  	}
  
@@ -81,15 +81,15 @@ Subject: [PATCH] fix build errors on older platforms
  	free(dnr.adn);
 --- a/src/dhcpv6-ia.c
 +++ b/src/dhcpv6-ia.c
-@@ -1549,6 +1549,7 @@ ssize_t dhcpv6_ia_handle_IAs(uint8_t *bu
+@@ -1568,6 +1568,7 @@ ssize_t dhcpv6_ia_handle_IAs(uint8_t *bu
  
  		/* Find an existing assignment */
- 		struct dhcp_assignment *c, *a = NULL;
+ 		struct dhcpv6_lease *c, *a = NULL;
 +		uint16_t status;
  		list_for_each_entry(c, &iface->ia_assignments, head) {
  			/* If we're looking for a PD, is this a PD? */
  			if (is_pd && !(c->flags & OAF_DHCPV6_PD))
-@@ -1622,7 +1623,7 @@ ssize_t dhcpv6_ia_handle_IAs(uint8_t *bu
+@@ -1641,7 +1642,7 @@ ssize_t dhcpv6_ia_handle_IAs(uint8_t *bu
  
  proceed:
  		/* Generic message handling */
@@ -136,7 +136,7 @@ Subject: [PATCH] fix build errors on older platforms
  				continue;
 --- a/src/odhcpd.h
 +++ b/src/odhcpd.h
-@@ -76,14 +76,14 @@ extern struct config config;
+@@ -75,14 +75,14 @@ extern struct config config;
  extern struct sys_conf sys_conf;
  
  void __iflog(int lvl, const char *fmt, ...);
