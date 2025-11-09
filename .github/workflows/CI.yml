@@ -130,7 +130,6 @@ jobs:
           find dl -size -1024c -exec rm -f {} \;
           mkdir -p "${OUTPUT_DIR}"
           zip -j "${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip" dl/*
-          sha256sum "${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip" | awk '{print $1}' >"${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip.sha256sum"
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Load custom configuration
@@ -163,9 +162,6 @@ jobs:
           cd ${OUTPUT_DIR}/
           for f in *.bin; do
             mv "$f" "$(echo "$f" | sed -e 's/-squashfs//g' -e 's/-sysupgrade//g')"
-          done
-          for f in *.bin; do
-            sha256sum "$f" | awk '{print $1}' >"${f}.sha256sum"
           done
           echo "status=success" >> $GITHUB_OUTPUT
 
