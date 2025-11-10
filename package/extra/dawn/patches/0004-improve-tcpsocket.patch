@@ -1,0 +1,90 @@
+From 76f72ab372fab3ca2288a9f7962d64aa7375f07e Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Tue, 11 Nov 2025 01:22:35 +0800
+Subject: [PATCH] improve tcpsocket
+
+---
+ src/network/tcpsocket.c | 29 ++++++++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 3 deletions(-)
+
+--- a/src/network/tcpsocket.c
++++ b/src/network/tcpsocket.c
+@@ -139,6 +139,15 @@ static void client_read_cb(struct ustrea
+             cl->curr_len += HEADER_SIZE;
+             cl->final_len = ntohl(*(uint32_t *)cl->str);
+ 
++            if (cl->final_len < HEADER_SIZE || cl->final_len > 1024 * 1024) { // 1MB limit
++                dawnlog_error("invalid message length: %" PRIu32 "\n", cl->final_len);
++                dawn_free(cl->str);
++                cl->str = NULL;
++                cl->state = READ_STATUS_READY;
++                cl->curr_len = 0;
++                cl->final_len = 0;
++                break;
++            }
+             // On failure, dawn_realloc returns a null pointer. The original pointer str
+             // remains valid and may need to be deallocated.
+             char *str_tmp = dawn_realloc(cl->str, cl->final_len);
+@@ -194,6 +203,9 @@ static void client_read_cb(struct ustrea
+                     dawnlog_error("not enough memory (" STR_QUOTE(__LINE__) ")\n");
+                     dawn_free(cl->str);
+                     cl->str = NULL;
++                    cl->state = READ_STATUS_READY;
++                    cl->curr_len = 0;
++                    cl->final_len = 0;
+                     break;
+                 }
+                 handle_network_msg(dec);
+@@ -232,14 +244,24 @@ static void server_cb(struct uloop_fd *f
+     sfd = accept(server.fd, (struct sockaddr *) &cl->sin, &sl);
+     if (sfd < 0) {
+         dawnlog_error("Accept failed\n");
++        dawn_free(next_client);
++        next_client = NULL;
+         return;
+     }
+ 
++    memset(&cl->s, 0, sizeof(cl->s));
+     cl->s.stream.string_data = 1;
+     cl->s.stream.notify_read = client_read_cb;
+     cl->s.stream.notify_state = client_notify_state;
+     cl->s.stream.notify_write = client_notify_write;
++    cl->ctr = 0;
++    cl->counter = 0;
++    cl->str = NULL;
++    cl->state = READ_STATUS_READY;
++    cl->final_len = 0;
++    cl->curr_len = 0;
+     cl->time_alive = time(0);
++
+     list_add(&cl->list, &cli_list);
+     ustream_fd_init(&cl->s, sfd);
+     dawn_regmem(&cl->s);
+@@ -250,7 +272,7 @@ static void server_cb(struct uloop_fd *f
+ int run_server(char *ipv4, int port) {
+     dawnlog_debug("Adding socket!\n");
+     char port_str[12];
+-    sprintf(port_str, "%d", port); // TODO: Manage buffer length
++    snprintf(port_str, sizeof(port_str), "%d", port);
+ 
+     server.cb = server_cb;
+     server.fd = usock(USOCK_TCP | USOCK_SERVER | USOCK_IPV4ONLY | USOCK_NUMERIC, ipv4, port_str);
+@@ -342,7 +364,7 @@ int add_tcp_connection(char *ipv4, int p
+     dawnlog_debug_func("Entering...");
+ 
+     char port_str[12];
+-    sprintf(port_str, "%d", port); // TODO: Manage buffer length
++    snprintf(port_str, sizeof(port_str), "%d", port);
+ 
+     memset(&serv_addr, 0, sizeof(serv_addr));
+     serv_addr.sin_family = AF_INET;
+@@ -530,7 +552,8 @@ struct network_con_s* tcp_list_contains_
+ 
+     list_for_each_entry(con, &tcp_sock_list, list)
+     {
+-        if(entry.sin_addr.s_addr == con->sock_addr.sin_addr.s_addr)
++        if (entry.sin_addr.s_addr == con->sock_addr.sin_addr.s_addr &&
++            entry.sin_port == con->sock_addr.sin_port)
+         {
+             return con;
+         }
