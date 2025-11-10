@@ -1,10 +1,13 @@
+From a1fa54e96d2450ebf3ababb00aa9702bbfa302bf Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
-Date: Sat, 18 Jan 2025 22:23:53 +0800
+Date: Tue, 11 Nov 2025 00:18:24 +0800
 Subject: [PATCH] fix crypto
 
 ---
- src/crypto/crypto.c | 50 ++++++++++++++++++++++++++-------------------
- 1 file changed, 29 insertions(+), 21 deletions(-)
+ src/crypto/crypto.c  | 222 ++++++++++++++++++++++++++++++++-----------
+ src/include/crypto.h |   6 ++
+ src/main.c           |   2 +
+ 3 files changed, 175 insertions(+), 55 deletions(-)
 
 --- a/src/crypto/crypto.c
 +++ b/src/crypto/crypto.c
@@ -12,58 +15,192 @@ Subject: [PATCH] fix crypto
  // https://github.com/vedantk/gcrypt-example/blob/master/gcry.cc
  
  #include <gcrypt.h>
-+#include <stdlib.h>
 +#include <string.h>
++#include <stdlib.h>
  
  #include "utils.h"
  #include "memory_utils.h"
-@@ -16,6 +18,7 @@ gcry_cipher_hd_t gcry_cipher_hd;
+@@ -10,107 +12,217 @@
+ #define GCRY_CIPHER GCRY_CIPHER_AES128   // Pick the cipher here
+ #define GCRY_C_MODE GCRY_CIPHER_MODE_ECB // Pick the cipher mode here
+ 
+-gcry_error_t gcry_error_handle;
+-gcry_cipher_hd_t gcry_cipher_hd;
++// Remove global variables, use context structure instead
++typedef struct {
++    gcry_cipher_hd_t cipher_hd;
++    int initialized;
++} gcrypt_ctx_t;
++
++static gcrypt_ctx_t g_ctx = {0};
+ 
  void gcrypt_init() {
++    if (g_ctx.initialized) {
++        return; // Avoid duplicate initialization
++    }
++
      if (!gcry_check_version(GCRYPT_VERSION)) {
          dawnlog_error("gcrypt: library version mismatch");
-+        abort();
++        exit(EXIT_FAILURE);
      }
++
      gcry_error_t err = 0;
++
++    // Disable secure memory warnings
      err = gcry_control(GCRYCTL_SUSPEND_SECMEM_WARN);
-@@ -25,6 +28,7 @@ void gcrypt_init() {
++    // Initialize secure memory pool
+     err |= gcry_control(GCRYCTL_INIT_SECMEM, 16384, 0);
++    // Re-enable secure memory warnings
+     err |= gcry_control(GCRYCTL_RESUME_SECMEM_WARN);
++    // Mark initialization as complete
+     err |= gcry_control(GCRYCTL_INITIALIZATION_FINISHED, 0);
  
      if (err) {
-         dawnlog_error("gcrypt: failed initialization");
-+        abort();
+-        dawnlog_error("gcrypt: failed initialization");
++        dawnlog_error("gcrypt: initialization failed: %s/%s",
++                     gcry_strsource(err), gcry_strerror(err));
++        exit(EXIT_FAILURE);
      }
++
++    g_ctx.initialized = 1;
++}
++
++void gcrypt_cleanup() {
++    if (g_ctx.cipher_hd) {
++        gcry_cipher_close(g_ctx.cipher_hd);
++        g_ctx.cipher_hd = NULL;
++    }
++    g_ctx.initialized = 0;
  }
  
-@@ -63,54 +67,58 @@ void gcrypt_set_key_and_iv(const char *k
+ void gcrypt_set_key_and_iv(const char *key, const char *iv) {
++    if (!g_ctx.initialized) {
++        dawnlog_error("gcrypt: not initialized");
++        return;
++    }
++
++    // Clean up previous handle
++    if (g_ctx.cipher_hd) {
++        gcry_cipher_close(g_ctx.cipher_hd);
++        g_ctx.cipher_hd = NULL;
++    }
++
+     size_t keylen = gcry_cipher_get_algo_keylen(GCRY_CIPHER);
+     size_t blklen = gcry_cipher_get_algo_blklen(GCRY_CIPHER);
+ 
+-    gcry_error_handle = gcry_cipher_open(
+-            &gcry_cipher_hd, // gcry_cipher_hd_t *
+-            GCRY_CIPHER,   // int
+-            GCRY_C_MODE,   // int
+-            0);
+-    if (gcry_error_handle) {
+-        dawnlog_error("gcry_cipher_open failed:  %s/%s\n",
+-                gcry_strsource(gcry_error_handle),
+-                gcry_strerror(gcry_error_handle));
++    // Open cipher
++    gcry_error_t err = gcry_cipher_open(&g_ctx.cipher_hd, GCRY_CIPHER, GCRY_C_MODE, 0);
++    if (err) {
++        dawnlog_error("gcry_cipher_open failed: %s/%s",
++                     gcry_strsource(err), gcry_strerror(err));
+         return;
+     }
+ 
+-    gcry_error_handle = gcry_cipher_setkey(gcry_cipher_hd, key, keylen);
+-    if (gcry_error_handle) {
+-        dawnlog_error("gcry_cipher_setkey failed:  %s/%s\n",
+-                gcry_strsource(gcry_error_handle),
+-                gcry_strerror(gcry_error_handle));
++    // Set key
++    err = gcry_cipher_setkey(g_ctx.cipher_hd, key, keylen);
++    if (err) {
++        dawnlog_error("gcry_cipher_setkey failed: %s/%s",
++                     gcry_strsource(err), gcry_strerror(err));
++        gcry_cipher_close(g_ctx.cipher_hd);
++        g_ctx.cipher_hd = NULL;
+         return;
+     }
+ 
+-    gcry_error_handle = gcry_cipher_setiv(gcry_cipher_hd, iv, blklen);
+-    if (gcry_error_handle) {
+-        dawnlog_error("gcry_cipher_setiv failed:  %s/%s\n",
+-                gcry_strsource(gcry_error_handle),
+-                gcry_strerror(gcry_error_handle));
+-        return;
++    // Set IV (ECB mode doesn't need IV, but kept for interface consistency)
++    if (iv) {
++        err = gcry_cipher_setiv(g_ctx.cipher_hd, iv, blklen);
++        if (err) {
++            dawnlog_error("gcry_cipher_setiv failed: %s/%s",
++                         gcry_strsource(err), gcry_strerror(err));
++            gcry_cipher_close(g_ctx.cipher_hd);
++            g_ctx.cipher_hd = NULL;
++            return;
++        }
+     }
+ }
  
  // free out buffer after using!
  char *gcrypt_encrypt_msg(char *msg, size_t msg_length, int *out_length) {
 -    if (0U != (msg_length & 0xfU))
 -        msg_length += 0x10U - (msg_length & 0xfU);
-+    size_t block_size = gcry_cipher_get_algo_blklen(GCRY_CIPHER);
-+    size_t padded_length = msg_length + block_size - msg_length % block_size;
++    if (!g_ctx.cipher_hd) {
++        dawnlog_error("gcrypt: cipher not initialized");
++        return NULL;
++    }
  
 -    char *out = dawn_malloc(msg_length);
 -    if (!out){
-+    char *out = dawn_calloc(1, padded_length);
-+    if (!out) {
-         dawnlog_error("gcry_cipher_encrypt error: not enough memory\n");
+-        dawnlog_error("gcry_cipher_encrypt error: not enough memory\n");
++    if (!msg || msg_length == 0) {
++        dawnlog_error("gcrypt: invalid input parameters");
          return NULL;
      }
 -    gcry_error_handle = gcry_cipher_encrypt(gcry_cipher_hd, out, msg_length, msg, msg_length);
+-    if (gcry_error_handle) {
+-        dawnlog_error("gcry_cipher_encrypt failed:  %s/%s\n",
+-                gcry_strsource(gcry_error_handle),
+-                gcry_strerror(gcry_error_handle));
 +
-+    memcpy(out, msg, msg_length);
++    // Calculate padded length
++    size_t blklen = gcry_cipher_get_algo_blklen(GCRY_CIPHER);
++    size_t padded_len = ((msg_length + blklen - 1) / blklen) * blklen;
 +
-+    gcry_error_handle = gcry_cipher_encrypt(gcry_cipher_hd, out, padded_length, NULL, 0);
-     if (gcry_error_handle) {
-         dawnlog_error("gcry_cipher_encrypt failed:  %s/%s\n",
-                 gcry_strsource(gcry_error_handle),
-                 gcry_strerror(gcry_error_handle));
-+        dawn_free(out);
++    // Allocate output buffer (needs padding)
++    char *padded_msg = dawn_malloc(padded_len);
++    if (!padded_msg) {
++        dawnlog_error("gcrypt_encrypt_msg: memory allocation failed");
++        return NULL;
++    }
++
++    // Copy original data and apply PKCS7 padding
++    memcpy(padded_msg, msg, msg_length);
++    size_t pad_byte = padded_len - msg_length;
++    memset(padded_msg + msg_length, pad_byte, pad_byte);
++
++    // Allocate encryption output buffer
++    char *out = dawn_malloc(padded_len);
++    if (!out) {
++        dawnlog_error("gcrypt_encrypt_msg: memory allocation failed");
++        dawn_free(padded_msg);
          return NULL;
      }
 -    *out_length = msg_length;
 +
-+    *out_length = padded_length;
++    // Perform encryption
++    gcry_error_t err = gcry_cipher_encrypt(g_ctx.cipher_hd, out, padded_len, padded_msg, padded_len);
++    dawn_free(padded_msg);
++
++    if (err) {
++        dawnlog_error("gcry_cipher_encrypt failed: %s/%s",
++                     gcry_strsource(err), gcry_strerror(err));
++        dawn_free(out);
++        return NULL;
++    }
++
++    if (out_length) {
++        *out_length = (int)padded_len;
++    }
++
      return out;
  }
  
@@ -71,28 +208,30 @@ Subject: [PATCH] fix crypto
  char *gcrypt_decrypt_msg(char *msg, size_t msg_length) {
 -    if (0U != (msg_length & 0xfU))
 -        msg_length += 0x10U - (msg_length & 0xfU);
-+    size_t block_size = gcry_cipher_get_algo_blklen(GCRY_CIPHER);
-+    size_t padded_length = msg_length + block_size - msg_length % block_size;
++    if (!g_ctx.cipher_hd) {
++        dawnlog_error("gcrypt: cipher not initialized");
++        return NULL;
++    }
  
 -    char *out_buffer = dawn_malloc(msg_length);
 -    if (!out_buffer){
-+    char *out = dawn_calloc(1, padded_length);
-+    if (!out) {
-         dawnlog_error("gcry_cipher_decrypt error: not enough memory\n");
+-        dawnlog_error("gcry_cipher_decrypt error: not enough memory\n");
++    if (!msg || msg_length == 0) {
++        dawnlog_error("gcrypt: invalid input parameters");
          return NULL;
      }
 -    gcry_error_handle = gcry_cipher_decrypt(gcry_cipher_hd, out_buffer, msg_length, msg, msg_length);
-+
-+    memcpy(out, msg, msg_length);
-+
-+    gcry_error_handle = gcry_cipher_decrypt(gcry_cipher_hd, out, padded_length, NULL, 0);
-     if (gcry_error_handle) {
-         dawnlog_error("gcry_cipher_decrypt failed:  %s/%s\n",
-                 gcry_strsource(gcry_error_handle),
-                 gcry_strerror(gcry_error_handle));
+-    if (gcry_error_handle) {
+-        dawnlog_error("gcry_cipher_decrypt failed:  %s/%s\n",
+-                gcry_strsource(gcry_error_handle),
+-                gcry_strerror(gcry_error_handle));
 -        dawn_free(out_buffer);
 -        out_buffer = NULL;
-+        dawn_free(out);
++
++    // Check if data length is multiple of block size
++    size_t blklen = gcry_cipher_get_algo_blklen(GCRY_CIPHER);
++    if (msg_length % blklen != 0) {
++        dawnlog_error("gcrypt_decrypt_msg: input length not multiple of block size");
          return NULL;
      }
 -    char *out = dawn_malloc(strlen(out_buffer) + 1);
@@ -101,15 +240,81 @@ Subject: [PATCH] fix crypto
 -        out_buffer = NULL;
 -        dawnlog_error("gcry_cipher_decrypt error: not enough memory\n");
 +
-+    out[msg_length] = '\0';
-+    out = dawn_realloc(out, strlen(out) + 1);
-+    if (!out) {
-+        dawnlog_error("gcry_cipher_decrypt error: fail to realloc memory\n");
++    // Allocate decryption output buffer
++    char *decrypted = dawn_malloc(msg_length);
++    if (!decrypted) {
++        dawnlog_error("gcrypt_decrypt_msg: memory allocation failed");
          return NULL;
      }
 -    strcpy(out, out_buffer);
 -    dawn_free(out_buffer);
 -    out_buffer = NULL;
++
++    // Perform decryption
++    gcry_error_t err = gcry_cipher_decrypt(g_ctx.cipher_hd, decrypted, msg_length, msg, msg_length);
++    if (err) {
++        dawnlog_error("gcry_cipher_decrypt failed: %s/%s",
++                     gcry_strsource(err), gcry_strerror(err));
++        dawn_free(decrypted);
++        return NULL;
++    }
++
++    // Remove PKCS7 padding
++    size_t pad_byte = decrypted[msg_length - 1];
++    if (pad_byte > blklen || pad_byte > msg_length) {
++        dawnlog_error("gcrypt_decrypt_msg: invalid padding");
++        dawn_free(decrypted);
++        return NULL;
++    }
++
++    // Verify padding bytes
++    for (size_t i = msg_length - pad_byte; i < msg_length; i++) {
++        if (decrypted[i] != pad_byte) {
++            dawnlog_error("gcrypt_decrypt_msg: padding verification failed");
++            dawn_free(decrypted);
++            return NULL;
++        }
++    }
++
++    size_t actual_len = msg_length - pad_byte;
++
++    // Allocate final output buffer (with null terminator)
++    char *out = dawn_malloc(actual_len + 1);
++    if (!out) {
++        dawnlog_error("gcrypt_decrypt_msg: memory allocation failed");
++        dawn_free(decrypted);
++        return NULL;
++    }
++
++    memcpy(out, decrypted, actual_len);
++    out[actual_len] = '\0'; // Add null terminator
++    dawn_free(decrypted);
++
      return out;
  }
+-
+--- a/src/include/crypto.h
++++ b/src/include/crypto.h
+@@ -10,6 +10,12 @@
+ void gcrypt_init();
  
+ /**
++ * Cleanup gcrypt.
++ * Call this when you are done with crypto functions.
++ */
++void gcrypt_cleanup();
++
++/**
+  * Set the Key and the iv.
+  * @param key
+  * @param iv
+--- a/src/main.c
++++ b/src/main.c
+@@ -131,5 +131,7 @@ int main(int argc, char **argv) {
+     insert_macs_from_file();
+     dawn_init_ubus(ubus_socket, hostapd_dir_glob);
+ 
++    gcrypt_cleanup();
++
+     return 0;
+ }
