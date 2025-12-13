@@ -17,7 +17,7 @@ Link: https://lore.kernel.org/r/20231115010017.112081-1-yang.lee@linux.alibaba.c
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -1363,8 +1363,8 @@ static bool rt2800_watchdog_dma_busy(str
+@@ -1362,8 +1362,8 @@ static bool rt2800_watchdog_dma_busy(str
  	else
  		rt2x00dev->txdma_busy = 0;
  

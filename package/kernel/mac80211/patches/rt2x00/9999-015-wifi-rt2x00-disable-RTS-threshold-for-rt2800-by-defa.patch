@@ -13,7 +13,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -6180,7 +6180,7 @@ static int rt2800_init_registers(struct
+@@ -6179,7 +6179,7 @@ static int rt2800_init_registers(struct
  	rt2x00_set_field32(&reg, CCK_PROT_CFG_TX_OP_ALLOW_MM40, 0);
  	rt2x00_set_field32(&reg, CCK_PROT_CFG_TX_OP_ALLOW_GF20, 1);
  	rt2x00_set_field32(&reg, CCK_PROT_CFG_TX_OP_ALLOW_GF40, 0);
@@ -22,7 +22,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  	rt2800_register_write(rt2x00dev, CCK_PROT_CFG, reg);
  
  	reg = rt2800_register_read(rt2x00dev, OFDM_PROT_CFG);
-@@ -6193,7 +6193,7 @@ static int rt2800_init_registers(struct
+@@ -6192,7 +6192,7 @@ static int rt2800_init_registers(struct
  	rt2x00_set_field32(&reg, OFDM_PROT_CFG_TX_OP_ALLOW_MM40, 0);
  	rt2x00_set_field32(&reg, OFDM_PROT_CFG_TX_OP_ALLOW_GF20, 1);
  	rt2x00_set_field32(&reg, OFDM_PROT_CFG_TX_OP_ALLOW_GF40, 0);

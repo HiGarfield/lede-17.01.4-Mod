@@ -52,7 +52,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  
  /*
   * Register access.
-@@ -1291,15 +1297,12 @@ static void rt2800_update_survey(struct
+@@ -1290,15 +1296,12 @@ static void rt2800_update_survey(struct
  	chan_survey->time_ext_busy += rt2800_register_read(rt2x00dev, CH_BUSY_STA_SEC);
  }
  
@@ -69,7 +69,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  	rt2800_update_survey(rt2x00dev);
  
  	queue_for_each(rt2x00dev, queue) {
-@@ -1327,18 +1330,72 @@ void rt2800_watchdog(struct rt2x00_dev *
+@@ -1326,18 +1329,72 @@ void rt2800_watchdog(struct rt2x00_dev *
  		}
  	}
  
@@ -146,7 +146,7 @@ Signed-off-by: Shiji Yang <yangshiji66@outlook.com>
  }
  EXPORT_SYMBOL_GPL(rt2800_watchdog);
  
-@@ -12139,7 +12196,7 @@ int rt2800_probe_hw(struct rt2x00_dev *r
+@@ -12138,7 +12195,7 @@ int rt2800_probe_hw(struct rt2x00_dev *r
  		__set_bit(REQUIRE_TASKLET_CONTEXT, &rt2x00dev->cap_flags);
  	}
  
