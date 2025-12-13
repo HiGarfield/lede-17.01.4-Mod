@@ -17,7 +17,7 @@ Link: https://patch.msgid.link/20240920025917.1959932-1-yanzhen@vivo.com
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -3642,7 +3642,7 @@ static void rt2800_config_channel_rf55xx
+@@ -3641,7 +3641,7 @@ static void rt2800_config_channel_rf55xx
  			rt2800_rfcsr_write(rt2x00dev, 52, 0x0C);
  			rt2800_rfcsr_write(rt2x00dev, 54, 0xF8);
  			if (rf->channel <= 50) {

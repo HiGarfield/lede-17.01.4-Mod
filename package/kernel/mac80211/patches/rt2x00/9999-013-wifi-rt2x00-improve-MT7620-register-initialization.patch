@@ -57,7 +57,7 @@ Link: https://lore.kernel.org/r/TYAP286MB031553CCD4B7A3B89C85935DBCD4A@TYAP286MB
  #define TX_PWR_CFG_5_MCS16_CH0		FIELD32(0x0000000f)
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -5844,6 +5844,7 @@ static int rt2800_init_registers(struct
+@@ -5843,6 +5843,7 @@ static int rt2800_init_registers(struct
  	struct rt2800_drv_data *drv_data = rt2x00dev->drv_data;
  	u32 reg;
  	u16 eeprom;
@@ -65,7 +65,7 @@ Link: https://lore.kernel.org/r/TYAP286MB031553CCD4B7A3B89C85935DBCD4A@TYAP286MB
  	unsigned int i;
  	int ret;
  
-@@ -5853,6 +5854,19 @@ static int rt2800_init_registers(struct
+@@ -5852,6 +5853,19 @@ static int rt2800_init_registers(struct
  	if (ret)
  		return ret;
  
@@ -85,7 +85,7 @@ Link: https://lore.kernel.org/r/TYAP286MB031553CCD4B7A3B89C85935DBCD4A@TYAP286MB
  	rt2800_register_write(rt2x00dev, LEGACY_BASIC_RATE, 0x0000013f);
  	rt2800_register_write(rt2x00dev, HT_BASIC_RATE, 0x00008003);
  
-@@ -6022,6 +6036,14 @@ static int rt2800_init_registers(struct
+@@ -6021,6 +6035,14 @@ static int rt2800_init_registers(struct
  		reg = rt2800_register_read(rt2x00dev, TX_ALC_CFG_1);
  		rt2x00_set_field32(&reg, TX_ALC_CFG_1_ROS_BUSY_EN, 0);
  		rt2800_register_write(rt2x00dev, TX_ALC_CFG_1, reg);
@@ -100,7 +100,7 @@ Link: https://lore.kernel.org/r/TYAP286MB031553CCD4B7A3B89C85935DBCD4A@TYAP286MB
  	} else {
  		rt2800_register_write(rt2x00dev, TX_SW_CFG0, 0x00000000);
  		rt2800_register_write(rt2x00dev, TX_SW_CFG1, 0x00080606);
-@@ -7242,6 +7264,8 @@ static void rt2800_init_bbp_6352(struct
+@@ -7241,6 +7263,8 @@ static void rt2800_init_bbp_6352(struct
  	rt2800_bbp_dcoc_write(rt2x00dev, 159, 0x64);
  
  	rt2800_bbp4_mac_if_ctrl(rt2x00dev);

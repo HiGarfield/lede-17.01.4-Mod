@@ -26,7 +26,7 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
 
 --- a/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
 +++ b/drivers/net/wireless/ralink/rt2x00/rt2800lib.c
-@@ -1279,6 +1279,17 @@ static int rt2800_check_hung(struct data
+@@ -1278,6 +1278,17 @@ static int rt2800_check_hung(struct data
  	return queue->wd_count > 16;
  }
  
@@ -44,7 +44,7 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
  void rt2800_watchdog(struct rt2x00_dev *rt2x00dev)
  {
  	struct data_queue *queue;
-@@ -1288,6 +1299,8 @@ void rt2800_watchdog(struct rt2x00_dev *
+@@ -1287,6 +1298,8 @@ void rt2800_watchdog(struct rt2x00_dev *
  	if (test_bit(DEVICE_STATE_SCANNING, &rt2x00dev->flags))
  		return;
  
@@ -53,7 +53,7 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
  	queue_for_each(rt2x00dev, queue) {
  		switch (queue->qid) {
  		case QID_AC_VO:
-@@ -5743,6 +5756,12 @@ void rt2800_config(struct rt2x00_dev *rt
+@@ -5742,6 +5755,12 @@ void rt2800_config(struct rt2x00_dev *rt
  	rt2800_config_lna_gain(rt2x00dev, libconf);
  
  	if (flags & IEEE80211_CONF_CHANGE_CHANNEL) {
@@ -66,7 +66,7 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
  		rt2800_config_channel(rt2x00dev, libconf->conf,
  				      &libconf->rf, &libconf->channel);
  		rt2800_config_txpower(rt2x00dev, libconf->conf->chandef.chan,
-@@ -11860,12 +11879,20 @@ static int rt2800_probe_hw_mode(struct r
+@@ -11859,12 +11878,20 @@ static int rt2800_probe_hw_mode(struct r
  	}
  
  	/*
@@ -88,7 +88,7 @@ Link: https://lore.kernel.org/r/20201104142524.94375-1-stf_xl@wp.pl
  	spec->channels_info = info;
  
  	default_power1 = rt2800_eeprom_addr(rt2x00dev, EEPROM_TXPOWER_BG1);
-@@ -12252,27 +12279,30 @@ int rt2800_get_survey(struct ieee80211_h
+@@ -12251,27 +12278,30 @@ int rt2800_get_survey(struct ieee80211_h
  		      struct survey_info *survey)
  {
  	struct rt2x00_dev *rt2x00dev = hw->priv;
