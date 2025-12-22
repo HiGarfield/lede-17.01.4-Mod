@@ -1,0 +1,21 @@
+From 1ab16c8c46cac835cd4244095ab9ef1d8c805260 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Tue, 23 Dec 2025 00:04:57 +0800
+Subject: [PATCH] dns_server: fix ttl issue when cache is disabled.
+
+---
+ src/dns_server.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -566,7 +566,8 @@ static int _dns_server_get_reply_ttl(str
+ 	int reply_ttl = ttl;
+ 
+ 	if ((request->passthrough == 0 || request->passthrough == 2) && dns_conf.cachesize > 0 &&
+-		request->check_order_list->orders[0].type != DOMAIN_CHECK_NONE) {
++		request->check_order_list->orders[0].type != DOMAIN_CHECK_NONE && request->no_serve_expired == 0 &&
++		request->has_soa == 0 && request->no_cache == 0) {
+ 		reply_ttl = request->conf->dns_serve_expired_reply_ttl;
+ 		if (reply_ttl < 2) {
+ 			reply_ttl = 2;
