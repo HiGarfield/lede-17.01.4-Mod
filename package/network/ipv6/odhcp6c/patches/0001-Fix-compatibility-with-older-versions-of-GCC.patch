@@ -1,0 +1,43 @@
+From 8d52a7319a5705be5c894d1e7aed39334696f307 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Tue, 23 Dec 2025 21:21:54 +0800
+Subject: [PATCH] Fix compatibility with older versions of GCC
+
+---
+ src/dhcpv6.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/src/dhcpv6.c
++++ b/src/dhcpv6.c
+@@ -1468,6 +1468,7 @@ static int dhcpv6_handle_reply(enum dhcp
+ 				break;
+ 
+ 			case DHCPV6_OPT_NTP_SERVER:
++				;
+ 				uint16_t stype, slen;
+ 				uint8_t *sdata;
+ 				// Test status and bail if error
+@@ -1495,6 +1496,7 @@ static int dhcpv6_handle_reply(enum dhcp
+ 				break;
+ 
+ 			case DHCPV6_OPT_AUTH:
++				;
+ 				struct dhcpv6_auth *r = (void*)&odata[-DHCPV6_OPT_HDR_SIZE];
+ 				if (auth_protocol == AUTH_PROT_RKAP) {
+ 					struct dhcpv6_auth_reconfigure *rkap = (void*)r->data;
+@@ -1534,6 +1536,7 @@ static int dhcpv6_handle_reply(enum dhcp
+ 				break;
+ 
+ 			case DHCPV6_OPT_S46_CONT_MAPE:
++				;
+ 				size_t mape_len;
+ 				odhcp6c_get_state(STATE_S46_MAPE, &mape_len);
+ 				if (mape_len == 0)
+@@ -1545,6 +1548,7 @@ static int dhcpv6_handle_reply(enum dhcp
+ 				break;
+ 
+ 			case DHCPV6_OPT_CAPTIVE_PORTAL: /* RFC8910 §2.2 */
++				;
+ 				size_t ref_len = sizeof(URN_IETF_CAPT_PORT_UNRESTR) - 1;
+ 				/* RFC8910 §2:
+ 				 * Networks with no captive portals may explicitly indicate this
