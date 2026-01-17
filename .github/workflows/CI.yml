@@ -12,21 +12,43 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  do_repository_dispatch:
-    name: repository dispatch
+  repository_dispatch:
+    name: Repository dispatch
     runs-on: ubuntu-24.04
     steps:
-      - name: Repository dispatch
+      - uses: HiGarfield/repository-dispatch@main
         if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push' }}
-        uses: HiGarfield/repository-dispatch@main
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ secrets.SECOND_REPO }}
           event-type: ${{ github.event.head_commit.message }}
 
+  create_release:
+    name: Create release
+    runs-on: ubuntu-24.04
+    permissions:
+     contents: write
+    env:
+      SOURCE_REPO: 'HiGarfield/lede-17.01.4-Mod'
+    steps:
+    - uses: actions/checkout@main
+    - run: |
+          if [ -f "$GITHUB_WORKSPACE/version" ]; then
+            WORKING_DIR="$GITHUB_WORKSPACE"
+          else
+            git clone "https://github.com/$SOURCE_REPO" -b master source
+            WORKING_DIR="$GITHUB_WORKSPACE/source"
+          fi
+          LEDE_VERSION="$(cat "${WORKING_DIR}/version")"
+          echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
+    - uses: HiGarfield/action-gh-release@master
+      with:
+        tag_name: ${{ env.LEDE_VERSION }}
+        make_latest: true
+
   build:
-    name: build
-    needs: [ do_repository_dispatch ]
+    name: Build
+    needs: [ repository_dispatch, create_release ]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
@@ -58,9 +80,7 @@ jobs:
 
       - name: Set environment variables
         working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          echo "MY_TOKEN=${{ secrets.GITHUB_TOKEN }}" >> $GITHUB_ENV
-          
+        run: |          
           LEDE_VERSION="$(cat "${WORKING_DIR}/version")"
           echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
           
@@ -171,19 +191,23 @@ jobs:
 
       - name: Upload binaries to release
         if: ${{ steps.compile.outputs.status == 'success' || steps.download_dl.outputs.status == 'success' }}
-        uses: HiGarfield/upload-release-action@master
+        uses: HiGarfield/action-gh-release@master
         with:
-          repo_token: ${{ env.MY_TOKEN }}
-          file: ${{ env.OUTPUT_DIR }}/*
-          tag: ${{ env.LEDE_VERSION }}
-          overwrite: true
-          file_glob: true
+          tag_name: ${{ env.LEDE_VERSION }}
+          files: ${{ env.OUTPUT_DIR }}/*
+          overwrite_files: true
 
-      - name: Remove old releases
-        uses: HiGarfield/delete-older-releases@master
+  remove_old_releases:
+    name: Remove old releases
+    needs: [ build ]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: HiGarfield/delete-older-releases@master
         continue-on-error: true
         with:
           keep_latest: 1
           delete_tags: true
         env:
-          GITHUB_TOKEN: ${{ env.MY_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
