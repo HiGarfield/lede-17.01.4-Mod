@@ -37,13 +37,9 @@ jobs:
           sudo swapoff -a
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /mnt/swapfile
           sudo -E apt -qqq update
-          sudo -E apt -qqq install build-essential gcc-11 g++-11
+          sudo -E apt -qqq install build-essential
           sudo -E apt -qqq autoremove --purge
           sudo -E apt -qqq clean
-          sudo -E update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 60
-          sudo -E update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 60
-          sudo -E update-alternatives --set gcc /usr/bin/gcc-11
-          sudo -E update-alternatives --set g++ /usr/bin/g++-11
 
       - name: Generate cache mixkey
         id: gen_cache_mixkey
