@@ -1,0 +1,20 @@
+From cc619904fa333ae2715030327f4360b71323c238 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 17 Jan 2026 09:58:08 +0800
+Subject: [PATCH] fix int64_t missing error
+
+---
+ Source/cmWorkerPool.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/Source/cmWorkerPool.h
++++ b/Source/cmWorkerPool.h
+@@ -8,7 +8,7 @@
+ #include "cmAlgorithms.h" // IWYU pragma: keep
+ 
+ #include <memory> // IWYU pragma: keep
+-#include <stdint.h>
++#include <cstdint>
+ #include <string>
+ #include <utility>
+ #include <vector>
