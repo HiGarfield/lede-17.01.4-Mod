@@ -2,12 +2,12 @@
 set -e
 
 # Update package list
-sudo apt -qqq update
+sudo apt-get -qq -y  update
 
 # Install necessary dependencies
-sudo apt -qqq install build-essential libssl-dev libbz2-dev \
-    libreadline-dev libsqlite3-dev wget curl llvm \
-    libxml2-dev libxslt1-dev zlib1g-dev libffi-dev
+sudo apt-get -qq -y install build-essential libssl-dev libbz2-dev \
+                            libreadline-dev libsqlite3-dev zlib1g-dev \
+							libffi-dev wget tar
 
 # Download Python 2.7.x source code (adjust version number as needed)
 PYTHON_VERSION=2.7.18
@@ -22,7 +22,16 @@ cd Python-$PYTHON_VERSION
 export CFLAGS="${CFLAGS} -w"
 
 # Configure the build
-./configure
+./configure  \
+    --prefix=/usr/local \
+    --disable-shared \
+    --disable-ipv6 \
+    --without-doc-strings \
+    --without-ensurepip \
+    --without-computed-gotos \
+    --without-pymalloc \
+    --disable-optimizations \
+    --quiet
 
 # Compile and install
 make -j "$(nproc)" -s
