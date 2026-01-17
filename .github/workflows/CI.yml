@@ -78,16 +78,12 @@ jobs:
           sudo swapoff -a
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /mnt/swapfile
           sudo -E apt -qqq update
-          sudo -E apt -qqq install aria2 build-essential binutils bzip2 gettext \
-                                   flex perl findutils diffutils unzip gawk util-linux \
-                                   subversion zlib1g-dev zip git coreutils \
-                                   gcc-11 g++-11 libc6-dev
+          sudo -E apt -qqq install aria2 build-essential bzip2 gettext flex \
+                                   perl findutils grep diffutils unzip gawk \
+                                   util-linux subversion zlib1g-dev \
+                                   zip
           sudo -E apt -qqq autoremove --purge
           sudo -E apt -qqq clean
-          sudo -E update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-11 60
-          sudo -E update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-11 60
-          sudo -E update-alternatives --set gcc /usr/bin/gcc-11
-          sudo -E update-alternatives --set g++ /usr/bin/g++-11
           sudo -E .github/backup/install_python2.sh
 
           sed -i 's/HOST_BUILD_PARALLEL ?=/HOST_BUILD_PARALLEL ?= 1/g' include/host-build.mk
