@@ -1,74 +1,52 @@
 name: fetch cache
 
-permissions: {}
-
 on:
   workflow_dispatch:
   schedule:
-    - cron: "00 00 */3 * *"
+    - cron: '0 0 */3 * *'
+
+permissions: {}
+
+env:
+  SOURCE_REPO: HiGarfield/lede-17.01.4-Mod
+
 jobs:
   fetch_cache:
-    name: fetch cache
     runs-on: ubuntu-24.04
-    env:
-      SOURCE_REPO: 'HiGarfield/lede-17.01.4-Mod'
+
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [ ar71xx, ramips ]
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@main
-        with:
-          ref: master
-          fetch-depth: 0
-
-      - name: Clone source code
-        working-directory: ${{ github.workspace }}
+      - name: Clone source repo
         run: |
-          if [ -f "$GITHUB_WORKSPACE/version" ]; then
-            WORKING_DIR="$GITHUB_WORKSPACE"
-          else
-            git clone "https://github.com/$SOURCE_REPO" -b master source
-            WORKING_DIR="$GITHUB_WORKSPACE/source"
-          fi
-          echo "WORKING_DIR=${WORKING_DIR}" >>$GITHUB_ENV
+          git clone --depth=1 -b master https://github.com/${SOURCE_REPO}.git source
+          echo "WORKING_DIR=$PWD/source" >> $GITHUB_ENV
 
-      - name: Initialize environment
+      - name: Install minimal build deps
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          sudo apt-get -qq -y update
-          sudo apt-get -qq -y install build-essential
+          sudo apt-get update -qq -y
+          sudo apt-get install -qq -y build-essential
 
       - name: Generate cache mixkey
-        id: gen_cache_mixkey
+        id: mixkey
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          target_device_arch_1="ar71xx"
-          target_device_arch_2="ramips"
-          gcc_hash=$(gcc --version | sha256sum | awk '{print substr($1,1,8)}')
-          ldd_hash=$(ldd --version | sha256sum | awk '{print substr($1,1,8)}')
-          mixkey1="${target_device_arch_1}-${gcc_hash}-${ldd_hash}"
-          mixkey2="${target_device_arch_2}-${gcc_hash}-${ldd_hash}"
+          gcc_hash=$(gcc --version | sha1sum | cut -c1-8)
+          echo "key=${{ matrix.arch }}-${gcc_hash}" >> $GITHUB_OUTPUT
 
-          echo "mixkey1=$mixkey1" >> $GITHUB_OUTPUT
-          echo "mixkey2=$mixkey2" >> $GITHUB_OUTPUT
-
-      - name: Cache1
+      - name: Restore toolchain cache
         uses: HiGarfield/cachewrtbuild@main
         with:
-          ccache: 'true'
-          mixkey: ${{ steps.gen_cache_mixkey.outputs.mixkey1 }}
+          ccache: true
+          mixkey: ${{ steps.mixkey.outputs.key }}
           prefix: ${{ env.WORKING_DIR }}
-          skip_saving: 'true'
-      
-      - name: Cache2
-        uses: HiGarfield/cachewrtbuild@main
-        with:
-          ccache: 'true'
-          mixkey: ${{ steps.gen_cache_mixkey.outputs.mixkey2 }}
-          prefix: ${{ env.WORKING_DIR }}
-          skip_saving: 'true'
+          skip_saving: true
 
-      - name: Restore cached dl
-        id: restore_cached_dl
+      - name: Restore dl cache
         uses: actions/cache/restore@main
         with:
           path: ${{ env.WORKING_DIR }}/dl
