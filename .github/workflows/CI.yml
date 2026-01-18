@@ -5,209 +5,178 @@ on:
     branches: [ master ]
   workflow_dispatch:
 
-permissions: {}
+permissions:
+  contents: read
 
-concurrency: 
+concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  SOURCE_REPO: HiGarfield/lede-17.01.4-Mod
+
 jobs:
   repository_dispatch:
-    name: Repository dispatch
+    if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push' }}
     runs-on: ubuntu-24.04
+    permissions: {}
     steps:
       - uses: HiGarfield/repository-dispatch@main
-        if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push' }}
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ secrets.SECOND_REPO }}
           event-type: ${{ github.event.head_commit.message }}
 
   create_release:
-    name: Create release
-    runs-on: ubuntu-24.04
-    permissions:
-     contents: write
-    env:
-      SOURCE_REPO: 'HiGarfield/lede-17.01.4-Mod'
-    steps:
-    - uses: actions/checkout@main
-    - run: |
-          if [ -f "$GITHUB_WORKSPACE/version" ]; then
-            WORKING_DIR="$GITHUB_WORKSPACE"
-          else
-            git clone "https://github.com/$SOURCE_REPO" -b master source
-            WORKING_DIR="$GITHUB_WORKSPACE/source"
-          fi
-          LEDE_VERSION="$(cat "${WORKING_DIR}/version")"
-          echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
-    - uses: HiGarfield/action-gh-release@master
-      with:
-        tag_name: ${{ env.LEDE_VERSION }}
-        make_latest: true
-
-  build:
-    name: Build
-    needs: [ repository_dispatch, create_release ]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
-    env:
-      TARGET_DEVICE: ${{ matrix.target }}
-      SOURCE_REPO: 'HiGarfield/lede-17.01.4-Mod'
+    outputs:
+      lede_version: ${{ steps.version.outputs.lede_version }}
+    steps:
+      - uses: actions/checkout@main
+
+      - id: version
+        run: |
+          if [ -f version ]; then
+            v=$(cat version)
+          else
+            git clone https://github.com/${SOURCE_REPO}.git source
+            v=$(cat source/version)
+          fi
+          echo "lede_version=$v" >> $GITHUB_OUTPUT
+
+      - uses: HiGarfield/action-gh-release@master
+        with:
+          tag_name: ${{ steps.version.outputs.lede_version }}
+          make_latest: true
+
+  build:
+    needs: [ create_release ]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     strategy:
       max-parallel: 20
       matrix:
-        target: [ "dl", "hw24g", "csac", "wr1200js", "a3004ns", "link7", "domywifi-dw33d", "rg-nbr700gw", "treebear-x1", "ghl-r-001", "yyets-le2", "hq55", "newifi-d1", "newifi-d2", "tl-wdr4310-v1", "tl-wdr7500-v3", "tl-wr841-v9", "tl-wr885n-v1", "tl-wr941nd-v6-cn", "tl-wr941n-v7", "domywifi-dw22d-v1", "domywifi-dw22d-v2", "mw450r-v3", "tl-wr841-v8", "tl-wr841-v8-cn", "tl-wr941nd-v6", "tl-wr842n-v2", "tl-wr842n-v2-cn", "tl-wr941nd-v2", "tl-wr740n-v3", "tl-wr740n-v4", "tl-wr841-v3", "tl-wr841-v5", "tl-wr841-v7", "tl-wr842n-v3", "tl-wr1041n-v2", "phicomm-k2t", "y1s", "5k-w20", "hd51-n", "youku-yk1", "miwifi-mini", "hc5661" ]
+        target: [ dl, hw24g, csac, wr1200js, a3004ns, link7, domywifi-dw33d, rg-nbr700gw, treebear-x1, ghl-r-001, yyets-le2, hq55, newifi-d1, newifi-d2, tl-wdr4310-v1, tl-wdr7500-v3, tl-wr841-v9, tl-wr885n-v1, tl-wr941nd-v6-cn, tl-wr941n-v7, domywifi-dw22d-v1, domywifi-dw22d-v2, mw450r-v3, tl-wr841-v8, tl-wr841-v8-cn, tl-wr941nd-v6, tl-wr842n-v2, tl-wr842n-v2-cn, tl-wr941nd-v2, tl-wr740n-v3, tl-wr740n-v4, tl-wr841-v3, tl-wr841-v5, tl-wr841-v7, tl-wr842n-v3, tl-wr1041n-v2, phicomm-k2t, y1s, 5k-w20, hd51-n, youku-yk1, miwifi-mini, hc5661 ]
+
+    env:
+      TARGET_DEVICE: ${{ matrix.target }}
+      LEDE_VERSION: ${{ needs.create_release.outputs.lede_version }}
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@main
+      - uses: actions/checkout@main
         with:
-          ref: master
           fetch-depth: 0
 
-      - name: Clone source code
-        working-directory: ${{ github.workspace }}
+      - name: Prepare source
         run: |
-          if [ -f "$GITHUB_WORKSPACE/version" ]; then
-            WORKING_DIR="$GITHUB_WORKSPACE"
+          if [ -f version ]; then
+            echo "WORKING_DIR=$PWD" >> $GITHUB_ENV
           else
-            git clone "https://github.com/$SOURCE_REPO" -b master source
-            WORKING_DIR="$GITHUB_WORKSPACE/source"
+            git clone https://github.com/${SOURCE_REPO}.git source
+            echo "WORKING_DIR=$PWD/source" >> $GITHUB_ENV
           fi
-          echo "WORKING_DIR=${WORKING_DIR}" >>$GITHUB_ENV
 
-      - name: Set environment variables
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |          
-          LEDE_VERSION="$(cat "${WORKING_DIR}/version")"
-          echo "LEDE_VERSION=${LEDE_VERSION}" >>$GITHUB_ENV
-          
-          if [ "$TARGET_DEVICE" != "dl" ]; then
-            LEDE_OUTPUT_NAME="lede-${LEDE_VERSION}-${TARGET_DEVICE}"
+      - name: Compute names
+        run: |
+          if [ "$TARGET_DEVICE" = "dl" ]; then
+            name=dl-${LEDE_VERSION}
           else
-            LEDE_OUTPUT_NAME="dl-${LEDE_VERSION}"
+            name=lede-${LEDE_VERSION}-${TARGET_DEVICE}
           fi
-          echo "LEDE_OUTPUT_NAME=${LEDE_OUTPUT_NAME}" >>$GITHUB_ENV
-          echo "OUTPUT_DIR=${WORKING_DIR}/out" >> $GITHUB_ENV
+          echo "OUTPUT_NAME=$name" >> $GITHUB_ENV
+          echo "OUTPUT_DIR=$WORKING_DIR/out" >> $GITHUB_ENV
 
-      - name: Initialize environment
+      - name: Init build env
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           sudo swapoff -a
           sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /mnt/swapfile
-          sudo apt-get -qq -y update
-          sudo apt-get -qq -y install aria2 build-essential bzip2 gettext flex \
-                                   perl findutils grep diffutils unzip gawk \
-                                   util-linux subversion zlib1g-dev \
-                                   zip
+          sudo apt-get update -qq -y
+          sudo apt-get install -qq -y \
+            aria2 build-essential bzip2 gettext flex perl \
+            findutils grep diffutils unzip gawk util-linux \
+            subversion zlib1g-dev zip
           sudo .github/backup/install_python2.sh
-          sudo apt-get -qq -y autoremove
-          sudo apt-get -qq -y clean
+          sudo apt-get autoremove -qq -y
+          sudo apt-get clean -qq -y
 
           sed -i 's/HOST_BUILD_PARALLEL ?=/HOST_BUILD_PARALLEL ?= 1/g' include/host-build.mk
           sed -i 's/PKG_BUILD_PARALLEL ?=/PKG_BUILD_PARALLEL ?= 1/g' include/package.mk
 
-      - name: Generate toolchain cache mixkey
-        id: gen_toolchain_cache_mixkey
+          rm -f "package/firmware/wireless-regdb/patches/501-limit-tx-power.patch"
+
+      - name: Toolchain cache key
         if: ${{ env.TARGET_DEVICE != 'dl' }}
+        id: tc
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          target_device_arch="$(sed -n 's/^CONFIG_TARGET_BOARD=\"\(.*\)\"/\1/p' "conf/.config.$TARGET_DEVICE")"
-          gcc_hash=$(gcc --version | sha256sum | awk '{print substr($1,1,8)}')
-          ldd_hash=$(ldd --version | sha256sum | awk '{print substr($1,1,8)}')
-          toolchain_mixkey="${target_device_arch}-${gcc_hash}-${ldd_hash}"
-          echo "toolchain_mixkey=$toolchain_mixkey" >> $GITHUB_OUTPUT
+          arch=$(sed -n 's/^CONFIG_TARGET_BOARD="\(.*\)"/\1/p' conf/.config.$TARGET_DEVICE)
+          echo "key=$arch-$(gcc --version | sha1sum | cut -c1-8)" >> $GITHUB_OUTPUT
 
-      - name: Cache toolchain
+      - uses: HiGarfield/cachewrtbuild@main
         if: ${{ env.TARGET_DEVICE != 'dl' }}
-        uses: HiGarfield/cachewrtbuild@main
         with:
-          ccache: 'true'
-          mixkey: ${{ steps.gen_toolchain_cache_mixkey.outputs.toolchain_mixkey }}
+          ccache: true
+          mixkey: ${{ steps.tc.outputs.key }}
           prefix: ${{ env.WORKING_DIR }}
 
-      - name: Restore cached dl
+      - uses: actions/cache/restore@main
         if: ${{ env.TARGET_DEVICE != 'dl' }}
-        id: restore_cached_dl
-        uses: actions/cache/restore@main
         with:
           path: ${{ env.WORKING_DIR }}/dl
           key: ${{ github.repository_id }}-dl-${{ github.run_id }}
           restore-keys: ${{ github.repository_id }}-dl-
 
-      - name: Download dl
-        if: ${{ env.TARGET_DEVICE == 'dl' }}
-        id: download_dl
+      - name: Build
         working-directory: ${{ env.WORKING_DIR }}
         run: |
-          ./download_all.sh
-          find dl -size -1024c -exec rm -f {} \;
-          mkdir -p "${OUTPUT_DIR}"
-          zip -j "${OUTPUT_DIR}/${LEDE_OUTPUT_NAME}.zip" dl/*
-          echo "status=success" >> $GITHUB_OUTPUT
+          if [ "$TARGET_DEVICE" != "dl" ]; then
+            cp -f conf/.config.$TARGET_DEVICE .config
+            make defconfig
+            make -j$(nproc) || make -j1 V=s
+            mkdir -p $OUTPUT_DIR
+            cp -u -f bin/targets/*/*/${OUTPUT_NAME}-*-sysupgrade.bin ${OUTPUT_DIR}/
+            cd ${OUTPUT_DIR}/
+            for f in *.bin; do
+              mv "$f" "$(echo "$f" | sed -e 's/-squashfs//g' -e 's/-sysupgrade//g')"
+            done
+          else
+            ./download_all.sh
+            mkdir -p $OUTPUT_DIR
+            zip -j ${OUTPUT_DIR}/${OUTPUT_NAME}.zip dl/*
+          fi
 
-      - name: Load custom configuration
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          cp -f "conf/.config.$TARGET_DEVICE" .config
-          make defconfig V=s
-
-      - name: Download package
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
-        id: package
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          for i in $(seq 3); do
-            make download -j6 && break
-          done
-          find dl -size -1024c -exec rm -f {} \;
-
-      - name: Compile firmware
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
-        id: compile
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          echo -e "$(($(nproc) + 1)) thread compile"
-          make -j$(($(nproc) + 1)) || make -j1 V=s
-          rm -rf ${OUTPUT_DIR}
-          mkdir -p ${OUTPUT_DIR}
-          cp -u -f bin/targets/*/*/${LEDE_OUTPUT_NAME}-*-sysupgrade.bin ${OUTPUT_DIR}/
-          cd ${OUTPUT_DIR}/
-          for f in *.bin; do
-            mv "$f" "$(echo "$f" | sed -e 's/-squashfs//g' -e 's/-sysupgrade//g')"
-          done
-          echo "status=success" >> $GITHUB_OUTPUT
-
-      - name: Save dl
-        if: ${{ env.TARGET_DEVICE == 'dl' }}
-        id: save_dl
-        uses: actions/cache/save@main
-        with:
-          path: ${{ env.WORKING_DIR }}/dl
-          key: ${{ github.repository_id }}-dl-${{ github.run_id }}
-
-      - name: Upload binaries to release
-        if: ${{ steps.compile.outputs.status == 'success' || steps.download_dl.outputs.status == 'success' }}
-        uses: HiGarfield/action-gh-release@master
+      - uses: HiGarfield/action-gh-release@master
         with:
           tag_name: ${{ env.LEDE_VERSION }}
           files: ${{ env.OUTPUT_DIR }}/*
           overwrite_files: true
 
-  remove_old_releases:
-    name: Remove old releases
-    needs: [ build ]
+      - uses: actions/cache/save@main
+        if: ${{ env.TARGET_DEVICE == 'dl' }}
+        with:
+          path: ${{ env.WORKING_DIR }}/dl
+          key: ${{ github.repository_id }}-dl-${{ github.run_id }}
+
+  cleanup:
+    needs: build
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
-      - uses: HiGarfield/delete-older-releases@master
+      - uses: HiGarfield/delete-release-action@master
         continue-on-error: true
         with:
-          keep_latest: 1
-          delete_tags: true
+          release-drop: true
+          release-keep-count: 0
+          release-drop-tag: true
+          pre-release-drop: true
+          pre-release-keep-count: -1
+          pre-release-drop-tag: true
+          draft-drop: true
+          draft-drop-count: -1
         env:
           GITHUB_TOKEN: ${{ github.token }}
