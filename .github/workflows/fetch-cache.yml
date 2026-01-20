@@ -20,10 +20,18 @@ jobs:
         arch: [ ar71xx, ramips ]
 
     steps:
-      - name: Clone source repo
+      - uses: actions/checkout@main
+        with:
+          fetch-depth: 0
+
+      - name: Prepare source
         run: |
-          git clone --depth=1 -b master https://github.com/${SOURCE_REPO}.git source
-          echo "WORKING_DIR=$PWD/source" >> $GITHUB_ENV
+          if [ -f version ]; then
+            echo "WORKING_DIR=$PWD" >> $GITHUB_ENV
+          else
+            git clone https://github.com/${SOURCE_REPO}.git source
+            echo "WORKING_DIR=$PWD/source" >> $GITHUB_ENV
+          fi
 
       - name: Install minimal build deps
         working-directory: ${{ env.WORKING_DIR }}
