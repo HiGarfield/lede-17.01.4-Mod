@@ -26680,7 +26680,7 @@ Config:
 Source-Makefile: feeds/packages/net/ariang/Makefile
 Package: ariang
 Submenu: Download Manager
-Version: 1.3.9-1
+Version: 1.3.13-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +uhttpd
 Conflicts: 
 Menu-Depends: 
@@ -26690,7 +26690,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for uhttpd webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.3.9.zip
+Source: ariang-1.3.13.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -26701,7 +26701,7 @@ Ansuel Smith <ansuelsmth@gmail.com>
 
 Package: ariang-nginx
 Submenu: Download Manager
-Version: 1.3.9-1
+Version: 1.3.13-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +aria2 +nginx
 Conflicts: 
 Menu-Depends: 
@@ -26711,7 +26711,7 @@ Category: Network
 Repository: base
 Title: AriaNg webui for nginx webserver
 Maintainer: Ansuel Smith <ansuelsmth@gmail.com>
-Source: ariang-1.3.9.zip
+Source: ariang-1.3.13.zip
 License: MIT
 LicenseFiles: LICENSE
 Type: ipkg
@@ -48031,7 +48031,7 @@ Hauke Mehrtens <hauke@hauke-m.de>
 
 Source-Makefile: feeds/packages/utils/irqbalance/Makefile
 Package: irqbalance
-Version: 8e8945e5092caf45605dfb1e66165e2eb9ec1f56-0
+Version: cf763968dc221be2ce36e1dce45b6f9d998b40c6-0
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +BUILD_NLS:libiconv-full +BUILD_NLS:libintl-full
 Conflicts: 
 Menu-Depends: 
@@ -48042,7 +48042,7 @@ Category: Utilities
 Repository: base
 Title: IRQ usage balancing for multi-core systems
 Maintainer: Hannu Nyman <hannu.nyman@iki.fi>
-Source: irqbalance-8e8945e5092caf45605dfb1e66165e2eb9ec1f56.tar.xz
+Source: irqbalance-cf763968dc221be2ce36e1dce45b6f9d998b40c6.tar.xz
 License: GPL-2.0-or-later
 LicenseFiles: COPYING
 Type: ipkg
