@@ -9,8 +9,8 @@ PKG_RELEASE:=$(AUTORELEASE)
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/Irqbalance/irqbalance.git
-PKG_SOURCE_VERSION:=8e8945e5092caf45605dfb1e66165e2eb9ec1f56
-PKG_MIRROR_HASH:=010d2192af04b40495952d37d85f680d79c6faa726a1519b722f2154a62d53be
+PKG_SOURCE_VERSION:=cf763968dc221be2ce36e1dce45b6f9d998b40c6
+PKG_MIRROR_HASH:=c4651a3af51c42e2055420f8dbaf7f58d400b2afc103536f9af94cd5336c9e2e
 
 PKG_MAINTAINER:=Hannu Nyman <hannu.nyman@iki.fi>
 PKG_LICENSE:=GPL-2.0-or-later
@@ -42,6 +42,7 @@ endef
 
 CONFIGURE_ARGS+= \
 	--disable-numa \
+	--enable-thermal=no \
 	--with-libcap_ng=no \
 	--with-systemd=no \
 	--without-irqbalance-ui \
