@@ -1,0 +1,36 @@
+From 9107d765a0b0c93df1bef2bfd2df64adf7e81027 Mon Sep 17 00:00:00 2001
+From: Sebastian Gottschall <s.gottschall@dd-wrt.com>
+Date: Sat, 31 Jan 2026 14:20:43 +0700
+Subject: [PATCH] fix use after free
+
+dns_client_exit does release the server_info members which are accessed
+in dns_server_exit by _dns_server_close_socket
+this leads to a crash at program exit or any other call of
+_smartdns_exiti
+
+Jan 31 08:10:11.005 dd-wrt user.emerg smartdns: process exit with signal 11, code = 1, errno = 0, pid = -1599429336, self = 7199, pc = 0x7fa132a640, addr = 0x7fa0aaa528, build(Jan 31 2026 07:01:24 arm64)
+Jan 31 08:10:11.006 dd-wrt user.emerg smartdns: Stack:
+Jan 31 08:10:11.006 dd-wrt user.emerg smartdns: #01: 0x41a650 print_stack() from /usr/sbin/smartdns+0x1a650
+Jan 31 08:10:11.006 dd-wrt user.emerg smartdns: #02: 0x41a790 () from /usr/sbin/smartdns+0x1a790
+Jan 31 08:10:11.006 dd-wrt user.emerg smartdns: #03: 0x7fa131a964 __setjmp() from /lib/ld-musl-aarch64.so.1+0x4a964
+Jan 31 08:10:11.006 dd-wrt user.emerg smartdns: #04: 0x7fa132a640 () from /lib/ld-musl-aarch64.so.1+0x5a640
+
+Signed-off-by: Sebastian Gottschall <s.gottschall@dd-wrt.com>
+---
+ src/smartdns.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/src/smartdns.c
++++ b/src/smartdns.c
+@@ -670,10 +670,10 @@ static int _smartdns_run(void)
+ static void _smartdns_exit(void)
+ {
+ 	_smartdns_plugin_exit();
+-	dns_client_exit();
+ 	proxy_exit();
+ 	fast_ping_exit();
+ 	dns_server_exit();
++	dns_client_exit();
+ 	dns_stats_exit();
+ 	_smartdns_destroy_ssl();
+ 	dns_timer_destroy();
