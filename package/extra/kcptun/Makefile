@@ -10,7 +10,7 @@ include $(TOPDIR)/rules.mk
 PKG_NAME:=kcptun
 PKG_VERSION:=20230214
 PKG_SOURCE_PROTO:=git
-PKG_SOURCE_URL:=https://github.com/xtaci/kcptun.git
+PKG_SOURCE_URL:=https://github.com/HiGarfield/kcptun.git
 PKG_SOURCE_VERSION:=432e75c76ad7534a486d30ed6ed35051dba0eb53
 PKG_MIRROR_HASH:=97df9670573521c0f0a6b3592440f6dd9a4d82b5bddd2e35cceba4381e40596a
 PKG_RELEASE:=1
