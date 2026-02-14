@@ -1,0 +1,46 @@
+From e6ff4aa09cb325f21875b2710434c36a58e7364c Mon Sep 17 00:00:00 2001
+From: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+Date: Sat, 14 Feb 2026 18:59:10 +0800
+Subject: [PATCH] Fix CRLF parsing in config line tokenizer
+
+---
+ common.cpp | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- a/common.cpp
++++ b/common.cpp
+@@ -995,14 +995,14 @@ vector<string> parse_conf_line(const str
+     vector<string> res;
+     // strcpy(buf,(char *)s.c_str());
+     while (i >= 0) {
+-        if (buf[i] == ' ' || buf[i] == '\t')
++        if (buf[i] == ' ' || buf[i] == '\t' || buf[i] == '\r')
+             buf[i] = 0;
+         else
+             break;
+         i--;
+     }
+     while (*p != 0) {
+-        if (*p == ' ' || *p == '\t') {
++        if (*p == ' ' || *p == '\t' || *p == '\r') {
+             p++;
+         } else
+             break;
+@@ -1016,7 +1016,7 @@ vector<string> parse_conf_line(const str
+     }
+ 
+     for (i = 0; i < new_len; i++) {
+-        if (p[i] == ' ' || p[i] == '\t') {
++        if (p[i] == ' ' || p[i] == '\t' || p[i] == '\r') {
+             break;
+         }
+     }
+@@ -1026,7 +1026,7 @@ vector<string> parse_conf_line(const str
+     }
+ 
+     j = i;
+-    while (p[j] == ' ' || p[j] == '\t')
++    while (p[j] == ' ' || p[j] == '\t' || p[j] == '\r')
+         j++;
+     p[i] = 0;
+     res.push_back(p);

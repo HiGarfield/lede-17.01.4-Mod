@@ -1,3 +1,4 @@
+From 74eab4ab7b9a72dadf10723ae2cc3be0eb5825a3 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Fri, 5 Apr 2024 15:55:14 +0800
 Subject: [PATCH] initialize return value of sendto() in send_raw_packet()

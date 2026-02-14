@@ -1,0 +1,78 @@
+From ab9be1bac4cb3709922c11b39ef90f1cd44d85a6 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sun, 23 Jul 2023 22:56:46 +0800
+Subject: [PATCH] fix compilation warnings
+
+---
+ client.cpp     | 4 ++--
+ common.cpp     | 3 +++
+ common.h       | 4 +++-
+ my_ev_common.h | 2 ++
+ 4 files changed, 10 insertions(+), 3 deletions(-)
+
+--- a/client.cpp
++++ b/client.cpp
+@@ -558,7 +558,7 @@ void async_cb(struct ev_loop *loop, stru
+     if (send_with_pcap && !pcap_header_captured) {
+         int empty = 0;
+         char *p;
+-        int len;
++        int len = 0;
+         pthread_mutex_lock(&queue_mutex);
+         empty = my_queue.empty();
+         if (!empty) {
+@@ -586,7 +586,7 @@ void async_cb(struct ev_loop *loop, stru
+     while (1) {
+         int empty = 0;
+         char *p;
+-        int len;
++        int len = 0;
+         pthread_mutex_lock(&queue_mutex);
+         empty = my_queue.empty();
+         if (!empty) {
+--- a/common.cpp
++++ b/common.cpp
+@@ -281,6 +281,7 @@ int init_ws() {
+ #endif
+ 
+ #if defined(__MINGW32__)
++#if _WIN32_WINNT < 0x0600 // Windows Vista
+ int inet_pton(int af, const char *src, void *dst) {
+     struct sockaddr_storage ss;
+     int size = sizeof(ss);
+@@ -324,6 +325,8 @@ const char *inet_ntop(int af, const void
+     /* cannot direclty use &size because of strict aliasing rules */
+     return (WSAAddressToString((struct sockaddr *)&ss, sizeof(ss), NULL, dst, &s) == 0) ? dst : NULL;
+ }
++#endif
++
+ char *get_sock_error() {
+     static char buf[1000];
+     int e = WSAGetLastError();
+--- a/common.h
++++ b/common.h
+@@ -119,9 +119,11 @@ using namespace std;
+ #endif
+ 
+ #if defined(__MINGW32__)
++#if _WIN32_WINNT < 0x0600 // Windows Vista
+ int inet_pton(int af, const char *src, void *dst);
+ const char *inet_ntop(int af, const void *src, char *dst, socklen_t size);
+-#define setsockopt(a, b, c, d, e) setsockopt(a, b, c, (const char *)(d), e)
++#endif
++#define setsockopt(a, b, c, d, e) setsockopt((a), (b), (c), (const char *)(d), (e))
+ #endif
+ 
+ char *get_sock_error();
+--- a/my_ev_common.h
++++ b/my_ev_common.h
+@@ -13,7 +13,9 @@
+ #define EV_FD_TO_WIN32_HANDLE(fd) (fd)
+ #define EV_WIN32_HANDLE_TO_FD(handle) (handle)
+ #define EV_WIN32_CLOSE_FD(fd) closesocket(fd)
++#ifndef FD_SETSIZE
+ #define FD_SETSIZE 4096
++#endif
+ 
+ #endif
+ //#define EV_VERIFY 2

@@ -1,0 +1,20 @@
+From eaeaaa7fec9f41d5d7ad1e5e45ab7d4917448497 Mon Sep 17 00:00:00 2001
+From: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+Date: Sat, 14 Feb 2026 19:20:27 +0800
+Subject: [PATCH] Stop registering impossible SIGKILL handler
+
+---
+ main.cpp | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/main.cpp
++++ b/main.cpp
+@@ -59,7 +59,7 @@ int main(int argc, char *argv[]) {
+ #ifdef UDP2RAW_LINUX
+         signal(SIGINT, signal_handler);
+         signal(SIGHUP, signal_handler);
+-        signal(SIGKILL, signal_handler);
++        // SIGKILL cannot be caught or ignored, so do not register a handler for it.
+         signal(SIGTERM, signal_handler);
+         signal(SIGQUIT, signal_handler);
+ #else

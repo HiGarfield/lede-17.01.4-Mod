@@ -1,0 +1,64 @@
+From 7c2b76de8c8cf9614dc3df082f0d6057e385792e Mon Sep 17 00:00:00 2001
+From: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+Date: Sat, 14 Feb 2026 21:10:23 +0800
+Subject: [PATCH] Improve error handling in the conv_manager_t template
+
+---
+ connection.h | 34 +++++++++++++++++++++++++++++-----
+ 1 file changed, 29 insertions(+), 5 deletions(-)
+
+--- a/connection.h
++++ b/connection.h
+@@ -98,10 +98,20 @@ struct conv_manager_t  // manage the udp
+         return data_to_conv.find(data) != data_to_conv.end();
+     }
+     u32_t find_conv_by_data(T data) {
+-        return data_to_conv[data];
++        typename unordered_map<T, u32_t>::iterator it = data_to_conv.find(data);
++        if (it == data_to_conv.end()) {
++            mylog(log_error, "find_conv_by_data failed, data not found\n");
++            return 0;
++        }
++        return it->second;
+     }
+     T find_data_by_conv(u32_t conv) {
+-        return conv_to_data[conv];
++        typename unordered_map<u32_t, T>::iterator it = conv_to_data.find(conv);
++        if (it == conv_to_data.end()) {
++            mylog(log_error, "find_data_by_conv failed, conv=%x not found\n", conv);
++            return T();
++        }
++        return it->second;
+     }
+     int update_active_time(u32_t conv) {
+         // return conv_last_active_time[conv]=get_current_time();
+@@ -117,12 +127,26 @@ struct conv_manager_t  // manage the udp
+     }
+     int erase_conv(u32_t conv) {
+         if (disable_conv_clear) return 0;
+-        T data = conv_to_data[conv];
++
++        typename unordered_map<u32_t, T>::iterator conv_it = conv_to_data.find(conv);
++        if (conv_it == conv_to_data.end()) {
++            mylog(log_warn, "erase_conv ignored, conv=%x not found\n", conv);
++            return -1;
++        }
++        T data = conv_it->second;
++
++        typename unordered_map<T, u32_t>::iterator data_it = data_to_conv.find(data);
++        if (data_it == data_to_conv.end()) {
++            mylog(log_warn, "erase_conv warning, data_to_conv entry missing for conv=%x\n", conv);
++        }
++
+         if (additional_clear_function != 0) {
+             additional_clear_function(data);
+         }
+-        conv_to_data.erase(conv);
+-        data_to_conv.erase(data);
++        conv_to_data.erase(conv_it);
++        if (data_it != data_to_conv.end()) {
++            data_to_conv.erase(data_it);
++        }
+         // conv_last_active_time.erase(conv);
+         lru.erase(conv);
+         return 0;

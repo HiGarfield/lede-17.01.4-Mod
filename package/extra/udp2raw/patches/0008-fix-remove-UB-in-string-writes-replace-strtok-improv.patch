@@ -1,0 +1,113 @@
+From f775ee713c5948b59e3b93911637c24cbcce16d3 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 14 Feb 2026 13:36:55 +0800
+Subject: [PATCH] fix: remove UB in string writes, replace strtok, improve read
+ loop
+
+- stop modifying memory returned by string::c_str()
+- replace strtok with non-mutating split implementation
+- read_file now loops until EOF and retries on EINTR
+- ensure fd is closed on every error path
+- remove fixed buffer limit
+---
+ common.cpp | 70 ++++++++++++++++++++++++++++--------------------------
+ 1 file changed, 36 insertions(+), 34 deletions(-)
+
+--- a/common.cpp
++++ b/common.cpp
+@@ -806,59 +806,61 @@ void myexit(int a) {
+ 
+ vector<string> string_to_vec(const char *s, const char *sp) {
+     vector<string> res;
+-    string str = s;
+-    char *p = strtok((char *)str.c_str(), sp);
+-    while (p != NULL) {
+-        res.push_back(p);
+-        // printf ("%s\n",p);
+-        p = strtok(NULL, sp);
++    if (!s || !sp) return res;
++    string str(s);
++    size_t start = 0;
++    while (true) {
++        size_t pos = str.find_first_of(sp, start);
++        if (pos == string::npos) {
++            if (start < str.size())
++                res.push_back(str.substr(start));
++            break;
++        }
++        if (pos > start)
++            res.push_back(str.substr(start, pos - start));
++        start = pos + 1;
+     }
+-
+-    /* for(int i=0;i<(int)res.size();i++)
+-     {
+-             printf("<<%s>>\n",res[i].c_str());
+-     }*/
+     return res;
+ }
+ 
+ vector<vector<string> > string_to_vec2(const char *s) {
+     vector<vector<string> > res;
+     vector<string> lines = string_to_vec(s, "\n");
+-    for (int i = 0; i < int(lines.size()); i++) {
+-        vector<string> tmp;
+-        tmp = string_to_vec(lines[i].c_str(), "\t ");
+-        res.push_back(tmp);
++    for (size_t i = 0; i < lines.size(); i++) {
++        res.push_back(string_to_vec(lines[i].c_str(), "\t "));
+     }
+     return res;
+ }
++
+ int read_file(const char *file, string &output) {
+-    const int max_len = 3 * 1024 * 1024;
+-    // static char buf[max_len+100];
+-    string buf0;
+-    buf0.reserve(max_len + 200);
+-    char *buf = (char *)buf0.c_str();
+-    buf[max_len] = 0;
+-    // buf[sizeof(buf)-1]=0;
++    const size_t chunk = 4 * 1024;
++    char buf[chunk];
+     int fd = open(file, O_RDONLY);
+     if (fd == -1) {
+         mylog(log_error, "read_file %s fail\n", file);
+         return -1;
+     }
+-    int len = read(fd, buf, max_len);
+-    if (len == max_len) {
+-        buf[0] = 0;
+-        mylog(log_error, "%s too long,buf not large enough\n", file);
+-        return -2;
+-    } else if (len < 0) {
+-        buf[0] = 0;
+-        mylog(log_error, "%s read fail %d\n", file, len);
+-        return -3;
+-    } else {
+-        buf[len] = 0;
+-        output = buf;
++    output.clear();
++    while (true) {
++        int len;
++        do {
++            len = read(fd, buf, chunk);
++        } while (len < 0 && errno == EINTR);
++        if (len < 0) {
++            mylog(log_error, "%s read fail %d\n", file, len);
++            close(fd);
++            output.clear();
++            return -2;
++        }
++        if (len == 0) {  // EOF
++            break;
++        }
++        output.append(buf, len);
+     }
++    close(fd);
+     return 0;
+ }
++
+ int run_command(string command0, char *&output, int flag) {
+     if (is_udp2raw_mp) {
+         mylog(log_fatal, "run_command not supported in this version\n");

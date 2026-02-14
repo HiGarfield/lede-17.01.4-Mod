@@ -1,0 +1,39 @@
+From 10e14a055ff5698389a320fd38adedaa0c8a3403 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 14 Feb 2026 17:29:00 +0800
+Subject: [PATCH] Fix interface name buffer overflow in auto device detection
+
+---
+ client.cpp | 14 ++++++++++++--
+ 1 file changed, 12 insertions(+), 2 deletions(-)
+
+--- a/client.cpp
++++ b/client.cpp
+@@ -752,7 +752,12 @@ int client_event_loop() {
+                         if (a->addr->sa_family == raw_ip_version) {
+                             if (((struct sockaddr_in *)a->addr)->sin_addr.s_addr == tmp_addr.inner.ipv4.sin_addr.s_addr) {
+                                 found++;
+-                                strcpy(dev, d->name);
++                                if (snprintf(dev, sizeof(dev), "%s", d->name) >= int(sizeof(dev))) {
++                                    mylog(log_fatal, "device name is too long (exceeds %d chars): %s\n", int(sizeof(dev)) - 1, d->name);
++                                    mylog(log_fatal, "please specify the device manually using --dev option\n");
++                                    pcap_freealldevs(interfaces);
++                                    myexit(-1);
++                                }
+                             }
+                         }
+                     } else {
+@@ -765,7 +770,12 @@ int client_event_loop() {
+                         if (a->addr->sa_family == raw_ip_version) {
+                             if (memcmp(&((struct sockaddr_in6 *)a->addr)->sin6_addr, &tmp_addr.inner.ipv6.sin6_addr, sizeof(struct in6_addr)) == 0) {
+                                 found++;
+-                                strcpy(dev, d->name);
++                                if (snprintf(dev, sizeof(dev), "%s", d->name) >= int(sizeof(dev))) {
++                                    mylog(log_fatal, "device name is too long (exceeds %d chars): %s\n", int(sizeof(dev)) - 1, d->name);
++                                    mylog(log_fatal, "please specify the device manually using --dev option\n");
++                                    pcap_freealldevs(interfaces);
++                                    myexit(-1);
++                                }
+                             }
+                         }
+                     }

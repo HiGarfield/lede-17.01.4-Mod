@@ -1,0 +1,53 @@
+From b802b0c98b2a992501a9667ac67986ab8ed64b45 Mon Sep 17 00:00:00 2001
+From: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+Date: Sat, 14 Feb 2026 16:54:16 +0800
+Subject: [PATCH] Fix short-packet bounds checks in parsing paths
+
+---
+ connection.cpp | 16 ++++++++++++++++
+ 1 file changed, 16 insertions(+)
+
+--- a/connection.cpp
++++ b/connection.cpp
+@@ -318,11 +318,16 @@ int send_bare(raw_info_t &raw_info, cons
+ int reserved_parse_bare(const char *input, int input_len, char *&data, int &len)  // a sub function used in recv_bare
+ {
+     static char recv_data_buf[buf_len];
++    const int bare_header_len = sizeof(iv_t) + sizeof(padding_t) + 1;
+ 
+     if (input_len < 0) {
+         mylog(log_debug, "input_len <0\n");
+         return -1;
+     }
++    if (input_len < bare_header_len) {
++        mylog(log_debug, "input_len %d is too short for bare header\n", input_len);
++        return -1;
++    }
+     if (my_decrypt(input, recv_data_buf, input_len) != 0) {
+         mylog(log_debug, "decrypt_fail in recv bare\n");
+         return -1;
+@@ -464,6 +469,12 @@ int send_data_safer(conn_info_t &conn_in
+ int reserved_parse_safer(conn_info_t &conn_info, const char *input, int input_len, char &type, char *&data, int &len)  // subfunction for recv_safer,allow overlap
+ {
+     static char recv_data_buf[buf_len];
++    const int safer_header_len = sizeof(anti_replay_seq_t) + sizeof(my_id_t) * 2 + 2;
++
++    if (input_len < safer_header_len) {
++        mylog(log_debug, "input_len %d is too short for safer header\n", input_len);
++        return -1;
++    }
+ 
+     // char *recv_data_buf=recv_data_buf0; //fix strict alias warning
+     if (my_decrypt(input, recv_data_buf, input_len) != 0) {
+@@ -501,6 +512,11 @@ int reserved_parse_safer(conn_info_t &co
+     data = recv_data_buf + sizeof(anti_replay_seq_t) + sizeof(my_id_t) * 2;
+     len = input_len - (sizeof(anti_replay_seq_t) + sizeof(my_id_t) * 2);
+ 
++    if (len < 2) {
++        mylog(log_debug, "safer payload len %d is too short\n", len);
++        return -1;
++    }
++
+     if (data[0] != 'h' && data[0] != 'd') {
+         mylog(log_debug, "first byte is not h or d  ,%x\n", data[0]);
+         return -1;

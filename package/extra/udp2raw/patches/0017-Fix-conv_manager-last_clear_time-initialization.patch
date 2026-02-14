@@ -1,0 +1,22 @@
+From 91ddb5a2fba5e69b632a37e41f388f1f89b87f25 Mon Sep 17 00:00:00 2001
+From: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+Date: Sat, 14 Feb 2026 20:20:10 +0800
+Subject: [PATCH] Fix conv_manager last_clear_time initialization
+
+---
+ connection.h | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+--- a/connection.h
++++ b/connection.h
+@@ -50,9 +50,8 @@ struct conv_manager_t  // manage the udp
+ 
+     long long last_clear_time;
+ 
+-    conv_manager_t() {
++    conv_manager_t() : last_clear_time(0) {
+         // clear_it=conv_last_active_time.begin();
+-        long long last_clear_time = 0;
+         additional_clear_function = 0;
+     }
+     ~conv_manager_t() {

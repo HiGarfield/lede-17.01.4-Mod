@@ -1,0 +1,81 @@
+From 77972008ae6fe203529c577f28ab3b6f7add1a76 Mon Sep 17 00:00:00 2001
+From: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+Date: Sat, 14 Feb 2026 15:58:17 +0800
+Subject: [PATCH] Fix run_command output length handling and exit-status checks
+
+---
+ common.cpp | 42 +++++++++++++++++++++++++++---------------
+ 1 file changed, 27 insertions(+), 15 deletions(-)
+
+--- a/common.cpp
++++ b/common.cpp
+@@ -866,6 +866,7 @@ int run_command(string command0, char *&
+         mylog(log_fatal, "run_command not supported in this version\n");
+         myexit(-1);
+     }
++    int result = 0;  // Track return value
+ #ifdef UDP2RAW_LINUX
+     FILE *in;
+ 
+@@ -887,32 +888,43 @@ int run_command(string command0, char *&
+         return -1;
+     }
+ 
+-    int len = fread(buf, 1024 * 1024, 1, in);
++    size_t len = fread(buf, 1, 1024 * 1024, in);
++
+     if (len == 1024 * 1024) {
+         buf[0] = 0;
+         mylog(level, "too long,buf not larger enough\n");
+-        return -2;
++        result = -2;
+     } else {
+         buf[len] = 0;
+-    }
+-    int ret;
+-    if ((ret = ferror(in))) {
+-        mylog(level, "command %s fread failed,ferror return value %d \n", command, ret);
+-        return -3;
+-    }
+-    // if(output!=0)
+-    output = buf;
+-    ret = pclose(in);
+-
+-    int ret2 = WEXITSTATUS(ret);
+-
+-    if (ret != 0 || ret2 != 0) {
+-        mylog(level, "commnad %s ,pclose returned %d ,WEXITSTATUS %d,errnor :%s \n", command, ret, ret2, strerror(errno));
+-        return -4;
++
++        int ret;
++        if ((ret = ferror(in))) {
++            mylog(level, "command %s fread failed,ferror return value %d \n", command, ret);
++            result = -3;
++        } else {
++            // if(output!=0)
++            output = buf;
++        }
++    }
++
++    // Always close the pipe
++    int ret = pclose(in);
++
++    // Only check exit status if no previous error
++    if (result == 0) {
++        int ret2 = -1;
++        if (ret != -1 && WIFEXITED(ret)) {
++            ret2 = WEXITSTATUS(ret);
++        }
++
++        if (ret == -1 || ret2 != 0) {
++            mylog(level, "command %s ,pclose returned %d ,WEXITSTATUS %d,errno :%s \n", command, ret, ret2, strerror(errno));
++            result = -4;
++        }
+     }
+ 
+ #endif
+-    return 0;
++    return result;
+ }
+ /*
+ int run_command_no_log(string command0,char * &output) {

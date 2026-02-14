@@ -1,8 +1,15 @@
+From ae257f73d6db036c9df2fb88871e98c6ae46f0b0 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Sun, 23 Jul 2023 22:31:10 +0800
 Subject: [PATCH] use getaddrinfo() to parse address
 
 simplify implementation and support hostname as address
+
+Note: do not use static linking in compilation after this commit,
+since getaddrinfo() causes problems with static linking.
+Ref:
+[1] https://stackoverflow.com/questions/2725255/create-statically-linked-binary-that-uses-getaddrinfo
+[2] https://www.linuxquestions.org/questions/programming-9/glibc-warning-concerning-use-of-getaddrinfo-in-static-library-734169
 ---
  common.cpp | 97 ++++++++++++++----------------------------------------
  common.h   |  2 ++

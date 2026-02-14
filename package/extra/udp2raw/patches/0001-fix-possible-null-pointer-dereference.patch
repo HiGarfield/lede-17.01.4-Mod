@@ -1,3 +1,4 @@
+From afe4ba8a2599eda1ac4809875a7b05010f7b1dcd Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Sun, 8 Oct 2023 11:34:17 +0800
 Subject: [PATCH] fix possible null pointer dereference
