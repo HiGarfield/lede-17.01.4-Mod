@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   workflow_dispatch:
 
 permissions:
@@ -52,14 +52,59 @@ jobs:
           make_latest: true
 
   build:
-    needs: [ create_release ]
+    needs: [create_release]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
     strategy:
       max-parallel: 20
       matrix:
-        target: [ dl, hw24g, csac, wr1200js, a3004ns, link7, domywifi-dw33d, rg-nbr700gw, treebear-x1, ghl-r-001, yyets-le2, hq55, newifi-d1, newifi-d2, tl-wdr4310-v1, tl-wdr7500-v3, tl-wr841-v9, tl-wr885n-v1, tl-wr941nd-v6-cn, tl-wr941n-v7, domywifi-dw22d-v1, domywifi-dw22d-v2, mw450r-v3, tl-wr841-v8, tl-wr841-v8-cn, tl-wr941nd-v6, tl-wr842n-v2, tl-wr842n-v2-cn, tl-wr941nd-v2, tl-wr740n-v3, tl-wr740n-v4, tl-wr841-v3, tl-wr841-v5, tl-wr841-v7, tl-wr842n-v3, tl-wr1041n-v2, phicomm-k2t, y1s, 5k-w20, hd51-n, youku-yk1, miwifi-mini, hc5661 ]
+        target:
+          [
+            dl,
+            hw24g,
+            csac,
+            wr1200js,
+            a3004ns,
+            link7,
+            domywifi-dw33d,
+            rg-nbr700gw,
+            treebear-x1,
+            ghl-r-001,
+            yyets-le2,
+            hq55,
+            newifi-d1,
+            newifi-d2,
+            tl-wdr4310-v1,
+            tl-wdr7500-v3,
+            tl-wr841-v9,
+            tl-wr885n-v1,
+            tl-wr941nd-v6-cn,
+            tl-wr941n-v7,
+            domywifi-dw22d-v1,
+            domywifi-dw22d-v2,
+            mw450r-v3,
+            tl-wr841-v8,
+            tl-wr841-v8-cn,
+            tl-wr941nd-v6,
+            tl-wr842n-v2,
+            tl-wr842n-v2-cn,
+            tl-wr941nd-v2,
+            tl-wr740n-v3,
+            tl-wr740n-v4,
+            tl-wr841-v3,
+            tl-wr841-v5,
+            tl-wr841-v7,
+            tl-wr842n-v3,
+            tl-wr1041n-v2,
+            phicomm-k2t,
+            y1s,
+            5k-w20,
+            hd51-n,
+            youku-yk1,
+            miwifi-mini,
+            hc5661,
+          ]
 
     env:
       TARGET_DEVICE: ${{ matrix.target }}
