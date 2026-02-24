@@ -36,18 +36,19 @@ load_sfe() {
 	[ "$enabled" -eq 1 ] || return
 	[ -d "/sys/kernel/debug/ecm" ] && return
 
-	load_sfe_cm
+	load_sfe_cm || return
 
 	grep -qw "^fast_classifier" /proc/modules && {
 		echo "$bridge" >/sys/fast_classifier/skip_to_bridge_ingress
 		echo "$offload_at_pkts" >/sys/fast_classifier/offload_at_pkts
 	}
-
-	ipv4_dev_num=$(cat /sys/sfe_ipv4/debug_dev)
+	[ -r /sys/sfe_ipv4/debug_dev ] &&
+		ipv4_dev_num=$(cat /sys/sfe_ipv4/debug_dev)
 	[ -n "$ipv4_dev_num" ] &&
 		mknod /dev/sfe_ipv4 c "$ipv4_dev_num" 0
 
-	ipv6_dev_num=$(cat /sys/sfe_ipv6/debug_dev)
+	[ -r /sys/sfe_ipv6/debug_dev ] &&
+		ipv6_dev_num=$(cat /sys/sfe_ipv6/debug_dev)
 	[ -n "$ipv6_dev_num" ] &&
 		mknod /dev/sfe_ipv6 c "$ipv6_dev_num" 0
 }
@@ -61,5 +62,6 @@ stop() {
 }
 
 restart() {
+	stop
 	start
 }
