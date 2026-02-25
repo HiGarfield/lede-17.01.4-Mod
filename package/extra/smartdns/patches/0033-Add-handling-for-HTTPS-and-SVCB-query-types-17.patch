@@ -1,0 +1,38 @@
+From 37b86911141dbd294cf70d91bfcf7c119d326933 Mon Sep 17 00:00:00 2001
+From: xiaobaishu1 <au-ychen@foxmail.com>
+Date: Sun, 22 Feb 2026 21:45:59 +0800
+Subject: [PATCH] Add handling for HTTPS and SVCB query types (#17)
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+根据RFC 9460 和 RFC 2308
+HTTPS/SVCB NODATA 不应该阻止。
+仅在明确配置为 ADDR_HTTPS_SOA 时才标记为已阻止。
+---
+ src/dns_server.c | 14 ++++++++++++++
+ 1 file changed, 14 insertions(+)
+
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -3143,6 +3143,20 @@ int dns_server_request_is_blocked(struct
+ 		return 0;
+ 	}
+ 
++	if (request->qtype == DNS_T_HTTPS || request->qtype == DNS_T_SVCB) {
++		struct dns_rule_flags *rule_flag = NULL;
++		unsigned int flags = 0;
++
++		rule_flag = _dns_server_get_dns_rule(request, DOMAIN_RULE_FLAGS);
++		if (rule_flag != NULL) {
++			flags = rule_flag->flags;
++		}
++		if (flags & DOMAIN_FLAG_ADDR_HTTPS_SOA) {
++			return 1;
++		}
++		return 0;
++	}
++
+ 	return _dns_server_is_return_soa(request);
+ }
+ 
