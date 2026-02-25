@@ -1,30 +1,33 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=cpulimit
-PKG_RELEASE:=1
 
 PKG_SOURCE_PROTO:=git
 PKG_SOURCE_URL:=https://github.com/HiGarfield/cpulimit.git
-PKG_SOURCE_VERSION:=19f2d9a8cae23395add96ed06be44e57c942d51a
-PKG_MIRROR_HASH:=f809c172c72f01b6e3d01ba9d12dd6a95a38d1fd13a1002257a38c3b47680d40
+PKG_SOURCE_VERSION:=9d2ed9d9a8a91d8774fd185e2c6eb4c50ae53731
+PKG_MIRROR_HASH:=537ab39abe113cf6ab3c9e7a72c6b69a4410356b2543744256343135db2539c3
+PKG_VERSION:=$(PKG_SOURCE_VERSION)
+PKG_RELEASE:=1
 
 include $(INCLUDE_DIR)/package.mk
+include $(INCLUDE_DIR)/cmake.mk
 
 define Package/cpulimit
+  SECTION:=utils
   CATEGORY:=Utilities
-  TITLE:=cpulimit
+  TITLE:=CPU usage limiter
   URL:=https://github.com/HiGarfield/cpulimit.git
-  DEPENDS:= +librt
+  DEPENDS:=+librt
 endef
 
-MAKE_PATH:=src
-MAKE_VARS += UNAME="Linux"
-TARGET_CFLAGS += -ffunction-sections -fdata-sections -flto
-TARGET_LDFLAGS += -Wl,--gc-sections,--as-needed -flto
+CMAKE_OPTIONS += \
+	-DCPULIMIT_BUILD_TESTS=OFF
 
 define Package/cpulimit/install
 	$(INSTALL_DIR) $(1)/usr/bin
-	$(INSTALL_BIN) $(PKG_BUILD_DIR)/$(MAKE_PATH)/cpulimit $(1)/usr/bin
+	$(INSTALL_BIN) \
+		$(PKG_INSTALL_DIR)/usr/bin/cpulimit \
+		$(1)/usr/bin/
 endef
 
 $(eval $(call BuildPackage,cpulimit))
