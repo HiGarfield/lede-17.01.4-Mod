@@ -1,29 +1,26 @@
 msgid "Cpulimit"
 msgstr "CPU 使用率限制"
 
-msgid "Use cpulimit to limit CPU usage of a process"
-msgstr "利用 cpulimit 限制进程的 CPU 使用率"
+msgid "Limit CPU usage of selected processes"
+msgstr "限制选定进程的 CPU 使用率"
 
 msgid "Settings"
 msgstr "设置"
 
-msgid "enable"
+msgid "Enable"
 msgstr "启用"
 
-msgid "exename"
-msgstr "应用程序名"
-
-msgid "executable file name"
+msgid "Executable name"
 msgstr "可执行文件名"
 
-msgid "limit (%)"
+msgid "Limit (%)"
 msgstr "使用率限制 (%)"
 
 msgid "percentage of a single core (0-%d)"
-msgstr "占CPU单个核心的百分比 (0-%d)"
+msgstr "单个核心的百分比 (0-%d)"
 
-msgid "include children"
+msgid "Include children"
 msgstr "包含子进程"
 
-msgid "also limit child processes"
+msgid "Also limit child processes"
 msgstr "同时限制子进程"
