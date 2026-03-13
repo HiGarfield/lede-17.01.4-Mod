@@ -5,7 +5,7 @@ USE_PROCD=1
 
 cpulimit_get() {
 	local cfg="$1"
-	local enabled limit exename maxpercentage include_children
+	local enabled limit exename max_percentage include_children
 
 	config_get_bool enabled "$cfg" enabled 0
 	[ "$enabled" -eq 1 ] || return 1
@@ -16,13 +16,12 @@ cpulimit_get() {
 	config_get exename "$cfg" exename
 	[ -z "$exename" ] && return 1
 	exename="$(basename "$exename")"
-
-	maxpercentage="$(cpulimit -h | sed -n 's/.*--limit=.*from 0 to \([0-9]*\).*/\1/p')"
-	[ "$limit" -gt 0 ] && [ "$limit" -le "$maxpercentage" ] || return 1
+	max_percentage=$(($(grep -c '^cpu[0-9]\+' /proc/stat) * 100))
+	[ "$limit" -gt 0 ] && [ "$limit" -le "$max_percentage" ] || return 1
 
 	config_get_bool include_children "$cfg" include_children 0
 
-	procd_open_instance
+	procd_open_instance "$cfg"
 	procd_set_param command cpulimit
 	procd_append_param command -l "$limit"
 	procd_append_param command -e "$exename"
