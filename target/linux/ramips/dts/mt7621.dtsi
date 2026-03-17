@@ -357,7 +357,7 @@
 		status = "disabled";
 
 		compatible = "ralink,mt7620-sdhci";
-		reg = <0x1e130000 0x4000>;
+		reg = <0x1e130000 0x8000>;
 
 		interrupt-parent = <&gic>;
 		interrupts = <GIC_SHARED 20 IRQ_TYPE_LEVEL_HIGH>;
@@ -400,7 +400,7 @@
 
 	gic: interrupt-controller@1fbc0000 {
 		compatible = "mti,gic";
-		reg = <0x1fbc0000 0x2000>;
+		reg = <0x1fbc0000 0x20000>;
 
 		interrupt-controller;
 		#interrupt-cells = <3>;
@@ -437,7 +437,7 @@
 
 	ethernet: ethernet@1e100000 {
 		compatible = "mediatek,mt7621-eth";
-		reg = <0x1e100000 0x10000>;
+		reg = <0x1e100000 0xe000>;
 
 		#address-cells = <1>;
 		#size-cells = <1>;
