@@ -27,10 +27,8 @@ jobs:
           repository: ${{ secrets.SECOND_REPO }}
           event-type: ${{ github.event.head_commit.message }}
 
-  create_release:
+  get_version:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     outputs:
       lede_version: ${{ steps.version.outputs.lede_version }}
     steps:
@@ -46,16 +44,9 @@ jobs:
           fi
           echo "lede_version=$v" >> $GITHUB_OUTPUT
 
-      - uses: HiGarfield/action-gh-release@master
-        with:
-          tag_name: ${{ steps.version.outputs.lede_version }}
-          make_latest: true
-
   build:
-    needs: [create_release]
+    needs: [get_version]
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     strategy:
       max-parallel: 20
       matrix:
@@ -108,7 +99,7 @@ jobs:
 
     env:
       TARGET_DEVICE: ${{ matrix.target }}
-      LEDE_VERSION: ${{ needs.create_release.outputs.lede_version }}
+      LEDE_VERSION: ${{ needs.get_version.outputs.lede_version }}
 
     steps:
       - uses: actions/checkout@main
@@ -194,11 +185,10 @@ jobs:
             zip -j ${OUTPUT_DIR}/${OUTPUT_NAME}.zip dl/*
           fi
 
-      - uses: HiGarfield/action-gh-release@master
+      - uses: actions/upload-artifact@main
         with:
-          tag_name: ${{ env.LEDE_VERSION }}
-          files: ${{ env.OUTPUT_DIR }}/*
-          overwrite_files: true
+          name: ${{ env.OUTPUT_NAME }}
+          path: ${{ env.OUTPUT_DIR }}/*
 
       - uses: actions/cache/save@main
         if: ${{ env.TARGET_DEVICE == 'dl' }}
@@ -206,8 +196,27 @@ jobs:
           path: ${{ env.WORKING_DIR }}/dl
           key: ${{ github.repository_id }}-dl-${{ github.run_id }}
 
+  upload_release:
+    needs: [get_version, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    env:
+      LEDE_VERSION: ${{ needs.get_version.outputs.lede_version }}
+    steps:
+      - uses: actions/download-artifact@main
+        with:
+          path: ./artifacts
+          merge-multiple: true
+
+      - uses: HiGarfield/action-gh-release@master
+        with:
+          tag_name: ${{ env.LEDE_VERSION }}
+          files: ./artifacts/*
+          make_latest: true
+
   cleanup:
-    needs: build
+    needs: [upload_release]
     runs-on: ubuntu-24.04
     permissions:
       contents: write
