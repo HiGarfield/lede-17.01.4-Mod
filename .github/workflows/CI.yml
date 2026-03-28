@@ -197,6 +197,8 @@ jobs:
         with:
           name: ${{ env.OUTPUT_NAME }}
           path: ${{ env.OUTPUT_DIR }}/*
+          retention-days: 1
+          if-no-files-found: error
 
       - uses: actions/cache/save@main
         if: ${{ env.TARGET_DEVICE == 'dl' }}
