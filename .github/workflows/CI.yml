@@ -178,6 +178,7 @@ jobs:
           tag_name: ${{ needs.generate_matrix.outputs.lede_version }}
           files: artifacts/*
           make_latest: true
+          overwrite_files: true
 
   cleanup:
     needs: create_release
