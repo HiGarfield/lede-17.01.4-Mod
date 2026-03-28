@@ -27,88 +27,45 @@ jobs:
           repository: ${{ secrets.SECOND_REPO }}
           event-type: ${{ github.event.head_commit.message }}
 
-  create_release:
+  generate_matrix:
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     outputs:
-      lede_version: ${{ steps.version.outputs.lede_version }}
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      lede_version: ${{ steps.set-matrix.outputs.lede_version }}
     steps:
       - uses: actions/checkout@main
 
-      - id: version
+      - id: set-matrix
         run: |
           if [ -f version ]; then
+            conf_dir=conf
             v=$(cat version)
           else
             git clone https://github.com/${SOURCE_REPO}.git source
+            conf_dir=source/conf
             v=$(cat source/version)
           fi
           echo "lede_version=$v" >> $GITHUB_OUTPUT
-
-      - uses: HiGarfield/action-gh-release@master
-        with:
-          tag_name: ${{ steps.version.outputs.lede_version }}
-          make_latest: true
+          config_files=$(ls $conf_dir/.config.* 2>/dev/null)
+          if [ -z "$config_files" ]; then
+            echo "Error: no .config.* files found in $conf_dir" >&2
+            exit 1
+          fi
+          device_targets=$(echo "$config_files" | sed 's|.*/\.config\.||' | sort)
+          targets=$(echo "$device_targets" | jq -R . | jq -sc '["dl"] + .')
+          echo "matrix=$targets" >> $GITHUB_OUTPUT
 
   build:
-    needs: [create_release]
+    needs: [generate_matrix]
     runs-on: ubuntu-24.04
-    permissions:
-      contents: write
     strategy:
       max-parallel: 20
       matrix:
-        target:
-          [
-            dl,
-            hw24g,
-            csac,
-            wr1200js,
-            a3004ns,
-            link7,
-            domywifi-dw33d,
-            rg-nbr700gw,
-            treebear-x1,
-            ghl-r-001,
-            yyets-le2,
-            hq55,
-            newifi-d1,
-            newifi-d2,
-            tl-wdr4310-v1,
-            tl-wdr7500-v3,
-            tl-wr841-v9,
-            tl-wr885n-v1,
-            tl-wr941nd-v6-cn,
-            tl-wr941n-v7,
-            domywifi-dw22d-v1,
-            domywifi-dw22d-v2,
-            mw450r-v3,
-            tl-wr841-v8,
-            tl-wr841-v8-cn,
-            tl-wr941nd-v6,
-            tl-wr842n-v2,
-            tl-wr842n-v2-cn,
-            tl-wr941nd-v2,
-            tl-wr740n-v3,
-            tl-wr740n-v4,
-            tl-wr841-v3,
-            tl-wr841-v5,
-            tl-wr841-v7,
-            tl-wr842n-v3,
-            tl-wr1041n-v2,
-            phicomm-k2t,
-            y1s,
-            5k-w20,
-            hd51-n,
-            youku-yk1,
-            miwifi-mini,
-            hc5661,
-          ]
+        target: ${{ fromJson(needs.generate_matrix.outputs.matrix) }}
 
     env:
       TARGET_DEVICE: ${{ matrix.target }}
-      LEDE_VERSION: ${{ needs.create_release.outputs.lede_version }}
+      LEDE_VERSION: ${{ needs.generate_matrix.outputs.lede_version }}
 
     steps:
       - uses: actions/checkout@main
@@ -194,11 +151,10 @@ jobs:
             zip -j ${OUTPUT_DIR}/${OUTPUT_NAME}.zip dl/*
           fi
 
-      - uses: HiGarfield/action-gh-release@master
+      - uses: actions/upload-artifact@main
         with:
-          tag_name: ${{ env.LEDE_VERSION }}
-          files: ${{ env.OUTPUT_DIR }}/*
-          overwrite_files: true
+          name: ${{ env.OUTPUT_NAME }}
+          path: ${{ env.OUTPUT_DIR }}/*
 
       - uses: actions/cache/save@main
         if: ${{ env.TARGET_DEVICE == 'dl' }}
@@ -206,8 +162,26 @@ jobs:
           path: ${{ env.WORKING_DIR }}/dl
           key: ${{ github.repository_id }}-dl-${{ github.run_id }}
 
+  create_release:
+    needs: [generate_matrix, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@main
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - uses: HiGarfield/action-gh-release@master
+        with:
+          tag_name: ${{ needs.generate_matrix.outputs.lede_version }}
+          files: artifacts/*
+          make_latest: true
+          overwrite_files: true
+
   cleanup:
-    needs: build
+    needs: create_release
     runs-on: ubuntu-24.04
     permissions:
       contents: write
