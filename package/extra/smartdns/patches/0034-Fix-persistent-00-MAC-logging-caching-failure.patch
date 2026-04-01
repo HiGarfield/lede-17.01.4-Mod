@@ -1,0 +1,106 @@
+From b40ca05553fc89ff9c18b478b753c9007dd6e0d2 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 2 Apr 2026 00:40:08 +0800
+Subject: [PATCH 1/2] Fix persistent 00-MAC logging caching failure
+
+---
+ src/dns_server.c | 26 +++++++++++++++++++++++---
+ src/util.c       | 12 ++++++++++--
+ src/util.h       |  2 +-
+ 3 files changed, 34 insertions(+), 6 deletions(-)
+
+--- a/src/dns_server.c
++++ b/src/dns_server.c
+@@ -79,9 +79,9 @@
+ #define CACHE_AUTO_ENABLE_SIZE (1024 * 1024 * 128)
+ #define EXPIRED_DOMAIN_PREFETCH_TIME (3600 * 8)
+ #define DNS_MAX_DOMAIN_REFETCH_NUM 64
+-#define DNS_SERVER_NEIGHBOR_CACHE_MAX_NUM (1024 * 8)
+-#define DNS_SERVER_NEIGHBOR_CACHE_TIMEOUT (3600 * 1)
++#define DNS_SERVER_NEIGHBOR_CACHE_TIMEOUT       1200
+ #define DNS_SERVER_NEIGHBOR_CACHE_NOMAC_TIMEOUT 60
++#define DNS_SERVER_NEIGHBOR_CACHE_MAX_NUM (1024 * 16)
+ 
+ #define PREFETCH_FLAGS_NO_DUALSTACK (1 << 0)
+ #define PREFETCH_FLAGS_EXPIRED (1 << 1)
+@@ -3701,7 +3701,7 @@ static struct dns_client_rules *_dns_ser
+ 	args.netaddr_len = netaddr_len;
+ 
+ 	for (int i = 0; i < 2; i++) {
+-		ret = netlink_get_neighbors(family, _dns_server_neighbors_callback, &args);
++		ret = netlink_get_neighbors(family, netaddr, netaddr_len, _dns_server_neighbors_callback, &args);
+ 		if (ret < 0) {
+ 			goto add_cache;
+ 		}
+@@ -3740,6 +3740,26 @@ static struct dns_client_rules *_dns_ser
+ 
+ add_cache:
+ 	_dns_server_neighbor_cache_add(netaddr, netaddr_len, NULL);
++
++	int probe_fd = socket(family, SOCK_DGRAM | SOCK_NONBLOCK | SOCK_CLOEXEC, 0);
++	if (probe_fd >= 0) {
++		struct sockaddr_storage dest;
++		memset(&dest, 0, sizeof(dest));
++		dest.ss_family = family;
++		if (family == AF_INET) {
++			struct sockaddr_in *in = (struct sockaddr_in *)&dest;
++			memcpy(&in->sin_addr, netaddr, 4);
++			in->sin_port = htons(53); /* dummy port */
++			connect(probe_fd, (struct sockaddr *)&dest, sizeof(struct sockaddr_in));
++		} else if (family == AF_INET6) {
++			struct sockaddr_in6 *in6 = (struct sockaddr_in6 *)&dest;
++			memcpy(&in6->sin6_addr, netaddr, 16);
++			in6->sin6_port = htons(53); /* dummy port */
++			connect(probe_fd, (struct sockaddr *)&dest, sizeof(struct sockaddr_in6));
++		}
++		close(probe_fd);
++	}
++
+ 	return NULL;
+ }
+ 
+--- a/src/util.c
++++ b/src/util.c
+@@ -1039,7 +1039,7 @@ int ipset_del(const char *ipset_name, co
+ 	return _ipset_operate(ipset_name, addr, addr_len, 0, IPSET_DEL);
+ }
+ 
+-int netlink_get_neighbors(int family,
++int netlink_get_neighbors(int family, const uint8_t *target_ip, int target_ip_len,
+ 						  int (*callback)(const uint8_t *net_addr, int net_addr_len, const uint8_t mac[6], void *arg),
+ 						  void *arg)
+ {
+@@ -1070,13 +1070,21 @@ int netlink_get_neighbors(int family,
+ 	nlh = (struct nlmsghdr *)buf;
+ 	nlh->nlmsg_len = NLMSG_LENGTH(sizeof(struct ndmsg));
+ 	nlh->nlmsg_type = RTM_GETNEIGH;
+-	nlh->nlmsg_flags = NLM_F_REQUEST | NLM_F_DUMP;
++	nlh->nlmsg_flags = NLM_F_REQUEST;
+ 	nlh->nlmsg_seq = time(NULL);
+ 	nlh->nlmsg_pid = getpid();
+ 
+ 	ndm = NLMSG_DATA(nlh);
+ 	ndm->ndm_family = family;
+ 
++	if (target_ip_len > 0 && target_ip != NULL) {
++		struct rtattr *rta = (struct rtattr *)(((char *)nlh) + NLMSG_ALIGN(nlh->nlmsg_len));
++		rta->rta_type = NDA_DST;
++		rta->rta_len = RTA_LENGTH(target_ip_len);
++		memcpy(RTA_DATA(rta), target_ip, target_ip_len);
++		nlh->nlmsg_len = NLMSG_ALIGN(nlh->nlmsg_len) + RTA_ALIGN(rta->rta_len);
++	}
++
+ 	while (true) {
+ 		if (send_count > 5) {
+ 			errno = ETIMEDOUT;
+--- a/src/util.h
++++ b/src/util.h
+@@ -115,7 +115,7 @@ int ipset_add(const char *ipset_name, co
+ 
+ int ipset_del(const char *ipset_name, const unsigned char addr[], int addr_len);
+ 
+-int netlink_get_neighbors(int family,
++int netlink_get_neighbors(int family, const uint8_t *target_ip, int target_ip_len,
+ 						  int (*callback)(const uint8_t *net_addr, int net_addr_len, const uint8_t mac[6], void *arg),
+ 						  void *arg);
+ 
