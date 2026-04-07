@@ -269,13 +269,7 @@ static void swconfig_defaults_init(struct switch_dev *dev)
 }
 
 
-static struct genl_family switch_fam = {
-	.id = GENL_ID_GENERATE,
-	.name = "switch",
-	.hdrsize = 0,
-	.version = 1,
-	.maxattr = SWITCH_ATTR_MAX,
-};
+static struct genl_family switch_fam;
 
 static const struct nla_policy switch_policy[SWITCH_ATTR_MAX+1] = {
 	[SWITCH_ATTR_ID] = { .type = NLA_U32 },
@@ -1049,6 +1043,19 @@ static struct genl_ops swconfig_ops[] = {
 		.policy = switch_policy,
 		.done = swconfig_done,
 	}
+};
+
+static struct genl_family switch_fam = {
+#if LINUX_VERSION_CODE < KERNEL_VERSION(4,10,0)
+	.id = GENL_ID_GENERATE,
+#endif
+	.name = "switch",
+	.hdrsize = 0,
+	.version = 1,
+	.maxattr = SWITCH_ATTR_MAX,
+	.module = THIS_MODULE,
+	.ops = swconfig_ops,
+	.n_ops = ARRAY_SIZE(swconfig_ops),
 };
 
 #ifdef CONFIG_OF
