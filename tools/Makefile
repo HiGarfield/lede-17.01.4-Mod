@@ -22,7 +22,7 @@ ifneq ($(CONFIG_SDK)$(CONFIG_PACKAGE_kmod-b43)$(CONFIG_PACKAGE_b43legacy-firmwar
 endif
 
 tools-$(BUILD_TOOLCHAIN) += gmp mpfr mpc libelf expat
-tools-y += m4 libtool autoconf automake flex bison pkg-config mklibs
+tools-y += m4 libtool autoconf automake flex bison pkgconf mklibs
 tools-y += sstrip make-ext4fs e2fsprogs mtd-utils mkimage
 tools-y += firmware-utils patch-image quilt padjffs2
 tools-y += mm-macros missing-macros cmake scons bc findutils gengetopt patchelf
@@ -47,7 +47,7 @@ $(curdir)/squashfs/compile := $(curdir)/lzma-old/install
 $(curdir)/squashfs4/compile := $(curdir)/xz/install
 $(curdir)/quilt/compile := $(curdir)/autoconf/install $(curdir)/findutils/install
 $(curdir)/autoconf/compile := $(curdir)/m4/install
-$(curdir)/automake/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/pkg-config/install $(curdir)/xz/install
+$(curdir)/automake/compile := $(curdir)/m4/install $(curdir)/autoconf/install $(curdir)/pkgconf/install $(curdir)/xz/install
 $(curdir)/gmp/compile := $(curdir)/libtool/install
 $(curdir)/mpc/compile := $(curdir)/mpfr/install $(curdir)/gmp/install
 $(curdir)/mpfr/compile := $(curdir)/gmp/install
@@ -68,7 +68,7 @@ $(curdir)/findutils/compile := $(curdir)/bison/install
 $(curdir)/gengetopt/compile := $(curdir)/libtool/install
 $(curdir)/patchelf/compile := $(curdir)/libtool/install
 $(curdir)/dosfstools/compile := $(curdir)/autoconf/install $(curdir)/automake/install
-$(curdir)/libressl/compile := $(curdir)/pkg-config/install
+$(curdir)/libressl/compile := $(curdir)/pkgconf/install
 $(curdir)/mkimage/compile += $(curdir)/libressl/install
 $(curdir)/firmware-utils/compile += $(curdir)/libressl/install
 $(curdir)/cmake/compile += $(curdir)/libressl/install
