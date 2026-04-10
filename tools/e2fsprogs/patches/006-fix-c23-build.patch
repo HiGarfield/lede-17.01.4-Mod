@@ -1,0 +1,27 @@
+From 235d2f76163d19c01b7e5f89ba1c0f3b2e25c8cc Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 11 Apr 2026 03:36:30 +0800
+Subject: [PATCH] fix c23 build
+
+---
+ lib/ext2fs/tdb.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/lib/ext2fs/tdb.c
++++ b/lib/ext2fs/tdb.c
+@@ -104,7 +104,15 @@ static char *rep_strdup(const char *s)
+ #endif
+ #endif
+ 
++#if !defined(__cplusplus) && !defined(bool)
++#if defined(__STDC_VERSION__) && __STDC_VERSION__ >= 199901L
++#include <stdbool.h>
++#else
+ typedef int bool;
++#define true 1
++#define false 0
++#endif
++#endif
+ 
+ #include "tdb.h"
+ 
