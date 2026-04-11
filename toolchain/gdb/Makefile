@@ -51,6 +51,8 @@ HOST_CONFIGURE_ARGS = \
 	--disable-gas \
 	--disable-sim
 
+HOST_CFLAGS += -std=gnu99
+
 define Host/Install
 	mkdir -p $(TOOLCHAIN_DIR)/bin
 	$(INSTALL_BIN) $(HOST_BUILD_DIR)/gdb/gdb $(TOOLCHAIN_DIR)/bin/$(TARGET_CROSS)gdb
