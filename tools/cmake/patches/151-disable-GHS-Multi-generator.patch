@@ -1,0 +1,29 @@
+From 8c0b147f345bc4b61ed5780c966c810c6810925a Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 11 Apr 2026 23:38:35 +0800
+Subject: [PATCH] disable GHS Multi generator
+
+---
+ Source/cmake.cxx | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+--- a/Source/cmake.cxx
++++ b/Source/cmake.cxx
+@@ -83,7 +83,7 @@
+ #  include "cmExtraEclipseCDT4Generator.h"
+ #endif
+ 
+-#if defined(__linux__) || defined(_WIN32)
++#if 0
+ #  include "cmGlobalGhsMultiGenerator.h"
+ #endif
+ 
+@@ -1928,7 +1928,7 @@ void cmake::AddDefaultGenerators()
+ #endif
+   this->Generators.push_back(cmGlobalUnixMakefileGenerator3::NewFactory());
+ #if defined(CMAKE_BUILD_WITH_CMAKE)
+-#  if defined(__linux__) || defined(_WIN32)
++#  if 0
+   this->Generators.push_back(cmGlobalGhsMultiGenerator::NewFactory());
+ #  endif
+   this->Generators.push_back(cmGlobalNinjaGenerator::NewFactory());
