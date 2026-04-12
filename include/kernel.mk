@@ -95,7 +95,7 @@ endif
 KERNEL_MAKE = $(MAKE) $(KERNEL_MAKEOPTS)
 
 KERNEL_MAKE_FLAGS = \
-	HOSTCFLAGS="$(HOST_CFLAGS) -Wall -Wmissing-prototypes -Wstrict-prototypes" \
+	HOSTCFLAGS="$(HOST_CFLAGS) -std=gnu99 -Wall -Wmissing-prototypes -Wstrict-prototypes" \
 	CROSS_COMPILE="$(KERNEL_CROSS)" \
 	ARCH="$(LINUX_KARCH)" \
 	KBUILD_HAVE_NLS=no \
