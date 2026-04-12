@@ -1,0 +1,20 @@
+From d6bff562701e7778a0ac7b1dbbc4c94f1a284533 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sun, 12 Apr 2026 22:10:57 +0800
+Subject: [PATCH 2/2] build: set GNU99 for lemon compilation
+
+---
+ CMakeLists.txt | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/CMakeLists.txt
++++ b/CMakeLists.txt
+@@ -21,7 +21,7 @@ ENDIF()
+ ADD_CUSTOM_COMMAND(
+   OUTPUT contrib/lemon
+   DEPENDS contrib/lemon.c contrib/lempar.c
+-  COMMAND gcc -std=gnu17 -o contrib/lemon contrib/lemon.c
++  COMMAND gcc -std=gnu99 -o contrib/lemon contrib/lemon.c
+   COMMENT "Generating lemon parser generator"
+ )
+ 
