@@ -204,7 +204,6 @@ define Image/mkfs/squashfs
 	$(STAGING_DIR_HOST)/bin/mksquashfs4 $(call mkfs_target_dir,$(1)) $@ \
 		-nopad -noappend -root-owned \
 		-comp $(SQUASHFSCOMP) $(SQUASHFSOPT) \
-		-processors 1 \
 		$(if $(SOURCE_DATE_EPOCH),-fixed-time $(SOURCE_DATE_EPOCH))
 endef
 
