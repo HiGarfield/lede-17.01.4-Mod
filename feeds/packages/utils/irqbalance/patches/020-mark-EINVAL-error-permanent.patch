@@ -1,6 +1,6 @@
 --- a/activate.c
 +++ b/activate.c
-@@ -443,7 +443,6 @@ error:
+@@ -471,7 +471,6 @@ error:
  	switch (errsave) {
  	case EAGAIN: /* Interrupted by signal. */
  	case EBUSY: /* Affinity change already in progress. */
