@@ -1,8 +1,8 @@
 <%#
-	Argon is a clean HTML5 theme for LuCI. It is based on luci-theme-material and Argon Template
+	Argon is a clean HTML5 theme for LuCI. It is based on luci-theme-material Argon Template
 
 	luci-theme-argon
-	Copyright 2019 Jerrykuku <jerrykuku@qq.com>
+	Copyright 2020 Jerrykuku <jerrykuku@qq.com>
 
 	Have a bug? Please create an issue here on GitHub!
 	https://github.com/jerrykuku/luci-theme-argon/issues
@@ -18,7 +18,7 @@
 	luci-theme-material:
 	https://github.com/LuttyYang/luci-theme-material/
 
-	Agron Theme
+	Argon Theme
 	https://demos.creative-tim.com/argon-dashboard/index.html
 
 	Login background
@@ -41,9 +41,9 @@
 </div>
 <footer>
 	<div class="ftc">
-		<a class="luci-link" href="https://github.com/openwrt/luci">Powered by <%= ver.luciname %>
+		<a class="luci-link" href="https://github.com/openwrt/luci" target="_blank">Powered by <%= ver.luciname %>
 			(<%= ver.luciversion %>)</a> /
-		<a href="https://github.com/jerrykuku/luci-theme-argon">ArgonTheme <%# vPKG_VERSION %></a> /
+		<a href="https://github.com/jerrykuku/luci-theme-argon" target="_blank">ArgonTheme <%# vPKG_VERSION %></a> /
 		<%= ver.distversion %>
 		<% if #categories > 1 then %>
 		<ul class="breadcrumb pull-right" id="modemenu">
@@ -58,31 +58,6 @@
 </footer>
 </div>
 </div>
-
-<script>
-	// thanks for Jo-Philipp Wich <jow@openwrt.org>
-	var luciLocation = <%= luci.http.write_json(luci.dispatcher.context.path) %>;
-	var winHeight = $(window).height();
-	$(window).resize(function () {
-		var winWidth = $(window).width()
-		if(winWidth < 600){
-			var newHeight = $(this).height();
-			var keyboradHeight = newHeight - winHeight;
-			$(".ftc").css("bottom", keyboradHeight + 30);
-		}
-		if($(document.body).height() < 525 ){
-			if($(".ftc").css('display') != 'none'){
-				$(".ftc").hide()
-			}
-		}else{
-			if($(".ftc").css('display') == 'none'){
-				$(".ftc").show()
-			}
-		}
-	})
-</script>
-
-<script src="<%=media%>/js/script.js"></script>
+	<script src="<%=media%>/js/styles-argon.js<%# ?v=PKG_VERSION %>"></script>
 </body>
-
 </html>

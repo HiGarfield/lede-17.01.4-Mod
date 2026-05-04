@@ -14,8 +14,8 @@
 
 	MUI:
 	https://github.com/muicss/mui
-	
-	Agron Theme
+
+	Argon Theme
 	https://demos.creative-tim.com/argon-dashboard/index.html
 
 	Licensed to the public under the Apache License 2.0
@@ -23,16 +23,110 @@
 
 <%+header_login%>
 <%
-	local util	= require "luci.util"
+	local util		= require "luci.util"
+	local fs		= require "nixio.fs"
+	local nutil		= require "nixio.util"
+
+	-- Fetch Local Background Media
+
+	local function glob(...)
+		local iter, code, msg = fs.glob(...)
+		if iter then
+			return nutil.consume(iter)
+		else
+			return nil, code, msg
+		end
+	end
+
+
+	local imageTypes = " jpg png gif webp "
+	local videoTypes = " mp4 webm "
+	local allTypes = imageTypes .. videoTypes
+	local function fetchMedia(path, themeDir)
+		local backgroundTable = {}
+		local backgroundCount = 0
+		for i, f in ipairs(glob(path)) do
+			local attr = fs.stat(f)
+			if attr then
+				local ext = fs.basename(f):match(".+%.(%w+)$")
+				if ext ~= nil then
+					ext = ext:lower()
+				end
+				if ext ~= nil and string.match(allTypes, " "..ext.." ") ~= nil then
+					local bg = {}
+					bg.type = ext
+					bg.url = themeDir .. fs.basename(f)
+					table.insert(backgroundTable, bg)
+					backgroundCount = backgroundCount + 1
+				end
+			end
+		end
+		return backgroundTable, backgroundCount
+	end
+	local function selectBackground(themeDir)
+		local bgUrl				= ""
+		local backgroundType	= "Image"
+		local mimeType			= ""
+
+		local backgroundTable, backgroundCount = fetchMedia("/www" .. themeDir .. "*", themeDir)
+		if ( backgroundCount > 0 ) then
+			local currentBg = backgroundTable[math.random(1, backgroundCount)]
+			bgUrl			= currentBg.url
+			if (string.match(videoTypes, " "..currentBg.type.." ") ~= nil) then
+				backgroundType	= "Video"
+				mimeType		= "video/" .. currentBg.type
+			end
+		end
+
+		return bgUrl, backgroundType, mimeType
+	end
+
 	local boardinfo			= util.ubus("system", "board")
+	local themeDir			= media .. "/background/"
+	local bgUrl, backgroundType, mimeType = selectBackground(themeDir)
 %>
 <!-- Login Page Start -->
 <div class="login-page">
+	<% if ( backgroundType == "Video" ) then %>
+	<!-- Video Player Start -->
+	<div class="video">
+		<video autoplay loop muted id="video">
+			<source src="<%=bgUrl%>" type="<%=mimeType%>">
+		</video>
+	</div>
+	<div class="volume-control mute"></div>
+	<script>
+		$(".volume-control").click(function(){
+			if($(this).hasClass("mute")){
+				$(this).removeClass("mute")
+				$("#video").prop('muted', false);
+			}else{
+				$(this).addClass("mute")
+				$("#video").prop('muted', true);
+			}
+		})
+	</script>
+	<!-- Video Player End -->
+	<% else %>
+	<!-- Image Background Start -->
+	<div class="main-bg" id="main-bg"<% if bgUrl ~= "" then %> data-bg-url="<%=pcdata(bgUrl)%>"<% end %>></div>
+	<script>
+		(function() {
+			var el = document.getElementById("main-bg");
+			var url = el && el.getAttribute("data-bg-url");
+			if (url) { el.style.backgroundImage = "url(" + url + ")"; }
+		})();
+	</script>
+	<!-- Image Background End -->
+	<% end %>
 	<!-- Login Container Start -->
 	<div class="login-container">
 		<div class="login-form">
-			<a class="brand" href="/"><img src="<%=media%>/img/argon.svg" class="icon"><span
-					class="brand-text"><%=striptags( (boardinfo.hostname or "?") .. ( (node and node.title) and ' - ' .. translate(node.title) or '')) %></span></a>
+			<!-- Logo Start -->
+			<a class="brand" href="/"><img src="<%=media%>/img/argon.svg" class="icon"></a>
+			<span class="brand-text"><%=striptags( (boardinfo.hostname or "?") ) %></span>
+			<!-- Logo End -->
+			<!-- Login Form Start -->
 			<form class="form-login" method="post" action="<%=pcdata(luci.http.getenv("REQUEST_URI"))%>">
 
 				<%- if fuser then %>
@@ -53,7 +147,7 @@
 					<input type="submit" value="<%:Login%>" class="cbi-button cbi-button-apply" />
 				</div>
 			</form>
-
+			<!-- Login Form End -->
 			<script type="text/javascript">//<![CDATA[
 				var input = document.getElementsByName('luci_password')[0];
 				if (input)

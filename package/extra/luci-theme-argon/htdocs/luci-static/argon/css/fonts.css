@@ -18,7 +18,7 @@
  *  luci-theme-material:
  *      https://github.com/LuttyYang/luci-theme-material/
  *
- *  Agron Theme
+ *  Argon Theme
  *	    https://demos.creative-tim.com/argon-dashboard/index.html
  *
  *  Login background
@@ -27,15 +27,12 @@
  *  Licensed to the public under the Apache License 2.0 
  */
 
-
 /* ICON Font */
+
 @font-face {
     font-family: 'argon';
-    src: url('../fonts/argon.eot?u6kthm');
-    src: url('../fonts/argon.eot?u6kthm#iefix') format('embedded-opentype'),
-        url('../fonts/argon.ttf?u6kthm') format('truetype'),
-        url('../fonts/argon.woff?u6kthm') format('woff'),
-        url('../fonts/argon.svg?u6kthm#argon') format('svg');
+    src: url('../fonts/argon.woff?u6kthm') format('woff'),
+        url('../fonts/argon.ttf?u6kthm') format('truetype');
     font-weight: normal;
     font-style: normal;
     font-display: block;
