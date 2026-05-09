@@ -1,0 +1,107 @@
+From 9a67b0c62daae37074f1deb485340caffb7a93a7 Mon Sep 17 00:00:00 2001
+From: Nick Peng <pymumu@gmail.com>
+Date: Fri, 8 May 2026 22:45:39 +0800
+Subject: [PATCH] Fix cache timer race during prefetch
+
+---
+ src/dns_cache.c | 39 ++++++++++++++++++++++++++++++++++-----
+ 1 file changed, 34 insertions(+), 5 deletions(-)
+
+--- a/src/dns_cache.c
++++ b/src/dns_cache.c
+@@ -290,17 +290,22 @@ struct dns_cache *dns_cache_lookup(struc
+ static int _dns_cache_replace(struct dns_cache_key *cache_key, int rcode, int ttl, int speed, int timeout,
+ 							  int update_time, struct dns_cache_data *cache_data)
+ {
++	int ret = -1;
+ 	struct dns_cache *dns_cache = NULL;
+ 	struct dns_cache_data *old_cache_data = NULL;
+ 
+ 	if (dns_cache_head.size <= 0) {
+-		return 0;
++		if (cache_data) {
++			dns_cache_data_put(cache_data);
++		}
++		ret = 0;
++		goto out;
+ 	}
+ 
+ 	/* lookup existing cache */
+ 	dns_cache = _dns_cache_lookup(cache_key);
+ 	if (dns_cache == NULL) {
+-		return -1;
++		goto out;
+ 	}
+ 
+ 	if (ttl < DNS_CACHE_TTL_MIN) {
+@@ -309,6 +314,10 @@ static int _dns_cache_replace(struct dns
+ 
+ 	/* update cache data */
+ 	pthread_mutex_lock(&dns_cache_head.lock);
++	if (list_empty(&dns_cache->list)) {
++		goto unlock;
++	}
++
+ 	dns_cache->info.rcode = rcode;
+ 	dns_cache->info.qtype = cache_key->qtype;
+ 	dns_cache->info.query_flag = cache_key->query_flag;
+@@ -332,13 +341,18 @@ static int _dns_cache_replace(struct dns
+ 		dns_cache->timer.expires = timeout;
+ 		dns_timer_add(&dns_cache->timer);
+ 	}
++	ret = 0;
++
++unlock:
+ 	pthread_mutex_unlock(&dns_cache_head.lock);
+ 
+ 	if (old_cache_data) {
+ 		dns_cache_data_put(old_cache_data);
+ 	}
++
++out:
+ 	dns_cache_release(dns_cache);
+-	return 0;
++	return ret;
+ }
+ 
+ int dns_cache_replace(struct dns_cache_key *cache_key, int rcode, int ttl, int speed, int timeout, int update_time,
+@@ -502,22 +516,37 @@ int dns_cache_insert(struct dns_cache_ke
+ 
+ int dns_cache_update_timer(struct dns_cache_key *key, int timeout)
+ {
+-	struct dns_cache *dns_cache = _dns_cache_lookup(key);
++	int ret = -1;
++	struct dns_cache *dns_cache = NULL;
++
++	if (key == NULL || key->domain == NULL || key->dns_group_name == NULL) {
++		errno = EINVAL;
++		return -1;
++	}
++
++	dns_cache = _dns_cache_lookup(key);
+ 	if (dns_cache == NULL) {
+ 		return -1;
+ 	}
+ 
+ 	pthread_mutex_lock(&dns_cache_head.lock);
++	if (list_empty(&dns_cache->list)) {
++		goto out;
++	}
++
+ 	if (dns_timer_mod(&dns_cache->timer, timeout) == 0) {
+ 		dns_cache_get(dns_cache);
+ 		dns_cache->timer.expires = timeout;
+ 		dns_timer_add(&dns_cache->timer);
+ 	}
++	ret = 0;
++
++out:
+ 	pthread_mutex_unlock(&dns_cache_head.lock);
+ 
+ 	dns_cache_release(dns_cache);
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ int dns_cache_get_ttl(struct dns_cache *dns_cache)
