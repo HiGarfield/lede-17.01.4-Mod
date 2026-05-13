@@ -37,6 +37,7 @@
 
 #define DW33D_GPIO_LED_MMC		4
 #define DW33D_GPIO_LED_WLAN_2G		13
+#define DW33D_GPIO_LED_WLAN_5G		23
 #define DW33D_GPIO_LED_STATUS		14
 #define DW33D_GPIO_LED_USB		15
 #define DW33D_GPIO_LED_INTERNET		22
@@ -71,6 +72,11 @@ static struct gpio_led dw33d_leds_gpio[] __initdata = {
 	{
 		.name		= "dw33d:blue:wlan-2g",
 		.gpio		= DW33D_GPIO_LED_WLAN_2G,
+		.active_low	= 1,
+	},
+	{
+		.name		= "dw33d:blue:wlan-5g",
+		.gpio		= DW33D_GPIO_LED_WLAN_5G,
 		.active_low	= 1,
 	},
 	{
