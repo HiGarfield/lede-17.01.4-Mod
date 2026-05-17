@@ -1,0 +1,72 @@
+From 1aa67544453e34e671e8219e04eaa54aa024e9d4 Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Sun, 17 May 2026 06:59:20 +0000
+Subject: [PATCH] ath10k: fix RX of frames with broken FCS in monitor mode
+
+When a monitor mode interface does not have the FIF_FCSFAIL flag set
+(the default), ath10k unconditionally forwarded frames with the
+RX_FLAG_FAILED_FCS_CRC flag to mac80211 without checking whether the
+driver filter flags requested dropping them.  This caused applications
+like Wireshark to receive malformed frames they should not see.
+
+Add a check in ath10k_process_rx() to drop frames with a failed FCS
+when the FIF_FCSFAIL filter flag is not set, and track the count of
+such dropped frames in a new rx_crc_err_drop stats counter exposed via
+ethtool.
+
+Based on upstream commit ea0c3e2a4702 ("ath10k: fix RX of frames with
+broken FCS in monitor mode").
+
+Co-authored-by: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+---
+ drivers/net/wireless/ath/ath10k/core.h   | 1 +
+ drivers/net/wireless/ath/ath10k/debug.c  | 2 ++
+ drivers/net/wireless/ath/ath10k/htt_rx.c | 9 +++++++++
+ 3 files changed, 12 insertions(+)
+
+--- a/drivers/net/wireless/ath/ath10k/core.h
++++ b/drivers/net/wireless/ath/ath10k/core.h
+@@ -1108,6 +1108,7 @@ struct ath10k {
+ 
+ 	struct {
+ 		/* protected by data_lock */
++		u32 rx_crc_err_drop;
+ 		u32 fw_crash_counter;
+ 		u32 fw_warm_reset_counter;
+ 		u32 fw_cold_reset_counter;
+--- a/drivers/net/wireless/ath/ath10k/debug.c
++++ b/drivers/net/wireless/ath/ath10k/debug.c
+@@ -1137,6 +1137,7 @@ static const char ath10k_gstrings_stats[
+ 	"d_fw_crash_count",
+ 	"d_fw_warm_reset_count",
+ 	"d_fw_cold_reset_count",
++	"d_rx_crc_err_drop",
+ };
+ 
+ #define ATH10K_SSTATS_LEN ARRAY_SIZE(ath10k_gstrings_stats)
+@@ -1236,6 +1237,7 @@ void ath10k_debug_get_et_stats(struct ie
+ 	data[i++] = ar->stats.fw_crash_counter;
+ 	data[i++] = ar->stats.fw_warm_reset_counter;
+ 	data[i++] = ar->stats.fw_cold_reset_counter;
++	data[i++] = ar->stats.rx_crc_err_drop;
+ 
+ 	spin_unlock_bh(&ar->data_lock);
+ 
+--- a/drivers/net/wireless/ath/ath10k/htt_rx.c
++++ b/drivers/net/wireless/ath/ath10k/htt_rx.c
+@@ -1123,6 +1123,15 @@ static void ath10k_process_rx(struct ath
+ 
+ 	status = IEEE80211_SKB_RXCB(skb);
+ 
++	if (!(ar->filter_flags & FIF_FCSFAIL) &&
++	    status->flag & RX_FLAG_FAILED_FCS_CRC) {
++		spin_lock_bh(&ar->data_lock);
++		ar->stats.rx_crc_err_drop++;
++		spin_unlock_bh(&ar->data_lock);
++		dev_kfree_skb_any(skb);
++		return;
++	}
++
+ 	ath10k_dbg(ar, ATH10K_DBG_DATA,
+ 		   "rx skb %pK len %u peer %pM %s %s sn %u %s%s%s%s%s%s %srate_idx %u vht_nss %u freq %u band %u flag 0x%x fcs-err %i mic-err %i amsdu-more %i\n",
+ 		   skb,

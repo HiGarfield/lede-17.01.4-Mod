@@ -1,0 +1,38 @@
+From 25b66d4390dec396663ef34b02f5afacbfec8c48 Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Sun, 17 May 2026 06:58:53 +0000
+Subject: [PATCH] ath9k: correctly handle short radar pulses
+
+Commit 3c0efb745a17 ("ath9k: discard undersized packets") set the lower
+bound for RX packet length to 10 bytes (min ACK size) to filter out
+garbage frames. However, short radar pulses are reported as PHY_ERROR
+frames with rs_datalen == 3, so they were being silently discarded.
+This breaks DFS radar detection.
+
+Fix by adding a PHY_ERROR exception to the size check: if the frame is
+a PHY error, allow it through even if rs_datalen < 10.  Zero-length
+packets are still unconditionally discarded.
+
+Based on upstream commit df5c4150501e ("ath9k: correctly handle short
+radar pulses").
+
+Co-authored-by: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+---
+ drivers/net/wireless/ath/ath9k/recv.c | 5 ++++-
+ 1 file changed, 4 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/ath/ath9k/recv.c
++++ b/drivers/net/wireless/ath/ath9k/recv.c
+@@ -827,8 +827,11 @@ static int ath9k_rx_skb_preprocess(struc
+ 
+ 	/*
+ 	 * Discard zero-length packets and packets smaller than an ACK
++	 * which are not PHY_ERROR (short radar pulses have a length of 3)
+ 	 */
+-	if (rx_stats->rs_datalen < 10) {
++	if (!rx_stats->rs_datalen ||
++	    (rx_stats->rs_datalen < 10 &&
++	     !(rx_stats->rs_status & ATH9K_RXERR_PHY))) {
+ 		RX_STAT_INC(rx_len_err);
+ 		goto corrupt;
+ 	}
