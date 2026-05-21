@@ -1899,6 +1899,8 @@ static int __init fast_classifier_init(void)
 	sc->inet6_notifier.priority = 1;
 	register_inet6addr_notifier(&sc->inet6_notifier);
 
+	spin_lock_init(&sc->lock);
+
 	/*
 	 * Register our netfilter hooks.
 	 */
@@ -1956,8 +1958,6 @@ static int __init fast_classifier_init(void)
 #endif
 
 	printk(KERN_ALERT "fast-classifier: registered\n");
-
-	spin_lock_init(&sc->lock);
 
 	/*
 	 * Hook the receive path in the network stack.
