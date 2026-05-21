@@ -1212,7 +1212,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 	}
 	sic.mark = skb->mark;
 
-	conn = kmalloc(sizeof(*conn), GFP_ATOMIC);
+	conn = kzalloc(sizeof(*conn), GFP_ATOMIC);
 	if (!conn) {
 		printk(KERN_CRIT "ERROR: no memory for sfe\n");
 		goto done4;
@@ -1225,7 +1225,7 @@ static unsigned int fast_classifier_post_routing(struct sk_buff *skb, bool is_v4
 	memcpy(conn->smac, sic.src_mac, ETH_ALEN);
 	memcpy(conn->dmac, sic.dest_mac_xlate, ETH_ALEN);
 
-	p_sic = kmalloc(sizeof(*p_sic), GFP_ATOMIC);
+	p_sic = kzalloc(sizeof(*p_sic), GFP_ATOMIC);
 	if (!p_sic) {
 		printk(KERN_CRIT "ERROR: no memory for sfe\n");
 		kfree(conn);
