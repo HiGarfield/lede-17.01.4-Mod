@@ -2520,20 +2520,20 @@ int sfe_ipv4_create_rule(struct sfe_connection_create *sic)
 	/*
 	 * Allocate the various connection tracking objects.
 	 */
-	c = (struct sfe_ipv4_connection *)kmalloc(sizeof(struct sfe_ipv4_connection), GFP_ATOMIC);
+	c = (struct sfe_ipv4_connection *)kzalloc(sizeof(struct sfe_ipv4_connection), GFP_ATOMIC);
 	if (unlikely(!c)) {
 		spin_unlock_bh(&si->lock);
 		return -ENOMEM;
 	}
 
-	original_cm = (struct sfe_ipv4_connection_match *)kmalloc(sizeof(struct sfe_ipv4_connection_match), GFP_ATOMIC);
+	original_cm = (struct sfe_ipv4_connection_match *)kzalloc(sizeof(struct sfe_ipv4_connection_match), GFP_ATOMIC);
 	if (unlikely(!original_cm)) {
 		spin_unlock_bh(&si->lock);
 		kfree(c);
 		return -ENOMEM;
 	}
 
-	reply_cm = (struct sfe_ipv4_connection_match *)kmalloc(sizeof(struct sfe_ipv4_connection_match), GFP_ATOMIC);
+	reply_cm = (struct sfe_ipv4_connection_match *)kzalloc(sizeof(struct sfe_ipv4_connection_match), GFP_ATOMIC);
 	if (unlikely(!reply_cm)) {
 		spin_unlock_bh(&si->lock);
 		kfree(original_cm);
