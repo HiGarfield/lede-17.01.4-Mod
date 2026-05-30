@@ -1,0 +1,51 @@
+From 2135757b1ab2e7a9b8787ea9d294cee2ff46bf85 Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Sat, 30 May 2026 13:16:14 +0000
+Subject: [PATCH] rt2x00: clear beacon state on hardware reset
+
+Backport upstream fix a11d965a218f:
+  rt2x00: clear beacon state on hardware reset
+
+When the hardware is reset, the beacon queue is stopped. If a beacon
+interface is active during reset, intf_beaconing is not decremented and
+the beacon queue will deadlock when beaconing is enabled again.
+
+Fix this by clearing the enable_beacon flag and resetting the
+intf_beaconing counter in rt2x00lib_stop(), and by resetting the
+beacon state in rt2x00mac_bss_info_changed() when DEVICE_STATE_RESET
+is set.
+---
+ drivers/net/wireless/ralink/rt2x00/rt2x00dev.c |  1 +
+ drivers/net/wireless/ralink/rt2x00/rt2x00mac.c | 11 +++++++++++
+ 2 files changed, 12 insertions(+)
+
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00dev.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00dev.c
+@@ -1363,6 +1363,7 @@ void rt2x00lib_stop(struct rt2x00_dev *r
+ 	rt2x00dev->intf_ap_count = 0;
+ 	rt2x00dev->intf_sta_count = 0;
+ 	rt2x00dev->intf_associated = 0;
++	rt2x00dev->intf_beaconing = 0;
+ }
+ 
+ static inline void rt2x00lib_set_if_combinations(struct rt2x00_dev *rt2x00dev)
+--- a/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
++++ b/drivers/net/wireless/ralink/rt2x00/rt2x00mac.c
+@@ -611,6 +611,17 @@ void rt2x00mac_bss_info_changed(struct i
+ 	 */
+ 	if (changes & BSS_CHANGED_BEACON_ENABLED) {
+ 		mutex_lock(&intf->beacon_skb_mutex);
++
++		/*
++		 * Clear the 'enable_beacon' flag and clear beacon because
++		 * the beacon queue has been stopped after hardware reset.
++		 */
++		if (test_bit(DEVICE_STATE_RESET, &rt2x00dev->flags) &&
++		    intf->enable_beacon) {
++			intf->enable_beacon = false;
++			rt2x00queue_clear_beacon(rt2x00dev, vif);
++		}
++
+ 		if (!bss_conf->enable_beacon && intf->enable_beacon) {
+ 			rt2x00dev->intf_beaconing--;
+ 			intf->enable_beacon = false;

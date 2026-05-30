@@ -1,0 +1,27 @@
+From b44bc5bc3cd80c5f46c070aa94ac4bd552542b8b Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Sat, 30 May 2026 13:16:01 +0000
+Subject: [PATCH] ath9k: add range check for conn_rsp_epid in
+ htc_connect_service()
+
+Backport upstream fix 8619593634cb:
+  ath9k_htc: Do range check before using conn_rsp_epid
+
+If conn_rsp_epid is out of range, it will cause array out of bounds.
+Add a range check before assigning it to *conn_rsp_epid.
+---
+ drivers/net/wireless/ath/ath9k/htc_hst.c | 3 +++
+ 1 file changed, 3 insertions(+)
+
+--- a/drivers/net/wireless/ath/ath9k/htc_hst.c
++++ b/drivers/net/wireless/ath/ath9k/htc_hst.c
+@@ -297,6 +297,9 @@ int htc_connect_service(struct htc_targe
+ 		return -ETIMEDOUT;
+ 	}
+ 
++	if (target->conn_rsp_epid >= ENDPOINT_MAX)
++		return -EINVAL;
++
+ 	*conn_rsp_epid = target->conn_rsp_epid;
+ 	return 0;
+ err:
