@@ -1,0 +1,54 @@
+From 59d95507ad33bc7aee23d3c38c7f6fbb42aa32c3 Mon Sep 17 00:00:00 2001
+From: "copilot-swe-agent[bot]" <198982749+Copilot@users.noreply.github.com>
+Date: Sat, 30 May 2026 13:16:07 +0000
+Subject: [PATCH] ath10k: fix memory leak in management tx completion
+
+Backport upstream fix e15d84b3bba1:
+  ath10k: fix memory leak in management tx
+
+Add missing kfree(pkt_addr) calls in wmi_process_mgmt_tx_comp() and
+ath10k_wmi_mgmt_tx_clean_up_pending() to free the pkt_addr allocation.
+
+Also fix ath10k_wmi_tlv_op_cleanup_mgmt_tx_send() to hold the data
+lock while removing from the IDR and to free the removed entry.
+---
+ drivers/net/wireless/ath/ath10k/wmi-tlv.c | 7 ++++++-
+ drivers/net/wireless/ath/ath10k/wmi.c     | 2 ++
+ 2 files changed, 8 insertions(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/ath/ath10k/wmi-tlv.c
++++ b/drivers/net/wireless/ath/ath10k/wmi-tlv.c
+@@ -2658,9 +2658,14 @@ ath10k_wmi_tlv_op_cleanup_mgmt_tx_send(s
+ 				       struct sk_buff *msdu)
+ {
+ 	struct ath10k_skb_cb *cb = ATH10K_SKB_CB(msdu);
++	struct ath10k_mgmt_tx_pkt_addr *pkt_addr;
+ 	struct ath10k_wmi *wmi = &ar->wmi;
+ 
+-	idr_remove(&wmi->mgmt_pending_tx, cb->msdu_id);
++	spin_lock_bh(&ar->data_lock);
++	pkt_addr = idr_remove(&wmi->mgmt_pending_tx, cb->msdu_id);
++	spin_unlock_bh(&ar->data_lock);
++
++	kfree(pkt_addr);
+ 
+ 	return 0;
+ }
+--- a/drivers/net/wireless/ath/ath10k/wmi.c
++++ b/drivers/net/wireless/ath/ath10k/wmi.c
+@@ -2367,6 +2367,7 @@ static int wmi_process_mgmt_tx_comp(stru
+ 	dma_unmap_single(ar->dev, pkt_addr->paddr,
+ 			 msdu->len, DMA_TO_DEVICE);
+ 	info = IEEE80211_SKB_CB(msdu);
++	kfree(pkt_addr);
+ 
+ 	if (status)
+ 		info->flags &= ~IEEE80211_TX_STAT_ACK;
+@@ -9287,6 +9288,7 @@ static int ath10k_wmi_mgmt_tx_clean_up_p
+ 	dma_unmap_single(ar->dev, pkt_addr->paddr,
+ 			 msdu->len, DMA_TO_DEVICE);
+ 	ieee80211_free_txskb(ar->hw, msdu);
++	kfree(pkt_addr);
+ 
+ 	return 0;
+ }
