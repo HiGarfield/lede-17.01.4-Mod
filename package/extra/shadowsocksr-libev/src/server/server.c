@@ -175,7 +175,7 @@ stat_update_cb(EV_P_ ev_timer *watcher, int revents)
 
         memset(&svaddr, 0, sizeof(struct sockaddr_un));
         svaddr.sun_family = AF_UNIX;
-        strncpy(svaddr.sun_path, manager_address, sizeof(svaddr.sun_path) - 1);
+        snprintf(svaddr.sun_path, sizeof(svaddr.sun_path), "%s", manager_address);
 
         if (sendto(sfd, resp, strlen(resp) + 1, 0, (struct sockaddr *)&svaddr,
                    sizeof(struct sockaddr_un)) != msgLen) {
@@ -683,15 +683,20 @@ server_recv_cb(EV_P_ ev_io *w, int revents)
 
             if(obfs_compatible == 1)
             {
-                char *back_buf = (char*)malloc(sizeof(buffer_t));
-                memcpy(back_buf, buf, sizeof(buffer_t));
+                char *saved_array = buf->array;
+                size_t saved_len = buf->len;
+                size_t saved_capacity = buf->capacity;
                 buf->len = obfs_plugin->server_decode(server->obfs, &buf->array, buf->len, &buf->capacity, &needsendback);
 
                 if ((int)buf->len < 0)
                 {
                     LOGE("obfs_compatible");
-                    memcpy(buf, back_buf, sizeof(buffer_t));
-                    free(back_buf);
+                    if (buf->array != saved_array) {
+                        free(buf->array);
+                    }
+                    buf->array = saved_array;
+                    buf->len = saved_len;
+                    buf->capacity = saved_capacity;
                     server->obfs_compatible_state = 1;
                 }
             }
