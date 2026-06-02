@@ -126,7 +126,7 @@ define Device/hc5962
   DTS := HC5962
   BLOCKSIZE := 128k
   PAGESIZE := 2048
-  KERNEL_SIZE := 4194304
+  KERNEL_SIZE := 2097152
   UBINIZE_OPTS := -E 5
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
   IMAGES += factory.bin
