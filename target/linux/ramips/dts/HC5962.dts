@@ -63,17 +63,12 @@
 
 		partition@140000 {
 			label = "kernel";
-			reg = <0x140000 0x200000>;
+			reg = <0x140000 0x400000>;
 		};
 
-		partition@340000 {
+		partition@540000 {
 			label = "ubi";
-			reg = <0x340000 0x1E00000>;
-		};
-
-		partition@2140000 {
-			label = "hw_panic";
-			reg = <0x2140000 0x80000>;
+			reg = <0x540000 0x1c80000>;
 		};
 
 		partition@21c0000 {
