@@ -75,7 +75,7 @@ define Build/loader-common
 	$(MAKE) -C lzma-loader \
 		PKG_BUILD_DIR="$@.src" \
 		TARGET_DIR="$(dir $@)" LOADER_NAME="$(notdir $@)" \
-		BOARD="$(BOARDNAME)" PLATFORM="ralink" \
+		BOARD="$(DEVICE_NAME)" PLATFORM="ralink" \
 		LZMA_TEXT_START=0x80a00000 LOADADDR=$(KERNEL_LOADADDR) \
 		$(1) compile loader.$(LOADER_TYPE)
 	mv "$@.$(LOADER_TYPE)" "$@"
