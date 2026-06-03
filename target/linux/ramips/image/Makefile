@@ -42,6 +42,12 @@ define Device/Default
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
 endef
 
+define Device/uimage-lzma-loader
+  LOADER_TYPE := bin
+  KERNEL/lzma-loader := $(KERNEL_DTB) | loader-kernel
+  KERNEL := $$(KERNEL/lzma-loader) | uImage none
+endef
+
 define Build/patch-dtb
 	$(call Image/BuildDTB,../dts/$(DTS).dts,$@.dtb)
 	$(STAGING_DIR_HOST)/bin/patch-dtb $@ $@.dtb
@@ -62,6 +68,22 @@ define Build/relocate-kernel
 		cat $@ \
 	) > $@.new
 	mv $@.new $@
+endef
+
+define Build/loader-common
+	rm -rf $@.src
+	$(MAKE) -C lzma-loader \
+		PKG_BUILD_DIR="$@.src" \
+		TARGET_DIR="$(dir $@)" LOADER_NAME="$(notdir $@)" \
+		BOARD="$(BOARDNAME)" PLATFORM="ralink" \
+		LZMA_TEXT_START=0x80a00000 LOADADDR=$(KERNEL_LOADADDR) \
+		$(1) compile loader.$(LOADER_TYPE)
+	mv "$@.$(LOADER_TYPE)" "$@"
+	rm -rf $@.src
+endef
+
+define Build/loader-kernel
+	$(call Build/loader-common,LOADER_DATA="$@")
 endef
 
 define MkCombineduImage
