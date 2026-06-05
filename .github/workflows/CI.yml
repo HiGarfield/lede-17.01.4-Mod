@@ -139,10 +139,12 @@ jobs:
             make defconfig
             make -j$(nproc) || make -j1 V=s
             mkdir -p $OUTPUT_DIR
-            cp -u -f bin/targets/*/*/${OUTPUT_NAME}-*-sysupgrade.bin ${OUTPUT_DIR}/
+            cp -u -f bin/targets/*/*/${OUTPUT_NAME}-*-sysupgrade.bin \
+                     bin/targets/*/*/${OUTPUT_NAME}-*-factory.bin \
+                     ${OUTPUT_DIR}/ || true
             cd ${OUTPUT_DIR}/
             for f in *.bin; do
-              mv "$f" "$(echo "$f" | sed -e 's/-squashfs//g' -e 's/-sysupgrade//g')"
+              mv "$f" "$(echo "$f" | sed -e 's/-squashfs//g')"
             done
           else
             ./download_all.sh
