@@ -1,11 +1,11 @@
 #!/bin/bash
 
-make_model(){
+make_model() {
 	echo ""
 	echo "--------------------------------------------------------"
 	echo "Building $1......"
 	echo "--------------------------------------------------------"
-	[ ! -f "conf/.config.$1" ]  && {
+	[ ! -f "conf/.config.$1" ] && {
 		echo "conf/.config.$1 does not exist!"
 		return
 	}
@@ -13,16 +13,18 @@ make_model(){
 	{
 		./clean_all.sh
 		cp -f "conf/.config.$1" ".config" &&
-		make defconfig &&
-		make dirclean  >/dev/null 2>&1 &&
-		make download -j$(($(nproc) + 1)) &&
-		make -j$(($(nproc) + 1)) &&
-		cp -u -f bin/targets/*/*/lede-*-squashfs-sysupgrade.bin out/ &&
-		make dirclean  >/dev/null 2>&1 &&
-		rm -rf bin/* build_dir/* tmp/ staging_dir/* .config
+			make defconfig &&
+			make dirclean >/dev/null 2>&1 &&
+			make download -j$(($(nproc) + 1)) &&
+			make -j$(($(nproc) + 1)) &&
+			cp -u -f bin/targets/*/*/lede-*-sysupgrade.bin \
+				bin/targets/*/*/lede-*-factory.bin \
+				out/ &&
+			make dirclean >/dev/null 2>&1 &&
+			rm -rf bin/* build_dir/* tmp/ staging_dir/* .config
 	} || {
-		make dirclean  >/dev/null 2>&1 &&
-		make -j1 V=s
+		make dirclean >/dev/null 2>&1 &&
+			make -j1 V=s
 	} || exit
 }
 
