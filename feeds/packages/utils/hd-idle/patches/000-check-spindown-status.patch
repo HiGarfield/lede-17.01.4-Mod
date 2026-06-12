@@ -33,7 +33,7 @@
              }
            }
  
-@@ -386,12 +386,13 @@ static DISKSTATS *get_diskstats(const char *name)
+@@ -386,12 +386,13 @@ static DISKSTATS *get_diskstats(const ch
  }
  
  /* spin-down a disk */
@@ -48,7 +48,7 @@
  
    dprintf("spindown: %s\n", name);
  
-@@ -411,7 +412,8 @@ static void spindown_disk(const char *name)
+@@ -411,7 +412,8 @@ static void spindown_disk(const char *na
    snprintf(dev_name, sizeof(dev_name), "/dev/%s", name);
    if ((fd = open(dev_name, O_RDONLY)) < 0) {
      perror(dev_name);
@@ -58,7 +58,7 @@
    }
  
    /* execute SCSI request */
-@@ -419,16 +421,18 @@ static void spindown_disk(const char *name)
+@@ -419,16 +421,18 @@ static void spindown_disk(const char *na
      char buf[100];
      snprintf(buf, sizeof(buf), "ioctl on %s:", name);
      perror(buf);
