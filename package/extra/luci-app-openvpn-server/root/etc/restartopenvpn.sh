@@ -1,4 +1,4 @@
-#/bin/sh
+#!/bin/sh
 
 mkdir -p /var/lock
 lock /var/lock/openvpn.lock

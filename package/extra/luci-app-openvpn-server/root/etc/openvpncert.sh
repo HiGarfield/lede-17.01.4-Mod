@@ -1,18 +1,18 @@
 #!/bin/sh
 
-function rand_str() {
+rand_str() {
 	(base64 /dev/urandom | tr -dc 'A-Za-z' | head -c $1) 2>/dev/null
 }
 
-function rand_str_upper() {
+rand_str_upper() {
 	(rand_str $1 | tr 'a-z' 'A-Z') 2>/dev/null
 }
 
-function rand_str_lower() {
+rand_str_lower() {
 	(rand_str $1 | tr 'A-Z' 'a-z') 2>/dev/null
 }
 
-function rand_easy_rsa_vars() {
+rand_easy_rsa_vars() {
 	local KEY_PROVINCE="$(rand_str_upper 6)"
 	local KEY_CITY="$(rand_str 8)"
 	local KEY_ORG="$(rand_str 8)"

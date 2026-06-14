@@ -81,7 +81,7 @@ endif
 	$(INSTALL_DIR) $(1)/usr/sbin
 	$(INSTALL_BIN) $(PKG_BUILD_DIR)/vsftpd $(1)/usr/sbin
 	$(INSTALL_BIN) ./files/vsftpd-uci.init $(1)/etc/init.d/vsftpd
-	$(INSTALL_BIN) ./files/vsftpd.uci $(1)/etc/config/vsftpd
+	$(INSTALL_CONF) ./files/vsftpd.uci $(1)/etc/config/vsftpd
 	$(INSTALL_BIN) ./files/vsftpd_wrapper $(1)/usr/sbin
 	$(INSTALL_BIN) ./files/vsftpd_prepare $(1)/usr/sbin
 endef
