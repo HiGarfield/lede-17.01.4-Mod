@@ -19,7 +19,7 @@ define Package/force-unmount
   CATEGORY:=Base system
   MAINTAINER:=HiGarfield <higarfield@126.com>
   TITLE:=force unmount tool
-  DEPENDS:=+busybox +@BUSYBOX_CUSTOM +@BUSYBOX_CONFIG_PGREP +lsof +libubox +ubus
+  DEPENDS:=+busybox +lsof +libubox +ubus
   MENU:=1
 endef
 
