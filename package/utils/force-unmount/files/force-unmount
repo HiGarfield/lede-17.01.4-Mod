@@ -44,7 +44,10 @@ is_descendant_process() {
 		[ "$ancestor_pid" -eq "$ancestor_pid" ] 2>/dev/null; } ||
 		return 1
 
-	[ "$current_pid" -eq "$ancestor_pid" ] && return 0
+	# If target and ancestor are the same, target is not a descendant
+	[ "$target_pid" -eq "$ancestor_pid" ] && return 1
+
+	local current_pid="$target_pid"
 
 	while :; do
 		# 获取父进程ID
@@ -149,15 +152,16 @@ stop_occupying_service() {
 # - force_kill 设定为1，会强制立即终止进程，可能导致数据丢失，慎用
 ##
 kill_occupying_process() {
-	local mountpoint process_id force_kill
+	local mountpoint process_id force_kill comm
 	mountpoint="$1"
 	force_kill=$((${2:-0} != 0))
 	for process_id in $(lsof -t "$mountpoint"); do
-		_log "killing process: $(cat "/proc/$process_id/comm")"
+		comm=$(cat "/proc/$process_id/comm" 2>/dev/null) || comm="<unknown>"
+		_log "killing process: $comm"
 		if [ "$force_kill" -eq 1 ]; then
-			kill -9 "$process_id"
+			kill -9 "$process_id" 2>/dev/null || true
 		else
-			kill "$process_id"
+			kill "$process_id" 2>/dev/null || true
 		fi
 	done
 }
@@ -179,7 +183,7 @@ if grep -q "[[:blank:]]\+${mountpoint}[[:blank:]]\+" /proc/mounts; then
 	for try_count in $(seq $MAX_TRY); do
 		_log "unmounting ${mountpoint}: try count: ${try_count}"
 		stop_occupying_service "$mountpoint"
-		if [ "$try_count" -gt 1 ] || [ "$try_count" -eq "$MAX_TRY" ]; then
+		if [ "$try_count" -eq "$MAX_TRY" ]; then
 			kill_occupying_process "$mountpoint" 1
 		else
 			kill_occupying_process "$mountpoint" 0

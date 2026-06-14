@@ -7,11 +7,11 @@ start()
 {
 	local file
 	for file in /etc/ipset/*; do
-		[ -f $file ] || continue
+		[ -f "$file" ] || continue
 		case "$file" in
 			*-opkg) continue;;
 		esac
-		ipset restore < $file
+		ipset restore < "$file"
 	done
 }
 
@@ -19,14 +19,14 @@ stop()
 {
 	local file
 	for file in /etc/ipset/*; do
-		[ -f $file ] || continue
+		[ -f "$file" ] || continue
 		case "$file" in
 			*-opkg) continue;;
 		esac
 		# Parse the first line for the ipset name
-		local name=`head -n1 $file | awk '/^create /{print $2}'`
+		local name=$(head -n1 "$file" | awk '/^create /{print $2}')
 		if [ -n "$name" ]; then
-			ipset destroy $name
+			ipset destroy "$name"
 		fi
 	done
 }
