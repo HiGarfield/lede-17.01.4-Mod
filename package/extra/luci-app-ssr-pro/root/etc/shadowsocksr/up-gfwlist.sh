@@ -15,7 +15,7 @@ sed -i '/^[[:space:]]*$/d' /tmp/china-banned
 
 need_restart=0
 
-if (! cmp -s /tmp/china-banned /etc/gfwlist/china-banned); then
+if ! cmp -s /tmp/china-banned /etc/gfwlist/china-banned; then
 	if [ -s "/tmp/china-banned" ]; then
 		mv -f /tmp/china-banned /etc/gfwlist/china-banned
 		need_restart=1
