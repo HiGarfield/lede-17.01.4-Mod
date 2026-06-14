@@ -47,8 +47,6 @@ is_descendant_process() {
 	# If target and ancestor are the same, target is not a descendant
 	[ "$target_pid" -eq "$ancestor_pid" ] && return 1
 
-	local current_pid="$target_pid"
-
 	while :; do
 		# 获取父进程ID
 		current_pid=$(awk -F')' '{
