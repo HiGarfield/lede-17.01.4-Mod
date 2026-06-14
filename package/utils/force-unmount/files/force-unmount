@@ -177,7 +177,7 @@ mountpoint="$(echo "$1" | sed 's#//\+#/#g; s#/[[:space:]]*$##')"
 	exit 1
 }
 
-if grep -q "[[:blank:]]\+${mountpoint}[[:blank:]]\+" /proc/mounts; then
+if awk -v mp="$mountpoint" '$2==mp{f=1} END{exit !f}' /proc/mounts; then
 	for try_count in $(seq $MAX_TRY); do
 		_log "unmounting ${mountpoint}: try count: ${try_count}"
 		stop_occupying_service "$mountpoint"
