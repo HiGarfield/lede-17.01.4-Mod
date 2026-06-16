@@ -1,0 +1,19 @@
+From 46b2ae02fcec3dd7c3eb407582eaec3bc36c1eaa Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Wed, 17 Jun 2026 03:20:13 +0800
+Subject: [PATCH] fix missing header
+
+---
+ hd-idle.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+--- a/hd-idle.c
++++ b/hd-idle.c
+@@ -112,6 +112,7 @@
+ #include <ctype.h>
+ #include <errno.h>
+ #include <unistd.h>
++#include <getopt.h>
+ #include <stdarg.h>
+ 
+ #include <fcntl.h>

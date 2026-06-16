@@ -1,0 +1,52 @@
+From 431914ee4699e6690d5fa3ce955aad9124dc25ba Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Wed, 17 Jun 2026 03:53:27 +0800
+Subject: [PATCH] fix memory usage
+
+---
+ hd-idle.c | 13 +++++++------
+ 1 file changed, 7 insertions(+), 6 deletions(-)
+
+--- a/hd-idle.c
++++ b/hd-idle.c
+@@ -488,17 +488,17 @@ static char *disk_name(char *path)
+ {
+   ssize_t len;
+   char buf[256];
+-  char *s;
++  char *s, *ret;
+ 
+   if (*path != '/') {
+     /* just a disk name without /dev prefix */
+-    return(path);
++    return strdup(path);
+   }
+ 
+   if ((len = readlink(path, buf, sizeof(buf) - 1)) <= 0) {
+     if (errno != EINVAL) {
+       /* couldn't resolve disk name */
+-      return(path);
++      return strdup(path);
+     }
+ 
+     /* 'path' is not a symlink */
+@@ -522,15 +522,16 @@ static char *disk_name(char *path)
+     s = buf;
+   }
+ 
+-  if ((s = strdup(s)) == NULL) {
++  ret = strdup(s);
++  if (ret == NULL) {
+     fprintf(stderr, "out of memory");
+     exit(2);
+   }
+ 
+   if (debug) {
+-    printf("using %s for %s\n", s, path);
++    printf("using %s for %s\n", ret, path);
+   }
+-  return(s);
++  return(ret);
+ }
+ 
+ /* print hex dump to stderr (e.g. sense buffers) */
