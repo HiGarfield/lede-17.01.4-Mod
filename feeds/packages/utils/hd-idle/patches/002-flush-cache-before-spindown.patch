@@ -1,0 +1,29 @@
+From 272d7c35b08b82cca5392784257b03423bc345f1 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Wed, 17 Jun 2026 03:34:29 +0800
+Subject: [PATCH] flush cache before spindown
+
+---
+ hd-idle.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/hd-idle.c
++++ b/hd-idle.c
+@@ -116,6 +116,7 @@
+ #include <stdarg.h>
+ 
+ #include <fcntl.h>
++#include <linux/fs.h>
+ #include <sys/types.h>
+ #include <sys/stat.h>
+ #include <sys/ioctl.h>
+@@ -417,6 +418,9 @@ static int spindown_disk(const char *nam
+     return spindown_status;
+   }
+ 
++  sync();
++  ioctl(fd, BLKFLSBUF, 0);
++
+   /* execute SCSI request */
+   if (ioctl(fd, SG_IO, &io_hdr) < 0) {
+     char buf[100];

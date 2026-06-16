@@ -15,7 +15,7 @@
        /* just spin-down the specified disk and exit */
 -      spindown_disk(optarg);
 -      return(0);
-+      return(spindown_disk(optarg));
++      return(!!spindown_disk(optarg));
  
      case 'a':
        /* add a new set of idle-time parameters for this particular disk */
@@ -53,7 +53,7 @@
    if ((fd = open(dev_name, O_RDONLY)) < 0) {
      perror(dev_name);
 -    return;
-+    spindown_status = 1;
++    spindown_status = -1;
 +    return spindown_status;
    }
  
@@ -63,14 +63,14 @@
      snprintf(buf, sizeof(buf), "ioctl on %s:", name);
      perror(buf);
 -
-+    spindown_status = 1;
++    spindown_status = -1;
    } else if (io_hdr.masked_status != 0) {
      fprintf(stderr, "error: SCSI command failed with status 0x%02x\n",
              io_hdr.masked_status);
      if (io_hdr.masked_status == CHECK_CONDITION) {
        phex(sense_buf, io_hdr.sb_len_wr, "sense buffer:\n");
      }
-+    spindown_status = 1;
++    spindown_status = -1;
    }
  
    close(fd);
