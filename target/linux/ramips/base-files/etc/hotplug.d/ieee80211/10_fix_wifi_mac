@@ -26,11 +26,22 @@ macaddr_unsetbit() {
 board=$(ramips_board_name)
 
 case "$board" in
-	hc5962)
-		label_mac=$(mtd_get_mac_ascii bdinfo "Vfac_mac ")
-		[ "$PHYNBR" = "0" ] && [ -n "$label_mac" ] && \
-		echo -n "$label_mac" > /sys${DEVPATH}/macaddress
-		[ "$PHYNBR" = "1" ] && [ -n "$label_mac" ] && \
-		macaddr_unsetbit "$label_mac" 6 > /sys${DEVPATH}/macaddress
-		;;
+hc5962)
+	label_mac=$(mtd_get_mac_ascii bdinfo "Vfac_mac ")
+	[ "$PHYNBR" = "0" ] && [ -n "$label_mac" ] &&
+		echo -n "$label_mac" >/sys${DEVPATH}/macaddress
+	[ "$PHYNBR" = "1" ] && [ -n "$label_mac" ] &&
+		macaddr_unsetbit "$label_mac" 6 >/sys${DEVPATH}/macaddress
+	;;
+link7)
+	factory_part="$(find_mtd_chardev factory)"
+	hash="$(sha256sum "$factory_part")"
+	hash="${hash:0:6}"
+	lan_mac="64:05:e9:${hash:0:2}:${hash:2:2}:${hash:4:2}"
+	if [ "$PHYNBR" = "0" ]; then
+		macaddr_add "$lan_mac" 2 >/sys${DEVPATH}/macaddress
+	elif [ "$PHYNBR" = "1" ]; then
+		macaddr_add "$lan_mac" 3 >/sys${DEVPATH}/macaddress
+	fi
+	;;
 esac
