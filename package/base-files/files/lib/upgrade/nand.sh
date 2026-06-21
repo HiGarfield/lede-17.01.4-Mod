@@ -264,7 +264,7 @@ nand_upgrade_tar() {
 	[ "$kernel_length" != 0 -a -n "$kernel_mtd" ] && {
 		tar xf $tar_file sysupgrade-$board_name/kernel -O | mtd write - $CI_KERNPART
 	}
-	[ "$kernel_length" = 0 -o ! -z "$kernel_mtd" ] && has_kernel=0
+	[ "$kernel_length" = 0 -o -z "$kernel_mtd" ] && has_kernel=0
 
 	nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env"
 
