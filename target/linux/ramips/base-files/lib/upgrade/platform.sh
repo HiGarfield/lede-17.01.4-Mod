@@ -265,6 +265,10 @@ platform_nand_pre_upgrade() {
 	local board=$(ramips_board_name)
 
 	case "$board" in
+	hc5962)
+		CI_KERNPART="kernel"
+		CI_UBIPART="ubi"
+		;;
 	ubnt-erx)
 		platform_upgrade_ubnt_erx "$ARGV"
 		;;
@@ -275,8 +279,11 @@ platform_pre_upgrade() {
 	local board=$(ramips_board_name)
 
 	case "$board" in
-		hc5962|\
-    	ubnt-erx)
+	hc5962)
+		nand_upgrade_stage2 nand "$ARGV"
+		exit 0
+		;;
+	ubnt-erx)
 		nand_do_upgrade "$ARGV"
 		;;
 	esac
