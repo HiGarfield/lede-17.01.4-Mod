@@ -280,7 +280,8 @@ platform_pre_upgrade() {
 
 	case "$board" in
 	hc5962)
-		nand_upgrade_tar "$ARGV"
+		nand_upgrade_stage2 nand "$ARGV"
+		exit 0
 		;;
 	ubnt-erx)
 		nand_do_upgrade "$ARGV"
