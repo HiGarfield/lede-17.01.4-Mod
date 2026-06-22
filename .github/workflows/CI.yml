@@ -21,11 +21,19 @@ jobs:
     runs-on: ubuntu-24.04
     permissions: {}
     steps:
+      - uses: actions/checkout@main
+
+      - name: Get commit title
+        id: title
+        run: |
+          commit_title=$(git log -1 --pretty=format:%s | cut -c1-100)
+          echo "commit_title=$commit_title" >> $GITHUB_OUTPUT
+
       - uses: HiGarfield/repository-dispatch@main
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ secrets.SECOND_REPO }}
-          event-type: ${{ github.event.head_commit.message }}
+          event-type: ${{ steps.title.outputs.commit_title }}
 
   generate_matrix:
     runs-on: ubuntu-24.04
