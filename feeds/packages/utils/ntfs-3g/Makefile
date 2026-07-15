@@ -6,12 +6,12 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=ntfs-3g
-PKG_VERSION:=2026.2.25
+PKG_VERSION:=2026.7.7
 PKG_RELEASE:=1
 
 PKG_SOURCE:=$(PKG_NAME)_ntfsprogs-$(PKG_VERSION).tgz
 PKG_SOURCE_URL:=https://www.tuxera.com/opensource/
-PKG_HASH:=7754f3b32e8baf9c472459b4e9c981e3ae0f5039107cdd8d8201aed0a949008a
+PKG_HASH:=d67b769025d32860549d35c2147e45024d172f81c540d750390ce3602c059dab
 
 PKG_MAINTAINER:=Ted Hess <thess@kitschensync.net>
 PKG_LICENSE:=GPL-2.0-only LGPL-2.1-or-later
