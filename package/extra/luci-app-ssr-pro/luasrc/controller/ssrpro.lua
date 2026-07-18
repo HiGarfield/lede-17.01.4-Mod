@@ -1,6 +1,6 @@
 module("luci.controller.ssrpro", package.seeall)
 function index()
-		if not nixio.fs.access("/etc/config/ssrpro") then
+	if not nixio.fs.access("/etc/config/ssrpro") then
 		return
 	end
 	local page

@@ -205,7 +205,7 @@ start_dnsforwarder() {
 stop_dnsforwarder() {
 	local cur_safe_dns_port="$(grep "^TCPGroup" $DNSFORWARDER_CONF 2>/dev/null | grep -o ":\d\+[[:space:]]\+" | grep -o "[[:digit:]]\+")"
 	if $IPTABLES -t nat -F dnsforwarder_output 2>/dev/null; then
-		if [ -n $safe_dns_port ]; then
+		if [ -n "$cur_safe_dns_port" ]; then
 			while $IPTABLES -t nat -D OUTPUT -p tcp --dport $cur_safe_dns_port -j dnsforwarder_output 2>/dev/null; do :; done
 		fi
 		while $IPTABLES -t nat -D OUTPUT -p tcp --dport $vt_safe_dns_port -j dnsforwarder_output 2>/dev/null; do :; done
@@ -288,8 +288,7 @@ add_rule() {
 		;;
 	M)
 		ipset -! create $vt_gfwlist hash:ip maxelem 65536 2>/dev/null
-		awk '!/^$/&&!/^#/{printf("add vt_gfwlist %s'" "'\n",$0)}' /etc/shadowsocksr/addinip.txt >/tmp/addinip.ipset
-		sed -i "s/vt_gfwlist/$vt_gfwlist/g" /tmp/addinip.ipset
+		awk -v gfwlist="$vt_gfwlist" '!/^$/&&!/^#/{printf("add %s %s\n",gfwlist,$0)}' /etc/shadowsocksr/addinip.txt >/tmp/addinip.ipset
 		ipset -! restore </tmp/addinip.ipset
 		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
 		$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set $vt_np_ipset dst -j RETURN
