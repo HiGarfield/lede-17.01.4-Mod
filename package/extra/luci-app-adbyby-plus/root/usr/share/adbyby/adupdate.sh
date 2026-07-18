@@ -17,7 +17,7 @@ if [ "$lazy_online"x != "$lazy_local"x -o "$video_online"x != "$video_local"x ];
      touch /tmp/local-md5.json && md5sum /tmp/lazy.txt /tmp/video.txt >/tmp/local-md5.json
      lazy_local=$(grep 'lazy' /tmp/local-md5.json | awk -F' ' '{print $1}')
      video_local=$(grep 'video' /tmp/local-md5.json | awk -F' ' '{print $1}')
-     if [ "$lazy_online"x == "$lazy_local"x -a "$video_online"x == "$video_local"x ]; then
+     if [ "$lazy_online"x = "$lazy_local"x -a "$video_online"x = "$video_local"x ]; then
           echo "New rules MD5 match!"
           mv /tmp/lazy.txt /usr/share/adbyby/data/lazy.txt
           mv /tmp/video.txt /usr/share/adbyby/data/video.txt
