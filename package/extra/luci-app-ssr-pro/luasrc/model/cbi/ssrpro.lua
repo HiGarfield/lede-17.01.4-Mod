@@ -1,9 +1,11 @@
 local NXFS = require "nixio.fs"
 local SYS  = require "luci.sys"
--- Trim leading and trailing whitespace from command output using Lua pattern:
--- ^%s* matches leading whitespace, (.-)captures minimal content, %s*$ matches trailing whitespace
--- The double fallback (echo 0 and or 0) handles both missing file and parse failures
-local ND = tonumber(SYS.exec("wc -l < /etc/gfwlist/china-banned 2>/dev/null || echo 0"):gsub("^%s*(.-)%s*$", "%1")) or 0
+-- Get line count from GFW list file with proper error handling and type safety
+local raw_output = SYS.exec("wc -l < /etc/gfwlist/china-banned 2>/dev/null || echo 0")
+-- Trim whitespace using Lua pattern: ^%s* (leading), (.-) (minimal capture), %s*$ (trailing)
+local trimmed_output = raw_output:gsub("^%s*(.-)%s*$", "%1")
+-- Convert to number with fallback to 0 if conversion fails
+local ND = tonumber(trimmed_output) or 0
 local conf = "/etc/shadowsocksr/base-gfwlist.txt"
 
 m = Map("ssrpro")
