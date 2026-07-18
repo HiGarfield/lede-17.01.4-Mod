@@ -250,34 +250,73 @@ nand_board_name() {
 
 nand_upgrade_tar() {
 	local tar_file="$1"
-	local board_name="$(nand_board_name)"
 	local kernel_mtd="$(find_mtd_index $CI_KERNPART)"
+	local board_name="$(nand_board_name)"
+	local board_dir=""
 
-	local kernel_length=`(tar xf $tar_file sysupgrade-$board_name/kernel -O | wc -c) 2> /dev/null`
-	local rootfs_length=`(tar xf $tar_file sysupgrade-$board_name/root -O | wc -c) 2> /dev/null`
+	[ -n "$board_name" ] && board_dir="sysupgrade-$board_name"
+	if ! tar tf "$tar_file" "$board_dir/" >/dev/null 2>&1; then
+		board_dir="$(tar tf "$tar_file" 2>/dev/null | grep -m 1 '^sysupgrade-.*/$')"
+		board_dir="${board_dir%/}"
+	fi
+	[ -n "$board_dir" ] || {
+		echo "cannot find sysupgrade directory in image"
+		exit 1
+	}
 
-	local rootfs_type="$(identify_tar "$tar_file" sysupgrade-$board_name/root)"
+	local kernel_length=`(tar xf "$tar_file" "${board_dir}/kernel" -O | wc -c) 2> /dev/null`
+	local rootfs_length=`(tar xf "$tar_file" "${board_dir}/root" -O | wc -c) 2> /dev/null`
+	[ "$rootfs_length" -gt 0 ] || {
+		echo "invalid rootfs payload in image"
+		exit 1
+	}
+
+	local rootfs_type="$(identify_tar "$tar_file" "${board_dir}/root")"
 
 	local has_kernel=1
 	local has_env=0
 
 	[ "$kernel_length" != 0 -a -n "$kernel_mtd" ] && {
-		tar xf $tar_file sysupgrade-$board_name/kernel -O | mtd write - $CI_KERNPART
+		tar xf "$tar_file" "${board_dir}/kernel" -O | mtd write - "$CI_KERNPART" || {
+			echo "failed to write kernel to $CI_KERNPART"
+			exit 1
+		}
 	}
 	[ "$kernel_length" = 0 -o ! -z "$kernel_mtd" ] && has_kernel=0
 
-	nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env"
-
-	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
-	[ "$has_kernel" = "1" ] && {
-		local kern_ubivol="$(nand_find_volume $ubidev kernel)"
-	 	tar xf $tar_file sysupgrade-$board_name/kernel -O | \
-			ubiupdatevol /dev/$kern_ubivol -s $kernel_length -
+	nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env" || {
+		echo "failed to prepare UBI volumes"
+		exit 1
 	}
 
-	local root_ubivol="$(nand_find_volume $ubidev rootfs)"
-	tar xf $tar_file sysupgrade-$board_name/root -O | \
-		ubiupdatevol /dev/$root_ubivol -s $rootfs_length -
+	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
+	[ -n "$ubidev" ] || {
+		echo "cannot find UBI device for $CI_UBIPART"
+		exit 1
+	}
+	[ "$has_kernel" = "1" ] && {
+		local kern_ubivol="$(nand_find_volume "$ubidev" kernel)"
+		[ -n "$kern_ubivol" ] || {
+			echo "cannot find kernel UBI volume"
+			exit 1
+		}
+	 	tar xf "$tar_file" "${board_dir}/kernel" -O | \
+			ubiupdatevol "/dev/$kern_ubivol" -s "$kernel_length" - || {
+			echo "failed to update kernel UBI volume"
+			exit 1
+		}
+	}
+
+	local root_ubivol="$(nand_find_volume "$ubidev" rootfs)"
+	[ -n "$root_ubivol" ] || {
+		echo "cannot find rootfs UBI volume"
+		exit 1
+	}
+	tar xf "$tar_file" "${board_dir}/root" -O | \
+		ubiupdatevol "/dev/$root_ubivol" -s "$rootfs_length" - || {
+		echo "failed to update rootfs UBI volume"
+		exit 1
+	}
 
 	nand_do_upgrade_success
 }
