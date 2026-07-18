@@ -3,8 +3,7 @@
 if [ ! -f "/tmp/adbyby.updated" ]; then
   touch /tmp/adbyby.mem
   wget_ok="0"
-  retry=0
-  while [ "$wget_ok" = "0" ] && [ "$retry" -lt 30 ]; do
+  while [ "$wget_ok" = "0" ]; do
     wget-ssl --spider --quiet --tries=1 --timeout=3 www.baidu.com
     if [ "$?" = "0" ]; then
       wget_ok="1"
@@ -37,11 +36,9 @@ if [ ! -f "/tmp/adbyby.updated" ]; then
         fi
       fi
     else
-      retry=$((retry + 1))
       sleep 10
     fi
   done
 
-  [ "$wget_ok" = "1" ] || exit 1
   sleep 10 && /etc/init.d/adbyby restart
 fi
