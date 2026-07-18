@@ -250,7 +250,6 @@ nand_board_name() {
 
 nand_upgrade_tar() {
 	local tar_file="$1"
-	local kernel_mtd="$(find_mtd_index $CI_KERNPART)"
 	local board_name="$(nand_board_name)"
 	local board_dir=""
 
@@ -264,8 +263,9 @@ nand_upgrade_tar() {
 		exit 1
 	}
 
-	local kernel_length=`(tar xf "$tar_file" "${board_dir}/kernel" -O | wc -c) 2> /dev/null`
-	local rootfs_length=`(tar xf "$tar_file" "${board_dir}/root" -O | wc -c) 2> /dev/null`
+	local kernel_mtd="$(find_mtd_index $CI_KERNPART)"
+	local kernel_length="$( (tar xf "$tar_file" "${board_dir}/kernel" -O | wc -c) 2> /dev/null )"
+	local rootfs_length="$( (tar xf "$tar_file" "${board_dir}/root" -O | wc -c) 2> /dev/null )"
 	[ "$rootfs_length" -gt 0 ] || {
 		echo "invalid rootfs payload in image"
 		exit 1
