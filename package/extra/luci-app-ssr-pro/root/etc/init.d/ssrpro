@@ -72,7 +72,7 @@ start() {
 		/etc/init.d/dnsforwarder stop 2>/dev/null
 	}
 
-	local vt_gfwlist=$(__gfwlist_by_mode $vt_proxy_mode)
+	local vt_gfwlist=$(__gfwlist_by_mode "$vt_proxy_mode")
 
 	killall_by_name ssr-redir
 
@@ -96,7 +96,7 @@ start() {
 		}
 	EOF
 
-	/usr/bin/ssr-redir -u -c "$SSRCONF" -f $SS_REDIR_PIDFILE || return 1
+	/usr/bin/ssr-redir -u -c "$SSRCONF" -f "$SS_REDIR_PIDFILE" || return 1
 
 	# IPv4 firewall rules
 	del_rule
@@ -109,10 +109,10 @@ start() {
 		if [ "$vt_safe_dns_tcp" -eq 1 ]; then
 			start_dnsforwarder
 			awk -vs="127.0.0.1#$DNSFORWARDER_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
-				/etc/gfwlist/$vt_gfwlist >/var/etc/dnsmasq-go.d/01-pollution.conf
+				"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/01-pollution.conf
 		else
 			awk -vs="$vt_safe_dns#$vt_safe_dns_port" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
-				/etc/gfwlist/$vt_gfwlist >/var/etc/dnsmasq-go.d/01-pollution.conf
+				"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/01-pollution.conf
 		fi
 	else
 		echo "WARNING: Not using secure DNS, DNS resolution might be polluted if you are in China."
@@ -122,7 +122,7 @@ start() {
 	case "$vt_proxy_mode" in
 	M | V)
 		awk '!/^$/&&!/^#/{printf("ipset=/%s/'"$vt_gfwlist"'\n",$0)}' \
-			/etc/gfwlist/$vt_gfwlist >/var/etc/dnsmasq-go.d/02-ipset.conf
+			"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/02-ipset.conf
 		;;
 	esac
 
@@ -154,13 +154,13 @@ stop() {
 
 	# -----------------------------------------------------
 	killall_by_name ssr-redir
-	rm -f $SS_REDIR_PIDFILE
+	rm -f "$SS_REDIR_PIDFILE"
 
 	del_cron
 }
 
 reload_rule() {
-	local vt_gfwlist=$(__gfwlist_by_mode $vt_proxy_mode)
+	local vt_gfwlist=$(__gfwlist_by_mode "$vt_proxy_mode")
 
 	KEEP_GFWLIST=Y
 	del_rule
@@ -192,46 +192,46 @@ start_dnsforwarder() {
 		MemoryCache true
 		IgnoreTTL false
 	EOF
-	$DNSFORWARDER -d -f $DNSFORWARDER_CONF >/dev/null 2>&1
+	$DNSFORWARDER -d -f "$DNSFORWARDER_CONF" >/dev/null 2>&1
 
 	# Access TCP DNS server through Shadowsocksr tunnel
 	if $IPTABLES -t nat -N dnsforwarder_output; then
-		$IPTABLES -t nat -A dnsforwarder_output -m set --match-set $vt_np_ipset dst -j RETURN
-		$IPTABLES -t nat -A dnsforwarder_output -p tcp -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A dnsforwarder_output -m set --match-set "$vt_np_ipset" dst -j RETURN
+		$IPTABLES -t nat -A dnsforwarder_output -p tcp -j REDIRECT --to "$SS_REDIR_PORT"
 	fi
-	$IPTABLES -t nat -I OUTPUT -p tcp --dport $vt_safe_dns_port -j dnsforwarder_output
+	$IPTABLES -t nat -I OUTPUT -p tcp --dport "$vt_safe_dns_port" -j dnsforwarder_output
 }
 
 stop_dnsforwarder() {
-	local cur_safe_dns_port="$(grep "^TCPGroup" $DNSFORWARDER_CONF 2>/dev/null | grep -o ":\d\+[[:space:]]\+" | grep -o "[[:digit:]]\+")"
+	local cur_safe_dns_port="$(grep "^TCPGroup" "$DNSFORWARDER_CONF" 2>/dev/null | grep -o ":[[:digit:]]\+[[:space:]]\+" | grep -o "[[:digit:]]\+")"
 	if $IPTABLES -t nat -F dnsforwarder_output 2>/dev/null; then
-		if [ -n $safe_dns_port ]; then
-			while $IPTABLES -t nat -D OUTPUT -p tcp --dport $cur_safe_dns_port -j dnsforwarder_output 2>/dev/null; do :; done
+		if [ -n "$cur_safe_dns_port" ]; then
+			while $IPTABLES -t nat -D OUTPUT -p tcp --dport "$cur_safe_dns_port" -j dnsforwarder_output 2>/dev/null; do :; done
 		fi
-		while $IPTABLES -t nat -D OUTPUT -p tcp --dport $vt_safe_dns_port -j dnsforwarder_output 2>/dev/null; do :; done
+		while $IPTABLES -t nat -D OUTPUT -p tcp --dport "$vt_safe_dns_port" -j dnsforwarder_output 2>/dev/null; do :; done
 		$IPTABLES -t nat -X dnsforwarder_output
 	fi
-	killall_by_name $DNSFORWARDER_BIN
-	rm -rf $DNSFORWARDER_PATH
+	killall_by_name "$DNSFORWARDER_BIN"
+	rm -rf "$DNSFORWARDER_PATH"
 }
 
 add_cron() {
 	if [ "$cron_mode" -eq 0 ]; then
-		if grep -q "/etc/shadowsocksr/up-gfwlist.sh" $CRON_FILE; then
-			sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' $CRON_FILE
+		if grep -q "/etc/shadowsocksr/up-gfwlist.sh" "$CRON_FILE"; then
+			sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' "$CRON_FILE"
 			/etc/init.d/cron restart
 		fi
 	else
-		if ! grep -q "/etc/shadowsocksr/up-gfwlist.sh" $CRON_FILE; then
-			echo '0 4 * * * /etc/shadowsocksr/up-gfwlist.sh > /tmp/gfwupdate.log 2>&1' >>$CRON_FILE
+		if ! grep -q "/etc/shadowsocksr/up-gfwlist.sh" "$CRON_FILE"; then
+			echo '0 4 * * * /etc/shadowsocksr/up-gfwlist.sh > /tmp/gfwupdate.log 2>&1' >>"$CRON_FILE"
 			/etc/init.d/cron restart
 		fi
 	fi
 }
 
 del_cron() {
-	if grep -q '/etc/shadowsocksr/up-gfwlist.sh' $CRON_FILE; then
-		sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' $CRON_FILE
+	if grep -q '/etc/shadowsocksr/up-gfwlist.sh' "$CRON_FILE"; then
+		sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' "$CRON_FILE"
 		/etc/init.d/cron restart
 	fi
 }
@@ -243,15 +243,15 @@ process_acl_rule() {
 	config_get mode "$1" filter_mode
 	case "$mode" in
 	disable)
-		$IPTABLES -t nat -A shadowsocksr_pre -s $ip -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -s "$ip" -j RETURN
 		;;
 	global)
-		$IPTABLES -t nat -A shadowsocksr_pre -s $ip -p tcp -j REDIRECT --to $SS_REDIR_PORT
-		$IPTABLES -t nat -A shadowsocksr_pre -s $ip -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -s "$ip" -p tcp -j REDIRECT --to "$SS_REDIR_PORT"
+		$IPTABLES -t nat -A shadowsocksr_pre -s "$ip" -j RETURN
 		;;
 	game)
-		$IPTABLES -t nat -A shadowsocksr_pre -p tcp -s $ip -m set ! --match-set china dst -j REDIRECT --to $SS_REDIR_PORT
-		ipset -! add gameuser $ip
+		$IPTABLES -t nat -A shadowsocksr_pre -p tcp -s "$ip" -m set ! --match-set china dst -j REDIRECT --to "$SS_REDIR_PORT"
+		ipset -! add gameuser "$ip"
 		;;
 	esac
 }
@@ -266,7 +266,7 @@ add_rule() {
 		$IPTABLES -t nat -A shadowsocksr_pre -d 192.168.0.0/16 -j RETURN
 		$IPTABLES -t nat -A shadowsocksr_pre -d 224.0.0.0/3 -j RETURN
 	}
-	$IPTABLES -t nat -A shadowsocksr_pre -d $vt_server_addr -j RETURN
+	$IPTABLES -t nat -A shadowsocksr_pre -d "$vt_server_addr" -j RETURN
 
 	$IPTABLES -N gameboost -t mangle
 	ipset -! create gameuser hash:ip maxelem 65536 2>/dev/null
@@ -275,7 +275,7 @@ add_rule() {
 	$IPTABLES -t mangle -A gameboost -p udp -m set --match-set local dst -j RETURN
 	$IPTABLES -t mangle -A gameboost -p udp -m set --match-set china dst -j RETURN
 	$IPTABLES -t mangle -A gameboost -p udp --dport 53 -j RETURN
-	$IPTABLES -t mangle -A gameboost -p udp -j TPROXY --on-port $SS_REDIR_PORT --tproxy-mark 0x01/0x01
+	$IPTABLES -t mangle -A gameboost -p udp -j TPROXY --on-port "$SS_REDIR_PORT" --tproxy-mark 0x01/0x01
 	$IPTABLES -t mangle -A PREROUTING -m set --match-set gameuser src -j gameboost
 
 	config_foreach process_acl_rule acl_rule
@@ -283,28 +283,33 @@ add_rule() {
 	case "$vt_proxy_mode" in
 	G) : ;;
 	S)
-		$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set $vt_np_ipset dst -j RETURN
-		$IPTABLES -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set "$vt_np_ipset" dst -j RETURN
+		$IPTABLES -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set "$vt_np_ipset" dst -j REDIRECT --to "$SS_REDIR_PORT"
 		;;
 	M)
-		ipset -! create $vt_gfwlist hash:ip maxelem 65536 2>/dev/null
-		awk '!/^$/&&!/^#/{printf("add vt_gfwlist %s'" "'\n",$0)}' /etc/shadowsocksr/addinip.txt >/tmp/addinip.ipset
-		sed -i "s/vt_gfwlist/$vt_gfwlist/g" /tmp/addinip.ipset
-		ipset -! restore </tmp/addinip.ipset
-		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
-		$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set $vt_np_ipset dst -j RETURN
-		$IPTABLES -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set $vt_gfwlist dst -j REDIRECT --to $SS_REDIR_PORT
+		ipset -! create "$vt_gfwlist" hash:ip maxelem 65536 2>/dev/null
+		if [ -f /etc/shadowsocksr/addinip.txt ]; then
+			local tmpfile
+			tmpfile="$(mktemp -t ssrpro.addinip.XXXXXX 2>/dev/null || mktemp /tmp/ssrpro.addinip.XXXXXX)" || return 1
+			if awk -v gfwlist="$vt_gfwlist" '!/^$/&&!/^#/{printf("add %s %s\n",gfwlist,$0)}' "/etc/shadowsocksr/addinip.txt" >"$tmpfile" && [ -s "$tmpfile" ]; then
+				ipset -! restore <"$tmpfile"
+			fi
+			rm -f "$tmpfile"
+		fi
+		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set "$vt_gfwlist" dst -j RETURN
+		$IPTABLES -t nat -A shadowsocksr_pre -m set --match-set "$vt_np_ipset" dst -j RETURN
+		$IPTABLES -t nat -I OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set "$vt_gfwlist" dst -j REDIRECT --to "$SS_REDIR_PORT"
 		;;
 	V)
 		vt_np_ipset=""
-		ipset -! create $vt_gfwlist hash:ip maxelem 65536 2>/dev/null
-		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set $vt_gfwlist dst -j RETURN
+		ipset -! create "$vt_gfwlist" hash:ip maxelem 65536 2>/dev/null
+		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set "$vt_gfwlist" dst -j RETURN
 		;;
 	esac
 	local subnet covered_subnets
 	network_get_subnet covered_subnets lan
 	for subnet in $covered_subnets; do
-		$IPTABLES -t nat -A shadowsocksr_pre -s $subnet -p tcp -j REDIRECT --to $SS_REDIR_PORT
+		$IPTABLES -t nat -A shadowsocksr_pre -s "$subnet" -p tcp -j REDIRECT --to "$SS_REDIR_PORT"
 	done
 	$IPTABLES -t nat -I PREROUTING -p tcp -j shadowsocksr_pre
 }
@@ -315,8 +320,8 @@ del_rule() {
 		$IPTABLES -t nat -X shadowsocksr_pre 2>/dev/null
 	fi
 
-	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null; do :; done
-	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set $vt_np_ipset dst -j REDIRECT --to $SS_REDIR_PORT 2>/dev/null; do :; done
+	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to "$SS_REDIR_PORT" 2>/dev/null; do :; done
+	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set "$vt_np_ipset" dst -j REDIRECT --to "$SS_REDIR_PORT" 2>/dev/null; do :; done
 
 	/usr/bin/ip rule del fwmark 0x01/0x01 table 100
 	/usr/bin/ip route del local 0.0.0.0/0 dev lo table 100
