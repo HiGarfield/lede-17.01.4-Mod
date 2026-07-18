@@ -290,7 +290,7 @@ add_rule() {
 		ipset -! create "$vt_gfwlist" hash:ip maxelem 65536 2>/dev/null
 		if [ -f /etc/shadowsocksr/addinip.txt ]; then
 			local tmpfile
-			tmpfile=$(mktemp)
+			tmpfile="$(mktemp -t ssrpro.addinip.XXXXXX 2>/dev/null || mktemp /tmp/ssrpro.addinip.XXXXXX)" || return 1
 			if awk -v gfwlist="$vt_gfwlist" '!/^$/&&!/^#/{printf("add %s %s\n",gfwlist,$0)}' "/etc/shadowsocksr/addinip.txt" >"$tmpfile" && [ -s "$tmpfile" ]; then
 				ipset -! restore <"$tmpfile"
 			fi
