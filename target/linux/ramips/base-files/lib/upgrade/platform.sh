@@ -268,6 +268,14 @@ platform_nand_pre_upgrade() {
 	hc5962)
 		CI_KERNPART="kernel"
 		CI_UBIPART="ubi"
+		# Release the CWD reference held by the ash process so the orphaned
+		# overlayfs (lazy-unmounted in run_ramfs) can be deactivated.  The
+		# kernel processes this synchronously at the syscall return of the
+		# chdir() call below via task_work, which chains into squashfs
+		# kill_sb -> blkdev_put(ubiblock).  Without this, ubiblock -r called
+		# inside nand_upgrade_prepare_ubi would fail with EBUSY because the
+		# squashfs still holds the ubiblock device open.
+		cd /tmp
 		;;
 	ubnt-erx)
 		platform_upgrade_ubnt_erx "$ARGV"
