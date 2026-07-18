@@ -2,6 +2,7 @@
 # Copyright (c) 2011-2015 OpenWrt.org
 
 START=90
+STOP=10
 
 get_config() {
 	config_get_bool enabled $1 enabled 0
@@ -53,4 +54,3 @@ stop() {
     killall -q -9 vlmcsd
     echo "KMS Server has stopped."
 }
-
