@@ -57,10 +57,11 @@ start_service()
 
 	procd_set_param stdout 0 # here it is possible to remove the debug output...
 	procd_set_param stderr 1
-	if [ "${_network_option:-0}" -eq 2 ]; then
+	if [ ${_network_option} -eq 2 ]; then
 		procd_add_mdns "dawn" "tcp" "${_tcp_buffer}"
 		echo "UMDNS with port ${_tcp_buffer}"
 	fi
 	procd_close_instance
   	echo "Dawn instance started!"
 }
+

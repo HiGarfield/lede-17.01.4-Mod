@@ -24,10 +24,6 @@ define Package/$(PKG_NAME)/description
 	Dynamic DNS Client scripts extension for AliYun.com
 endef
 
-define Build/Prepare
-	mkdir -p $(PKG_BUILD_DIR)
-endef
-
 define Build/Configure
 endef
 
