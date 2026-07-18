@@ -1,6 +1,8 @@
 local NXFS = require "nixio.fs"
 local SYS  = require "luci.sys"
--- Trim leading and trailing whitespace from command output and convert to number
+-- Trim leading and trailing whitespace from command output using Lua pattern:
+-- ^%s* matches leading whitespace, (.-)captures minimal content, %s*$ matches trailing whitespace
+-- The double fallback (echo 0 and or 0) handles both missing file and parse failures
 local ND = tonumber(SYS.exec("wc -l < /etc/gfwlist/china-banned 2>/dev/null || echo 0"):gsub("^%s*(.-)%s*$", "%1")) or 0
 local conf = "/etc/shadowsocksr/base-gfwlist.txt"
 
