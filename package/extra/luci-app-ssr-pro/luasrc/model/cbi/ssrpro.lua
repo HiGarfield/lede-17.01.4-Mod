@@ -1,8 +1,6 @@
-local fs = require "nixio.fs"
 local NXFS = require "nixio.fs"
-local WLFS = require "nixio.fs"
 local SYS  = require "luci.sys"
-local ND = SYS.exec("cat /etc/gfwlist/china-banned | wc -l")
+local ND = SYS.exec("wc -l < /etc/gfwlist/china-banned 2>/dev/null || echo 0")
 local conf = "/etc/shadowsocksr/base-gfwlist.txt"
 
 m = Map("ssrpro")
