@@ -8,7 +8,7 @@ until [ $err -ge 5 ]; do
 		sleep 10
 		err=0
 	else
-		$PROG_PATH/adbyby --no-daemon &>/dev/null &
+		$PROG_PATH/adbyby --no-daemon >/dev/null 2>&1 &
 		sleep 1
 		err=$((err+1))
 	fi
