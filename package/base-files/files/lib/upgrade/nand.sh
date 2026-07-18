@@ -255,7 +255,7 @@ nand_upgrade_tar() {
 
 	[ -n "$board_name" ] && board_dir="sysupgrade-$board_name"
 	if ! tar tf "$tar_file" "$board_dir/" >/dev/null 2>&1; then
-		board_dir="$(tar tf "$tar_file" 2>/dev/null | grep -m 1 '^sysupgrade-.*/$')"
+		board_dir="$(tar tf "$tar_file" 2>/dev/null | grep -m 1 '^sysupgrade-[^/]*/\?$')"
 		board_dir="${board_dir%/}"
 	fi
 	[ -n "$board_dir" ] || {
@@ -282,7 +282,7 @@ nand_upgrade_tar() {
 			exit 1
 		}
 	}
-	[ "$kernel_length" = 0 -o ! -z "$kernel_mtd" ] && has_kernel=0
+	([ "$kernel_length" = 0 ] || [ -n "$kernel_mtd" ]) && has_kernel=0
 
 	nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env" || {
 		echo "failed to prepare UBI volumes"
@@ -300,7 +300,7 @@ nand_upgrade_tar() {
 			echo "cannot find kernel UBI volume"
 			exit 1
 		}
-	 	tar xf "$tar_file" "${board_dir}/kernel" -O | \
+		tar xf "$tar_file" "${board_dir}/kernel" -O | \
 			ubiupdatevol "/dev/$kern_ubivol" -s "$kernel_length" - || {
 			echo "failed to update kernel UBI volume"
 			exit 1
