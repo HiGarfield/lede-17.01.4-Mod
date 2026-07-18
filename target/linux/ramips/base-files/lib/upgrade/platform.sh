@@ -279,10 +279,7 @@ platform_pre_upgrade() {
 	local board=$(ramips_board_name)
 
 	case "$board" in
-	hc5962)
-		nand_upgrade_stage2 nand "$ARGV"
-		exit 0
-		;;
+	hc5962|\
 	ubnt-erx)
 		nand_do_upgrade "$ARGV"
 		;;
