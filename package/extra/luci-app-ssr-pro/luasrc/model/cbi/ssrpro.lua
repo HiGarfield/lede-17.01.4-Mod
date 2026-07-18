@@ -1,5 +1,6 @@
 local NXFS = require "nixio.fs"
 local SYS  = require "luci.sys"
+-- Trim leading and trailing whitespace from command output
 local ND = SYS.exec("wc -l < /etc/gfwlist/china-banned 2>/dev/null || echo 0"):gsub("^%s*(.-)%s*$", "%1")
 local conf = "/etc/shadowsocksr/base-gfwlist.txt"
 
