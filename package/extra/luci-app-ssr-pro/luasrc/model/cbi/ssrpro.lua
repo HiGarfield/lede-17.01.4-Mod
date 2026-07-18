@@ -1,6 +1,8 @@
 local NXFS = require "nixio.fs"
 local SYS  = require "luci.sys"
--- Get line count from GFW list file with proper error handling and type safety
+-- ND stores the number of domains in the GFW list for display in the UI
+-- Proper handling is needed: trim whitespace, convert to number, fallback to 0 if file missing/unreadable
+-- This provides a robust count that won't break the UI even if the file doesn't exist yet
 local raw_output = SYS.exec("wc -l < /etc/gfwlist/china-banned 2>/dev/null || echo 0")
 -- Trim whitespace using Lua pattern: ^%s* (leading), (.-) (minimal capture), %s*$ (trailing)
 local trimmed_output = raw_output:gsub("^%s*(.-)%s*$", "%1")

@@ -291,8 +291,9 @@ add_rule() {
 		if [ -f /etc/shadowsocksr/addinip.txt ]; then
 			local tmpfile
 			tmpfile=$(mktemp)
-			awk -v gfwlist="$vt_gfwlist" '!/^$/&&!/^#/{printf("add %s %s\n",gfwlist,$0)}' "/etc/shadowsocksr/addinip.txt" >"$tmpfile"
-			ipset -! restore <"$tmpfile"
+			if awk -v gfwlist="$vt_gfwlist" '!/^$/&&!/^#/{printf("add %s %s\n",gfwlist,$0)}' "/etc/shadowsocksr/addinip.txt" >"$tmpfile" && [ -s "$tmpfile" ]; then
+				ipset -! restore <"$tmpfile"
+			fi
 			rm -f "$tmpfile"
 		fi
 		$IPTABLES -t nat -A shadowsocksr_pre -m set ! --match-set "$vt_gfwlist" dst -j RETURN
