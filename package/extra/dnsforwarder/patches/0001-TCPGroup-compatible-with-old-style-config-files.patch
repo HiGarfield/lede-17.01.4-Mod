@@ -15,7 +15,7 @@ TCPGroup <IP1[:PORT],IP2[:PORT],...> <DOMAIN1,DOMAIN2,...> <no|PROXY1[:PORT],PRO
 
 --- a/mmgr.c
 +++ b/mmgr.c
-@@ -255,7 +255,15 @@ static int Tcp_Init(ModuleMap *ModuleMap
+@@ -288,7 +288,15 @@ static int Tcp_Init(ModuleMap *ModuleMap
      Services = i->Next(i);
      Domains = i->Next(i);
      Parallel = i->Next(i);
