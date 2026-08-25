@@ -9,7 +9,7 @@ Subject: [PATCH] don't kick if data rate is at threshold
 
 --- a/src/storage/datastorage.c
 +++ b/src/storage/datastorage.c
-@@ -565,7 +565,7 @@ int kick_clients(struct dawn_mac bssid_m
+@@ -574,7 +574,7 @@ int kick_clients(struct dawn_mac bssid_m
                      // only use rx_rate for indicating if transmission is going on
                      // <= 6MBits <- probably no transmission
                      // tx_rate has always some weird value so don't use ist
