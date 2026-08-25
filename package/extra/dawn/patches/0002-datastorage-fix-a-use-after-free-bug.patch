@@ -9,7 +9,7 @@ Subject: [PATCH] datastorage: fix a use-after-free bug
 
 --- a/src/storage/datastorage.c
 +++ b/src/storage/datastorage.c
-@@ -1336,8 +1336,8 @@ void insert_macs_from_file() {
+@@ -1343,8 +1343,8 @@ void insert_macs_from_file() {
      fclose(fp);
      if (line)
      {
