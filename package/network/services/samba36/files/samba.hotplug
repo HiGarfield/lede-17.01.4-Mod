@@ -12,7 +12,7 @@ mmcblk*) ;;
 esac
 
 [ "$ACTION" = "add" ] && {
-	fstype="$(lsblk -n -o FSTYPE "/dev/${DEVICE}")"
+	fstype="$(lsblk -n -o FSTYPE "/dev/${DEVICE}" 2>/dev/null)"
 	case "$fstype" in
 	'ext2' | 'ext3' | 'ext4' | 'ntfs' | 'exfat' | 'vfat') ;;
 	*) exit ;;
@@ -27,13 +27,13 @@ esac
 
 get_auto_share() {
 	local auto_share_value
-	config_get auto_share_value "$1" auto_share 0
+	config_get_bool auto_share_value "$1" auto_share 0
 	[ "$auto_share_value" -eq 1 ] && auto_share=1
 }
 
 get_auto_share_ro() {
 	local auto_share_ro_value
-	config_get auto_share_ro_value "$1" auto_share_ro 0
+	config_get_bool auto_share_ro_value "$1" auto_share_ro 0
 	[ "$auto_share_ro_value" -eq 1 ] && auto_share_ro=1
 }
 
@@ -56,23 +56,25 @@ need_reload=0
 
 [ "$ACTION" = "add" ] && {
 	# 自动挂载可能有延迟，等待挂载完成
-	mount=
+	mountpoint=
 	max_try=10
-	for try_count in $(seq 1 $max_try); do
-		mount="$(lsblk -n -o MOUNTPOINT "/dev/${DEVICE}" | grep '^/')"
-		[ -n "$mount" ] && break
+	try_count=0
+	while [ "$try_count" -lt "$max_try" ]; do
+		try_count=$((try_count + 1))
+		mountpoint="$(lsblk -n -o MOUNTPOINT "/dev/${DEVICE}" 2>/dev/null | grep '^/')"
+		[ -n "$mountpoint" ] && break
 		sleep 1
 	done
 
-	[ -n "$mount" ] && {
-		share_name="$(echo "$mount" | sed -e 's#^/##g' -e 's#/#_#g')"
+	[ -n "$mountpoint" ] && {
+		share_name="$(printf '%s\n' "$mountpoint" | sed -e 's#^/##g' -e 's#/#_#g')"
 		read_only="no"
 		[ "$auto_share_ro" -eq 1 ] && read_only="yes"
 		autosamba_lock
 		uci -q -c /var/run/config batch <<-EOF
 			set samba.$DEVICE="sambashare"
 			set samba.$DEVICE.name="$share_name"
-			set samba.$DEVICE.path="$mount"
+			set samba.$DEVICE.path="$mountpoint"
 			set samba.$DEVICE.browseable="yes"
 			set samba.$DEVICE.read_only="$read_only"
 			set samba.$DEVICE.guest_ok="yes"
