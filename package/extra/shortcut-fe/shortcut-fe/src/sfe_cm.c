@@ -289,7 +289,7 @@ skip_dst_lookup:
 		goto ret_fail;
 	}
 
-	memcpy(mac_addr, neigh->ha, (size_t)min(mac_dev->addr_len, ETH_ALEN));
+	memcpy(mac_addr, neigh->ha, (size_t)min((int)mac_dev->addr_len, ETH_ALEN));
 
 	dev_hold(mac_dev);
 	*dev = mac_dev;
