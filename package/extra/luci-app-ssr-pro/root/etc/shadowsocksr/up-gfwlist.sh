@@ -8,7 +8,7 @@ lock -n /var/lock/up-gfwlist.lck || exit 0
 if [ -s "/tmp/ol-gfw.txt" ]; then
 	sort -u /etc/shadowsocksr/base-gfwlist.txt /tmp/ol-gfw.txt >/tmp/china-banned
 else
-	sort -u /etc/shadowsocksr/base-gfwlist.txt /etc/gfwlist/china-banned >/tmp/china-banned
+	sort -u /etc/shadowsocksr/base-gfwlist.txt /etc/gfwlist/china-banned 2>/dev/null >/tmp/china-banned
 fi
 
 sed -i '/^[[:space:]]*$/d' /tmp/china-banned
