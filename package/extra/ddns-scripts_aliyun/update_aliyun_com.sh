@@ -183,9 +183,8 @@ build_Request() {
 	# 构造用于计算签名的字符串
 	string="${HTTP_METHOD}${__SEPARATOR}$(percentEncode "/")${__SEPARATOR}$(percentEncode "$string")"
 	# 字符串计算签名HMAC值
-	local signature=$(echo -n "$string" | openssl dgst -sha1 -hmac "${password}&" -binary)
-	# HMAC值编码成字符串，得到签名值
-	signature=$(echo -n "$signature" | openssl base64)
+	# 直接通过管道进行base64编码，避免命令替换剥离二进制HMAC值的尾随换行字节(0x0A)
+	local signature=$(echo -n "$string" | openssl dgst -sha1 -hmac "${password}&" -binary | openssl base64)
 
 	# 附加签名参数
 	string="Signature=$signature"
