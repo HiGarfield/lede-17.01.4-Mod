@@ -57,6 +57,10 @@ killall_by_name() {
 	}
 }
 
+escape_json() {
+	printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+}
+
 start() {
 	if [ "$vt_enabled" -eq 0 ]; then
 		echo "WARNING: Shadowsocksr is disabled."
@@ -81,17 +85,17 @@ start() {
 	mkdir -p "$(dirname "$SSRCONF")"
 	cat >$SSRCONF <<-EOF
 		{
-		    "server": "$vt_server_addr",
+		    "server": "$(escape_json "$vt_server_addr")",
 		    "server_port": $vt_server_port,
-		    "password": "$vt_password",
-		    "method": "$vt_method",
+		    "password": "$(escape_json "$vt_password")",
+		    "method": "$(escape_json "$vt_method")",
 		    "local_address": "0.0.0.0",
 		    "local_port": $SS_REDIR_PORT,
 		    "timeout": $vt_timeout,
-		    "protocol": "$vt_protocol",
-		    "protocol_param": "$vt_protoparam",
-		    "obfs": "$vt_obfs",
-		    "obfs_param": "$obfs_param",
+		    "protocol": "$(escape_json "$vt_protocol")",
+		    "protocol_param": "$(escape_json "$vt_protoparam")",
+		    "obfs": "$(escape_json "$vt_obfs")",
+		    "obfs_param": "$(escape_json "$obfs_param")",
 		    "fast_open": false
 		}
 	EOF
