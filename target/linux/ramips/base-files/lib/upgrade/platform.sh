@@ -290,8 +290,7 @@ platform_do_upgrade() {
 
 	case "$board" in
 	hc5962)
-		nand_upgrade_stage2 nand "$ARGV"
-		exit 0
+		nand_do_upgrade_stage2 "$ARGV"
 		;;
 	*)
 		default_do_upgrade "$ARGV"
