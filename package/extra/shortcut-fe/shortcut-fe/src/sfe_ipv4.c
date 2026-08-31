@@ -2147,6 +2147,16 @@ static int sfe_ipv4_recv_icmp(struct sfe_ipv4 *si, struct sk_buff *skb, struct n
 	 * Do we have the full embedded IP header, including any options?
 	 */
 	icmp_ihl_words = icmp_iph->ihl;
+	if (unlikely(icmp_ihl_words < 5)) {
+		spin_lock_bh(&si->lock);
+		si->exception_events[SFE_IPV4_EXCEPTION_EVENT_ICMP_IPV4_IP_OPTIONS_INCOMPLETE]++;
+		si->packets_not_forwarded++;
+		spin_unlock_bh(&si->lock);
+
+		DEBUG_TRACE("Embedded header too short\n");
+		return 0;
+	}
+
 	icmp_ihl = icmp_ihl_words << 2;
 	pull_len += icmp_ihl - sizeof(struct sfe_ipv4_ip_hdr);
 	if (!pskb_may_pull(skb, pull_len)) {
@@ -2974,7 +2984,7 @@ static bool sfe_ipv4_debug_dev_read_start(struct sfe_ipv4 *si, char *buffer, cha
 	si->debug_read_seq++;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "<sfe_ipv4>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -2995,7 +3005,7 @@ static bool sfe_ipv4_debug_dev_read_connections_start(struct sfe_ipv4 *si, char 
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t<connections>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3123,7 +3133,7 @@ static bool sfe_ipv4_debug_dev_read_connections_connection(struct sfe_ipv4 *si, 
 #endif
 				last_sync_jiffies, mark);
 
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3143,7 +3153,7 @@ static bool sfe_ipv4_debug_dev_read_connections_end(struct sfe_ipv4 *si, char *b
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t</connections>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3164,7 +3174,7 @@ static bool sfe_ipv4_debug_dev_read_exceptions_start(struct sfe_ipv4 *si, char *
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t<exceptions>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3195,7 +3205,7 @@ static bool sfe_ipv4_debug_dev_read_exceptions_exception(struct sfe_ipv4 *si, ch
 				      "\t\t<exception name=\"%s\" count=\"%llu\" />\n",
 				      sfe_ipv4_exception_events_string[ws->iter_exception],
 				      ct);
-		if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+		if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 			return false;
 		}
 
@@ -3222,7 +3232,7 @@ static bool sfe_ipv4_debug_dev_read_exceptions_end(struct sfe_ipv4 *si, char *bu
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t</exceptions>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3284,7 +3294,7 @@ static bool sfe_ipv4_debug_dev_read_stats(struct sfe_ipv4 *si, char *buffer, cha
 			      connection_flushes,
 			      connection_match_hash_hits,
 			      connection_match_hash_reorders);
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3305,7 +3315,7 @@ static bool sfe_ipv4_debug_dev_read_end(struct sfe_ipv4 *si, char *buffer, char 
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "</sfe_ipv4>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
