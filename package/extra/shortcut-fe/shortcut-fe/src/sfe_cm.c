@@ -1063,7 +1063,7 @@ static ssize_t sfe_cm_get_exceptions(struct device *dev,
 	spin_lock_bh(&sc->lock);
 	for (len = 0, idx = 0; idx < SFE_CM_EXCEPTION_MAX; idx++) {
 		if (sc->exceptions[idx]) {
-			len += snprintf(buf + len, (ssize_t)(PAGE_SIZE - len), "%s = %d\n", sfe_cm_exception_events_string[idx], sc->exceptions[idx]);
+			len += scnprintf(buf + len, PAGE_SIZE - len, "%s = %d\n", sfe_cm_exception_events_string[idx], sc->exceptions[idx]);
 		}
 	}
 	spin_unlock_bh(&sc->lock);
