@@ -276,7 +276,6 @@ platform_pre_upgrade() {
 	local board=$(ramips_board_name)
 
 	case "$board" in
-	hc5962|\
 	ubnt-erx)
 		nand_do_upgrade "$ARGV"
 		;;
@@ -287,6 +286,13 @@ platform_do_upgrade() {
 	local board=$(ramips_board_name)
 
 	case "$board" in
+	hc5962)
+		# On LEDE 17.01.4, nand_do_upgrade uses the upgraded daemon via
+		# ubus, but ubusd is already killed when platform_do_upgrade runs
+		# inside ramdisk. Call nand_do_upgrade_stage2 directly instead,
+		# which performs the NAND upgrade without needing ubus.
+		nand_do_upgrade_stage2 "$ARGV"
+		;;
 	*)
 		default_do_upgrade "$ARGV"
 		;;
