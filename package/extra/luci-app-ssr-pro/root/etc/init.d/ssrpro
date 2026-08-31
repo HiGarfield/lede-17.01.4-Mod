@@ -198,7 +198,7 @@ start_dnsforwarder() {
 
 	# Access TCP DNS server through Shadowsocksr tunnel
 	if $IPTABLES -t nat -N dnsforwarder_output; then
-		$IPTABLES -t nat -A dnsforwarder_output -m set --match-set "$vt_np_ipset" dst -j RETURN
+		[ -n "$vt_np_ipset" ] && $IPTABLES -t nat -A dnsforwarder_output -m set --match-set "$vt_np_ipset" dst -j RETURN
 		$IPTABLES -t nat -A dnsforwarder_output -p tcp -j REDIRECT --to "$SS_REDIR_PORT"
 	fi
 	$IPTABLES -t nat -I OUTPUT -p tcp --dport "$vt_safe_dns_port" -j dnsforwarder_output
