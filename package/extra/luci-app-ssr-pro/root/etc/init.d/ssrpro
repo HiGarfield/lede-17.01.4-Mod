@@ -140,6 +140,8 @@ start() {
 }
 
 stop() {
+	local vt_gfwlist=$(__gfwlist_by_mode "$vt_proxy_mode")
+
 	# -----------------------------------------------------------------
 	rm -rf /var/etc/dnsmasq-go.d
 	if [ -f /tmp/dnsmasq.d/dnsmasq-go.conf ]; then
@@ -327,8 +329,8 @@ del_rule() {
 	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set --match-set china-banned dst -j REDIRECT --to "$SS_REDIR_PORT" 2>/dev/null; do :; done
 	while $IPTABLES -t nat -D OUTPUT -p tcp -m multiport --dports 80,443 -m set ! --match-set "$vt_np_ipset" dst -j REDIRECT --to "$SS_REDIR_PORT" 2>/dev/null; do :; done
 
-	/usr/bin/ip rule del fwmark 0x01/0x01 table 100
-	/usr/bin/ip route del local 0.0.0.0/0 dev lo table 100
+	/usr/bin/ip rule del fwmark 0x01/0x01 table 100 2>/dev/null
+	/usr/bin/ip route del local 0.0.0.0/0 dev lo table 100 2>/dev/null
 	if $IPTABLES -t mangle -F gameboost 2>/dev/null; then
 		while $IPTABLES -t mangle -D PREROUTING -m set --match-set gameuser src -j gameboost 2>/dev/null; do :; done
 		$IPTABLES -t mangle -X gameboost 2>/dev/null
@@ -337,5 +339,7 @@ del_rule() {
 	ipset destroy gameuser 2>/dev/null
 
 	# -----------------------------------------------------------------
-	[ "$KEEP_GFWLIST" = Y ] || ipset destroy "$vt_gfwlist" 2>/dev/null
+	if [ -n "$vt_gfwlist" ] && [ "$KEEP_GFWLIST" != Y ]; then
+		ipset destroy "$vt_gfwlist" 2>/dev/null
+	fi
 }
