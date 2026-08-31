@@ -5,8 +5,14 @@ START=60
 STOP=10
 USE_PROCD=1
 
+# 转义 sed 替换串中的特殊字符（\ & 以及分隔符 #），
+# 防止配置值中的这些字符破坏模板替换表达式
+sed_escape() {
+	printf '%s\n' "$1" | sed -e 's/[\\&#]/\\&/g'
+}
+
 smb_header() {
-	config_get samba_iface $1 interface "loopback lan"
+	config_get samba_iface "$1" interface "loopback lan"
 
 	# resolve interfaces
 	local interfaces=$(
@@ -15,7 +21,7 @@ smb_header() {
 		local net
 		for net in $samba_iface; do
 			local device
-			network_is_up $net || continue
+			network_is_up "$net" || continue
 			network_get_device device "$net"
 			echo -n "${device:-$net} "
 		done
@@ -24,22 +30,22 @@ smb_header() {
 	local name workgroup description charset
 	local hostname="$(sed 's/\..*//' /proc/sys/kernel/hostname | tr -d '{};%?=#\n')"
 
-	config_get name $1 name "${hostname:-Lede}"
-	config_get workgroup $1 workgroup "WORKGROUP"
-	config_get description $1 description "Samba on ${hostname:-Lede}"
-	config_get charset $1 charset "UTF-8"
+	config_get name "$1" name "${hostname:-Lede}"
+	config_get workgroup "$1" workgroup "WORKGROUP"
+	config_get description "$1" description "Samba on ${hostname:-Lede}"
+	config_get charset "$1" charset "UTF-8"
 
 	mkdir -p /var/etc
-	sed -e "s#|NAME|#$name#g" \
-		-e "s#|WORKGROUP|#$workgroup#g" \
-		-e "s#|DESCRIPTION|#$description#g" \
-		-e "s#|INTERFACES|#$interfaces#g" \
-		-e "s#|CHARSET|#$charset#g" \
+	sed -e "s#|NAME|#$(sed_escape "$name")#g" \
+		-e "s#|WORKGROUP|#$(sed_escape "$workgroup")#g" \
+		-e "s#|DESCRIPTION|#$(sed_escape "$description")#g" \
+		-e "s#|INTERFACES|#$(sed_escape "$interfaces")#g" \
+		-e "s#|CHARSET|#$(sed_escape "$charset")#g" \
 		/etc/samba/smb.conf.template >/var/etc/smb.conf
 
 	local homes
-	config_get_bool homes $1 homes 0
-	[ $homes -gt 0 ] && {
+	config_get_bool homes "$1" homes 0
+	[ "$homes" -gt 0 ] && {
 		cat <<EOT >>/var/etc/smb.conf
 
 [homes]
@@ -63,24 +69,28 @@ smb_add_share() {
 	local dir_mask
 	local browseable
 
-	config_get name $1 name
-	config_get path $1 path
-	config_get users $1 users
-	config_get read_only $1 read_only
-	config_get guest_ok $1 guest_ok
-	config_get create_mask $1 create_mask
-	config_get dir_mask $1 dir_mask
-	config_get browseable $1 browseable
+	config_get name "$1" name
+	config_get path "$1" path
+	config_get users "$1" users
+	config_get read_only "$1" read_only
+	config_get guest_ok "$1" guest_ok
+	config_get create_mask "$1" create_mask
+	config_get dir_mask "$1" dir_mask
+	config_get browseable "$1" browseable
 
-	[ -z "$name" -o -z "$path" ] && return
+	[ -z "$name" ] && return
+	[ -z "$path" ] && return
 
-	echo -e "\n[$name]\n\tpath = $path" >>/var/etc/smb.conf
-	[ -n "$users" ] && echo -e "\tvalid users = $users" >>/var/etc/smb.conf
-	[ -n "$read_only" ] && echo -e "\tread only = $read_only" >>/var/etc/smb.conf
-	[ -n "$guest_ok" ] && echo -e "\tguest ok = $guest_ok" >>/var/etc/smb.conf
-	[ -n "$create_mask" ] && echo -e "\tcreate mask = $create_mask" >>/var/etc/smb.conf
-	[ -n "$dir_mask" ] && echo -e "\tdirectory mask = $dir_mask" >>/var/etc/smb.conf
-	[ -n "$browseable" ] && echo -e "\tbrowseable = $browseable" >>/var/etc/smb.conf
+	{
+		printf '\n[%s]\n' "$name"
+		printf '\tpath = %s\n' "$path"
+		[ -n "$users" ] && printf '\tvalid users = %s\n' "$users"
+		[ -n "$read_only" ] && printf '\tread only = %s\n' "$read_only"
+		[ -n "$guest_ok" ] && printf '\tguest ok = %s\n' "$guest_ok"
+		[ -n "$create_mask" ] && printf '\tcreate mask = %s\n' "$create_mask"
+		[ -n "$dir_mask" ] && printf '\tdirectory mask = %s\n' "$dir_mask"
+		[ -n "$browseable" ] && printf '\tbrowseable = %s\n' "$browseable"
+	} >>/var/etc/smb.conf
 }
 
 get_enabled() {
@@ -131,7 +141,7 @@ init_config() {
 		[ -f /var/run/config/samba ] || {
 			mkdir -p /var/run/config && touch /var/run/config/samba
 		}
-		process_read_only_opt $auto_share_ro
+		process_read_only_opt "$auto_share_ro"
 		CONFIG_APPEND=1 UCI_CONFIG_DIR=/var/run/config config_load samba
 		autosamba_unlock
 	}
@@ -145,7 +155,7 @@ service_triggers() {
 
 	local i
 	for i in $samba_iface; do
-		procd_add_reload_interface_trigger $i
+		procd_add_reload_interface_trigger "$i"
 	done
 }
 
