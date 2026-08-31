@@ -3483,7 +3483,13 @@ static ssize_t sfe_ipv4_set_flow_cookie(struct device *dev,
 					const char *buf, size_t size)
 {
 	struct sfe_ipv4 *si = &__si;
-	strict_strtol(buf, 0, (long int *)&si->flow_cookie_enable);
+	long val;
+
+	if (strict_strtol(buf, 0, &val)) {
+		return -EINVAL;
+	}
+
+	si->flow_cookie_enable = val;
 
 	return size;
 }
