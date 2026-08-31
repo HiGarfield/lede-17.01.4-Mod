@@ -2980,7 +2980,7 @@ static bool sfe_ipv6_debug_dev_read_start(struct sfe_ipv6 *si, char *buffer, cha
 	si->debug_read_seq++;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "<sfe_ipv6>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3001,7 +3001,7 @@ static bool sfe_ipv6_debug_dev_read_connections_start(struct sfe_ipv6 *si, char 
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t<connections>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3129,7 +3129,7 @@ static bool sfe_ipv6_debug_dev_read_connections_connection(struct sfe_ipv6 *si, 
 #endif
 				last_sync_jiffies, mark);
 
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3149,7 +3149,7 @@ static bool sfe_ipv6_debug_dev_read_connections_end(struct sfe_ipv6 *si, char *b
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t</connections>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3170,7 +3170,7 @@ static bool sfe_ipv6_debug_dev_read_exceptions_start(struct sfe_ipv6 *si, char *
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t<exceptions>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3201,7 +3201,7 @@ static bool sfe_ipv6_debug_dev_read_exceptions_exception(struct sfe_ipv6 *si, ch
 				      "\t\t<exception name=\"%s\" count=\"%llu\" />\n",
 				      sfe_ipv6_exception_events_string[ws->iter_exception],
 				      ct);
-		if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+		if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 			return false;
 		}
 
@@ -3228,7 +3228,7 @@ static bool sfe_ipv6_debug_dev_read_exceptions_end(struct sfe_ipv6 *si, char *bu
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "\t</exceptions>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3290,7 +3290,7 @@ static bool sfe_ipv6_debug_dev_read_stats(struct sfe_ipv6 *si, char *buffer, cha
 			      connection_flushes,
 			      connection_match_hash_hits,
 			      connection_match_hash_reorders);
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
@@ -3311,7 +3311,7 @@ static bool sfe_ipv6_debug_dev_read_end(struct sfe_ipv6 *si, char *buffer, char 
 	int bytes_read;
 
 	bytes_read = snprintf(msg, CHAR_DEV_MSG_SIZE, "</sfe_ipv6>\n");
-	if (copy_to_user(buffer + *total_read, msg, CHAR_DEV_MSG_SIZE)) {
+	if (copy_to_user(buffer + *total_read, msg, bytes_read)) {
 		return false;
 	}
 
