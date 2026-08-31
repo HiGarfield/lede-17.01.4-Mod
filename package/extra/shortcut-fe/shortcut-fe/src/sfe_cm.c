@@ -289,7 +289,7 @@ skip_dst_lookup:
 		goto ret_fail;
 	}
 
-	memcpy(mac_addr, neigh->ha, (size_t)mac_dev->addr_len);
+	memcpy(mac_addr, neigh->ha, (size_t)min(mac_dev->addr_len, ETH_ALEN));
 
 	dev_hold(mac_dev);
 	*dev = mac_dev;
@@ -351,7 +351,7 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 	/*
 	 * Packet to xfrm for encapsulation, we can't process it
 	 */
-	if (unlikely(skb_dst(skb)->xfrm)) {
+	if (unlikely(skb_dst(skb) && skb_dst(skb)->xfrm)) {
 		DEBUG_TRACE("packet to xfrm, ignoring\n");
 		return NF_ACCEPT;
 	}
@@ -370,7 +370,7 @@ static unsigned int sfe_cm_post_routing(struct sk_buff *skb, int is_v4)
 	/*
 	 * Packet to xfrm for encapsulation, we can't process it
 	 */
-	if (unlikely(skb_dst(skb)->xfrm)) {
+	if (unlikely(skb_dst(skb) && skb_dst(skb)->xfrm)) {
 		DEBUG_TRACE("packet to xfrm, ignoring\n");
 		return NF_ACCEPT;
 	}
