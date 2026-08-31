@@ -1770,6 +1770,26 @@ static int sfe_ipv4_recv_tcp(struct sfe_ipv4 *si, struct sk_buff *skb, struct ne
 		}
 
 		/*
+		 * Check that our TCP data offset isn't past the end of the packet and
+		 * that the TCP options are in the linear data area.  Do this before we
+		 * parse any TCP options as those are accessed directly from the packet
+		 * data.
+		 */
+		if (unlikely((len < (data_offs + sizeof(struct sfe_ipv4_ip_hdr)))
+			     || !pskb_may_pull(skb, ihl + data_offs))) {
+			struct sfe_ipv4_connection *c = cm->connection;
+			sfe_ipv4_remove_sfe_ipv4_connection(si, c);
+			si->exception_events[SFE_IPV4_EXCEPTION_EVENT_TCP_BIG_DATA_OFFS]++;
+			si->packets_not_forwarded++;
+			spin_unlock_bh(&si->lock);
+
+			DEBUG_TRACE("TCP data offset: %u, past end of packet: %u\n",
+				    data_offs, len);
+			sfe_ipv4_flush_sfe_ipv4_connection(si, c, SFE_SYNC_REASON_FLUSH);
+			return 0;
+		}
+
+		/*
 		 * Update ACK according to any SACK option.
 		 */
 		ack = ntohl(tcph->ack_seq);
@@ -1786,22 +1806,7 @@ static int sfe_ipv4_recv_tcp(struct sfe_ipv4 *si, struct sk_buff *skb, struct ne
 			return 0;
 		}
 
-		/*
-		 * Check that our TCP data offset isn't past the end of the packet.
-		 */
 		data_offs += sizeof(struct sfe_ipv4_ip_hdr);
-		if (unlikely(len < data_offs)) {
-			struct sfe_ipv4_connection *c = cm->connection;
-			sfe_ipv4_remove_sfe_ipv4_connection(si, c);
-			si->exception_events[SFE_IPV4_EXCEPTION_EVENT_TCP_BIG_DATA_OFFS]++;
-			si->packets_not_forwarded++;
-			spin_unlock_bh(&si->lock);
-
-			DEBUG_TRACE("TCP data offset: %u, past end of packet: %u\n",
-				    data_offs, len);
-			sfe_ipv4_flush_sfe_ipv4_connection(si, c, SFE_SYNC_REASON_FLUSH);
-			return 0;
-		}
 
 		end = seq + len - data_offs;
 
