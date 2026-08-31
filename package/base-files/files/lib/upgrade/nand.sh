@@ -252,8 +252,8 @@ nand_upgrade_tar() {
 	local tar_file="$1"
 	local kernel_mtd="$(find_mtd_index $CI_KERNPART)"
 
-	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-.*/$')
-	board_dir=${board_dir%/}
+	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-')
+	board_dir=${board_dir%%/*}
 
 	[ -z "$board_dir" ] && {
 		echo "Failed to find sysupgrade directory in tar"

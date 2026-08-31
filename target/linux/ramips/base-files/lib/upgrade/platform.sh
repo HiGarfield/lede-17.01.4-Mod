@@ -291,7 +291,7 @@ platform_do_upgrade() {
 		# ubus, but ubusd is already killed when platform_do_upgrade runs
 		# inside ramdisk. Call nand_do_upgrade_stage2 directly instead,
 		# which performs the NAND upgrade without needing ubus.
-		nand_do_upgrade_stage2 "$ARGV"
+		nand_do_upgrade_stage2 "$ARGV" || exit 1
 		;;
 	*)
 		default_do_upgrade "$ARGV"
