@@ -108,11 +108,13 @@ start() {
 	if [ -n "$vt_safe_dns" ]; then
 		if [ "$vt_safe_dns_tcp" -eq 1 ]; then
 			start_dnsforwarder
-			awk -vs="127.0.0.1#$DNSFORWARDER_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
-				"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/01-pollution.conf
+			[ -f "/etc/gfwlist/$vt_gfwlist" ] &&
+				awk -vs="127.0.0.1#$DNSFORWARDER_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
+					"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/01-pollution.conf
 		else
-			awk -vs="$vt_safe_dns#$vt_safe_dns_port" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
-				"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/01-pollution.conf
+			[ -f "/etc/gfwlist/$vt_gfwlist" ] &&
+				awk -vs="$vt_safe_dns#$vt_safe_dns_port" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
+					"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/01-pollution.conf
 		fi
 	else
 		echo "WARNING: Not using secure DNS, DNS resolution might be polluted if you are in China."
@@ -121,8 +123,9 @@ start() {
 	###### dnsmasq-to-ipset configuration ######
 	case "$vt_proxy_mode" in
 	M | V)
-		awk '!/^$/&&!/^#/{printf("ipset=/%s/'"$vt_gfwlist"'\n",$0)}' \
-			"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/02-ipset.conf
+		[ -f "/etc/gfwlist/$vt_gfwlist" ] &&
+			awk '!/^$/&&!/^#/{printf("ipset=/%s/'"$vt_gfwlist"'\n",$0)}' \
+				"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/02-ipset.conf
 		;;
 	esac
 
