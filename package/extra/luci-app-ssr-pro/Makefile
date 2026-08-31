@@ -20,7 +20,7 @@ LUCI_DEPENDS:= \
 	+coreutils-base64 +coreutils-nohup +dnsmasq-full
 LUCI_PKGARCH:=all
 PKG_VERSION:=2
-PKG_RELEASE:=26
+PKG_RELEASE:=27
 
 include $(TOPDIR)/feeds/luci/luci.mk
 
