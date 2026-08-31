@@ -197,6 +197,8 @@ add_domain() {
 	aliyun_transfer "Action=AddDomainRecord" "DomainName=${__DOMAIN}" "RR=${__HOST}" "Type=${__TYPE}" "Value=${__IP}" || write_log 14 "服务器通信失败"
 	json_init
 	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
+	json_get_var value "Code"
+	[ -n "$value" ] && write_log 14 "API 错误: ${value}"
 	json_get_var value "RecordId"
 	[ -z "$value" ] && write_log 14 "添加新解析记录失败"
 	write_log 7 "添加新解析记录成功"
@@ -209,6 +211,8 @@ update_domain() {
 	aliyun_transfer "Action=UpdateDomainRecord" "RecordId=${__RECID}" "RR=${__HOST}" "Type=${__TYPE}" "Value=${__IP}" || write_log 14 "服务器通信失败"
 	json_init
 	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
+	json_get_var value "Code"
+	[ -n "$value" ] && write_log 14 "API 错误: ${value}"
 	json_get_var value "RecordId"
 	[ -z "$value" ] && write_log 14 "修改解析记录失败"
 	write_log 7 "修改解析记录成功"
@@ -221,6 +225,8 @@ enable_domain() {
 	aliyun_transfer "Action=SetDomainRecordStatus" "RecordId=${__RECID}" "Status=Enable" || write_log 14 "服务器通信失败"
 	json_init
 	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
+	json_get_var value "Code"
+	[ -n "$value" ] && write_log 14 "API 错误: ${value}"
 	json_get_var value "Status"
 	[ "$value" != "Enable" ] && write_log 14 "启用解析记录失败"
 	write_log 7 "启用解析记录成功"
@@ -234,7 +240,10 @@ describe_domain() {
 	aliyun_transfer "Action=DescribeSubDomainRecords" "SubDomain=${__HOST}.${__DOMAIN}" "DomainName=${__DOMAIN}" "Type=${__TYPE}" "Line=default" || write_log 14 "服务器通信失败"
 	json_init
 	json_load "$(cat "$DATFILE" 2>/dev/null)" >/dev/null 2>&1
+	json_get_var value "Code"
+	[ -n "$value" ] && write_log 14 "API 错误: ${value}"
 	json_get_var value "TotalCount"
+	[ -z "$value" ] && write_log 14 "API 返回异常: 缺少 TotalCount 字段"
 	if [ $value -eq 0 ]; then
 		write_log 7 "解析记录不存在"
 		ret=1
@@ -245,6 +254,7 @@ describe_domain() {
 		json_get_var __RECID "RecordId"
 		write_log 7 "获得解析记录ID: ${__RECID}"
 		json_get_var value "Locked"
+		[ -z "$value" ] && write_log 14 "API 返回异常: 缺少 Locked 字段"
 		[ $value -ne 0 ] && write_log 14 "解析记录被锁定"
 		json_get_var value "Status"
 		[ "$value" != "ENABLE" ] && ret=$(($ret | 2)) && write_log 7 "解析记录被禁用"
