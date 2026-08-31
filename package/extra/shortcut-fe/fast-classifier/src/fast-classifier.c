@@ -764,6 +764,10 @@ fast_classifier_offload_genl_msg(struct sk_buff *skb, struct genl_info *info)
 	struct sfe_connection *conn;
 
 	na = info->attrs[FAST_CLASSIFIER_A_TUPLE];
+	if (!na) {
+		DEBUG_ERROR("fast-classifier: offload request missing TUPLE attribute\n");
+		return -EINVAL;
+	}
 	fc_msg = nla_data(na);
 
 	if (fc_msg->ethertype == AF_INET) {
@@ -1526,7 +1530,7 @@ static void fast_classifier_sync_rule(struct sfe_connection_sync *sis)
 		nlstats.tx_packets = 0;
 		nlstats.tx_bytes = 0;
 
-		if (sis->src_dev && IFF_EBRIDGE &&
+		if (sis->src_dev && (sis->src_dev->flags & IFF_EBRIDGE) &&
 		    (sis->src_new_packet_count || sis->src_new_byte_count)) {
 			nlstats.rx_packets = sis->src_new_packet_count;
 			nlstats.rx_bytes = sis->src_new_byte_count;
@@ -1534,7 +1538,7 @@ static void fast_classifier_sync_rule(struct sfe_connection_sync *sis)
 			br_dev_update_stats(sis->src_dev, &nlstats);
 			spin_unlock_bh(&sfe_connections_lock);
 		}
-		if (sis->dest_dev && IFF_EBRIDGE &&
+		if (sis->dest_dev && (sis->dest_dev->flags & IFF_EBRIDGE) &&
 		    (sis->dest_new_packet_count || sis->dest_new_byte_count)) {
 			nlstats.rx_packets = sis->dest_new_packet_count;
 			nlstats.rx_bytes = sis->dest_new_byte_count;
@@ -1812,7 +1816,7 @@ static ssize_t fast_classifier_get_exceptions(struct device *dev,
 	spin_lock_bh(&sc->lock);
 	for (len = 0, idx = 0; idx < FAST_CL_EXCEPTION_MAX; idx++) {
 		if (sc->exceptions[idx]) {
-			len += snprintf(buf + len, (ssize_t)(PAGE_SIZE - len), "%s = %d\n", fast_classifier_exception_events_string[idx], sc->exceptions[idx]);
+			len += scnprintf(buf + len, PAGE_SIZE - len, "%s = %d\n", fast_classifier_exception_events_string[idx], sc->exceptions[idx]);
 		}
 	}
 	spin_unlock_bh(&sc->lock);
