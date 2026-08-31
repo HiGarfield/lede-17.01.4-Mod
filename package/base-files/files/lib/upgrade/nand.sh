@@ -255,6 +255,11 @@ nand_upgrade_tar() {
 	local board_dir=$(tar tf $tar_file | grep -m 1 '^sysupgrade-.*/$')
 	board_dir=${board_dir%/}
 
+	[ -z "$board_dir" ] && {
+		echo "Failed to find sysupgrade directory in tar"
+		return 1
+	}
+
 	local kernel_length=`(tar xf $tar_file ${board_dir}/kernel -O | wc -c) 2> /dev/null`
 	local rootfs_length=`(tar xf $tar_file ${board_dir}/root -O | wc -c) 2> /dev/null`
 
