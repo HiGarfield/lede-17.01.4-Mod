@@ -1,0 +1,112 @@
+--- a/procd.h
++++ b/procd.h
+@@ -28,6 +28,23 @@
+ 
+ extern char *ubus_socket;
+ 
++/*
++ * Non-zero while a legacy (pre-staged) sysupgrade is in progress.
++ *
++ * The /sbin/sysupgrade of LEDE 17.01 and older announces an upgrade by
++ * calling `ubus call system upgrade` and afterwards kills every process
++ * by itself (kill_remaining) before switching over to a ramfs.  While
++ * that happens procd must not respawn any of the killed services: they
++ * would come back within respawn_timeout seconds, keep references to the
++ * old rootfs and consume memory, which makes the subsequent pivot_root()
++ * in run_ramfs fail with EBUSY or kills the box with an OOM.
++ *
++ * This flag was dropped together with the "upgrade" ubus method when the
++ * staged sysupgrade mechanism was introduced; bring it back so that old
++ * rootfs images keep working with this procd.
++ */
++extern int upgrade_running;
++
+ void procd_connect_ubus(void);
+ void procd_reconnect_ubus(int reconnect);
+ void ubus_init_service(struct ubus_context *ctx);
+--- a/service/instance.c
++++ b/service/instance.c
+@@ -547,8 +547,19 @@ instance_timeout(struct uloop_timeout *t
+ 		LOG("Instance %s::%s pid %d not stopped on SIGTERM, sending SIGKILL instead\n",
+ 				in->srv->name, in->name, in->proc.pid);
+ 		kill(in->proc.pid, SIGKILL);
+-	} else if (in->restart || in->respawn)
++	} else if (in->restart || in->respawn) {
++		/*
++		 * A legacy sysupgrade is killing everything around us, so do
++		 * not bring services back to life (see upgrade_running in
++		 * procd.h).  This also closes a race in the original LEDE
++		 * 17.01 code, where instance_exit() bailed out without
++		 * cancelling an already armed respawn timer.
++		 */
++		if (upgrade_running)
++			return;
++
+ 		instance_start(in);
++	}
+ }
+ 
+ static void
+@@ -576,6 +587,15 @@ instance_exit(struct uloop_process *p, i
+ 	DEBUG(2, "Instance %s::%s exit with error code %d after %ld seconds\n", in->srv->name, in->name, ret, runtime);
+ 
+ 	uloop_timeout_cancel(&in->timeout);
++
++	/*
++	 * During a legacy sysupgrade the processes are killed by the
++	 * sysupgrade script itself, not by procd.  Swallow the exit: no
++	 * instance.stop event, no restart, no respawn.
++	 */
++	if (upgrade_running)
++		return;
++
+ 	service_event("instance.stop", in->srv->name, in->name);
+ 
+ 	if (in->halt) {
+--- a/system.c
++++ b/system.c
+@@ -37,6 +37,9 @@ static struct blob_buf b;
+ static int notify;
+ static struct ubus_context *_ctx;
+ 
++/* See procd.h for a description. */
++int upgrade_running = 0;
++
+ enum vjson_state {
+ 	VJSON_ERROR,
+ 	VJSON_CONTINUE,
+@@ -705,6 +708,26 @@ static int sysupgrade(struct ubus_contex
+ 	return UBUS_STATUS_UNKNOWN_ERROR;
+ }
+ 
++/*
++ * Legacy "upgrade" ubus method.
++ *
++ * This is what the pre-staged sysupgrade script calls right before it
++ * starts killing processes:
++ *
++ *	ubus call system upgrade
++ *
++ * It is a no-op which only latches upgrade_running, matching the
++ * behaviour of the procd shipped with LEDE 17.01.
++ */
++static int system_upgrade(struct ubus_context *ctx, struct ubus_object *obj,
++			  struct ubus_request_data *req, const char *method,
++			  struct blob_attr *msg)
++{
++	upgrade_running = 1;
++
++	return 0;
++}
++
+ static void
+ procd_subscribe_cb(struct ubus_context *ctx, struct ubus_object *obj)
+ {
+@@ -720,6 +743,7 @@ static const struct ubus_method system_m
+ 	UBUS_METHOD("signal", proc_signal, signal_policy),
+ 	UBUS_METHOD("validate_firmware_image", validate_firmware_image, validate_firmware_image_policy),
+ 	UBUS_METHOD("sysupgrade", sysupgrade, sysupgrade_policy),
++	UBUS_METHOD_NOARG("upgrade", system_upgrade),
+ };
+ 
+ static struct ubus_object_type system_object_type =
