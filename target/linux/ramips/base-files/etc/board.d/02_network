@@ -228,7 +228,8 @@ ramips_setup_interfaces()
 	zbt-wr8305rt|\
 	hd51-n|\
 	rg-nbr700gw|\
-	link7)
+	link7|\
+	msg1500-x-00)
 		ucidef_add_switch "switch0" \
 			"0:lan" "1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
 		;;
@@ -617,6 +618,16 @@ ramips_setup_macs()
 		hash="${hash:0:6}"
 		lan_mac="64:05:e9:${hash:0:2}:${hash:2:2}:${hash:4:2}"
 		wan_mac=$(macaddr_add "$lan_mac" 1)
+		;;
+	msg1500-x-00)
+		lan_mac=$(mtd_get_mac_ascii Config protest_lan_mac)
+		wan_mac=$(mtd_get_mac_ascii Config protest_wan_mac)
+		# On some units the Config partition cannot be parsed by the
+		# generic helper, read the ascii MACs at fixed offsets instead
+		[ -n "$lan_mac" ] || lan_mac=$(macaddr_canonicalize \
+			"$(dd if="$(find_mtd_part Config)" bs=1 skip=$((0x8014)) count=17 2>/dev/null)")
+		[ -n "$wan_mac" ] || wan_mac=$(macaddr_canonicalize \
+			"$(dd if="$(find_mtd_part Config)" bs=1 skip=$((0x8036)) count=17 2>/dev/null)")
 		;;
 	*)
 		lan_mac=$(cat /sys/class/net/eth0/address)

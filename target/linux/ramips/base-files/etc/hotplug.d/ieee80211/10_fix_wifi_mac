@@ -44,4 +44,13 @@ link7)
 		macaddr_add "$lan_mac" 3 >/sys${DEVPATH}/macaddress
 	fi
 	;;
+msg1500-x-00)
+	# 2.4 GHz is derived from the LAN address, 5 GHz is stored
+	# on flash (Factory 0x4) but not taken from calibration data
+	[ "$PHYNBR" = "0" ] && \
+		macaddr_setbit_la "$(mtd_get_mac_ascii Config protest_lan_mac)" \
+		> /sys${DEVPATH}/macaddress
+	[ "$PHYNBR" = "1" ] && \
+		mtd_get_mac_binary Factory 0x4 > /sys${DEVPATH}/macaddress
+	;;
 esac

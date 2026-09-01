@@ -442,6 +442,9 @@ ramips_board_detect() {
 	*"RE6500")
 		name="re6500"
 		;;
+	*"RAISECOM MSG1500 X.00")
+		name="msg1500-x-00"
+		;;
 	*"RN502J")
 		name="xdxrn502j"
 		;;

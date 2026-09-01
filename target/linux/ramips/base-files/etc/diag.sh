@@ -230,6 +230,9 @@ get_status_led() {
 	sap-g3200u3)
 		status_led="$board:green:usb"
 		;;
+	msg1500-x-00)
+		status_led="$board:blue:usb"
+		;;
 	v22rw-2x2)
 		status_led="$board:green:security"
 		;;

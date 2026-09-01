@@ -312,6 +312,20 @@ define Device/zbt-wg3526
 endef
 TARGET_DEVICES += zbt-wg3526
 
+define Device/msg1500-x-00
+  DTS := MSG1500-X-00
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4194304
+  UBINIZE_OPTS := -E 5
+  IMAGE_SIZE := 129280k
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  DEVICE_TITLE := RAISECOM MSG1500 X.00
+  DEVICE_PACKAGES := kmod-mt7615e kmod-usb3 \
+	kmod-usb-ledtrig-usbport uboot-envtools
+endef
+TARGET_DEVICES += msg1500-x-00
+
 # FIXME: is this still needed?
 define Image/Prepare
 #define Build/Compile
