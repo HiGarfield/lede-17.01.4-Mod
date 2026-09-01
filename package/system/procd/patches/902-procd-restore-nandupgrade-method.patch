@@ -1,0 +1,176 @@
+--- a/system.c
++++ b/system.c
+@@ -748,6 +748,64 @@ static int system_upgrade(struct ubus_co
+ 	return 0;
+ }
+ 
++/*
++ * Legacy "nandupgrade" ubus method.
++ *
++ * This is what /lib/upgrade/nand.sh of LEDE 17.01 calls from
++ * nand_upgrade_stage1(), after having copied /sbin/upgraded to /tmp:
++ *
++ *	ubus call system nandupgrade '{"path": "/tmp/sysupgrade.img"}'
++ *
++ * procd execs /tmp/upgraded, so this process becomes PID 1 from here on.
++ *
++ * Beware: nand_upgrade_stage1() exits unconditionally right after this
++ * ubus call, so if the method is missing the upgrade silently does
++ * nothing at all and the box just reboots into the old firmware.
++ */
++enum {
++	NAND_PATH,
++	__NAND_MAX
++};
++
++static const struct blobmsg_policy nand_policy[__NAND_MAX] = {
++	[NAND_PATH] = { .name = "path", .type = BLOBMSG_TYPE_STRING },
++};
++
++static void
++procd_spawn_upgraded(char *path)
++{
++	char *wdt_fd = watchdog_fd();
++	char *argv[] = { "/tmp/upgraded", NULL, NULL};
++
++	argv[1] = path;
++
++	DEBUG(2, "Exec to upgraded now\n");
++	if (wdt_fd) {
++		watchdog_set_cloexec(false);
++		setenv("WDTFD", wdt_fd, 1);
++	}
++	execvp(argv[0], argv);
++}
++
++static int nand_set(struct ubus_context *ctx, struct ubus_object *obj,
++		    struct ubus_request_data *req, const char *method,
++		    struct blob_attr *msg)
++{
++	struct blob_attr *tb[__NAND_MAX];
++
++	if (!msg)
++		return UBUS_STATUS_INVALID_ARGUMENT;
++
++	blobmsg_parse(nand_policy, __NAND_MAX, tb, blob_data(msg), blob_len(msg));
++	if (!tb[NAND_PATH])
++		return UBUS_STATUS_INVALID_ARGUMENT;
++
++	procd_spawn_upgraded(blobmsg_get_string(tb[NAND_PATH]));
++	fprintf(stderr, "Yikees, something went wrong. no /sbin/upgraded ?\n");
++
++	return 0;
++}
++
+ static void
+ procd_subscribe_cb(struct ubus_context *ctx, struct ubus_object *obj)
+ {
+@@ -764,6 +822,9 @@ static const struct ubus_method system_m
+ 	UBUS_METHOD("validate_firmware_image", validate_firmware_image, validate_firmware_image_policy),
+ 	UBUS_METHOD("sysupgrade", sysupgrade, sysupgrade_policy),
+ 	UBUS_METHOD_NOARG("upgrade", system_upgrade),
++
++	/* must remain at the end as it is not always loaded */
++	UBUS_METHOD("nandupgrade", nand_set, nand_policy),
+ };
+ 
+ static struct ubus_object_type system_object_type =
+--- a/upgraded/CMakeLists.txt
++++ b/upgraded/CMakeLists.txt
+@@ -4,8 +4,28 @@ PROJECT(upgraded C)
+ FIND_PATH(ubox_include_dir libubox/uloop.h)
+ INCLUDE_DIRECTORIES(${ubox_include_dir})
+ ADD_DEFINITIONS(-Os -ggdb -Wall -Werror --std=gnu99 -Wmissing-declarations)
++
++# Build upgraded statically.
++#
++# /lib/upgrade/nand.sh of LEDE 17.01 does a plain
++#
++#	cp /sbin/upgraded /tmp/
++#
++# and lets procd exec /tmp/upgraded from inside the ramfs, where no shared
++# libraries are available at all.  A dynamically linked binary would simply
++# fail to start there ("not found" from the loader), so restore the static
++# link used by the procd of that era.
++set(CMAKE_EXE_LINKER_FLAGS "-static -fPIC")
++set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
++set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)
++set(CMAKE_EXE_LINK_DYNAMIC_CXX_FLAGS)
++set(CMAKE_SHARED_LIBRARY_C_FLAGS)
++set(CMAKE_SHARED_LIBRARY_CXX_FLAGS)
++set(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
++set(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
++
+ ADD_EXECUTABLE(upgraded upgraded.c ../watchdog.c)
+-TARGET_LINK_LIBRARIES(upgraded ${ubox})
++TARGET_LINK_LIBRARIES(upgraded ubox rt -lc -lgcc_pic)
+ INSTALL(TARGETS upgraded
+ 	RUNTIME DESTINATION sbin
+ )
+--- a/upgraded/upgraded.c
++++ b/upgraded/upgraded.c
+@@ -41,6 +41,37 @@ static void upgrade_proc_cb(struct uloop
+ 	uloop_end();
+ }
+ 
++/*
++ * Legacy NAND upgrade (LEDE 17.01 and older).
++ *
++ * procd exec'ed us via the "nandupgrade" ubus method, without preparing
++ * any chroot, and expects us to re-enter /sbin/sysupgrade with the "nand"
++ * subcommand, which then drives /lib/upgrade/nand.sh to the end.
++ */
++static void sysupgrade_nand(char *path)
++{
++	char *args[] = { "/sbin/sysupgrade", "nand", NULL, NULL };
++
++	args[2] = path;
++
++	upgrade_proc.cb = upgrade_proc_cb;
++	upgrade_proc.pid = fork();
++	if (upgrade_proc.pid < 0) {
++		fprintf(stderr, "Failed to fork sysupgrade\n");
++		return;
++	}
++
++	if (!upgrade_proc.pid) {
++		/* Child */
++		execvp(args[0], args);
++		fprintf(stderr, "Failed to exec sysupgrade\n");
++		_exit(EXIT_FAILURE);
++	}
++
++	uloop_process_add(&upgrade_proc);
++	uloop_run();
++}
++
+ static void sysupgrade(char *path, char *command)
+ {
+ 	char *args[] = { "/lib/upgrade/stage2", path, command, NULL };
+@@ -72,6 +103,26 @@ int main(int argc, char **argv)
+ 		return 1;
+ 	}
+ 
++	/*
++	 * Legacy NAND upgrade: two arguments only, no chroot prepared by
++	 * procd.  Handle it before the staged path, as that one chroots
++	 * into the prefix directory and could never serve this case.
++	 */
++	if (argc == 2) {
++		if (chdir("/tmp") == -1) {
++			fprintf(stderr, "failed to chdir to /tmp: %m\n");
++			return 1;
++		}
++
++		uloop_init();
++		watchdog_init(0);
++		sysupgrade_nand(argv[1]);
++
++		reboot(RB_AUTOBOOT);
++
++		return 0;
++	}
++
+ 	int fd = open("/", O_DIRECTORY|O_PATH);
+ 	if (fd < 0) {
+ 		fprintf(stderr, "unable to open prefix directory: %m\n");
