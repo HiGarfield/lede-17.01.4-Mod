@@ -147,13 +147,14 @@ jobs:
             make defconfig
             make -j$(nproc) || make -j1 V=s
             mkdir -p $OUTPUT_DIR
-            cp -u -f bin/targets/*/*/${OUTPUT_NAME}-*-sysupgrade.bin \
-                     bin/targets/*/*/${OUTPUT_NAME}-*-factory.bin \
-                     ${OUTPUT_DIR}/ || true
-            cd ${OUTPUT_DIR}/
-            for f in *.bin; do
-              mv "$f" "$(echo "$f" | sed -e 's/-squashfs//g')"
+            for f in bin/targets/*/*/*-factory.bin \
+                     bin/targets/*/*/*-sysupgrade.bin \
+                     bin/targets/*/*/*-initramfs-kernel.bin; do
+              [ -f "$f" ] || continue
+              cp -u -f "$f" ${OUTPUT_DIR}/
             done
+            echo "Collected images:"
+            ls -1 ${OUTPUT_DIR}/
           else
             ./download_all.sh
             mkdir -p $OUTPUT_DIR
