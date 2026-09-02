@@ -319,7 +319,9 @@ define Device/msg1500-x-00
   KERNEL_SIZE := 4194304
   UBINIZE_OPTS := -E 5
   IMAGE_SIZE := 129280k
+  IMAGES += factory.bin
   IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | check-size $$$$(IMAGE_SIZE)
   DEVICE_TITLE := RAISECOM MSG1500 X.00
   DEVICE_PACKAGES := kmod-mt7615e kmod-usb3 \
 	kmod-usb-ledtrig-usbport uboot-envtools
