@@ -1,4 +1,6 @@
 #!/bin/sh
+. /lib/netifd/mac80211.sh
+
 append DRIVERS "mac80211"
 
 lookup_phy() {
@@ -9,11 +11,8 @@ lookup_phy() {
 	local devpath
 	config_get devpath "$device" path
 	[ -n "$devpath" ] && {
-		for phy in $(ls /sys/class/ieee80211 2>/dev/null); do
-			case "$(readlink -f "/sys/class/ieee80211/$phy/device")" in
-			*$devpath) return ;;
-			esac
-		done
+		phy="$(mac80211_path_to_phy "$devpath")"
+		[ -n "$phy" ] && return
 	}
 
 	local macaddr="$(config_get "$device" macaddr | tr 'A-Z' 'a-z')"
@@ -103,16 +102,8 @@ detect_mac80211() {
 		local ht40_noscan=
 		[ "$htmode" = "HT40" ] && ht40_noscan="set wireless.radio${devidx}.noscan=1"
 
-		if [ -x /usr/bin/readlink ] && [ -h "/sys/class/ieee80211/${dev}" ]; then
-			path="$(readlink -f "/sys/class/ieee80211/${dev}/device")"
-		else
-			path=
-		fi
+		path="$(mac80211_phy_to_path "$dev")"
 		if [ -n "$path" ]; then
-			path="${path##/sys/devices/}"
-			case "$path" in
-			platform*/pci*) path="${path##platform/}" ;;
-			esac
 			dev_id="set wireless.radio${devidx}.path='$path'"
 		else
 			dev_id="set wireless.radio${devidx}.macaddr=$(cat "/sys/class/ieee80211/${dev}/macaddress")"
