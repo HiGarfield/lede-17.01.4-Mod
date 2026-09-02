@@ -1,22 +1,24 @@
 --- a/system.c
 +++ b/system.c
-@@ -748,6 +748,64 @@ static int system_upgrade(struct ubus_co
- 	return 0;
+@@ -749,6 +749,66 @@ static int sysupgrade(struct ubus_contex
+ 	return UBUS_STATUS_UNKNOWN_ERROR;
  }
  
 +/*
-+ * Legacy "nandupgrade" ubus method.
++ * Taken over verbatim from procd 9a4036fb (system.c:385-428), LEDE 17.01.
 + *
-+ * This is what /lib/upgrade/nand.sh of LEDE 17.01 calls from
-+ * nand_upgrade_stage1(), after having copied /sbin/upgraded to /tmp:
++ * /lib/upgrade/nand.sh calls this from nand_upgrade_stage1(), after having
++ * copied /sbin/upgraded to /tmp:
 + *
 + *	ubus call system nandupgrade '{"path": "/tmp/sysupgrade.img"}'
 + *
-+ * procd execs /tmp/upgraded, so this process becomes PID 1 from here on.
++ * procd then execs /tmp/upgraded, which becomes PID 1 from here on.
++ * Note that nand_upgrade_stage1() exits unconditionally right after the
++ * ubus call, so when the method is missing the upgrade silently does
++ * nothing and the box reboots into the old firmware.
 + *
-+ * Beware: nand_upgrade_stage1() exits unconditionally right after this
-+ * ubus call, so if the method is missing the upgrade silently does
-+ * nothing at all and the box just reboots into the old firmware.
++ * Only deviation: 9a4036fb used watchdog_no_cloexec(), which was later
++ * renamed to watchdog_set_cloexec(false) - same semantics.
 + */
 +enum {
 +	NAND_PATH,
@@ -65,10 +67,10 @@
  static void
  procd_subscribe_cb(struct ubus_context *ctx, struct ubus_object *obj)
  {
-@@ -764,6 +822,9 @@ static const struct ubus_method system_m
+@@ -765,6 +825,9 @@ static const struct ubus_method system_m
+ 	UBUS_METHOD("signal", proc_signal, signal_policy),
  	UBUS_METHOD("validate_firmware_image", validate_firmware_image, validate_firmware_image_policy),
  	UBUS_METHOD("sysupgrade", sysupgrade, sysupgrade_policy),
- 	UBUS_METHOD_NOARG("upgrade", system_upgrade),
 +
 +	/* must remain at the end as it is not always loaded */
 +	UBUS_METHOD("nandupgrade", nand_set, nand_policy),
@@ -77,21 +79,20 @@
  static struct ubus_object_type system_object_type =
 --- a/upgraded/CMakeLists.txt
 +++ b/upgraded/CMakeLists.txt
-@@ -4,8 +4,28 @@ PROJECT(upgraded C)
+@@ -4,8 +4,27 @@ PROJECT(upgraded C)
  FIND_PATH(ubox_include_dir libubox/uloop.h)
  INCLUDE_DIRECTORIES(${ubox_include_dir})
  ADD_DEFINITIONS(-Os -ggdb -Wall -Werror --std=gnu99 -Wmissing-declarations)
 +
-+# Build upgraded statically.
++# Taken over verbatim from procd 9a4036fb.
 +#
 +# /lib/upgrade/nand.sh of LEDE 17.01 does a plain
 +#
 +#	cp /sbin/upgraded /tmp/
 +#
 +# and lets procd exec /tmp/upgraded from inside the ramfs, where no shared
-+# libraries are available at all.  A dynamically linked binary would simply
-+# fail to start there ("not found" from the loader), so restore the static
-+# link used by the procd of that era.
++# libraries exist at all.  A dynamically linked binary would not start
++# there, so upgraded has to be linked statically.
 +set(CMAKE_EXE_LINKER_FLAGS "-static -fPIC")
 +set(CMAKE_FIND_LIBRARY_SUFFIXES .a)
 +set(CMAKE_EXE_LINK_DYNAMIC_C_FLAGS)
@@ -109,23 +110,30 @@
  )
 --- a/upgraded/upgraded.c
 +++ b/upgraded/upgraded.c
-@@ -41,6 +41,37 @@ static void upgrade_proc_cb(struct uloop
+@@ -41,6 +41,47 @@ static void upgrade_proc_cb(struct uloop
  	uloop_end();
  }
  
 +/*
-+ * Legacy NAND upgrade (LEDE 17.01 and older).
++ * Taken over from procd 9a4036fb (upgraded/upgraded.c:39-55), where it
++ * was called sysupgarde() - misspelling included.
 + *
-+ * procd exec'ed us via the "nandupgrade" ubus method, without preparing
-+ * any chroot, and expects us to re-enter /sbin/sysupgrade with the "nand"
++ * procd exec'ed us through the "nandupgrade" ubus method, without any
++ * chroot, and expects us to re-enter /sbin/sysupgrade with the "nand"
 + * subcommand, which then drives /lib/upgrade/nand.sh to the end.
++ *
++ * Deviation, marked below: 9a4036fb never registered the child with
++ * uloop, so its uloop_run() returned immediately and the box rebooted
++ * while /sbin/sysupgrade nand was still running.  Upstream fixed this in
++ * commit d749b2a3 ("upgraded: register stage2 process in uloop as
++ * intended", 2017-07-12), which was never merged into the LEDE 17.01
++ * branch - that is why procd 9a4036fb still lacks it.
 + */
-+static void sysupgrade_nand(char *path)
++static void sysupgrade_nand(char *folder)
 +{
 +	char *args[] = { "/sbin/sysupgrade", "nand", NULL, NULL };
 +
-+	args[2] = path;
-+
++	args[2] = folder;
 +	upgrade_proc.cb = upgrade_proc_cb;
 +	upgrade_proc.pid = fork();
 +	if (upgrade_proc.pid < 0) {
@@ -134,37 +142,43 @@
 +	}
 +
 +	if (!upgrade_proc.pid) {
-+		/* Child */
 +		execvp(args[0], args);
 +		fprintf(stderr, "Failed to exec sysupgrade\n");
 +		_exit(EXIT_FAILURE);
 +	}
 +
++	/*
++	 * Deviation from 9a4036fb: uloop_process_add(), so that
++	 * upgrade_proc_cb actually fires and uloop_run() below waits for
++	 * the child instead of returning at once.
++	 */
 +	uloop_process_add(&upgrade_proc);
-+	uloop_run();
 +}
 +
  static void sysupgrade(char *path, char *command)
  {
  	char *args[] = { "/lib/upgrade/stage2", path, command, NULL };
-@@ -72,6 +103,26 @@ int main(int argc, char **argv)
+@@ -72,6 +113,29 @@ int main(int argc, char **argv)
  		return 1;
  	}
  
 +	/*
 +	 * Legacy NAND upgrade: two arguments only, no chroot prepared by
-+	 * procd.  Handle it before the staged path, as that one chroots
-+	 * into the prefix directory and could never serve this case.
++	 * procd.  This is the whole main() of procd 9a4036fb
++	 * (upgraded/upgraded.c:57-82); handle it before the staged path,
++	 * which chroots into the prefix directory and could never serve
++	 * this case.
 +	 */
 +	if (argc == 2) {
 +		if (chdir("/tmp") == -1) {
 +			fprintf(stderr, "failed to chdir to /tmp: %m\n");
-+			return 1;
++			return -1;
 +		}
 +
 +		uloop_init();
 +		watchdog_init(0);
 +		sysupgrade_nand(argv[1]);
++		uloop_run();
 +
 +		reboot(RB_AUTOBOOT);
 +

@@ -1,22 +1,19 @@
 --- a/system.c
 +++ b/system.c
-@@ -33,6 +33,15 @@
+@@ -33,6 +33,12 @@
  #include "sysupgrade.h"
  #include "watchdog.h"
  
 +/*
-+ * Helper script used to validate a firmware image before flashing.  It is
-+ * shipped by base-files since OpenWrt 19.07; a LEDE 17.01 rootfs does not
-+ * have it, because there /sbin/sysupgrade runs fwtool_check_signature /
-+ * fwtool_check_image / platform_check_image on its own.  Probe for its
-+ * presence at runtime instead of failing the upgrade when it is missing.
++ * Path of the JSON firmware validation helper.  Shipped by base-files
++ * since OpenWrt 19.07; it does not exist on a LEDE 17.01 rootfs.
 + */
 +#define VALIDATE_FIRMWARE_IMAGE_HELPER "/usr/libexec/validate_firmware_image"
 +
  static struct blob_buf b;
  static int notify;
  static struct ubus_context *_ctx;
-@@ -520,7 +529,7 @@ static enum vjson_state vjson_parse(int
+@@ -535,7 +541,7 @@ static enum vjson_state vjson_parse(int
   */
  static enum vjson_state validate_firmware_image_call(const char *file, char **err)
  {
@@ -25,7 +22,7 @@
  	enum vjson_state ret = VJSON_ERROR;
  	int _errno;
  	int fds[2];
-@@ -667,23 +676,34 @@ static int sysupgrade(struct ubus_contex
+@@ -682,23 +688,43 @@ static int sysupgrade(struct ubus_contex
  	if (!tb[SYSUPGRADE_PATH] || !tb[SYSUPGRADE_PREFIX])
  		return UBUS_STATUS_INVALID_ARGUMENT;
  
@@ -34,16 +31,7 @@
 -		sysupgrade_error(ctx, req, err);
 -		return UBUS_STATUS_UNKNOWN_ERROR;
 -	}
-+	if (access(VALIDATE_FIRMWARE_IMAGE_HELPER, X_OK)) {
-+		/*
-+		 * No validation helper installed: this is a legacy rootfs whose
-+		 * /sbin/sysupgrade has already validated the image itself.  Do
-+		 * not second-guess it, just assume the image is acceptable.
-+		 */
-+		valid = true;
-+		forceable = true;
-+		allow_backup = true;
-+	} else {
++	if (!access(VALIDATE_FIRMWARE_IMAGE_HELPER, X_OK)) {
 +		ret = validate_firmware_image_call(blobmsg_get_string(tb[SYSUPGRADE_PATH]), &err);
 +		if (ret != VJSON_SUCCESS) {
 +			sysupgrade_error(ctx, req, err);
@@ -70,6 +58,24 @@
 +		valid = validation[VALIDATION_VALID] && blobmsg_get_bool(validation[VALIDATION_VALID]);
 +		forceable = validation[VALIDATION_FORCEABLE] && blobmsg_get_bool(validation[VALIDATION_FORCEABLE]);
 +		allow_backup = validation[VALIDATION_ALLOW_BACKUP] && blobmsg_get_bool(validation[VALIDATION_ALLOW_BACKUP]);
++	} else {
++		/*
++		 * No JSON helper: follow the model of procd 9a4036fb.
++		 *
++		 * That version had no firmware validation in procd at all -
++		 * neither this helper nor any validation code.  The image is
++		 * validated by /sbin/sysupgrade itself, through its
++		 * sysupgrade_image_check chain
++		 *
++		 *	sysupgrade_image_check="fwtool_check_image platform_check_image"
++		 *
++		 * which runs and exits before the script ever talks to
++		 * procd.  Keep that split of responsibilities: do not
++		 * re-implement it here, just accept the image.
++		 */
++		valid = true;
++		forceable = true;
++		allow_backup = true;
 +	}
  
  	if (!valid) {
