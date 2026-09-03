@@ -248,10 +248,7 @@ platform_check_image() {
 		return 0
 		;;
 	hc5962|\
-	msg1500-x-00)
-		# these boards use metadata images
-		return 0
-		;;
+	msg1500-x-00|\
 	ubnt-erx)
 		nand_do_platform_check "$board" "$1"
 		return $?;
