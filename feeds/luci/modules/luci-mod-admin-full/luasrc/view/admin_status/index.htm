@@ -18,23 +18,128 @@
 	local boardinfo = luci.util.ubus("system", "board") or { }
 	local unameinfo = nixio.uname() or { }
 
-	local cpu_model = fs.readfile("/var/lede_info/cpu_model") or ""
-	local cpu_clock = fs.readfile("/var/lede_info/cpu_clock") or ""
-	local cpu_info = ""
-	if string.len(cpu_clock)>1 then
-		cpu_info = cpu_model.." @ "..cpu_clock.."MHz"
-	else
-		cpu_info = cpu_model
-	end   
-	local ram_size = fs.readfile("/var/lede_info/ram_size") or ""
-	local ram_clock = fs.readfile("/var/lede_info/ram_clock") or ""
+	-- Hardware facts are collected by /lib/preinit/99_99_lede_info into
+	-- /var/lede_info.  Fall back to /proc and the board information when
+	-- a value is missing, so a field is never left blank or shown as a
+	-- bare unit such as "MB".
+	local function lede_info(name)
+		local v = fs.readfile("/var/lede_info/" .. name)
+		return v and v:gsub("^%s*(.-)%s*$", "%1") or ""
+	end
+
+	local function first_match(path, pattern)
+		local fh = io.open(path)
+		if not fh then return "" end
+		for line in fh:lines() do
+			local v = line:match(pattern)
+			if v then
+				fh:close()
+				return v:gsub("^%s*(.-)%s*$", "%1")
+			end
+		end
+		fh:close()
+		return ""
+	end
+
+	local cpu_model = lede_info("cpu_model")
+	if cpu_model == "" then
+		cpu_model = first_match("/proc/cpuinfo", "^system type%s*:%s*(.+)$")
+	end
+	if cpu_model == "" then
+		cpu_model = first_match("/proc/cpuinfo", "^[Hh]ardware%s*:%s*(.+)$")
+	end
+	if cpu_model == "" then
+		cpu_model = first_match("/proc/cpuinfo", "^model name%s*:%s*(.+)$")
+	end
+	if cpu_model == "" then
+		cpu_model = boardinfo.model or boardinfo.system or ""
+	end
+
+	local cpu_clock = lede_info("cpu_clock")
+	if cpu_clock == "" then
+		local khz = first_match(
+			"/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq", "^(%d+)$")
+		if khz ~= "" and tonumber(khz) > 0 then
+			cpu_clock = tostring(math.floor(tonumber(khz) / 1000))
+		end
+	end
+	if cpu_clock == "" then
+		cpu_clock = first_match("/proc/cpuinfo", "^cpu MHz%s*:%s*(%d[%d.]*)$")
+		cpu_clock = cpu_clock ~= "" and tostring(math.floor(tonumber(cpu_clock))) or ""
+	end
+
+	-- The kernel log can only be read right after boot, the ring buffer
+	-- is overwritten while the device keeps running and the boot
+	-- messages are then lost.  /lib/preinit/99_99_lede_info stores a
+	-- copy, so read that instead of calling dmesg here - dmesg would
+	-- only return whatever happened most recently.
+	local dmesg_log
+	local function kernel_log()
+		if dmesg_log == nil then
+			dmesg_log = fs.readfile("/var/lede_info/kernel_log") or ""
+		end
+		return dmesg_log
+	end
+
+	local cpu_info = cpu_model
+	if cpu_clock ~= "" then
+		cpu_info = cpu_model .. " @ " .. cpu_clock .. " MHz"
+	end
+
+	local ram_size = lede_info("ram_size")
+	if ram_size == "" then
+		-- The kernel prints "Memory: <available>K/<total>K available",
+		-- the second number is the installed memory.  MemTotal only
+		-- covers what is usable and is a few MiB smaller.
+		local total = kernel_log():match("Memory:[^\n]-/(%d+)K%s+available")
+		if total and tonumber(total) > 0 then
+			ram_size = tostring(math.floor(tonumber(total) / 1024))
+		end
+	end
+	if ram_size == "" then
+		local kb = first_match("/proc/meminfo", "^MemTotal:%s*(%d+)")
+		if kb ~= "" and tonumber(kb) > 0 then
+			ram_size = tostring(math.floor(tonumber(kb) / 1024))
+		end
+	end
+
+	local ram_clock = lede_info("ram_clock")
 	local ram_info = ""
-	if string.len(ram_clock)>1 then
-		ram_info = ram_size.."MB @ "..ram_clock.."MHz"
-	else
-		ram_info = ram_size.."MB"
-	end 
-	local flash_size = fs.readfile("/var/lede_info/flash_size") or ""
+	if ram_size ~= "" then
+		ram_info = ram_size .. " MB"
+		if ram_clock ~= "" then
+			ram_info = ram_info .. " @ " .. ram_clock .. " MHz"
+		end
+	end
+
+	local flash_size = lede_info("flash_size")
+	if flash_size == "" then
+		-- A NAND chip reports the capacity of the whole device when it is
+		-- probed, the mtd partitions never cover the entire chip.
+		flash_size = kernel_log():match("nand:%s*(%d+)%s*MiB") or ""
+	end
+	if flash_size == "" then
+		local total = 0
+		local fh = io.open("/proc/mtd")
+		if fh then
+			for line in fh:lines() do
+				local sz = line:match("^mtd%d+:%s*(%x+)")
+				if sz then
+					total = total + (tonumber(sz, 16) or 0)
+				end
+			end
+			fh:close()
+		end
+		-- round up, the partitions do not always cover the whole chip
+		if total > 0 then
+			flash_size = tostring(math.floor((total + 524288) / 1048576))
+		end
+	end
+
+	local flash_info = ""
+	if flash_size ~= "" then
+		flash_info = flash_size .. " MB"
+	end
 
 	local meminfo = sysinfo.memory or {
 		total = 0,
@@ -704,9 +809,15 @@
 	<table width="100%" cellspacing="10">
 		<tr><td width="33%"><%:Hostname%></td><td><%=luci.sys.hostname() or "?"%></td></tr>
 		<tr><td width="33%"><%:Model%></td><td><%=pcdata(boardinfo.model or boardinfo.system or "?")%></td></tr>
-		<tr><td width="33%"><%:CPU%></td><td><%=pcdata(cpu_info or "?")%></td></tr>
-		<tr><td width="33%"><%:RAM%></td><td><%=pcdata(ram_info or "?")%></td></tr>
-		<tr><td width="33%"><%:Flash Size%></td><td><%=pcdata(flash_size or "?")%>MB</td></tr>
+		<% if #cpu_info > 0 then %>
+		<tr><td width="33%"><%:CPU%></td><td><%=pcdata(cpu_info)%></td></tr>
+		<% end %>
+		<% if #ram_info > 0 then %>
+		<tr><td width="33%"><%:RAM%></td><td><%=pcdata(ram_info)%></td></tr>
+		<% end %>
+		<% if #flash_info > 0 then %>
+		<tr><td width="33%"><%:Flash Size%></td><td><%=pcdata(flash_info)%></td></tr>
+		<% end %>
 		<tr><td width="33%"><%:Firmware Version%></td><td>
 			<%=pcdata(ver.distname)%> <%=pcdata(ver.distversion)%> /
 			<%=pcdata(ver.luciname)%> (<%=pcdata(ver.luciversion)%>)
