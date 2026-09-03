@@ -71,6 +71,20 @@ detect_mac80211() {
 	config_load wireless
 	config_foreach check_devidx wifi-device
 
+	# A dual band chip such as the MT7615D registers one phy that covers
+	# both bands and a second phy that handles 5 GHz only.  The 2.4 GHz
+	# band is only reachable through the first one, so that phy has to be
+	# set up as 2.4 GHz.  Leaving it on 5 GHz would put both radios on
+	# 5 GHz and leave 2.4 GHz unused.
+	local has_5g_only_phy=0
+	for _scan_dev in /sys/class/ieee80211/*; do
+		[ -e "$_scan_dev" ] || continue
+		_scan_phy="${_scan_dev##*/}"
+		_scan_info="$(iw phy "$_scan_phy" info 2>/dev/null)"
+		echo "$_scan_info" | grep -q '2412' && continue
+		echo "$_scan_info" | grep -q '5[[:digit:]]\{3\}[[:space:]]\+MHz' && has_5g_only_phy=1
+	done
+
 	for _dev in /sys/class/ieee80211/*; do
 		[ -e "$_dev" ] || continue
 
@@ -89,6 +103,15 @@ detect_mac80211() {
 		iw phy "$dev" info | grep -q 'Capabilities:' && htmode="HT40"
 
 		local detected_channel_80211a=$(iw phy "$dev" info | grep '\*[[:space:]]\+5[[:digit:]]\{3\}[[:space:]]\+MHz[[:space:]]\+\[' | grep -v '(disabled)' -m 1 | sed 's/[^[]*\[\|\].*//g')
+
+		# This phy offers both bands while another phy covers 5 GHz only,
+		# so it is the 2.4 GHz side of a dual band chip.  Stay on 2.4 GHz
+		# even though 5 GHz channels are available here as well.
+		if [ "$has_5g_only_phy" -eq 1 ] &&
+		   iw phy "$dev" info | grep -q '2412'
+		then
+			detected_channel_80211a=""
+		fi
 
 		echo "$detected_channel_80211a" | grep -q "^[[:digit:]]\+$" && {
 			mode_band="a"

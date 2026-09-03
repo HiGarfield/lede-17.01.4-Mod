@@ -1,0 +1,28 @@
+#!/bin/sh
+#
+# Repair the wireless band setup of the RAISECOM MSG1500 X.00.
+#
+# The device carries an MT7615D, a dual band chip that registers one phy
+# covering both bands and a second phy that handles 5 GHz only.  Earlier
+# builds configured both radios for 5 GHz, so nothing served 2.4 GHz.
+#
+# The first radio is the 2.4 GHz side, put it back on 2.4 GHz.  Existing
+# SSIDs, keys and other settings are left untouched.
+
+. /lib/functions.sh
+. /lib/ramips.sh
+
+[ "$(ramips_board_name)" = "msg1500-x-00" ] || exit 0
+[ -f /etc/config/wireless ] || exit 0
+
+# Nothing to do unless both radios ended up on 5 GHz.
+[ "$(grep -c "option hwmode '11a'" /etc/config/wireless 2>/dev/null)" -ge 2 ] || exit 0
+
+uci -q batch <<-EOF >/dev/null
+	set wireless.radio0.hwmode='11g'
+	set wireless.radio0.channel='11'
+	set wireless.radio0.htmode='HT40'
+	commit wireless
+EOF
+
+exit 0
