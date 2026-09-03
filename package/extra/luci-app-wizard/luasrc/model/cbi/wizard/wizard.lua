@@ -36,7 +36,7 @@ local function set_opt(section, option, value)
 end
 
 local m = SimpleForm("wizard",
-	translate("Inital Router Setup"),
+	translate("Initial Router Setup"),
 	translate("If you are using this router for the first time, please configure it here."))
 
 m.reset = false
@@ -45,7 +45,7 @@ m.reset = false
 -- WAN
 --
 
-local wan = m:section(SimpleSection, translate("Wan Settings"),
+local wan = m:section(SimpleSection, translate("WAN Settings"),
 	translate("Three different ways to access the Internet, please choose according to your own situation."))
 
 local wan_proto = wan:option(ListValue, "wan_proto", translate("Protocol"))
@@ -56,13 +56,13 @@ function wan_proto.cfgvalue(self, section)
 	return uci:get("network", "wan", "proto") or "dhcp"
 end
 
-local wan_user = wan:option(Value, "wan_pppoe_user", translate("PAP/CHAP username"))
+local wan_user = wan:option(Value, "wan_pppoe_user", translate("Broadband Username"))
 wan_user:depends({wan_proto = "pppoe"})
 function wan_user.cfgvalue(self, section)
 	return uci:get("network", "wan", "username")
 end
 
-local wan_pass = wan:option(Value, "wan_pppoe_pass", translate("PAP/CHAP password"))
+local wan_pass = wan:option(Value, "wan_pppoe_pass", translate("Broadband Password"))
 wan_pass.password = true
 wan_pass:depends({wan_proto = "pppoe"})
 function wan_pass.cfgvalue(self, section)
@@ -111,13 +111,13 @@ if has_wifi then
 		translate("Set the router's wireless name and password. For more advanced settings, please go to the Network-Wireless page."))
 
 	wifi_ssid = wl:option(Value, "wifi_ssid",
-		translate("<abbr title=\"Extended Service Set Identifier\">ESSID</abbr>"))
+		translate("<abbr title=\"Extended Service Set Identifier\">Wireless Name (ESSID)</abbr>"))
 	wifi_ssid.datatype = "maxlength(32)"
 	function wifi_ssid.cfgvalue(self, section)
 		return uci:get("wireless", wifi_ifaces[1], "ssid")
 	end
 
-	wifi_key = wl:option(Value, "wifi_key", translate("Key"))
+	wifi_key = wl:option(Value, "wifi_key", translate("Wireless Password"))
 	wifi_key.datatype = "wpakey"
 	wifi_key.password = true
 	function wifi_key.cfgvalue(self, section)
@@ -129,7 +129,7 @@ end
 -- LAN
 --
 
-local lan = m:section(SimpleSection, translate("Lan Settings"))
+local lan = m:section(SimpleSection, translate("LAN Settings"))
 
 local lan_ipaddr = lan:option(Value, "lan_ipaddr", translate("IPv4 address"))
 lan_ipaddr.datatype = "ip4addr"

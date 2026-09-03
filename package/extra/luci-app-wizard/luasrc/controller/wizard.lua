@@ -1,6 +1,6 @@
 module("luci.controller.wizard", package.seeall)
 
 function index()
-	entry({"admin", "initsetup"}, alias("admin", "initsetup", "wizard"), _("Inital Setup"), 29).index = true
+	entry({"admin", "initsetup"}, alias("admin", "initsetup", "wizard"), _("Initial Setup"), 29).index = true
 	entry({"admin", "initsetup", "wizard"}, cbi("wizard/wizard"), _("Quick Setup"), 1)
 end
