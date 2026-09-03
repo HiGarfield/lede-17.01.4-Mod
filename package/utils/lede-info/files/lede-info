@@ -1,22 +1,193 @@
 #!/bin/sh
 
+# Collect a few hardware facts for the status page during preinit.
+#
+# Nothing here may rely on the kernel log alone: dmesg is a ring buffer
+# that is not readable on every target and the wording differs a lot
+# between architectures.  Every value is therefore read from /proc or
+# sysfs where possible and only falls back to the log, which is read
+# once up front so that all values come from the same snapshot.
+# A value that cannot be determined is simply not written, the status
+# page then hides the corresponding row.
+
 lede_info() {
 	local LEDE_INFO_DIR="/var/lede_info"
 	mkdir -p "$LEDE_INFO_DIR"
-	local cpu_model=$(awk -F ': ' '/^system type|^Hardware/{print $2;exit}' "/proc/cpuinfo")
+
+	# This runs from preinit, so the ring buffer still holds the whole
+	# boot.  Later on it is overwritten and the boot messages are gone
+	# for good, therefore read it once here and keep a copy (capped,
+	# the buffer can be large on some targets) that the status page can
+	# fall back to instead of calling dmesg itself.
+	local LOG
+	LOG=$(dmesg 2>/dev/null)
+	if [ -n "$LOG" ]; then
+		mkdir -p "$LEDE_INFO_DIR"
+		printf '%s\n' "$LOG" | head -c 65536 >"$LEDE_INFO_DIR/kernel_log"
+	fi
+
+	local dev size v
+
+	# --- CPU model ---------------------------------------------------
+	# The key differs per architecture.  Prefer the board level entries
+	# over the core name, otherwise an ARM board is reported as
+	# "ARMv7 Processor" instead of its actual model.
+	#
+	# Only the first colon separates key from value, everything after
+	# it belongs to the value: "system type : MediaTek MT7621 ver:1
+	# eco:3" must not be cut at the colon of "ver:1".
+	local cpu_model=$(
+		awk '
+			function value(line) {
+				sub(/^[^:]*: */, "", line)
+				gsub(/^[[:space:]]+|[[:space:]]+$/, "", line)
+				return line
+			}
+			/^system type|^Hardware/ {
+				if (board == "") board = value($0)
+			}
+			/^cpu model|^Processor|^model name/ {
+				if (core == "") core = value($0)
+			}
+			END { print (board != "" ? board : core) }
+		' /proc/cpuinfo 2>/dev/null
+	)
+	[ -n "$cpu_model" ] || cpu_model=$(cat /tmp/sysinfo/model 2>/dev/null)
 	[ -n "$cpu_model" ] && echo "$cpu_model" >"$LEDE_INFO_DIR/cpu_model"
 
-	local cpu_clock=$(dmesg | grep -i 'Clock' | grep -io 'CPU[^a-zA-Z][^\(MHz\)]*' | awk -F '[^0-9\.]' '{print int($NF); exit}')
-	[ -n "$cpu_clock" ] && echo "$cpu_clock" >"$LEDE_INFO_DIR/cpu_clock"
+	# --- CPU clock ---------------------------------------------------
+	local cpu_clock=
+	if [ -r /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq ]; then
+		cpu_clock=$(
+			awk '{ if ($1 > 0) printf "%d", $1 / 1000 }' \
+				/sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq 2>/dev/null
+		)
+	fi
+	[ -n "$cpu_clock" ] || cpu_clock=$(
+		awk '
+			/^cpu MHz|^clock/ {
+				v = $0
+				sub(/^[^:]*: */, "", v)
+				gsub(/[^0-9.]/, "", v)
+				if (v > 0) { printf "%d", v; exit }
+			}
+		' /proc/cpuinfo 2>/dev/null
+	)
+	# Match the number in front of "MHz" on a line mentioning the CPU,
+	# the wording in front of it varies ("CPU Clock:", "Clocks: CPU:").
+	[ -n "$cpu_clock" ] || cpu_clock=$(
+		echo "$LOG" | awk '
+			/CPU/ && match($0, /[0-9.]+ *MHz/) {
+				v = substr($0, RSTART, RLENGTH)
+				gsub(/[^0-9.]/, "", v)
+				if (v > 0) printf "%d", v
+				exit
+			}'
+	)
+	[ -n "$cpu_clock" ] && [ "$cpu_clock" -gt 0 ] &&
+		echo "$cpu_clock" >"$LEDE_INFO_DIR/cpu_clock"
 
-	local ram_size=$(dmesg | awk -F 'Memory: |K/|K available' '/Memory:.*available/{print $3/1024; exit}')
-	[ -n "$ram_size" ] && echo "$ram_size" >"$LEDE_INFO_DIR/ram_size"
+	# --- RAM size ----------------------------------------------------
+	# Report the installed memory.  The kernel prints it as
+	# "Memory: <available>K/<total>K available", MemTotal only covers
+	# what is usable and is a few MiB smaller than what is soldered.
+	local ram_size=$(
+		echo "$LOG" | awk '
+			/Memory:.*available/ && match($0, /[0-9]+K\/[0-9]+K/) {
+				split(substr($0, RSTART, RLENGTH), part, "/")
+				v = part[2]
+				gsub(/[^0-9]/, "", v)
+				if (v > 0) { printf "%d", v / 1024; exit }
+			}'
+	)
 
-	local ram_clock=$(dmesg | grep -i 'Clock' | grep -io 'DDR[^a-zA-Z][^\(MHz\)]*' | awk -F '[^0-9\.]' '{print int($NF); exit}')
-	[ -n "$ram_clock" ] && echo "$ram_clock" >"$LEDE_INFO_DIR/ram_clock"
+	# MIPS boards print the RAM map instead, which holds the size as
+	# seen by the bootloader:
+	#   Determined physical RAM map:
+	#    memory: 10000000 @ 00000000 (usable)
+	# The log often no longer contains the "Memory: .../...K" line by
+	# the time preinit runs, this one is just as usable.
+	if [ -z "$ram_size" ]; then
+		local ram_hex
+		# Lower case "memory:" followed by "<hex> @" distinguishes this
+		# from the "Memory: xK/yK available" line.  The log lines carry
+		# a timestamp in front, so the value is cut with .* instead of
+		# anchoring at the start of the line.
+		ram_hex=$(echo "$LOG" | awk '
+			/memory:[[:space:]]*[0-9a-fA-F]+[[:space:]]+@/ {
+				v = $0
+				sub(/^.*memory: */, "", v)
+				split(v, f, /[[:space:]]+/)
+				if (f[1] ~ /^[0-9a-fA-F]+$/) { print f[1]; exit }
+			}')
+		[ -n "$ram_hex" ] && ram_size=$(( 0x$ram_hex / 1048576 ))
+	fi
 
-	local flash_size=$(dmesg | awk -F '\\(| Kbytes' '/\([0-9][0-9]* Kbytes\)/{print $2/1024; exit}')
-	[ -n "$flash_size" ] && echo "$flash_size" >"$LEDE_INFO_DIR/flash_size"
+	[ -n "$ram_size" ] || ram_size=$(
+		awk '/^MemTotal:/ { if ($2 > 0) printf "%d", $2 / 1024 }' \
+			/proc/meminfo 2>/dev/null
+	)
+	[ -n "$ram_size" ] && [ "$ram_size" -gt 0 ] &&
+		echo "$ram_size" >"$LEDE_INFO_DIR/ram_size"
+
+	# --- RAM clock ---------------------------------------------------
+	# Only the kernel log carries this, and not on every target.
+	local ram_clock=$(
+		echo "$LOG" | awk '
+			/DDR/ && match($0, /[0-9.]+ *MHz/) {
+				v = substr($0, RSTART, RLENGTH)
+				gsub(/[^0-9.]/, "", v)
+				if (v > 0) printf "%d", v
+				exit
+			}'
+	)
+	[ -n "$ram_clock" ] && [ "$ram_clock" -gt 0 ] &&
+		echo "$ram_clock" >"$LEDE_INFO_DIR/ram_clock"
+
+	# --- Flash size --------------------------------------------------
+	# A NAND chip announces its capacity while being probed, which is
+	# the most accurate source: the mtd partitions never cover the
+	# whole chip, spare blocks and bad block tables stay outside them.
+	# Fall back to the partitions, then to the size some NOR drivers
+	# print in the log.
+	local flash_size=$(
+		echo "$LOG" | awk '
+			/nand:/ && match($0, /[0-9]+ *MiB/) {
+				v = substr($0, RSTART, RLENGTH)
+				gsub(/[^0-9]/, "", v)
+				if (v > 0) printf "%d", v
+				exit
+			}'
+	)
+
+	if [ -z "$flash_size" ] || [ "$flash_size" -le 0 ]; then
+		flash_size=0
+		if [ -r /proc/mtd ]; then
+			while read -r dev size _rest; do
+				case "$dev" in
+					mtd[0-9]*:) ;;
+					*) continue ;;
+				esac
+				[ -n "$size" ] || continue
+				flash_size=$((flash_size + 0x$size))
+			done < /proc/mtd
+		fi
+
+		if [ "$flash_size" -gt 0 ]; then
+			# Round to the nearest MiB, the partitions do not always
+			# cover the whole chip (a 128 MiB device sums up to 127.5).
+			flash_size=$(( (flash_size + 524288) / 1048576 ))
+		else
+			flash_size=$(
+				echo "$LOG" | awk -F '\\( *| *Kbytes' '/\([0-9][0-9]* Kbytes\)/ {
+					if ($2 > 0) printf "%d", $2 / 1024; exit
+				}'
+			)
+		fi
+	fi
+
+	[ -n "$flash_size" ] && [ "$flash_size" -gt 0 ] &&
+		echo "$flash_size" >"$LEDE_INFO_DIR/flash_size"
 }
 
 boot_hook_add preinit_main lede_info
