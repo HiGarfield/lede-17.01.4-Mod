@@ -9,4 +9,7 @@ start() {
 	if [ $board = "sk-wb8" ]; then
 		fw_setenv bootcount 0
 	fi
+	if [ $board = "ea7500-v2" ]; then
+		mtd resetbc s_env || true
+	fi
 }

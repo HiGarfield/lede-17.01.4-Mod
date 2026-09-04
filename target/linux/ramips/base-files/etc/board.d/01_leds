@@ -435,6 +435,13 @@ dw22d)
 	ucidef_set_led_default "system_amber" "system_amber" "$board:amber:system" "0"
 	ucidef_set_led_default "system_green" "system_green" "$board:green:system" "1"
 	;;
+ea7500-v2)
+	ucidef_set_led_netdev "lan1" "lan1 link" "$board:green:lan1" "lan1" "link"
+	ucidef_set_led_netdev "lan2" "lan2 link" "$board:green:lan2" "lan2" "link"
+	ucidef_set_led_netdev "lan3" "lan3 link" "$board:green:lan3" "lan3" "link"
+	ucidef_set_led_netdev "lan4" "lan4 link" "$board:green:lan4" "lan4" "link"
+	ucidef_set_led_netdev "wan" "wan link" "$board:green:wan" "wan" "link"
+	;;
 esac
 
 board_config_flush

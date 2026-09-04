@@ -274,6 +274,7 @@ platform_pre_upgrade() {
 
 	case "$board" in
 		hc5962|\
+		ea7500-v2|\
 		msg1500-x-00|\
     	ubnt-erx)
 		nand_do_upgrade "$ARGV"
