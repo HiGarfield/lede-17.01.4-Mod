@@ -82,6 +82,10 @@ mac80211_add_capabilities() {
 	for capab in "$@"; do
 		set -- $capab
 
+		# An unset or empty field would make the arithmetic below
+		# abort with "sh: out of range" and skip the entry anyway,
+		# so skip it right away and keep the shell quiet.
+		[ -n "$2" ] && [ -n "$4" ] || continue
 		[ "$(($4))" -gt 0 ] || continue
 		[ "$(($__mask & $2))" -eq "$((${3:-$2}))" ] || continue
 		__out="$__out[$1]"
