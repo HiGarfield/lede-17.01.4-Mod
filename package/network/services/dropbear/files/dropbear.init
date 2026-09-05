@@ -56,9 +56,16 @@ dropbear_instance()
 	}
 
 	[ -n "${Interface}" ] && {
-		[ -n "${BOOT}" ] && return 0
-
+		# dropbear is started before netifd, so while booting the
+		# interface usually cannot be resolved yet.  Leave the
+		# instance to the interface trigger installed by
+		# service_triggers() in that case.  If netifd does happen to
+		# be running already, start right away instead of waiting for
+		# an event that may have been sent before the trigger was
+		# installed.
 		network_get_ipaddrs_all ipaddrs "${Interface}" || {
+			[ -n "${BOOT}" ] && return 0
+
 			echo "interface ${Interface} has no physdev or physdev has no suitable ip"
 			return 1
 		}
