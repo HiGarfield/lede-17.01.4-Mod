@@ -126,8 +126,4 @@ EOF
 rm -rf /tmp/luci-modulecache/
 rm -f /tmp/luci-indexcache
 
-/etc/init.d/network restart
-
-/etc/init.d/dropbear restart
-
 exit 0
