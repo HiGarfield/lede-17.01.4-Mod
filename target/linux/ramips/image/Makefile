@@ -30,6 +30,11 @@ loadaddr-$(CONFIG_TARGET_ramips_mt7621) := 0x80001000
 
 KERNEL_LOADADDR := $(loadaddr-y)
 
+# Console base address used by the lzma-loader while decompressing.
+ldr_uart_base-y := 0xb0000c00
+ldr_uart_base-$(CONFIG_TARGET_ramips_mt7621) := 0xbe000c00
+LOADER_UART_BASE := $(ldr_uart_base-y)
+
 KERNEL_DTB = kernel-bin | patch-dtb | lzma
 define Device/Default
   PROFILES = Default $$(DTS)
@@ -40,6 +45,15 @@ define Device/Default
   SUPPORTED_DEVICES = $(1)
   sysupgrade_bin := append-kernel | append-rootfs | pad-rootfs
   IMAGE/sysupgrade.bin := append-kernel | append-rootfs | pad-rootfs | append-metadata | check-size $$$$(IMAGE_SIZE)
+endef
+
+# The self-extracting loader runs *before* the kernel and does the LZMA
+# decompression itself, so the uImage carries IH_COMP_NONE and the bootloader
+# only has to memcpy the payload to KERNEL_LOADADDR and jump to it. Needed for
+# bootloaders that cannot decompress an IH_COMP_LZMA uImage (e.g. the Linksys
+# EA7500 v2 / EA8100 U-Boot).
+define Device/uimage-lzma-loader
+  KERNEL := $(KERNEL_DTB) | loader-kernel | uImage none
 endef
 
 define Build/patch-dtb
@@ -62,6 +76,22 @@ define Build/relocate-kernel
 		cat $@ \
 	) > $@.new
 	mv $@.new $@
+endef
+
+define Build/loader-common
+	$(MAKE) -j1 -C lzma-loader \
+		PKG_BUILD_DIR="$@.src" \
+		TARGET_DIR="$(dir $@)" LOADER_NAME="$(notdir $@)" \
+		PLATFORM="ralink" \
+		LZMA_TEXT_START=0x82000000 LOADADDR=$(KERNEL_LOADADDR) \
+		UART_BASE=$(LOADER_UART_BASE) \
+		$(1) compile loader.bin
+	mv "$@.bin" "$@"
+	rm -rf $@.src
+endef
+
+define Build/loader-kernel
+	$(call Build/loader-common,LOADER_DATA="$@")
 endef
 
 define MkCombineduImage
