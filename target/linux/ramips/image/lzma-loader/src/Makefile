@@ -28,7 +28,8 @@ LD		:= $(CROSS_COMPILE)ld
 OBJCOPY		:= $(CROSS_COMPILE)objcopy
 OBJDUMP		:= $(CROSS_COMPILE)objdump
 
-BIN_FLAGS	:= -O binary -R .reginfo -R .note -R .comment -R .mdebug -S
+BIN_FLAGS	:= -O binary -R .reginfo -R .note -R .comment -R .mdebug \
+		   -R .MIPS.abiflags -S
 
 CFLAGS		= -D__KERNEL__ -Wall -Wstrict-prototypes -Wno-trigraphs -Os \
 		  -fno-strict-aliasing -fno-common -fomit-frame-pointer -G 0 \
@@ -37,6 +38,10 @@ CFLAGS		= -D__KERNEL__ -Wall -Wstrict-prototypes -Wno-trigraphs -Os \
 		  -mabi=32 -march=mips32r2 \
 		  -Wa,-32 -Wa,-march=mips32r2 -Wa,-mips32r2 -Wa,--trap
 CFLAGS		+= -D_LZMA_PROB32 -DARCH=$(PLATFORM)
+
+ifdef UART_BASE
+CFLAGS		+= -DUART_BASE=$(UART_BASE)
+endif
 
 ASFLAGS		= $(CFLAGS) -D__ASSEMBLY__
 
@@ -68,7 +73,10 @@ ifneq ($(strip $(FLASH_MAX)),)
 CFLAGS		+= -DCONFIG_FLASH_MAX=$(FLASH_MAX)
 endif
 
-BOARD_DEF := $(shell echo $(strip $(BOARD)) | tr a-z A-Z | tr - _)
+# Replace both dashes and spaces: ramips uses board names such as
+# "MT7621 BASED BOARDS", which would otherwise be split into several
+# -D arguments by the shell.
+BOARD_DEF := $(shell echo $(strip $(BOARD)) | tr ' ' '_' | tr a-z A-Z | tr - _)
 ifneq ($(BOARD_DEF),)
 CFLAGS		+= -DCONFIG_BOARD_$(BOARD_DEF)
 endif
