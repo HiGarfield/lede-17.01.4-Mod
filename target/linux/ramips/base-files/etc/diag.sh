@@ -46,6 +46,9 @@ get_status_led() {
 	xdxrn502j)
 		status_led="$board:green:power"
 		;;
+	ea7500-v2)
+		status_led="$board:white:power"
+		;;
 	3g-6200nl)
 		status_led="$board:green:internet"
 		;;

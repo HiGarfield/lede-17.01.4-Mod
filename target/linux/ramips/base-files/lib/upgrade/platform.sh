@@ -248,7 +248,8 @@ platform_check_image() {
 		return 0
 		;;
 	hc5962|\
-	ubnt-erx)
+	ubnt-erx|\
+	ea7500-v2)
 		nand_do_platform_check "$board" "$1"
 		return $?;
 		;;
@@ -273,6 +274,7 @@ platform_pre_upgrade() {
 
 	case "$board" in
 		hc5962|\
+		ea7500-v2|\
     	ubnt-erx)
 		nand_do_upgrade "$ARGV"
 		;;

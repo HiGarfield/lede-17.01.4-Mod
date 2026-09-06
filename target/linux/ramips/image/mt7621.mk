@@ -312,6 +312,23 @@ define Device/zbt-wg3526
 endef
 TARGET_DEVICES += zbt-wg3526
 
+define Device/ea7500-v2
+  $(Device/uimage-lzma-loader)
+  DTS := EA7500-V2
+  BLOCKSIZE := 128k
+  PAGESIZE := 2048
+  KERNEL_SIZE := 4194304
+  UBINIZE_OPTS := -E 5
+  IMAGE_SIZE := 36864k
+  IMAGES += factory.bin
+  IMAGE/sysupgrade.bin := sysupgrade-tar | append-metadata | check-size $$$$(IMAGE_SIZE)
+  IMAGE/factory.bin := append-kernel | pad-to $$(KERNEL_SIZE) | append-ubi | \
+	check-size $$$$(IMAGE_SIZE) | linksys-image type=EA7500v2
+  DEVICE_TITLE := Linksys EA7500 v2
+  DEVICE_PACKAGES := kmod-mt7615e kmod-usb3 uboot-envtools
+endef
+TARGET_DEVICES += ea7500-v2
+
 # FIXME: is this still needed?
 define Image/Prepare
 #define Build/Compile
