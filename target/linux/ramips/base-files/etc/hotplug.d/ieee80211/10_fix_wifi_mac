@@ -44,4 +44,12 @@ link7)
 		macaddr_add "$lan_mac" 3 >/sys${DEVPATH}/macaddress
 	fi
 	;;
+ea7500-v2)
+	# 2.4 GHz and 5 GHz are both derived from the label address
+	hw_mac_addr=$(mtd_get_mac_ascii devinfo hw_mac_addr)
+	[ "$PHYNBR" = "0" ] && \
+		macaddr_add $hw_mac_addr 1 > /sys${DEVPATH}/macaddress
+	[ "$PHYNBR" = "1" ] && \
+		macaddr_add $hw_mac_addr 2 > /sys${DEVPATH}/macaddress
+	;;
 esac

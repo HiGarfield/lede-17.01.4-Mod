@@ -271,6 +271,9 @@ ramips_board_detect() {
 	*"JHR-N926R")
 		name="jhr-n926r"
 		;;
+	*"Linksys EA7500 v2")
+		name="ea7500-v2"
+		;;
 	*"M3")
 		name="m3"
 		;;
