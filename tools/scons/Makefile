@@ -26,7 +26,12 @@ endef
 # scons 2.5.x only runs on Python 2.  On hosts that no longer ship a Python 2
 # interpreter there is nothing to install, so skip it with a warning instead
 # of failing the whole build - only gpsd, iotivity and smartsnmpd use it.
-PYTHON2:=$(strip $(shell for p in python python2 python2.7 python2.6 python2.5 python2.4; do case "`$$p -V 2>&1`" in "Python 2"*) echo "$$p"; break;; esac; done))
+#
+# Keep this free of unbalanced parentheses: make closes $(shell ...) at the
+# first ")" without a matching "(", so the obvious
+#   case "$($p -V 2>&1)" in "Python 2"*) ...
+# gets truncated and handed to the shell half finished.
+PYTHON2:=$(firstword $(foreach p,python python2 python2.7 python2.6 python2.5 python2.4,$(shell $p -V 2>&1 | grep -q "^Python 2" && echo $p)))
 
 ifeq ($(PYTHON2),)
 define Host/Install
