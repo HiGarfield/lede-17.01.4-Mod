@@ -251,7 +251,16 @@ export PKG_CONFIG
 HOSTCC:=gcc
 HOSTCXX:=g++
 HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include -I$(STAGING_DIR_HOST)/usr/include $(if $(IS_PACKAGE_BUILD),-I$(STAGING_DIR)/host/include)
-HOST_CFLAGS:=-O3 $(HOST_CPPFLAGS) -DHAVE_PTRDIFF_T
+
+# gcc 15 and later default to -std=gnu23, where bool, true and false are
+# keywords.  C code of this vintage (the host tools, the Python 2.7 built as
+# python/host, ...) still declares them itself, e.g. CPython's
+# Include/asdl.h has "typedef enum {false, true} bool;".  Pin the dialect to
+# the one gcc 7.5 used by default instead.  The default is probed at run time
+# rather than by checking the compiler version, so old build hosts are
+# unaffected.
+HOST_CC_IS_C23:=$(shell printf 'typedef int bool;\n' | $(HOSTCC) -x c - -c -o /dev/null 2>/dev/null || echo y)
+HOST_CFLAGS:=-O3 $(HOST_CPPFLAGS) -DHAVE_PTRDIFF_T $(if $(HOST_CC_IS_C23),-std=gnu11)
 HOST_LDFLAGS:=-L$(STAGING_DIR_HOST)/lib -L$(STAGING_DIR_HOST)/usr/lib $(if $(IS_PACKAGE_BUILD),-L$(STAGING_DIR)/host/lib)
 
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
