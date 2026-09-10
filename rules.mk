@@ -261,6 +261,21 @@ HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include -I$(STAGING_DIR_HOST)/usr/include $
 # unaffected.
 HOST_CC_IS_C23:=$(shell printf 'typedef int bool;\n' | $(HOSTCC) -x c - -c -o /dev/null 2>/dev/null || echo y)
 HOST_CFLAGS:=-O3 $(HOST_CPPFLAGS) -DHAVE_PTRDIFF_T $(if $(HOST_CC_IS_C23),-std=gnu11)
+
+# autoconf before 2.72 decides on "mkdir -p" by matching the output of
+# "mkdir --version" against a short allowlist - "mkdir (GNU coreutils) *",
+# "mkdir (coreutils) *" or "mkdir (fileutils) 4.1*".  Current coreutils no
+# longer print any of those (Ubuntu 25.10 and later ship the Rust uutils
+# replacement by default), so configure falls back to
+# "$ac_aux_dir/install-sh -d".  That path is relative to the top build
+# directory, while e2fsprogs generates its MCONFIG once at the top and
+# includes it from every subdirectory, so make ends up running
+# "config/install-sh" inside e2fsck/ and dies with
+#   make: config/install-sh: No such file or directory
+# Work the result out here instead: configure only probes when MKDIR_P is
+# empty, so this is honoured by old and new autoconf alike.
+MKDIR_P:=$(shell command -v mkdir 2>/dev/null || echo /bin/mkdir) -p
+export MKDIR_P
 HOST_LDFLAGS:=-L$(STAGING_DIR_HOST)/lib -L$(STAGING_DIR_HOST)/usr/lib $(if $(IS_PACKAGE_BUILD),-L$(STAGING_DIR)/host/lib)
 
 ifeq ($(CONFIG_EXTERNAL_TOOLCHAIN),)
