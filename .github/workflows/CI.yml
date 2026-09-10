@@ -108,7 +108,18 @@ jobs:
             aria2 build-essential bzip2 gettext flex perl \
             findutils grep diffutils unzip gawk util-linux \
             subversion zlib1g-dev zip
-          sudo .github/backup/install_python2.sh
+          # Nothing needs Python 2 any more: the two Python scripts that run
+          # on the host (wireless-regdb's db2fw.py and ca-certificates'
+          # certdata2pem.py) produce identical output under Python 2 and 3,
+          # scons is skipped when no Python 2 is found, and node uses the
+          # python2 the tree builds itself.  make prereq still wants a
+          # "python" command, so point it at python3 if the image has none -
+          # building CPython 2.7 from source here cost minutes on every
+          # matrix entry for no benefit.
+          command -v python >/dev/null || \
+            sudo ln -s "$(command -v python3)" /usr/local/bin/python
+          python -V
+
           sudo apt-get autoremove -qq -y
           sudo apt-get clean -qq -y
 
