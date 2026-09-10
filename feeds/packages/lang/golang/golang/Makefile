@@ -201,6 +201,16 @@ endif
 
 $(eval $(call GoCompiler/AddProfile,Host,$(HOST_BUILD_DIR),$(HOST_GO_PREFIX),$(HOST_GO_VERSION_ID),$(GO_HOST_OS_ARCH),$(HOST_GO_INSTALL_SUFFIX)))
 
+# gcc 15 and later default to -std=gnu23, where bool, true and false are
+# keywords.  The Go 1.4 bootstrap still uses them as identifiers
+# (cmd/dist/a.h contains "typedef int bool", cmd/gc names a parameter
+# "true"), so the bootstrap has to be built with an older C standard.
+# Go 1.17 itself is C23 clean, and its cmd/dist execs $CC without going
+# through a shell, so it must keep receiving a plain compiler path.
+# HOST_CC_IS_C23 is probed in rules.mk, so older build hosts are left
+# untouched.
+GO_BOOTSTRAP_CC:=$(HOSTCC_NOCACHE)$(if $(HOST_CC_IS_C23), -std=gnu89)
+
 HOST_GO_VARS= \
 	GOCACHE="$(GO_BUILD_CACHE_DIR)" \
 	GOENV=off \
@@ -215,6 +225,7 @@ define Host/Compile
 
 	$(call GoCompiler/Bootstrap/Make, \
 		$(HOST_GO_VARS) \
+		CC="$(GO_BOOTSTRAP_CC)" \
 	)
 
 	$(call GoCompiler/Host/Make, \
