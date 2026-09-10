@@ -1,0 +1,37 @@
+--- a/include/compiler.h
++++ b/include/compiler.h
+@@ -35,8 +35,22 @@
+ #ifndef MAP_FAILED
+ # define MAP_FAILED ((void *)-1)
+ #endif
+ 
++/*
++ * These have to be in place before <fcntl.h> is pulled in: glibc 2.41 and
++ * later include <linux/openat2.h> from it, and since our own include
++ * directory comes first on the search path that resolves to U-Boot's
++ * linux/types.h, which is written in terms of these types.  Including
++ * fcntl.h any earlier makes the build fail with
++ *   error: unknown type name '__u16'; did you mean '__bf16'?
++ */
++typedef uint8_t __u8;
++typedef uint16_t __u16;
++typedef uint32_t __u32;
++typedef uint64_t __u64;
++typedef unsigned int uint;
++
+ #include <fcntl.h>
+ #ifndef O_BINARY		/* should be define'd on __WIN32__ */
+ #define O_BINARY	0
+ #endif
+@@ -55,11 +69,6 @@
+ #include <time.h>
+ 
+-typedef uint8_t __u8;
+-typedef uint16_t __u16;
+-typedef uint32_t __u32;
+-typedef unsigned int uint;
+-typedef uint64_t __u64;
+ #ifndef linux
+ typedef int __kernel_daddr_t;
+ typedef unsigned int __kernel_ino_t;
+ #endif
