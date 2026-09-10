@@ -23,6 +23,16 @@ endef
 define Host/Compile
 endef
 
+# scons 2.5.x only runs on Python 2.  On hosts that no longer ship a Python 2
+# interpreter there is nothing to install, so skip it with a warning instead
+# of failing the whole build - only gpsd, iotivity and smartsnmpd use it.
+PYTHON2:=$(strip $(shell for p in python python2 python2.7 python2.6 python2.5 python2.4; do case "`$$p -V 2>&1`" in "Python 2"*) echo "$$p"; break;; esac; done))
+
+ifeq ($(PYTHON2),)
+define Host/Install
+	echo "WARNING: no Python 2.x interpreter found, skipping scons (only needed by gpsd, iotivity and smartsnmpd)" >&2
+endef
+else
 define Host/Install
 	./files/pywrap.sh $(HOST_BUILD_DIR)/setup.py install --prefix=$(STAGING_DIR_HOST)
 	rm -f $(STAGING_DIR_HOST)/bin/scons*.py
@@ -31,5 +41,6 @@ define Host/Install
 		cp ./files/pywrap.sh "$$$$bin";           \
 	done
 endef
+endif
 
 $(eval $(call HostBuild))
