@@ -29,6 +29,15 @@ PKG_LICENSE:=
 include $(INCLUDE_DIR)/host-build.mk
 include $(INCLUDE_DIR)/package.mk
 
+# node 4.x ships a Python 2 only ./configure and drives gyp through $(PYTHON),
+# which is plain "python".  Run both with the python2 the tree builds as
+# python/host (declared below via PKG_BUILD_DEPENDS) instead of whatever
+# "python" happens to be on the build host (python3 after the host upgrade).
+# The path is written out instead of using $(HOST_PYTHON_BIN), because that
+# comes from python-host.mk, which include_mk can only read once python has
+# already been staged - too late for a Makefile that is parsed up front.
+NODE_PYTHON2:=$(STAGING_DIR_HOSTPKG)/bin/python2.7
+
 define Package/node
   SECTION:=lang
   CATEGORY:=Languages
@@ -74,7 +83,12 @@ HOST_CONFIGURE_ARGS:= \
 	--without-snapshot \
 	--prefix=$(STAGING_DIR_HOSTPKG)
 
-HOST_CONFIGURE_CMD:=python ./configure
+HOST_CONFIGURE_CMD:=$(NODE_PYTHON2) ./configure
+HOST_CONFIGURE_VARS+=PATH="$(STAGING_DIR_HOSTPKG)/bin:$$$$PATH"
+HOST_MAKE_VARS+=PYTHON="$(NODE_PYTHON2)" PATH="$(STAGING_DIR_HOSTPKG)/bin:$$$$PATH"
+
+CONFIGURE_CMD:=$(NODE_PYTHON2) ./configure
+MAKE_VARS+=PYTHON="$(NODE_PYTHON2)" PATH="$(STAGING_DIR_HOSTPKG)/bin:$$$$PATH"
 
 define Build/InstallDev
 	$(INSTALL_DIR) $(1)/usr/include
