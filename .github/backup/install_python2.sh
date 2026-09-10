@@ -19,7 +19,12 @@ wget -q "https://www.python.org/ftp/python/$PYTHON_VERSION/Python-$PYTHON_VERSIO
 tar -xzf Python-$PYTHON_VERSION.tgz
 cd Python-$PYTHON_VERSION
 
-export CFLAGS="${CFLAGS} -w"
+# gcc 15 and later default to -std=gnu23, where bool, true and false are
+# keywords.  CPython 2.7 declares them itself - Include/asdl.h has
+# "typedef enum {false, true} bool;" - so it fails to build like this:
+#   error: cannot use keyword 'false' as enumeration constant
+# Pin the dialect to the one gcc used before C23 became the default.
+export CFLAGS="${CFLAGS} -w -std=gnu11"
 
 # Configure the build
 ./configure  \
