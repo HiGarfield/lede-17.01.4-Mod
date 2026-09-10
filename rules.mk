@@ -262,6 +262,15 @@ HOST_CPPFLAGS:=-I$(STAGING_DIR_HOST)/include -I$(STAGING_DIR_HOST)/usr/include $
 HOST_CC_IS_C23:=$(shell printf 'typedef int bool;\n' | $(HOSTCC) -x c - -c -o /dev/null 2>/dev/null || echo y)
 HOST_CFLAGS:=-O3 $(HOST_CPPFLAGS) -DHAVE_PTRDIFF_T $(if $(HOST_CC_IS_C23),-std=gnu11)
 
+# Separate variable for the host C++ compiler.  It is referenced by
+# HOST_MAKE_VARS but was never defined, so host builds ended up with an
+# empty CXXFLAGS, and the places that did set one passed HOST_CFLAGS
+# instead - which puts C only options such as the -std=gnu11 above in front
+# of a C++ compiler.  Keep only flags that are valid for both languages
+# here; a dialect override is not needed because C++ never picked up the
+# C23 keyword problem that made the C one necessary.
+HOST_CXXFLAGS:=-O3 $(HOST_CPPFLAGS)
+
 # autoconf before 2.72 decides on "mkdir -p" by matching the output of
 # "mkdir --version" against a short allowlist - "mkdir (GNU coreutils) *",
 # "mkdir (coreutils) *" or "mkdir (fileutils) 4.1*".  Current coreutils no

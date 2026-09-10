@@ -86,7 +86,7 @@ Build/InstallDev = $(if $(CMAKE_INSTALL),$(Build/InstallDev/cmake))
 define Host/Configure/Default
 	(cd $(HOST_BUILD_DIR); \
 		CFLAGS="$(HOST_CFLAGS)" \
-		CXXFLAGS="$(HOST_CFLAGS)" \
+		CXXFLAGS="$(HOST_CXXFLAGS)" \
 		LDFLAGS="$(HOST_LDFLAGS)" \
 		cmake \
 			-DCMAKE_BUILD_TYPE=Release \
