@@ -37,7 +37,9 @@ fwpath = sys.argv[3]
 
 phytypes = phytypes.split(',')
 try:
-	corerevs = map(lambda r: int(r), corerevs.split(','))
+	# list() so that the result stays re-iterable on Python 3, where map()
+	# returns a one-shot iterator
+	corerevs = list(map(lambda r: int(r), corerevs.split(',')))
 except ValueError:
 	print("ERROR: \"%s\" is not a valid COREREVS string\n" % corerevs)
 	usage()
@@ -45,7 +47,10 @@ except ValueError:
 
 
 fwfiles = os.listdir(fwpath)
-fwfiles = filter(lambda str: str.endswith(".fw"), fwfiles)
+# list() for the same reason: on Python 3 filter() is a one-shot iterator,
+# which would both make the emptiness check below always false and stop the
+# second loop from seeing any file
+fwfiles = list(filter(lambda name: name.endswith(".fw"), fwfiles))
 if not fwfiles:
 	print("ERROR: No firmware files found in %s" % fwpath)
 	sys.exit(1)
