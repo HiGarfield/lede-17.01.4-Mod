@@ -35,11 +35,23 @@ define Host/Install
 	$(MAKE) -C $(HOST_BUILD_DIR) install
 	mv $(STAGING_DIR_HOST)/bin/aclocal $(STAGING_DIR_HOST)/bin/aclocal.real
 	$(INSTALL_BIN) ./files/aclocal $(STAGING_DIR_HOST)/bin
-	ln -sf aclocal $(STAGING_DIR_HOST)/bin/aclocal-1.9
-	ln -sf aclocal $(STAGING_DIR_HOST)/bin/aclocal-1.10
-	ln -sf aclocal $(STAGING_DIR_HOST)/bin/aclocal-1.11
-	ln -sf aclocal $(STAGING_DIR_HOST)/bin/aclocal-1.11.6
-	ln -sf aclocal $(STAGING_DIR_HOST)/bin/aclocal-1.15
+	# A tarball's Makefile.in invokes aclocal/automake by the version it was
+	# cut with - aria2 1.37.0 wants 1.16, flex 2.6.1 wants 1.15 - and the
+	# rebuild rules abort with "command not found" when that name is missing,
+	# even when nothing really needs regenerating.  The installed automake is
+	# 1.15, so every versioned name simply points at the real 1.15 tools; the
+	# aclocal.m4 written and the automake that reads it are then the same 1.15
+	# release, so there is no version mismatch to trip.
+	( \
+		api=18; \
+		while [ "$$$$api" -ge 9 ]; do \
+			ln -sf aclocal "$(STAGING_DIR_HOST)/bin/aclocal-1.$$$$api"; \
+			ln -sf automake "$(STAGING_DIR_HOST)/bin/automake-1.$$$$api"; \
+			api=$$$$(($$$$api - 1)); \
+		done; \
+		ln -sf aclocal "$(STAGING_DIR_HOST)/bin/aclocal-1.11.6"; \
+		ln -sf automake "$(STAGING_DIR_HOST)/bin/automake-1.11.6"; \
+	)
 endef
 
 define Host/Clean
