@@ -39,7 +39,7 @@ define Host/Install
 	# under Python 3.12+ while byte-compiling installed .py files (e.g. glib's
 	# gdbus-codegen).  py_compile computes the cache path itself, so drop the
 	# imp dependency from the installed script.
-	python3 $(CURDIR)/tools/automake/files/fixup-py-compile.py $(STAGING_DIR_HOST)/share/automake-1.15/py-compile
+	python3 $(TOPDIR)/tools/automake/files/fixup-py-compile.py $(STAGING_DIR_HOST)/share/automake-1.15/py-compile
 	# A tarball's Makefile.in invokes aclocal/automake by the version it was
 	# cut with - aria2 1.37.0 wants 1.16, flex 2.6.1 wants 1.15 - and the
 	# rebuild rules abort with "command not found" when that name is missing,
