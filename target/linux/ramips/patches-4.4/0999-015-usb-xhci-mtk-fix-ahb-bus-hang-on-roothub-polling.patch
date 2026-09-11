@@ -1,0 +1,72 @@
+From 882fa27f488ed3c4b67699d99e8c5ff64c7a9cd1 Mon Sep 17 00:00:00 2001
+From: Chunfeng Yun <chunfeng.yun@mediatek.com>
+Date: Tue, 26 Jan 2016 15:50:10 +0000
+Subject: [PATCH] usb: xhci-mtk: fix AHB bus hang up caused by roothubs polling
+
+when ip fails to enter sleep mode, register access protection will
+be disabled, at the same time if all clocks are disabled, access
+register will hang up AHB bus.
+the common case causes ip sleep failure is that after all ports
+enter U3 but before ip enters sleep mode, a port receives a resume
+signal('K'). this will happens when such as clicks mouse to try to
+do remote-wakeup to stop system enter suspend.
+so stop polling root hubs to avoid access xHCI register on bus
+suspend, and restart it when bus resumes.
+
+Backported to linux-4.4.194 (ramips/mt7621) which is based on the
+initial MTK xHCI driver (patches-4.4/0033) and still lacks this fix.
+
+Signed-off-by: Chunfeng Yun <chunfeng.yun@mediatek.com>
+Signed-off-by: Mathias Nyman <mathias.nyman@linux.intel.com>
+Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+[Backported to 4.4.194 by HiGarfield]
+Signed-off-by: HiGarfield <HiGarfield@126.com>
+---
+--- a/drivers/usb/host/xhci-mtk.c
++++ b/drivers/usb/host/xhci-mtk.c
+@@ -705,9 +705,25 @@
+ }
+ 
+ #ifdef CONFIG_PM_SLEEP
++
++/*
++ * if ip sleep fails, and all clocks are disabled, access register will hang
++ * AHB bus, so stop polling roothubs to avoid regs access on bus suspend.
++ * and no need to check whether ip sleep failed or not; this will cause SPM
++ * to wake up system immediately after system suspend complete if ip sleep
++ * fails, it is what we wanted.
++ */
+ static int xhci_mtk_suspend(struct device *dev)
+ {
+ 	struct xhci_hcd_mtk *mtk = dev_get_drvdata(dev);
++	struct usb_hcd *hcd = mtk->hcd;
++	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
++
++	xhci_dbg(xhci, "%s: stop port polling\n", __func__);
++	clear_bit(HCD_FLAG_POLL_RH, &hcd->flags);
++	del_timer_sync(&hcd->rh_timer);
++	clear_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
++	del_timer_sync(&xhci->shared_hcd->rh_timer);
+ 
+ 	xhci_mtk_host_disable(mtk);
+ 	xhci_mtk_phy_power_off(mtk);
+@@ -719,11 +735,19 @@
+ static int xhci_mtk_resume(struct device *dev)
+ {
+ 	struct xhci_hcd_mtk *mtk = dev_get_drvdata(dev);
++	struct usb_hcd *hcd = mtk->hcd;
++	struct xhci_hcd *xhci = hcd_to_xhci(hcd);
+ 
+ 	usb_wakeup_disable(mtk);
+ 	xhci_mtk_clks_enable(mtk);
+ 	xhci_mtk_phy_power_on(mtk);
+ 	xhci_mtk_host_enable(mtk);
++
++	xhci_dbg(xhci, "%s: restart port polling\n", __func__);
++	set_bit(HCD_FLAG_POLL_RH, &hcd->flags);
++	usb_hcd_poll_rh_status(hcd);
++	set_bit(HCD_FLAG_POLL_RH, &xhci->shared_hcd->flags);
++	usb_hcd_poll_rh_status(xhci->shared_hcd);
+ 	return 0;
+ }
+ 
