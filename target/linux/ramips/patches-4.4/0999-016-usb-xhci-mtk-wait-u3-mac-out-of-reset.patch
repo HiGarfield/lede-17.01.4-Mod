@@ -1,0 +1,49 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Chunfeng Yun <chunfeng.yun@mediatek.com>
+Subject: [PATCH] usb: xhci-mtk: wait for u3 mac to be out of reset when
+ enabling host
+
+The u3 mac reset is not checked in xhci_mtk_host_enable(), so the
+driver may go on before the u3 mac gets out of reset, then the u3
+port is brought up unstable, and the attached SuperSpeed device can
+be reset by the USB core again and again, e.g.
+
+  usb 2-1.4: reset SuperSpeed USB device number 4 using xhci-mtk
+
+Add STS1_U3_MAC_RST (BIT(16) of ip_pw_sts1) into the check_val when
+there is at least one enabled u3 port, the same as mainline does
+with "if (mtk->num_u3_ports > u3_ports_disabled)".
+
+Adapted to linux-4.4.194 (ramips/mt7621): this kernel has no
+mediatek,u3p-dis-msk / u3_ports_disabled support, so the condition
+is simply "num_u3_ports > 0".
+
+Signed-off-by: Chunfeng Yun <chunfeng.yun@mediatek.com>
+[Backported to 4.4.194 by HiGarfield]
+Signed-off-by: HiGarfield <HiGarfield@126.com>
+---
+--- a/drivers/usb/host/xhci-mtk.c
++++ b/drivers/usb/host/xhci-mtk.c
+@@ -43,6 +43,7 @@
+ 
+ /* ip_pw_sts1 register */
+ #define STS1_IP_SLEEP_STS	BIT(30)
++#define STS1_U3_MAC_RST		BIT(16)
+ #define STS1_XHCI_RST		BIT(11)
+ #define STS1_SYS125_RST	BIT(10)
+ #define STS1_REF_RST		BIT(8)
+@@ -122,6 +123,14 @@
+ 	check_val = STS1_SYSPLL_STABLE | STS1_REF_RST |
+ 			STS1_SYS125_RST | STS1_XHCI_RST;
+ 
++	/*
++	 * The u3 mac must be out of reset before going on, otherwise the
++	 * u3 port may be brought up unstable and make the attached
++	 * SuperSpeed device be reset again and again.
++	 */
++	if (mtk->num_u3_ports > 0)
++		check_val |= STS1_U3_MAC_RST;
++
+ 	ret = readl_poll_timeout(&ippc->ip_pw_sts1, value,
+ 			  (check_val == (value & check_val)), 100, 20000);
+ 	if (ret) {
