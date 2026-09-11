@@ -1,0 +1,10 @@
+--- a/gio/gdbus-2.0/codegen/Makefile.am
++++ b/gio/gdbus-2.0/codegen/Makefile.am
+@@ -4,6 +4,6 @@ bin_SCRIPTS =
+ 
+ codegendir = $(datadir)/glib-2.0/codegen
+-codegen_PYTHON =						\
++dist_codegen_DATA =						\
+ 	__init__.py						\
+ 	codegen.py						\
+ 	codegen_main.py						\
