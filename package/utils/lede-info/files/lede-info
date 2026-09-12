@@ -145,48 +145,51 @@ lede_info() {
 		echo "$ram_clock" >"$LEDE_INFO_DIR/ram_clock"
 
 	# --- Flash size --------------------------------------------------
-	# A NAND chip announces its capacity while being probed, which is
-	# the most accurate source: the mtd partitions never cover the
-	# whole chip, spare blocks and bad block tables stay outside them.
-	# Fall back to the partitions, then to the size some NOR drivers
-	# print in the log.
+	# This is the only value that can be read from the kernel log, and
+	# only right after boot: the dmesg ring buffer is overwritten while the
+	# device keeps running and the probe line ("... (16384 Kbytes)",
+	# "nand: 256 MiB", "w25q128 (16384 Kbytes)", ...) is then lost for good.
+	# $LOG holds the full boot log captured above, so search it once here
+	# and cache the result.  A human readable string such as "16 MB" or
+	# "1.00 GB" is stored; if the log never mentions the chip the file is
+	# simply not written and the status page hides the Flash Size row.
+	# No /proc/mtd fallback: summing the partitions overcounts boards that
+	# use a container partition (e.g. CSAC would report 33 MB for a 16 MB
+	# chip), so when dmesg has no size we show nothing rather than a wrong
+	# number.
 	local flash_size=$(
-		echo "$LOG" | awk '
-			/nand:/ && match($0, /[0-9]+ *MiB/) {
-				v = substr($0, RSTART, RLENGTH)
-				gsub(/[^0-9]/, "", v)
-				if (v > 0) printf "%d", v
-				exit
-			}'
+		echo "$LOG" | grep -iE "spi|m25p80|nand|micron|winbond|xtx" | grep -iE "Kbytes|KiB|MiB|GiB|MB|GB|TB" | awk '{
+    line = $0
+    if (match(line, /[0-9]+[[:space:]]*TiB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1024 * 1024 * 1024 * 1024 }
+    else if (match(line, /[0-9]+[[:space:]]*TB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1000 * 1000 * 1000 * 1000 }
+    else if (match(line, /[0-9]+[[:space:]]*GiB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1024 * 1024 * 1024 }
+    else if (match(line, /[0-9]+[[:space:]]*GB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1000 * 1000 * 1000 }
+    else if (match(line, /[0-9]+[[:space:]]*MiB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1024 * 1024 }
+    else if (match(line, /[0-9]+[[:space:]]*MB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1000 * 1000 }
+    else if (match(line, /[0-9]+[[:space:]]*Kbytes/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1024 }
+    else if (match(line, /[0-9]+[[:space:]]*KiB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1024 }
+    else if (match(line, /[0-9]+[[:space:]]*KB/)) { val=substr(line, RSTART, RLENGTH); gsub(/[^0-9]/, "", val); bytes=val*1000 }
+    else exit
+
+    if (bytes >= 1024 * 1024 * 1024 * 1024) {
+        v = bytes / (1024 * 1024 * 1024 * 1024)
+        if (v == int(v)) printf "%d TB\n", v; else printf "%.2f TB\n", v
+    } else if (bytes >= 1024 * 1024 * 1024) {
+        v = bytes / (1024 * 1024 * 1024)
+        if (v == int(v)) printf "%d GB\n", v; else printf "%.2f GB\n", v
+    } else if (bytes >= 1024 * 1024) {
+        v = bytes / (1024 * 1024)
+        if (v == int(v)) printf "%d MB\n", v; else printf "%.2f MB\n", v
+    } else if (bytes >= 1024) {
+        v = bytes / 1024
+        if (v == int(v)) printf "%d KB\n", v; else printf "%.2f KB\n", v
+    } else {
+        printf "%d B\n", bytes
+    }
+    exit
+}'
 	)
-
-	if [ -z "$flash_size" ] || [ "$flash_size" -le 0 ]; then
-		flash_size=0
-		if [ -r /proc/mtd ]; then
-			while read -r dev size _rest; do
-				case "$dev" in
-					mtd[0-9]*:) ;;
-					*) continue ;;
-				esac
-				[ -n "$size" ] || continue
-				flash_size=$((flash_size + 0x$size))
-			done < /proc/mtd
-		fi
-
-		if [ "$flash_size" -gt 0 ]; then
-			# Round to the nearest MiB, the partitions do not always
-			# cover the whole chip (a 128 MiB device sums up to 127.5).
-			flash_size=$(( (flash_size + 524288) / 1048576 ))
-		else
-			flash_size=$(
-				echo "$LOG" | awk -F '\\( *| *Kbytes' '/\([0-9][0-9]* Kbytes\)/ {
-					if ($2 > 0) printf "%d", $2 / 1024; exit
-				}'
-			)
-		fi
-	fi
-
-	[ -n "$flash_size" ] && [ "$flash_size" -gt 0 ] &&
+	[ -n "$flash_size" ] &&
 		echo "$flash_size" >"$LEDE_INFO_DIR/flash_size"
 }
 
