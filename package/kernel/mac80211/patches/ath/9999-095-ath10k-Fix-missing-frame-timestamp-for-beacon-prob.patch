@@ -1,0 +1,36 @@
+From e6dfbc3ba90cc2b619229be56b485f085a0a8e1c Mon Sep 17 00:00:00 2001
+From: Loic Poulain <loic.poulain@linaro.org>
+Date: Tue, 28 Sep 2021 14:00:47 +0300
+Subject: ath10k: Fix missing frame timestamp for beacon/probe-resp
+
+When receiving a beacon or probe response, we should update the
+boottime_ns field which is the timestamp the frame was received at.
+(cf mac80211.h)
+
+This fixes a scanning issue with Android since it relies on this
+timestamp to determine when the AP has been seen for the last time
+(via the nl80211 BSS_LAST_SEEN_BOOTTIME parameter).
+
+Fixes: 5e3dd157d7e7 ("ath10k: mac80211 driver for Qualcomm Atheros 802.11ac CQA98xx devices")
+Signed-off-by: Loic Poulain <loic.poulain@linaro.org>
+Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+Link: https://lore.kernel.org/r/1629811733-7927-1-git-send-email-loic.poulain@linaro.org
+[ backport note: kernel 4.4 has no ktime_get_boottime_ns(); use ktime_get_boot_ns(), which is ktime_to_ns(ktime_get_boottime()) i.e. the same CLOCK_BOOTTIME value in ns. ]
+
+---
+ drivers/net/wireless/ath/ath10k/wmi.c | 4 ++++
+ 1 file changed, 4 insertions(+)
+
+--- a/drivers/net/wireless/ath/ath10k/wmi.c
++++ b/drivers/net/wireless/ath/ath10k/wmi.c
+@@ -2502,6 +2502,10 @@ int ath10k_wmi_event_mgmt_rx(struct ath1
+ 	if (ieee80211_is_beacon(hdr->frame_control))
+ 		ath10k_mac_handle_beacon(ar, skb);
+ 
++	if (ieee80211_is_beacon(hdr->frame_control) ||
++	    ieee80211_is_probe_resp(hdr->frame_control))
++		status->boottime_ns = ktime_get_boot_ns();
++
+ 	ath10k_dbg(ar, ATH10K_DBG_MGMT,
+ 		   "event mgmt rx skb %pK len %d ftype %02x stype %02x\n",
+ 		   skb, skb->len,

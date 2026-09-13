@@ -1,0 +1,35 @@
+From aed95297250f0cac4c4861eef4a91708970aa1dc Mon Sep 17 00:00:00 2001
+From: Zekun Shen <bruceshenzk@gmail.com>
+Date: Tue, 16 Jun 2020 09:25:43 -0400
+Subject: ath10k: pci: fix memcpy size of bmi response
+
+A compromized ath10k peripheral is able to control the size argument
+of memcpy in ath10k_pci_hif_exchange_bmi_msg.
+
+The min result from previous line is not used as the size argument
+for memcpy. Instead, xfer.resp_len comes from untrusted stream dma
+input. The value comes from "nbytes" in ath10k_pci_bmi_recv_data,
+which is set inside _ath10k_ce_completed_recv_next_nolock with the line
+
+nbytes = __le16_to_cpu(sdesc.nbytes);
+
+sdesc is a stream dma region which device can write to.
+
+Signed-off-by: Zekun Shen <bruceshenzk@gmail.com>
+Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+Link: https://lore.kernel.org/r/20200616132544.17478-1-bruceshenzk@gmail.com
+---
+ drivers/net/wireless/ath/ath10k/pci.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/ath/ath10k/pci.c
++++ b/drivers/net/wireless/ath/ath10k/pci.c
+@@ -2194,7 +2194,7 @@ err_req:
+ 
+ 	if (ret == 0 && resp_len) {
+ 		*resp_len = min(*resp_len, xfer.resp_len);
+-		memcpy(resp, tresp, xfer.resp_len);
++		memcpy(resp, tresp, *resp_len);
+ 	}
+ err_dma:
+ 	kfree(treq);
