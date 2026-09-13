@@ -1,0 +1,24 @@
+From d0480d4326e208abd7222803a4d8230d445803ea Mon Sep 17 00:00:00 2001
+From: Andrea Greco <a.greco@4sigma.it>
+Date: Fri, 22 Feb 2019 00:12:57 +0100
+Subject: ath9k: debugfs: Fix SPUR-DOWN field
+
+SPUR DOWN field returns spurup instead of spurdown.
+
+Signed-off-by: Andrea Greco <a.greco@4sigma.it>
+Signed-off-by: Kalle Valo <kvalo@codeaurora.org>
+---
+ drivers/net/wireless/ath/ath9k/debug.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+--- a/drivers/net/wireless/ath/ath9k/debug.c
++++ b/drivers/net/wireless/ath/ath9k/debug.c
+@@ -148,7 +148,7 @@ static ssize_t read_file_ani(struct file
+ 		{ "OFDM LEVEL", ah->ani.ofdmNoiseImmunityLevel },
+ 		{ "CCK LEVEL", ah->ani.cckNoiseImmunityLevel },
+ 		{ "SPUR UP", ah->stats.ast_ani_spurup },
+-		{ "SPUR DOWN", ah->stats.ast_ani_spurup },
++		{ "SPUR DOWN", ah->stats.ast_ani_spurdown },
+ 		{ "OFDM WS-DET ON", ah->stats.ast_ani_ofdmon },
+ 		{ "OFDM WS-DET OFF", ah->stats.ast_ani_ofdmoff },
+ 		{ "MRC-CCK ON", ah->stats.ast_ani_ccklow },
