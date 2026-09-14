@@ -23,7 +23,7 @@ Link: https://lore.kernel.org/r/1629811733-7927-1-git-send-email-loic.poulain@li
 
 --- a/drivers/net/wireless/ath/ath10k/wmi.c
 +++ b/drivers/net/wireless/ath/ath10k/wmi.c
-@@ -2502,6 +2502,10 @@ int ath10k_wmi_event_mgmt_rx(struct ath1
+@@ -2503,6 +2503,10 @@ int ath10k_wmi_event_mgmt_rx(struct ath1
  	if (ieee80211_is_beacon(hdr->frame_control))
  		ath10k_mac_handle_beacon(ar, skb);
  
