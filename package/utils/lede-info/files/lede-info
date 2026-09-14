@@ -73,11 +73,14 @@ lede_info() {
 			}
 		' /proc/cpuinfo 2>/dev/null
 	)
-	# Match the number in front of "MHz" on a line mentioning the CPU,
-	# the wording in front of it varies ("CPU Clock:", "Clocks: CPU:").
+	# Anchor on the "CPU" label itself and take the MHz number that follows
+	# it.  ar71xx prints all clocks on one line, e.g.
+	#   Clocks: CPU:750.000MHz, DDR:650.000MHz, AHB:250.000MHz, Ref:25.000MHz
+	# so simply taking the first MHz value of a line that mentions the CPU
+	# only works by luck - it breaks as soon as another number precedes it.
 	[ -n "$cpu_clock" ] || cpu_clock=$(
 		echo "$LOG" | awk '
-			/CPU/ && match($0, /[0-9.]+ *MHz/) {
+			match($0, /CPU[^0-9]*[0-9.]+ *MHz/) {
 				v = substr($0, RSTART, RLENGTH)
 				gsub(/[^0-9.]/, "", v)
 				if (v > 0) printf "%d", v
@@ -132,9 +135,13 @@ lede_info() {
 
 	# --- RAM clock ---------------------------------------------------
 	# Only the kernel log carries this, and not on every target.
+	# Anchor on the "DDR" label and take the MHz number that follows it:
+	# ar71xx prints every clock on a single line, so the first MHz value of
+	# that line is the CPU clock, not the memory clock (this used to report
+	# 750 MHz for a board whose DDR really runs at 650 MHz).
 	local ram_clock=$(
 		echo "$LOG" | awk '
-			/DDR/ && match($0, /[0-9.]+ *MHz/) {
+			match($0, /DDR[^0-9]*[0-9.]+ *MHz/) {
 				v = substr($0, RSTART, RLENGTH)
 				gsub(/[^0-9.]/, "", v)
 				if (v > 0) printf "%d", v
