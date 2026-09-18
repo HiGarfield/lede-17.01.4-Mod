@@ -5,6 +5,7 @@
 include $(TOPDIR)/rules.mk
 
 PKG_NAME:=luci-app-ssr-pro
+PKG_LICENSE:=Apache-2.0
 
 define Package/luci-app-ssr-pro/conffiles
 /etc/config/ssrpro
