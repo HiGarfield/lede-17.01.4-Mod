@@ -235,24 +235,30 @@ stop_dnsforwarder() {
 	rm -rf "$DNSFORWARDER_PATH"
 }
 
+restart_cron() {
+	[ -x /etc/init.d/cron ] || return 0
+	/etc/init.d/cron restart >/dev/null 2>&1
+	return 0
+}
+
 add_cron() {
 	if [ "${cron_mode:-0}" -eq 0 ]; then
-		if grep -q "/etc/shadowsocksr/up-gfwlist.sh" "$CRON_FILE"; then
+		if grep -q "/etc/shadowsocksr/up-gfwlist.sh" "$CRON_FILE" 2>/dev/null; then
 			sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' "$CRON_FILE"
-			/etc/init.d/cron restart
+			restart_cron
 		fi
 	else
-		if ! grep -q "/etc/shadowsocksr/up-gfwlist.sh" "$CRON_FILE"; then
+		if ! grep -q "/etc/shadowsocksr/up-gfwlist.sh" "$CRON_FILE" 2>/dev/null; then
 			echo '0 4 * * * /etc/shadowsocksr/up-gfwlist.sh > /tmp/gfwupdate.log 2>&1' >>"$CRON_FILE"
-			/etc/init.d/cron restart
+			restart_cron
 		fi
 	fi
 }
 
 del_cron() {
-	if grep -q '/etc/shadowsocksr/up-gfwlist.sh' "$CRON_FILE"; then
+	if grep -q '/etc/shadowsocksr/up-gfwlist.sh' "$CRON_FILE" 2>/dev/null; then
 		sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' "$CRON_FILE"
-		/etc/init.d/cron restart
+		restart_cron
 	fi
 }
 
