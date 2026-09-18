@@ -67,7 +67,7 @@ start() {
 		exit 0
 	fi
 
-	if [ -z "$vt_server_addr" ] || [ -z "$vt_server_port" ]; then
+	if [ -z "$vt_server_addr" ] || [ -z "$vt_server_port" ] || [ -z "$vt_password" ]; then
 		echo "WARNING: Shadowsocksr not fully configured, not starting."
 		exit 0
 	fi
