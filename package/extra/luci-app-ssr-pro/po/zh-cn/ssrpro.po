@@ -1,8 +1,8 @@
-msgid "<strong><font color=\"green\">ShadowsocksR is Running</font></strong>"
-msgstr "<strong><font color=\"green\">ShadowsocksR 正在运行</font></strong>"
+msgid "RUNNING"
+msgstr "运行中"
 
-msgid "<strong><font color=\"red\">ShadowsocksR is Not Running</font></strong>"
-msgstr "<strong><font color=\"red\">ShadowsocksR 没有运行</font></strong>"
+msgid "NOT RUNNING"
+msgstr "未运行"
 
 msgid "Shadowsocksr Transparent Proxy"
 msgstr "ShadowsocksR 透明代理"
@@ -103,8 +103,8 @@ msgstr "用户自定义GFW-List将会和自动更新的自动合并。如果要�
 msgid "Status and Tools"
 msgstr "状态与工具"
 
-msgid "Watchdog Log"
-msgstr "守护日志"
+msgid "GFW-List Lines: <strong><font color=\"blue\">%s</font></strong> Lines"
+msgstr "GFW-List 行数: <strong><font color=\"blue\">%s</font></strong> 行"
 
 msgid "<strong>Client Proxy Mode Settings</strong>"
 msgstr "<strong>客户端代理模式设置</strong>"
@@ -126,3 +126,6 @@ msgstr "全局代理"
 
 msgid "Game Mode"
 msgstr "游戏模式"
+
+msgid "IP Address"
+msgstr "IP地址"
