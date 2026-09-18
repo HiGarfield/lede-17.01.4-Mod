@@ -286,7 +286,10 @@ add_rule() {
 		$IPTABLES -t nat -A shadowsocksr_pre -d 192.168.0.0/16 -j RETURN
 		$IPTABLES -t nat -A shadowsocksr_pre -d 224.0.0.0/3 -j RETURN
 	}
-	$IPTABLES -t nat -A shadowsocksr_pre -d "$vt_server_addr" -j RETURN
+	# iptables resolves a host name while installing the rule; a failure here
+	# would leave the server reachable through the proxy only (loop).
+	$IPTABLES -t nat -A shadowsocksr_pre -d "$vt_server_addr" -j RETURN ||
+		echo "WARNING: Cannot resolve server address '$vt_server_addr', please use an IP address."
 
 	$IPTABLES -N gameboost -t mangle
 	ipset -! create gameuser hash:ip maxelem 65536 2>/dev/null
