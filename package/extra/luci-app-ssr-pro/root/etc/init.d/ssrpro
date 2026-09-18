@@ -57,7 +57,8 @@ killall_by_name() {
 }
 
 escape_json() {
-	printf '%s' "$1" | sed 's/\\/\\\\/g; s/"/\\"/g'
+	# Raw CR/LF are not allowed inside a JSON string.
+	printf '%s' "$1" | tr -d '\r\n' | sed 's/\\/\\\\/g; s/"/\\"/g'
 }
 
 start() {
@@ -70,6 +71,17 @@ start() {
 		echo "WARNING: Shadowsocksr not fully configured, not starting."
 		exit 0
 	fi
+
+	case "$vt_server_port" in
+	*[!0-9]*)
+		echo "WARNING: Invalid server port, not starting."
+		exit 0
+	;;
+	esac
+
+	case "$vt_timeout" in
+	'' | *[!0-9]*) vt_timeout=60 ;;
+	esac
 
 	[ -f /etc/init.d/dnsforwarder ] && {
 		/etc/init.d/dnsforwarder stop 2>/dev/null
