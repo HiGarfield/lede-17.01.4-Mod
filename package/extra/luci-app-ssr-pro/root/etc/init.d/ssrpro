@@ -9,7 +9,6 @@ SS_REDIR_PIDFILE=/var/run/ssr-redir-go.pid
 SSRCONF=/var/etc/shadowsocksr.json
 CRON_FILE=/etc/crontabs/root
 CONFIG=ssrpro
-KEEP_GFWLIST=Y
 vt_np_ipset="china"
 DNSFORWARDER_LOCAL_PORT=7453
 DNSFORWARDER_PATH=/var/dnsfwd-ssrpro
@@ -147,8 +146,6 @@ start() {
 }
 
 stop() {
-	local vt_gfwlist=$(__gfwlist_by_mode "$vt_proxy_mode")
-
 	# -----------------------------------------------------------------
 	rm -rf /var/etc/dnsmasq-go.d
 	if [ -f /tmp/dnsmasq.d/dnsmasq-go.conf ]; then
@@ -171,7 +168,6 @@ stop() {
 reload_rule() {
 	local vt_gfwlist=$(__gfwlist_by_mode "$vt_proxy_mode")
 
-	KEEP_GFWLIST=Y
 	del_rule
 	add_rule
 	[ "$vt_safe_dns_tcp" -eq 1 ] && {
@@ -181,7 +177,6 @@ reload_rule() {
 }
 
 restart() {
-	KEEP_GFWLIST=Y
 	stop
 	start
 }
@@ -344,9 +339,4 @@ del_rule() {
 	fi
 
 	ipset destroy gameuser 2>/dev/null
-
-	# -----------------------------------------------------------------
-	if [ -n "$vt_gfwlist" ] && [ "$KEEP_GFWLIST" != Y ]; then
-		ipset destroy "$vt_gfwlist" 2>/dev/null
-	fi
 }
