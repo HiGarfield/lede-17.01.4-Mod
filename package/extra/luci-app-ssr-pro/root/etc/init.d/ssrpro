@@ -37,7 +37,7 @@ get_config() {
 	config_get_bool cron_mode "$1" cron_mode '0'
 }
 
-config_load $CONFIG
+config_load "$CONFIG"
 config_foreach get_config ssrpro
 
 __gfwlist_by_mode() {
@@ -94,7 +94,7 @@ start() {
 	# -----------------------------------------------------------------
 	###### shadowsocksr ######
 	mkdir -p "$(dirname "$SSRCONF")"
-	cat >$SSRCONF <<-EOF
+	cat >"$SSRCONF" <<-EOF
 		{
 		    "server": "$(escape_json "$vt_server_addr")",
 		    "server_port": $vt_server_port,
@@ -201,10 +201,10 @@ start_dnsforwarder() {
 		echo "WARNING: dnsforwarder not installed, DNS requests are not tunneled."
 		return 1
 	fi
-	mkdir -p $DNSFORWARDER_PATH
-	rm -rf $DNSFORWARDER_PATH/*
-	ln -s /usr/sbin/dnsforwarder $DNSFORWARDER
-	cat >$DNSFORWARDER_CONF <<-EOF
+	mkdir -p "$DNSFORWARDER_PATH"
+	rm -rf "$DNSFORWARDER_PATH"/*
+	ln -s /usr/sbin/dnsforwarder "$DNSFORWARDER"
+	cat >"$DNSFORWARDER_CONF" <<-EOF
 		LogOn false
 		UDPLocal 127.0.0.1:$DNSFORWARDER_LOCAL_PORT
 		TCPGroup $safe_dns * no
@@ -212,7 +212,7 @@ start_dnsforwarder() {
 		MemoryCache true
 		IgnoreTTL false
 	EOF
-	$DNSFORWARDER -d -f "$DNSFORWARDER_CONF" >/dev/null 2>&1
+	"$DNSFORWARDER" -d -f "$DNSFORWARDER_CONF" >/dev/null 2>&1
 
 	# Access TCP DNS server through Shadowsocksr tunnel
 	if $IPTABLES -t nat -N dnsforwarder_output; then
