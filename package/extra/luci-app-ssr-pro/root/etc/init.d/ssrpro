@@ -118,6 +118,7 @@ start() {
 	add_rule
 
 	# -----------------------------------------------------------------
+	rm -rf /var/etc/dnsmasq-go.d
 	mkdir -p /var/etc/dnsmasq-go.d
 	###### Anti-pollution configuration ######
 	if [ -n "$vt_safe_dns" ]; then
