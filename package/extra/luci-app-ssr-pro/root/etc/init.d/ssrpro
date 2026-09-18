@@ -62,7 +62,7 @@ escape_json() {
 }
 
 start() {
-	if [ "$vt_enabled" -eq 0 ]; then
+	if [ "${vt_enabled:-0}" -eq 0 ]; then
 		echo "WARNING: Shadowsocksr is disabled."
 		exit 0
 	fi
@@ -182,7 +182,7 @@ reload_rule() {
 
 	del_rule
 	add_rule
-	[ "$vt_safe_dns_tcp" -eq 1 ] && {
+	[ "${vt_safe_dns_tcp:-0}" -eq 1 ] && {
 		stop_dnsforwarder
 		start_dnsforwarder
 	}
@@ -232,7 +232,7 @@ stop_dnsforwarder() {
 }
 
 add_cron() {
-	if [ "$cron_mode" -eq 0 ]; then
+	if [ "${cron_mode:-0}" -eq 0 ]; then
 		if grep -q "/etc/shadowsocksr/up-gfwlist.sh" "$CRON_FILE"; then
 			sed -i '/\/etc\/shadowsocksr\/up-gfwlist.sh/d' "$CRON_FILE"
 			/etc/init.d/cron restart
