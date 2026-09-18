@@ -150,6 +150,11 @@ end
 gfwlist.write = function(self, section, value)
 	NXFS.writefile(conf, value:gsub("\r\n", "\n"))
 end
+gfwlist.remove = function(self, section)
+	-- An empty form value never reaches write(), so clear the file here.
+	NXFS.writefile(conf, "")
+	return true
+end
 
 local addipconf = "/etc/shadowsocksr/addinip.txt"
 
@@ -163,6 +168,11 @@ gfwaddin.cfgvalue = function(self, section)
 end
 gfwaddin.write = function(self, section, value)
 	NXFS.writefile(addipconf, value:gsub("\r\n", "\n"))
+end
+gfwaddin.remove = function(self, section)
+	-- An empty form value never reaches write(), so clear the file here.
+	NXFS.writefile(addipconf, "")
+	return true
 end
 
 s:tab("status",  translate("Status and Tools"))
