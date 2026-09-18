@@ -122,8 +122,7 @@ start() {
 	mkdir -p /var/etc/dnsmasq-go.d
 	###### Anti-pollution configuration ######
 	if [ -n "$vt_safe_dns" ]; then
-		if [ "$vt_safe_dns_tcp" -eq 1 ]; then
-			start_dnsforwarder
+		if [ "${vt_safe_dns_tcp:-0}" -eq 1 ] && start_dnsforwarder; then
 			[ -f "/etc/gfwlist/$vt_gfwlist" ] &&
 				awk -vs="127.0.0.1#$DNSFORWARDER_LOCAL_PORT" '!/^$/&&!/^#/{printf("server=/%s/%s\n",$0,s)}' \
 					"/etc/gfwlist/$vt_gfwlist" >/var/etc/dnsmasq-go.d/01-pollution.conf
@@ -198,6 +197,10 @@ start_dnsforwarder() {
 	local safe_dns="${vt_safe_dns}:${vt_safe_dns_port}"
 
 	stop_dnsforwarder >/dev/null 2>&1
+	if [ ! -x /usr/sbin/dnsforwarder ]; then
+		echo "WARNING: dnsforwarder not installed, DNS requests are not tunneled."
+		return 1
+	fi
 	mkdir -p $DNSFORWARDER_PATH
 	rm -rf $DNSFORWARDER_PATH/*
 	ln -s /usr/sbin/dnsforwarder $DNSFORWARDER
