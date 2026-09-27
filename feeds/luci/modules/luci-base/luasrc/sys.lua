@@ -526,7 +526,6 @@ end
 
 function process.list()
 	local data = {}
-	local k
 	local ps = luci.util.execi("/bin/busybox top -bn1")
 
 	if not ps then
@@ -534,22 +533,23 @@ function process.list()
 	end
 
 	for line in ps do
-		local pid, ppid, user, stat, vsz, mem, cpu, cmd = line:match(
-			"^ *(%d+) +(%d+) +(%S.-%S) +([RSDZTW][W ][<N ]) +(%d+) +(%d+%%) +(%d+%%) +(.+)"
-		)
+		if line:match("^%s*%d") then
+			local pid, ppid, user, stat, vsz, mem, cpu, cmd = line:match(
+				"^%s*(%d+)%s+(%d+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s+(%S+)%s*(.*)"
+			)
 
-		local idx = tonumber(pid)
-		if idx then
-			data[idx] = {
-				['PID']     = pid,
-				['PPID']    = ppid,
-				['USER']    = user,
-				['STAT']    = stat,
-				['VSZ']     = vsz,
-				['%MEM']    = mem,
-				['%CPU']    = cpu,
-				['COMMAND'] = cmd
-			}
+			if pid then
+				data[tonumber(pid)] = {
+					['PID']     = pid,
+					['PPID']    = ppid,
+					['USER']    = user,
+					['STAT']    = stat,
+					['VSZ']     = vsz,
+					['%MEM']    = mem,
+					['%CPU']    = cpu,
+					['COMMAND'] = (cmd ~= "" and cmd) or "<kernel>"
+				}
+			end
 		end
 	end
 
