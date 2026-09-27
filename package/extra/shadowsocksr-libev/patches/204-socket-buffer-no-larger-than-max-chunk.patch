@@ -1,0 +1,23 @@
+Backport fw876/helloworld 109: cap SOCKET_BUF_SIZE at 16383 (= max chunk size) so the obfs/auth framing never emits a chunk larger than the protocol allows.
+--- a/server/netutils.h
++++ b/server/netutils.h
+@@ -60,7 +60,7 @@
+ /** byte size of ip6 address */
+ #define INET6_SIZE 16
+ 
+-#define SOCKET_BUF_SIZE (16 * 1024) // 16KB
++#define SOCKET_BUF_SIZE (16 * 1024 - 1) // 16383 Byte, equals to the max chunk size
+ 
+ size_t get_sockaddr_len(struct sockaddr *addr);
+ ssize_t get_sockaddr(char *host, char *port,
+--- a/src/netutils.h
++++ b/src/netutils.h
+@@ -60,7 +60,7 @@
+ /** byte size of ip6 address */
+ #define INET6_SIZE 16
+ 
+-#define SOCKET_BUF_SIZE (16 * 1024) // 16KB
++#define SOCKET_BUF_SIZE (16 * 1024 - 1) // 16383 Byte, equals to the max chunk size
+ 
+ size_t get_sockaddr_len(struct sockaddr *addr);
+ ssize_t get_sockaddr(char *host, char *port,
