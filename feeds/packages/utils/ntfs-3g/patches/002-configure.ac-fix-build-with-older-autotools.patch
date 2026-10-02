@@ -1,0 +1,29 @@
+From a48cd0902aede1a1753b7dccbb2ed625cdabd570 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Fri, 2 Oct 2026 23:14:48 +0800
+Subject: [PATCH] configure.ac: fix build with older autotools
+
+---
+ configure.ac | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+--- a/configure.ac
++++ b/configure.ac
+@@ -530,13 +530,13 @@ esac
+ # Checks for declarations
+ AC_CHECK_DECL(
+ 	[optreset],
+-	AC_DEFINE(
++	[AC_DEFINE(
+ 		[HAVE_OPTRESET],
+ 		[1],
+ 		[Defined to 1 if the 'optreset' global variable is present.]
+-	)
+-	,
+-	[#include <getopt.h>]
++	)],
++	[],
++	[[#include <getopt.h>]]
+ )
+ 
+ # Checks for library functions.
