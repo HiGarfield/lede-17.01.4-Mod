@@ -65,8 +65,7 @@ jobs:
             echo "WORKING_DIR=$PWD/source" >> $GITHUB_ENV
           fi
 
-      - name: Install minimal build deps
-        working-directory: ${{ env.WORKING_DIR }}
+      - name: Install build deps
         run: |
           sudo apt-get update -qq -y
           sudo apt-get install -qq -y build-essential
@@ -91,13 +90,6 @@ jobs:
             ${{ env.WORKING_DIR }}/.ccache
           key: ${{ steps.mixkey.outputs.key }}
           restore-keys: ${{ steps.mixkey.outputs.restore }}
-
-      - name: Skip toolchain rebuild on cache hit
-        if: steps.toolchain.outputs.cache-matched-key != ''
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          sed -i 's/ $(tool.*\/stamp-compile)//;' Makefile
-          sed -i 's/ $(tool.*\/stamp-install)//;' Makefile
 
       - name: Restore dl cache
         uses: actions/cache/restore@main
