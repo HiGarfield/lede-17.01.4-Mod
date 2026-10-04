@@ -5,19 +5,51 @@ on:
   schedule:
     - cron: "0 0 */3 * *"
 
-permissions: {}
+permissions:
+  contents: read
 
 env:
   SOURCE_REPO: HiGarfield/lede-17.01.4-Mod
 
 jobs:
+  generate_archs:
+    runs-on: ubuntu-26.04
+    outputs:
+      archs: ${{ steps.set-archs.outputs.archs }}
+    steps:
+      - uses: actions/checkout@main
+
+      - name: Enumerate target architectures
+        id: set-archs
+        run: |
+          command -v jq >/dev/null 2>&1 || sudo apt-get install -y -qq jq
+          if [ -f version ]; then
+            conf_dir=conf
+          else
+            git clone https://github.com/${SOURCE_REPO}.git source
+            conf_dir=source/conf
+          fi
+          archs=$(
+            for f in "$conf_dir"/.config.*; do
+              [ -f "$f" ] || continue
+              sed -n 's/^CONFIG_TARGET_BOARD="\(.*\)"/\1/p' "$f"
+            done | sort -u
+          )
+          if [ -z "$archs" ]; then
+            echo "Error: no CONFIG_TARGET_BOARD architectures found in $conf_dir/.config.*" >&2
+            exit 1
+          fi
+          archs_json=$(printf '%s\n' "$archs" | jq -R . | jq -sc .)
+          echo "archs=$archs_json" >> $GITHUB_OUTPUT
+
   fetch_cache:
+    needs: generate_archs
     runs-on: ubuntu-26.04
 
     strategy:
       fail-fast: false
       matrix:
-        arch: [ar71xx, ramips]
+        arch: ${{ fromJson(needs.generate_archs.outputs.archs) }}
 
     steps:
       - uses: actions/checkout@main
@@ -44,15 +76,28 @@ jobs:
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           gcc_hash=$(gcc --version | sha1sum | cut -c1-8)
-          echo "key=${{ matrix.arch }}-${gcc_hash}" >> $GITHUB_OUTPUT
+          tl_hash=$(git log --pretty=tformat:"%h" -n1 tools toolchain | head -n1)
+          base="${{ matrix.arch }}-${gcc_hash}-cache-openwrt-${tl_hash}"
+          echo "restore=$base" >> $GITHUB_OUTPUT
+          echo "key=$base-$(date +%s)" >> $GITHUB_OUTPUT
 
       - name: Restore toolchain cache
-        uses: HiGarfield/cachewrtbuild@main
+        id: toolchain
+        uses: actions/cache/restore@main
         with:
-          ccache: true
-          mixkey: ${{ steps.mixkey.outputs.key }}
-          prefix: ${{ env.WORKING_DIR }}
-          skip_saving: true
+          path: |
+            ${{ env.WORKING_DIR }}/staging_dir/host*
+            ${{ env.WORKING_DIR }}/staging_dir/tool*
+            ${{ env.WORKING_DIR }}/.ccache
+          key: ${{ steps.mixkey.outputs.key }}
+          restore-keys: ${{ steps.mixkey.outputs.restore }}
+
+      - name: Skip toolchain rebuild on cache hit
+        if: steps.toolchain.outputs.cache-matched-key != ''
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          sed -i 's/ $(tool.*\/stamp-compile)//;' Makefile
+          sed -i 's/ $(tool.*\/stamp-install)//;' Makefile
 
       - name: Restore dl cache
         uses: actions/cache/restore@main

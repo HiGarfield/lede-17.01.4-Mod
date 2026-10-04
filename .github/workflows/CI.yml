@@ -17,23 +17,27 @@ env:
 
 jobs:
   repository_dispatch:
-    if: ${{ github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push' }}
+    if: github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push'
     runs-on: ubuntu-26.04
     permissions: {}
     steps:
       - uses: actions/checkout@main
 
-      - name: Get commit title
+      - name: Get dispatch event type
         id: title
         run: |
-          commit_title=$(git log -1 --pretty=format:%s | cut -c1-100)
-          echo "commit_title=$commit_title" >> $GITHUB_OUTPUT
+          commit_title=$(git log -1 --pretty=format:%s)
+          # repository_dispatch 的 event_type 仅允许字母、数字与 . _ - 字符，
+          # 其余（空格/换行/多字节/标点等）一律滤除为 '-'，并合并、去首尾、截断到 100 字符
+          event_type=$(printf '%s' "$commit_title" | tr -c 'A-Za-z0-9._-' '-' | tr -s '-' | sed 's/^-//;s/-$//' | cut -c1-100)
+          [ -n "$event_type" ] || event_type=lede-build
+          echo "event_type=$event_type" >> $GITHUB_OUTPUT
 
       - uses: HiGarfield/repository-dispatch@main
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ secrets.SECOND_REPO }}
-          event-type: ${{ steps.title.outputs.commit_title }}
+          event-type: ${{ steps.title.outputs.event_type }}
 
   generate_matrix:
     runs-on: ubuntu-26.04
@@ -45,6 +49,7 @@ jobs:
 
       - id: set-matrix
         run: |
+          command -v jq >/dev/null 2>&1 || sudo apt-get install -y -qq jq
           if [ -f version ]; then
             conf_dir=conf
             v=$(cat version)
@@ -129,22 +134,38 @@ jobs:
           rm -f "package/firmware/wireless-regdb/patches/501-limit-tx-power.patch"
 
       - name: Toolchain cache key
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
+        if: env.TARGET_DEVICE != 'dl'
         id: tc
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           arch=$(sed -n 's/^CONFIG_TARGET_BOARD="\(.*\)"/\1/p' conf/.config.$TARGET_DEVICE)
-          echo "key=$arch-$(gcc --version | sha1sum | cut -c1-8)" >> $GITHUB_OUTPUT
+          gcc_hash=$(gcc --version | sha1sum | cut -c1-8)
+          tl_hash=$(git log --pretty=tformat:"%h" -n1 tools toolchain | head -n1)
+          base="$arch-${gcc_hash}-cache-openwrt-${tl_hash}"
+          echo "restore=$base" >> $GITHUB_OUTPUT
+          echo "key=$base-$(date +%s)" >> $GITHUB_OUTPUT
 
-      - uses: HiGarfield/cachewrtbuild@main
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
+      - name: Restore toolchain cache
+        if: env.TARGET_DEVICE != 'dl'
+        id: toolchain
+        uses: actions/cache/restore@main
         with:
-          ccache: true
-          mixkey: ${{ steps.tc.outputs.key }}
-          prefix: ${{ env.WORKING_DIR }}
+          path: |
+            ${{ env.WORKING_DIR }}/staging_dir/host*
+            ${{ env.WORKING_DIR }}/staging_dir/tool*
+            ${{ env.WORKING_DIR }}/.ccache
+          key: ${{ steps.tc.outputs.key }}
+          restore-keys: ${{ steps.tc.outputs.restore }}
+
+      - name: Skip toolchain rebuild on cache hit
+        if: env.TARGET_DEVICE != 'dl' && steps.toolchain.outputs.cache-matched-key != ''
+        working-directory: ${{ env.WORKING_DIR }}
+        run: |
+          sed -i 's/ $(tool.*\/stamp-compile)//;' Makefile
+          sed -i 's/ $(tool.*\/stamp-install)//;' Makefile
 
       - uses: actions/cache/restore@main
-        if: ${{ env.TARGET_DEVICE != 'dl' }}
+        if: env.TARGET_DEVICE != 'dl'
         with:
           path: ${{ env.WORKING_DIR }}/dl
           key: ${{ github.repository_id }}-dl-${{ github.run_id }}
@@ -178,10 +199,20 @@ jobs:
           path: ${{ env.OUTPUT_DIR }}/*
 
       - uses: actions/cache/save@main
-        if: ${{ env.TARGET_DEVICE == 'dl' }}
+        if: env.TARGET_DEVICE == 'dl'
         with:
           path: ${{ env.WORKING_DIR }}/dl
           key: ${{ github.repository_id }}-dl-${{ github.run_id }}
+
+      - name: Save toolchain cache
+        if: env.TARGET_DEVICE != 'dl' && steps.toolchain.outputs.cache-hit != 'true'
+        uses: actions/cache/save@main
+        with:
+          path: |
+            ${{ env.WORKING_DIR }}/staging_dir/host*
+            ${{ env.WORKING_DIR }}/staging_dir/tool*
+            ${{ env.WORKING_DIR }}/.ccache
+          key: ${{ steps.tc.outputs.key }}
 
   create_release:
     needs: [generate_matrix, build]
