@@ -1,0 +1,21 @@
+<%#
+ Copyright (C) 2020 Nick Hainke <vincent@systemli.org>
+ Backport of luci-app-dawn to LEDE 17.01
+
+ Licensed to the Apache License, Version 2.0
+-%>
+
+<%+header%>
+
+<script type="text/javascript" src="<%=resource%>/dawn.js"></script>
+
+<h2><%:Hearing Map%></h2>
+
+<div id="dawn_hearing_map"><%+dawn/hearing_map_body%></div>
+
+<script type="text/javascript">//<![CDATA[
+	DawnPoll('dawn_hearing_map',
+		'<%=build_url("admin/status/dawn/hearing_map_body")%>', 5);
+//]]></script>
+
+<%+footer%>

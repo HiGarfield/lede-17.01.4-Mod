@@ -1,0 +1,21 @@
+<%#
+ Copyright (C) 2020 Nick Hainke <vincent@systemli.org>
+ Backport of luci-app-dawn to LEDE 17.01
+
+ Licensed to the Apache License, Version 2.0
+-%>
+
+<%+header%>
+
+<script type="text/javascript" src="<%=resource%>/dawn.js"></script>
+
+<h2><%:Network Overview%></h2>
+
+<div id="dawn_network_overview"><%+dawn/network_overview_body%></div>
+
+<script type="text/javascript">//<![CDATA[
+	DawnPoll('dawn_network_overview',
+		'<%=build_url("admin/status/dawn/network_overview_body")%>', 5);
+//]]></script>
+
+<%+footer%>

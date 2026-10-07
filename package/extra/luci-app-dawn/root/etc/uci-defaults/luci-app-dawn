@@ -1,0 +1,16 @@
+#!/bin/sh
+# Make sure all configuration sections used by the DAWN configuration page
+# exist. The CBI model cannot render sections which are not present in
+# /etc/config/dawn yet.
+
+for section in local hostapd network times; do
+	uci -q get dawn.@${section}[0] >/dev/null || uci -q add dawn "${section}"
+done
+
+for section in global 802_11g 802_11a; do
+	uci -q get dawn.${section} >/dev/null || uci -q set dawn.${section}=metric
+done
+
+uci -q commit dawn
+
+exit 0

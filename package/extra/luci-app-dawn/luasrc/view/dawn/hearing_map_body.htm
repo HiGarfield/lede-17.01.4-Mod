@@ -1,0 +1,60 @@
+<%#
+ Copyright (C) 2020 Nick Hainke <vincent@systemli.org>
+ Backport of luci-app-dawn to LEDE 17.01
+
+ Licensed to the Apache License, Version 2.0
+-%>
+
+<%-
+	local dawn = require "luci.model.dawn"
+	local util = require "luci.util"
+	local data = dawn.hearing_map_data()
+-%>
+
+<% if not data.available then %>
+<div class="alert-message fade-in warning">
+	<h4><%:DAWN service unavailable%></h4>
+	<p><%:Unable to query the DAWN service via ubus, the service appears to be stopped.%></p>
+	<a href="<%=build_url("admin/system/startup")%>"><%:Check Startup services%></a>
+</div>
+<% else %>
+
+<% for _, net in ipairs(data.networks) do %>
+<div class="cbi-section">
+	<h3>SSID: <%=util.pcdata(net.ssid)%></h3>
+
+	<table class="cbi-section-table">
+		<tr class="cbi-section-table-titles">
+			<% for _, h in ipairs(data.headers) do %>
+			<th class="cbi-section-table-cell" title="<%=util.pcdata(h.tooltip or h.title)%>"><%=util.pcdata(h.title)%></th>
+			<% end %>
+		</tr>
+		<% for i, c in ipairs(net.rows) do %>
+		<tr class="cbi-section-table-row cbi-rowstyle-<%=1 + (i % 2)%>">
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.client)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.ap)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.freq)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.ht)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.vht)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.signal)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.rcpi)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.rsni)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.util)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.connected)%></td>
+			<td class="cbi-section-table-cell"><%=util.pcdata(c.score)%></td>
+		</tr>
+		<% end %>
+		<% if #net.rows == 0 then %>
+		<tr class="cbi-section-table-row">
+			<td class="cbi-section-table-cell" colspan="11"><em><%:No clients connected.%></em></td>
+		</tr>
+		<% end %>
+	</table>
+</div>
+<% end %>
+
+<% if #data.networks == 0 then %>
+<p><em><%:No clients connected.%></em></p>
+<% end %>
+
+<% end %>
