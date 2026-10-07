@@ -1,0 +1,133 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: Your Name <you@example.com>
+Date: Wed, 7 Oct 2026 00:00:00 +0000
+Subject: [PATCH] mtd: nand: mtk: 16-byte align data buffers + disable badblock
+ shifting (LEDE 17.01 / Linux 4.4.194)
+
+Generated against the REAL LEDE 17.01 tree:
+  linux-4.4.194 + target/linux/ramips/patches-4.4/0039-mtd-add-mt7621-nand-support.patch
+                + target/linux/ramips/patches-4.4/0040-nand-add-mtk-nand-hack-hook.patch
+
+Two bugs fixed:
+
+1) "Data buffer not 16 bytes aligned: xxxxxxxx"
+
+   The MT7621 NFI moves page data with DMA and needs a 16-byte aligned
+   buffer.  Linux 4.4's nand_do_{read,write}_ops() only test
+   virt_addr_valid(buf) when deciding whether to bounce the buffer; the
+   chip->buf_align / IS_ALIGNED() check was added upstream in 4.12 (commit
+   477544c62a84).  So unaligned buffers from UBI/UBIFS reach the driver.
+
+   Fix:
+     - backport chip->buf_align + the IS_ALIGNED() check (nand_base.c, nand.h)
+     - driver declares NAND_USE_BOUNCE_BUFFER and buf_align = 16
+     - align nand_buffers->databuf: it sits at
+       sizeof(struct nand_buffers) + 2 * oobsize == 140 bytes on 32-bit MIPS,
+       which is never a multiple of 16.  Use ALIGN(..., 16) and allocate 16
+       extra bytes of slack.  oob_poi = databuf + writesize follows because
+       writesize (2048) is a multiple of 16.
+     - local_oob_buf[] gets __aligned(16) as well.
+
+2) shift_on_bbt = 1 -> 0  (FS#1926)
+
+   The driver intransparently shifts NAND pages when a block is marked bad,
+   so fixed-offset partitions (caldata, MAC addresses) appear off.  Bad block
+   mapping is the job of the flash translation layer (UBI), not the NAND
+   driver.  Upstream fix: commit 527832e54bf3bc4d699a145ae66f34230246f0a9.
+
+   IMPORTANT: only apply while the flash has NO bad eraseblocks
+   (ubinfo /dev/ubi0 -> bad PEBs: 0).  With zero bad blocks the shift is a
+   no-op, so nothing already on flash moves.  Do NOT flip it afterwards.
+
+The on-flash layout is unchanged, so sysupgrade with keep-settings stays safe.
+
+Signed-off-by: Your Name <you@example.com>
+---
+ drivers/mtd/nand/mtk_nand.c  |   10 ++++++----
+ drivers/mtd/nand/nand_base.c |    9 +++++++--
+ include/linux/mtd/nand.h     |    1 +
+ 3 files changed, 16 insertions(+), 4 deletions(-)
+
+--- a/drivers/mtd/nand/mtk_nand.c
++++ b/drivers/mtd/nand/mtk_nand.c
+@@ -114,7 +114,7 @@ int dev_id;
+  * in later versions it seems it was removed in order to save a bit of space
+  */
+ #define NAND_MAX_OOBSIZE 774
+-static u8 local_oob_buf[NAND_MAX_OOBSIZE];
++static u8 local_oob_buf[NAND_MAX_OOBSIZE] __aligned(16);
+ 
+ static u8 nand_badblock_offset = 0;
+ 
+@@ -2182,16 +2182,18 @@ mtk_nand_probe(struct platform_device *p
+ 
+ 	/* allocate buffers or call select_chip here or a bit earlier*/
+ 	{
+-		struct nand_buffers *nbuf = kzalloc(sizeof(*nbuf) + mtd->writesize + mtd->oobsize * 3, GFP_KERNEL);
++		struct nand_buffers *nbuf = kzalloc(sizeof(*nbuf) + mtd->writesize + mtd->oobsize * 3 + 16, GFP_KERNEL);
+ 		if (!nbuf) {
+ 			return -ENOMEM;
+ 		}
+ 		nbuf->ecccalc = (uint8_t *)(nbuf + 1);
+ 		nbuf->ecccode = nbuf->ecccalc + mtd->oobsize;
+-		nbuf->databuf = nbuf->ecccode + mtd->oobsize;
++		nbuf->databuf = (uint8_t *)ALIGN((unsigned long)(nbuf->ecccode + mtd->oobsize), 16);
+ 
+ 		nand_chip->buffers = nbuf;
+ 		nand_chip->options |= NAND_OWN_BUFFERS;
++		nand_chip->options |= NAND_USE_BOUNCE_BUFFER;
++		nand_chip->buf_align = 16;
+ 	}
+ 
+ 	nand_chip->oob_poi = nand_chip->buffers->databuf + mtd->writesize;
+@@ -2256,7 +2258,7 @@ mtk_nand_probe(struct platform_device *p
+ 	if (!err) {
+ 		MSG(INIT, "[mtk_nand] probe successfully!\n");
+ 		nand_disable_clock();
+-		shift_on_bbt = 1;
++		shift_on_bbt = 0;
+ 		if (load_fact_bbt(mtd) == 0) {
+ 			int i;
+ 			for (i = 0; i < 0x100; i++)
+--- a/drivers/mtd/nand/nand_base.c
++++ b/drivers/mtd/nand/nand_base.c
+@@ -1719,7 +1719,8 @@ static int nand_do_read_ops(struct mtd_i
+ 		if (!aligned)
+ 			use_bufpoi = 1;
+ 		else if (chip->options & NAND_USE_BOUNCE_BUFFER)
+-			use_bufpoi = !virt_addr_valid(buf);
++			use_bufpoi = !virt_addr_valid(buf) ||
++				     !IS_ALIGNED((unsigned long)buf, chip->buf_align);
+ 		else
+ 			use_bufpoi = 0;
+ 
+@@ -2603,7 +2604,8 @@ static int nand_do_write_ops(struct mtd_
+ 		if (part_pagewr)
+ 			use_bufpoi = 1;
+ 		else if (chip->options & NAND_USE_BOUNCE_BUFFER)
+-			use_bufpoi = !virt_addr_valid(buf);
++			use_bufpoi = !virt_addr_valid(buf) ||
++				     !IS_ALIGNED((unsigned long)buf, chip->buf_align);
+ 		else
+ 			use_bufpoi = 0;
+ 
+@@ -3179,6 +3181,9 @@ static void nand_set_defaults(struct nan
+ 		init_waitqueue_head(&chip->controller->wq);
+ 	}
+ 
++	if (!chip->buf_align)
++		chip->buf_align = 1;
++
+ }
+ 
+ /* Sanitize ONFI strings so we can safely print them */
+--- a/include/linux/mtd/nand.h
++++ b/include/linux/mtd/nand.h
+@@ -712,6 +712,7 @@ struct nand_chip {
+ 
+ 	struct nand_ecc_ctrl ecc;
+ 	struct nand_buffers *buffers;
++	unsigned long buf_align;
+ 	struct nand_hw_control hwcontrol;
+ 
+ 	uint8_t *bbt;

@@ -32,7 +32,7 @@ Signed-off-by: HiGarfield <HiGarfield@126.com>
  #define STS1_XHCI_RST		BIT(11)
  #define STS1_SYS125_RST	BIT(10)
  #define STS1_REF_RST		BIT(8)
-@@ -122,6 +123,14 @@
+@@ -122,6 +123,14 @@ static int xhci_mtk_host_enable(struct x
  	check_val = STS1_SYSPLL_STABLE | STS1_REF_RST |
  			STS1_SYS125_RST | STS1_XHCI_RST;
  

@@ -24,7 +24,7 @@ Signed-off-by: HiGarfield <HiGarfield@126.com>
 ---
 --- a/drivers/usb/host/xhci-mtk.c
 +++ b/drivers/usb/host/xhci-mtk.c
-@@ -705,9 +705,25 @@
+@@ -705,9 +705,25 @@ static int xhci_mtk_remove(struct platfo
  }
  
  #ifdef CONFIG_PM_SLEEP
@@ -50,7 +50,7 @@ Signed-off-by: HiGarfield <HiGarfield@126.com>
  
  	xhci_mtk_host_disable(mtk);
  	xhci_mtk_phy_power_off(mtk);
-@@ -719,11 +735,19 @@
+@@ -719,11 +735,19 @@ static int xhci_mtk_suspend(struct devic
  static int xhci_mtk_resume(struct device *dev)
  {
  	struct xhci_hcd_mtk *mtk = dev_get_drvdata(dev);
