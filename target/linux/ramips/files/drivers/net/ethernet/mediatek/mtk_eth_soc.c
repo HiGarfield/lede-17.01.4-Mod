@@ -1515,12 +1515,24 @@ static void fe_uninit(struct net_device *dev)
 {
 	unsigned long flags;
 	struct fe_priv *priv = netdev_priv(dev);
+	int i;
 
 	spin_lock_irqsave(&priv->page_lock, flags);
 	fe_reg_w32(fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
 		     ~(FE_TX_WB_DDONE | FE_RX_DMA_EN | FE_TX_DMA_EN),
 		     FE_REG_PDMA_GLO_CFG);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
+
+	/* the engine does not stop the instant the enable bits clear:
+	 * wait for it to go quiet before releasing the rings it may
+	 * still be writing to
+	 */
+	for (i = 0; i < 10; i++) {
+		if (!(fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+		      (FE_TX_DMA_BUSY | FE_RX_DMA_BUSY)))
+			break;
+		msleep(20);
+	}
 
 	/* release the switch irq requested with this fe_priv as dev_id
 	 * before this instance goes away
