@@ -918,7 +918,7 @@ static int mt7621_sw_get_port_mib(struct switch_dev *dev,
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 	int i, len = 0;
 
-	if (val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
@@ -993,7 +993,7 @@ static int mt7530_sw_get_port_mib(struct switch_dev *dev,
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 	int i, len = 0;
 
-	if (val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
