@@ -503,6 +503,8 @@ struct fe_priv {
 
 	struct fe_hw_stats		*hw_stats;
 	unsigned long			vlan_map;
+	/* VID currently programmed in each of the 16 hash slots */
+	u16				vlan_vid[16];
 	struct work_struct		pending_work;
 	DECLARE_BITMAP(pending_flags, FE_FLAG_MAX);
 };

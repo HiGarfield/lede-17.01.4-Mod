@@ -509,24 +509,28 @@ static int fe_vlan_rx_add_vid(struct net_device *dev,
 	      (dev->features & NETIF_F_HW_VLAN_CTAG_TX)))
 		return 0;
 
-	if (test_bit(idx, &priv->vlan_map)) {
-		netdev_warn(dev, "disable tx vlan offload\n");
-		dev->wanted_features &= ~NETIF_F_HW_VLAN_CTAG_TX;
-		netdev_update_features(dev);
+	if (test_bit(idx, &priv->vlan_map) && priv->vlan_vid[idx] == vid)
+		return 0;
+
+	/* The slot is either free or occupied by a colliding VID. The
+	 * old code disabled TX VLAN offload for the whole device on a
+	 * collision and never recovered nor updated the register, which
+	 * both broke offload permanently and left a stale VID behind.
+	 * Replace the slot contents instead.
+	 */
+	vlan_cfg = fe_r32(fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
+			((idx >> 1) << 2));
+	if (idx & 0x1) {
+		vlan_cfg &= 0xffff;
+		vlan_cfg |= (vid << 16);
 	} else {
-		vlan_cfg = fe_r32(fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
-				((idx >> 1) << 2));
-		if (idx & 0x1) {
-			vlan_cfg &= 0xffff;
-			vlan_cfg |= (vid << 16);
-		} else {
-			vlan_cfg &= 0xffff0000;
-			vlan_cfg |= vid;
-		}
-		fe_w32(vlan_cfg, fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
-				((idx >> 1) << 2));
-		set_bit(idx, &priv->vlan_map);
+		vlan_cfg &= 0xffff0000;
+		vlan_cfg |= vid;
 	}
+	fe_w32(vlan_cfg, fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
+			((idx >> 1) << 2));
+	priv->vlan_vid[idx] = vid;
+	set_bit(idx, &priv->vlan_map);
 
 	return 0;
 }
@@ -541,7 +545,22 @@ static int fe_vlan_rx_kill_vid(struct net_device *dev,
 	      (dev->features & NETIF_F_HW_VLAN_CTAG_TX)))
 		return 0;
 
-	clear_bit(idx, &priv->vlan_map);
+	/* clear the register slot as well, not just the bookkeeping
+	 * bit, so a removed VID does not keep matching in hardware
+	 */
+	if (test_bit(idx, &priv->vlan_map) && priv->vlan_vid[idx] == vid) {
+		u32 vlan_cfg;
+
+		vlan_cfg = fe_r32(fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
+				((idx >> 1) << 2));
+		if (idx & 0x1)
+			vlan_cfg &= 0xffff;
+		else
+			vlan_cfg &= 0xffff0000;
+		fe_w32(vlan_cfg, fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
+				((idx >> 1) << 2));
+		clear_bit(idx, &priv->vlan_map);
+	}
 
 	return 0;
 }
