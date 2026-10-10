@@ -1832,6 +1832,15 @@ static int fe_probe(struct platform_device *pdev)
 
 	soc = (struct fe_soc_data *)match->data;
 
+	/* validate the callbacks used unconditionally later on:
+	 * reset_fe() and fwd_config() are called without a NULL check
+	 * in fe_init()/fe_hw_init()
+	 */
+	if (!soc->reset_fe || !soc->fwd_config) {
+		dev_err(&pdev->dev, "soc data misses required callbacks\n");
+		return -ENODEV;
+	}
+
 	if (fe_base) {
 		dev_err(&pdev->dev, "driver supports a single instance only\n");
 		return -EBUSY;
