@@ -834,6 +834,7 @@ static int fe_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	if (fe_skb_padto(skb, priv)) {
 		netif_warn(priv, tx_err, dev, "tx padding failed!\n");
+		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
 
@@ -847,6 +848,7 @@ static int fe_start_xmit(struct sk_buff *skb, struct net_device *dev)
 
 	if (fe_tx_map_dma(skb, dev, tx_num, ring) < 0) {
 		stats->tx_dropped++;
+		dev_kfree_skb_any(skb);
 	} else {
 		stats->tx_packets++;
 		stats->tx_bytes += len;
