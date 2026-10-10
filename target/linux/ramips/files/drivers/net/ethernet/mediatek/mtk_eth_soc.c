@@ -1383,6 +1383,10 @@ static int __init fe_init(struct net_device *dev)
 	err = fe_init_dma(priv);
 	if (err) {
 		fe_free_dma(priv);
+		/* fe_hw_init() requested the irq; ndo_uninit is not
+		 * called when ndo_init fails, so release it here.
+		 */
+		free_irq(dev->irq, dev);
 		goto err_phy_disconnect;
 	}
 
