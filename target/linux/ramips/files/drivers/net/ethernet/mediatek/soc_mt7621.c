@@ -83,8 +83,15 @@ static const u16 mt7621_reg_table[FE_REG_COUNT] = {
 
 static int mt7621_gsw_config(struct fe_priv *priv)
 {
-	if (priv->mii_bus && priv->mii_bus->phy_map[0x1f])
-		mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
+	struct switch_dev *swdev;
+
+	if (priv->mii_bus && priv->mii_bus->phy_map[0x1f]) {
+		swdev = mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
+		if (IS_ERR(swdev))
+			return PTR_ERR(swdev);
+		if (priv->soc->gsw_dev_num < 2)
+			priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
+	}
 
 	return 0;
 }
