@@ -1427,12 +1427,16 @@ static int esw_probe(struct platform_device *pdev)
 	ret = devm_request_irq(&pdev->dev, esw->irq, esw_interrupt, 0, "esw",
 			       esw);
 
-	if (!ret) {
-		esw_w32(esw, RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_ISR);
-		esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
+	if (ret) {
+		unregister_switch(&esw->swdev);
+		irq_dispose_mapping(esw->irq);
+		return ret;
 	}
 
-	return ret;
+	esw_w32(esw, RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_ISR);
+	esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
+
+	return 0;
 }
 
 static int esw_remove(struct platform_device *pdev)
