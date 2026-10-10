@@ -1267,9 +1267,20 @@ static int fe_hw_init(struct net_device *dev)
 static int fe_open(struct net_device *dev)
 {
 	struct fe_priv *priv = netdev_priv(dev);
+	unsigned long flags;
+	u32 val;
 
 	if (priv->phy)
 		priv->phy->start(priv);
+
+	/* fe_stop() quiesced the DMA engine; start it again */
+	spin_lock_irqsave(&priv->page_lock, flags);
+	val = FE_TX_WB_DDONE | FE_RX_DMA_EN | FE_TX_DMA_EN;
+	if (priv->flags & FE_FLAG_RX_2B_OFFSET)
+		val |= FE_RX_2B_OFFSET;
+	val |= priv->soc->pdma_glo_cfg;
+	fe_reg_w32(val, FE_REG_PDMA_GLO_CFG);
+	spin_unlock_irqrestore(&priv->page_lock, flags);
 
 	if (priv->soc->has_carrier && priv->soc->has_carrier(priv))
 		netif_carrier_on(dev);
@@ -1286,6 +1297,7 @@ static int fe_open(struct net_device *dev)
 static int fe_stop(struct net_device *dev)
 {
 	struct fe_priv *priv = netdev_priv(dev);
+	unsigned long flags;
 	int i;
 
 	set_bit(__FE_DOWN, &priv->state);
@@ -1306,6 +1318,18 @@ static int fe_stop(struct net_device *dev)
 
 	if (priv->phy)
 		priv->phy->stop(priv);
+
+	/* Quiesce the DMA engine before waiting for it: the busy bits
+	 * never clear while the engine stays enabled, so polling them
+	 * without clearing FE_TX_DMA_EN/FE_RX_DMA_EN first was a fake
+	 * wait that always timed out after 200ms while the hardware kept
+	 * writing to the rings the callers are about to free.
+	 */
+	spin_lock_irqsave(&priv->page_lock, flags);
+	fe_reg_w32(fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+		     ~(FE_TX_WB_DDONE | FE_RX_DMA_EN | FE_TX_DMA_EN),
+		     FE_REG_PDMA_GLO_CFG);
+	spin_unlock_irqrestore(&priv->page_lock, flags);
 
 	/* wait dma stop */
 	for (i = 0; i < 10; i++) {
