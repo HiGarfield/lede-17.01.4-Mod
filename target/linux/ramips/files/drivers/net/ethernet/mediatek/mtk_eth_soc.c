@@ -182,7 +182,8 @@ static inline int fe_max_buf_size(int frag_size)
 	int buf_size = frag_size - NET_SKB_PAD - NET_IP_ALIGN -
 		       SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
 
-	BUG_ON(buf_size < MAX_RX_LENGTH);
+	if (WARN_ON_ONCE(buf_size < MAX_RX_LENGTH))
+		return MAX_RX_LENGTH;
 	return buf_size;
 }
 
