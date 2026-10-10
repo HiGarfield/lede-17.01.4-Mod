@@ -1307,6 +1307,17 @@ static int fe_open(struct net_device *dev)
 	unsigned long flags;
 	u32 val;
 
+	/* __FE_DOWN is only a private flag and fe_open() clears it, so
+	 * it cannot by itself keep a ring-less device down: a failed
+	 * fe_realloc_dma() rollback leaves tx_dma/rx_dma NULL and the
+	 * next open (user, or the fe_tx_timeout() reset) would enable
+	 * DMA on freed descriptor memory.
+	 */
+	if (!priv->tx_ring.tx_dma || !priv->rx_ring.rx_dma) {
+		set_bit(__FE_DOWN, &priv->state);
+		return -ENOMEM;
+	}
+
 	if (priv->phy)
 		priv->phy->start(priv);
 
@@ -1586,9 +1597,30 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 		priv->rx_ring.rx_ring_size = old_rx;
 		priv->rx_ring.frag_size = old_frag;
 		priv->rx_ring.rx_buf_size = old_buf;
-		if (fe_init_dma(priv))
+		if (fe_init_dma(priv)) {
 			netif_err(priv, tx_err, priv->netdev,
 				  "DMA realloc rollback failed\n");
+			/* the rollback itself may die halfway: release
+			 * whatever it allocated instead of leaking it,
+			 * and keep the device down -- there are no rings
+			 * to receive into or transmit from anymore
+			 */
+			fe_free_dma(priv);
+			/* Keep the original geometry. A zero ring size is
+			 * not a power of two, so a later fe_init_dma()
+			 * would trip its WARN_ON_ONCE() and fail, and
+			 * NEXT_*_DESP_IDX() would mask with (0 - 1) and
+			 * walk off the NULL ring. fe_open() refuses to
+			 * start DMA without rings, so the interface stays
+			 * down instead of oopsing.
+			 */
+			priv->tx_ring.tx_ring_size = old_tx;
+			priv->rx_ring.rx_ring_size = old_rx;
+			priv->rx_ring.frag_size = old_frag;
+			priv->rx_ring.rx_buf_size = old_buf;
+			set_bit(__FE_DOWN, &priv->state);
+			return err;
+		}
 	}
 
 	if (was_running) {
