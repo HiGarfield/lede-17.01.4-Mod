@@ -194,6 +194,12 @@ static inline void fe_get_rxd(struct fe_rx_dma *rxd, struct fe_rx_dma *dma_rxd)
 	rxd->rxd2 = dma_rxd->rxd2;
 	rxd->rxd3 = dma_rxd->rxd3;
 	rxd->rxd4 = dma_rxd->rxd4;
+	/* the DONE bit (rxd2) must be ordered before the descriptor
+	 * fields it protects: on weakly ordered MIPS the CPU may
+	 * otherwise speculate rxd1 (the DMA address) before DONE is
+	 * known to be set
+	 */
+	dma_rmb();
 }
 
 static inline void fe_set_txd(struct fe_tx_dma *txd, struct fe_tx_dma *dma_txd)
