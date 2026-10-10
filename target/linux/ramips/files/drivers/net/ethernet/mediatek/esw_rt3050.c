@@ -1192,14 +1192,22 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	if (vlan_idx == -1)
 		return -EINVAL;
 
+	/* validate everything first: modifying esw->ports[] while
+	 * scanning and then bailing out on a bad port id left the
+	 * software state half-updated
+	 */
+	for (i = 0; i < val->len; i++) {
+		struct switch_port *p = &val->value.ports[i];
+
+		if (p->id < 0 || p->id >= RT305X_ESW_NUM_PORTS)
+			return -EINVAL;
+	}
+
 	ports = RT305X_ESW_PORTS_NONE;
 	for (i = 0; i < val->len; i++) {
 		struct switch_port *p = &val->value.ports[i];
 		bool untagged;
 		int port_mask;
-
-		if (p->id < 0 || p->id >= RT305X_ESW_NUM_PORTS)
-			return -EINVAL;
 
 		port_mask = 1 << p->id;
 		untagged = !(p->flags & (1 << SWITCH_PORT_FLAG_TAGGED));
