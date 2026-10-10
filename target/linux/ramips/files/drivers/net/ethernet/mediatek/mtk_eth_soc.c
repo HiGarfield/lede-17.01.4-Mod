@@ -1292,6 +1292,16 @@ static int fe_stop(struct net_device *dev)
 
 	netif_tx_disable(dev);
 	fe_int_disable(priv->soc->tx_int | priv->soc->rx_int);
+	/*
+	 * Must be the synchronising variant: napi_disable_sync() does not
+	 * exist on kernel 4.4, but 4.4's napi_disable() already sleeps
+	 * until a poll running on another CPU has finished (it only
+	 * became a separate _sync variant in much later kernels).
+	 * Without the wait, fe_poll() could keep walking
+	 * tx_dma/tx_buf/rx_dma/rx_data while unregister_netdev() calls
+	 * fe_stop() and then ndo_uninit(), which frees exactly those
+	 * rings.
+	 */
 	napi_disable(&priv->rx_napi);
 
 	if (priv->phy)
