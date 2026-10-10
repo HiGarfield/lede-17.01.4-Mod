@@ -68,7 +68,17 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
 
 	_port = of_get_property(phy_node, "reg", NULL);
 
-	if (!_port || (be32_to_cpu(*_port) >= 0x20)) {
+	/*
+	 * "reg" is the MDIO address, so 0..0x1f is what the bus can
+	 * address.  struct fe_phy only has 8 entries per port though,
+	 * and every index below (phy[], link[]) is used to subscript
+	 * those arrays, so the real limit is the array size.  Bound
+	 * against the array instead of the bus width, otherwise a
+	 * device tree with reg = 8..31 writes past the end of
+	 * priv->phy->phy[] / priv->link[].
+	 */
+	if (!_port ||
+	    (be32_to_cpu(*_port) >= ARRAY_SIZE(priv->phy->phy))) {
 		pr_err("%s: invalid port id\n", phy_node->name);
 		return -EINVAL;
 	}
