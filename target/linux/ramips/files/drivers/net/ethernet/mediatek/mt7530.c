@@ -472,7 +472,7 @@ mt7530_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	for (i = 0; i < val->len; i++) {
 		struct switch_port *p = &val->value.ports[i];
 
-		if (p->id >= MT7530_NUM_PORTS)
+		if (p->id < 0 || p->id >= MT7530_NUM_PORTS)
 			return -EINVAL;
 
 		member |= BIT(p->id);
