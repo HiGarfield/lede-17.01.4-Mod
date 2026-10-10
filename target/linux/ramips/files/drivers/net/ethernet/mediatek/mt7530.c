@@ -450,6 +450,13 @@ mt7530_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	}
 
 	member = mt7530_r32(priv, REG_ESW_VLAN_VAWD1);
+	/* an invalid entry holds stale/garbage data, not an empty but
+	 * valid member list -- report it as empty
+	 */
+	if (!(member & REG_ESW_VLAN_VAWD1_VALID)) {
+		mutex_unlock(&priv->reg_mutex);
+		return 0;
+	}
 	member >>= 16;
 	member &= 0xff;
 
