@@ -37,15 +37,22 @@ void mt7620_mdio_reset(struct fe_priv *priv)
 	udelay(10);
 }
 
+/* The PIAC busy-wait runs inside spin_lock_irqsave(&gsw->mdio_lock),
+ * i.e. with local interrupts disabled. jiffies only advances from the
+ * timer interrupt, so on the UP targets (every ramips subtarget except
+ * mt7621) a jiffies based timeout can never expire: a wedged engine
+ * would spin forever with interrupts off. Use a bounded retry count
+ * that does not depend on the tick instead.
+ */
+#define GSW_MDIO_BUSY_RETRIES	2000
+
 static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 {
-	unsigned long t_start = jiffies;
+	unsigned int i;
 
-	while (1) {
+	for (i = 0; i < GSW_MDIO_BUSY_RETRIES; i++) {
 		if (!(mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) & GSW_MDIO_ACCESS))
 			return 0;
-		if (time_after(jiffies, t_start + GSW_REG_PHY_TIMEOUT))
-			break;
 		udelay(1);
 	}
 
@@ -61,8 +68,13 @@ static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 	return -ETIMEDOUT;
 }
 
-int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
-		      u32 phy_register, u32 write_data)
+/* unlocked variants: the PIAC is a single command/status register,
+ * so a complete transaction (wait - issue - wait - collect) must be
+ * atomic wrt other users. Direct callers (swconfig, the MT7621 irq
+ * handler) bypass the mdiobus mutex, hence this dedicated lock.
+ */
+static int __mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
+			      u32 phy_register, u32 write_data)
 {
 	if (mt7620_mii_busy_wait(gsw))
 		return -ETIMEDOUT;
@@ -80,8 +92,21 @@ int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 	return 0;
 }
 
-static int mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr,
-			   int phy_reg, u16 *val)
+int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
+		      u32 phy_register, u32 write_data)
+{
+	unsigned long flags;
+	int ret;
+
+	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	ret = __mt7620_mii_write(gsw, phy_addr, phy_register, write_data);
+	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+
+	return ret;
+}
+
+static int __mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr,
+			     int phy_reg, u16 *val)
 {
 	if (mt7620_mii_busy_wait(gsw))
 		return -ETIMEDOUT;
@@ -101,10 +126,13 @@ static int mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr,
 
 int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 {
+	unsigned long flags;
 	u16 d;
 
-	if (mt7620_mii_read(gsw, phy_addr, phy_reg, &d))
-		return 0xffff;
+	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	if (__mt7620_mii_read(gsw, phy_addr, phy_reg, &d))
+		d = 0xffff;
+	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
 
 	return d;
 }
@@ -127,30 +155,42 @@ int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 
 int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
 {
-	/* abort the sequence on the first failed transaction: a partial
-	 * write leaves the indirect-address register pointing nowhere
-	 * sane
-	 */
-	if (_mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff))
-		return -ETIMEDOUT;
-	if (_mt7620_mii_write(gsw, 0x1f, (reg >> 2) & 0xf, val & 0xffff))
-		return -ETIMEDOUT;
-	if (_mt7620_mii_write(gsw, 0x1f, 0x10, val >> 16))
-		return -ETIMEDOUT;
+	unsigned long flags;
+	int ret;
 
-	return 0;
+	/* the indirect-address write and the two data writes are one
+	 * logical access: hold the lock across the whole sequence so no
+	 * other transaction can clobber the address register in
+	 * between. Abort on the first failed transaction.
+	 */
+	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	ret = __mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
+	if (!ret)
+		ret = __mt7620_mii_write(gsw, 0x1f, (reg >> 2) & 0xf,
+					 val & 0xffff);
+	if (!ret)
+		ret = __mt7620_mii_write(gsw, 0x1f, 0x10, val >> 16);
+	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+
+	return ret;
 }
 
 int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 {
+	unsigned long flags;
 	u16 high, low;
+	int ret;
 
-	if (_mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff))
-		return -ETIMEDOUT;
-	if (mt7620_mii_read(gsw, 0x1f, (reg >> 2) & 0xf, &low))
-		return -ETIMEDOUT;
-	if (mt7620_mii_read(gsw, 0x1f, 0x10, &high))
-		return -ETIMEDOUT;
+	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	ret = __mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
+	if (!ret)
+		ret = __mt7620_mii_read(gsw, 0x1f, (reg >> 2) & 0xf, &low);
+	if (!ret)
+		ret = __mt7620_mii_read(gsw, 0x1f, 0x10, &high);
+	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+
+	if (ret)
+		return ret;
 
 	*val = (high << 16) | low;
 

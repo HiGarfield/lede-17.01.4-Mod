@@ -15,6 +15,8 @@
 #ifndef _RALINK_GSW_MT7620_H__
 #define _RALINK_GSW_MT7620_H__
 
+#include <linux/spinlock.h>
+
 /* a PHY register access takes tens of microseconds; 100ms is already
  * a huge margin, while the old 5s busy-wait could stall a softirq or
  * lock-holder long enough to trip the watchdog
@@ -108,6 +110,11 @@ struct mt7620_gsw {
 	int			irq;
 	int			port4;
 	unsigned long int	autopoll;
+	/* serialises PIAC (MDIO) transactions: besides the mii_bus
+	 * ops, the PIAC is also poked directly from swconfig and the
+	 * MT7621 irq handler, bypassing the mdiobus lock
+	 */
+	spinlock_t		mdio_lock;
 };
 
 void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg);

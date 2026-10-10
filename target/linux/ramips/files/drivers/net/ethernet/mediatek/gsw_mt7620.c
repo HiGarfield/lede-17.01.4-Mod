@@ -294,6 +294,7 @@ static int mt7620_gsw_probe(struct platform_device *pdev)
 		return PTR_ERR(gsw->base);
 
 	gsw->dev = &pdev->dev;
+	spin_lock_init(&gsw->mdio_lock);
 
 	of_property_read_string(np, "mediatek,port4", &port4);
 	if (port4 && !strcmp(port4, "ephy"))

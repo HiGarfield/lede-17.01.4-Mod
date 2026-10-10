@@ -327,6 +327,7 @@ static int mt7621_gsw_probe(struct platform_device *pdev)
 		return PTR_ERR(gsw->base);
 
 	gsw->dev = &pdev->dev;
+	spin_lock_init(&gsw->mdio_lock);
 	gsw->irq = platform_get_irq(pdev, 0);
 	/* do not swallow -EPROBE_DEFER: mapping it to 0 made the probe
 	 * succeed permanently without an interrupt (same fix as
