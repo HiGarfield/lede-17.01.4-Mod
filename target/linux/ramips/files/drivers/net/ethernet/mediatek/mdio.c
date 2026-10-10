@@ -292,6 +292,7 @@ int fe_mdio_init(struct fe_priv *priv)
 	mii_np = of_get_child_by_name(priv->dev->of_node, "mdio-bus");
 	if (!mii_np) {
 		dev_err(priv->dev, "no %s child node found", "mdio-bus");
+		priv->phy = NULL;
 		return -ENODEV;
 	}
 
@@ -334,6 +335,10 @@ err_free_bus:
 err_put_node:
 	of_node_put(mii_np);
 	priv->mii_bus = NULL;
+	/* undo the early priv->phy assignment above: on failure the
+	 * caller must not see a phy provider with no mii_bus behind it
+	 */
+	priv->phy = NULL;
 	return err;
 }
 
