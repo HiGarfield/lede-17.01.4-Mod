@@ -60,6 +60,32 @@ static void fe_phy_link_adjust(struct net_device *dev)
 	spin_unlock_irqrestore(&priv->phy->lock, flags);
 }
 
+/*
+ * Drop the phy_node[] slot that refers to phy_node, and release it.
+ *
+ * The port number is not known on every failure path of
+ * fe_connect_phy_node(), so look the node up by identity instead of
+ * by index.  Leaving a stale phy_node[] entry behind is not harmless:
+ * callers use that array as the "this port has a PHY" flag, so a
+ * non-NULL phy_node[i] with a NULL phy[i] later gets dereferenced by
+ * fe_phy_link_adjust() and handed to phy_ethtool_sset() in
+ * fe_set_settings().
+ */
+static void fe_phy_forget_node(struct fe_priv *priv,
+			       struct device_node *phy_node)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy_node); i++) {
+		if (priv->phy->phy_node[i] != phy_node)
+			continue;
+
+		priv->phy->phy_node[i] = NULL;
+		of_node_put(phy_node);
+		break;
+	}
+}
+
 int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
 {
 	const __be32 *_port = NULL;
@@ -80,6 +106,7 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
 	if (!_port ||
 	    (be32_to_cpu(*_port) >= ARRAY_SIZE(priv->phy->phy))) {
 		pr_err("%s: invalid port id\n", phy_node->name);
+		fe_phy_forget_node(priv, phy_node);
 		return -EINVAL;
 	}
 	port = be32_to_cpu(*_port);
