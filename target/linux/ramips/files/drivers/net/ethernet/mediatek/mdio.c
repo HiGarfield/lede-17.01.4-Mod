@@ -147,8 +147,9 @@ static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 	struct phy_device *p;
 
 	p = phy_attach(priv->netdev, dev_name(&phy->dev), PHY_INTERFACE_MODE_MII);
-	if (!p)
-		return -ENODEV;
+	/* phy_attach() returns an ERR_PTR() on failure, not NULL */
+	if (IS_ERR(p))
+		return PTR_ERR(p);
 
 	phy->autoneg = AUTONEG_ENABLE;
 	phy->speed = 0;
