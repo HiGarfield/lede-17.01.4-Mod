@@ -15,6 +15,7 @@
 
 #include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/mutex.h>
 #include <linux/platform_device.h>
 #include <asm/mach-ralink/ralink_regs.h>
 #include <linux/of_irq.h>
@@ -219,6 +220,12 @@ struct rt305x_esw {
 	/* Protects against concurrent register r/w operations. */
 	spinlock_t		reg_rw_lock;
 
+	/* Serialises whole MDIO (PCR0/PCR1) transactions; a spinlock is
+	 * unsuitable here because the busy-wait can last for an extended
+	 * period on a hung PHY
+	 */
+	struct mutex		mii_lock;
+
 	unsigned char		port_map;
 	unsigned char		port_disable;
 	unsigned int		reg_initval_fct2;
@@ -270,6 +277,12 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 	unsigned long t_start = jiffies;
 	int ret = 0;
 
+	/* the two busy-waits and the PCR0 command write are one
+	 * transaction: a concurrent writer would clobber the command
+	 * word in between
+	 */
+	mutex_lock(&esw->mii_lock);
+
 	while (1) {
 		if (!(esw_r32(esw, RT305X_ESW_REG_PCR1) &
 		      RT305X_ESW_PCR1_WT_DONE))
@@ -300,6 +313,7 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 		udelay(1);
 	}
 out:
+	mutex_unlock(&esw->mii_lock);
 	if (ret)
 		dev_err(esw->dev, "ramips_eth: MDIO timeout\n");
 	return ret;
@@ -1401,6 +1415,7 @@ static int esw_probe(struct platform_device *pdev)
 	swdev->ops = &esw_ops;
 
 	spin_lock_init(&esw->reg_rw_lock);
+	mutex_init(&esw->mii_lock);
 
 	/*
 	 * Program the hardware and apply the (still empty) software
