@@ -15,7 +15,11 @@
 #ifndef _RALINK_GSW_MT7620_H__
 #define _RALINK_GSW_MT7620_H__
 
-#define GSW_REG_PHY_TIMEOUT	(5 * HZ)
+/* a PHY register access takes tens of microseconds; 100ms is already
+ * a huge margin, while the old 5s busy-wait could stall a softirq or
+ * lock-holder long enough to trip the watchdog
+ */
+#define GSW_REG_PHY_TIMEOUT	(HZ / 10)
 
 #ifdef CONFIG_SOC_MT7621
 #define MT7620A_GSW_REG_PIAC	0x0004
@@ -122,8 +126,8 @@ void mt7620_print_link_state(struct fe_priv *priv, int port, int link,
 int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val);
 int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val);
 
-u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
-			     u32 phy_register, u32 write_data);
+int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
+		      u32 phy_register, u32 write_data);
 int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg);
 void mt7620_handle_carrier(struct fe_priv *priv);
 

@@ -58,14 +58,14 @@ static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 		       ~GSW_MDIO_ACCESS,
 		       MT7620A_GSW_REG_PIAC);
 	udelay(10);
-	return -1;
+	return -ETIMEDOUT;
 }
 
-u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
-			     u32 phy_register, u32 write_data)
+int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
+		      u32 phy_register, u32 write_data)
 {
 	if (mt7620_mii_busy_wait(gsw))
-		return -1;
+		return -ETIMEDOUT;
 
 	write_data &= 0xffff;
 
@@ -75,7 +75,7 @@ u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 		MT7620A_GSW_REG_PIAC);
 
 	if (mt7620_mii_busy_wait(gsw))
-		return -1;
+		return -ETIMEDOUT;
 
 	return 0;
 }
