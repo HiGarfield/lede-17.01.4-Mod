@@ -278,6 +278,7 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 			ret = 1;
 			goto out;
 		}
+		udelay(1);
 	}
 
 	write_data &= 0xffff;
@@ -296,6 +297,7 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 			ret = 1;
 			break;
 		}
+		udelay(1);
 	}
 out:
 	if (ret)
