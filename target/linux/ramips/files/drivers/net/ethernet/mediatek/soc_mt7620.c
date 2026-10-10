@@ -216,8 +216,19 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		mask = 2;
 		break;
 	default:
-		dev_err(priv->dev, "port %d - invalid phy mode\n", id);
-		return;
+		if (!priv->phy->phy_fixed[id]) {
+			dev_err(priv->dev, "port %d - invalid phy mode\n", id);
+			return;
+		}
+		/* a fixed link does not need a phy-mode to talk to its
+		 * peer; warn and fall back to RGMII, mirroring
+		 * rt2880_port_init()
+		 */
+		dev_warn(priv->dev,
+			 "port %d - invalid phy mode, using rgmii for fixed link\n",
+			 id);
+		mask = 0;
+		break;
 	}
 
 	priv->phy->phy_node[id] = of_parse_phandle(np, "phy-handle", 0);
