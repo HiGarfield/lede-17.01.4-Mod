@@ -935,6 +935,9 @@ static int mt7621_sw_get_port_mib(struct switch_dev *dev,
 
 	for (i = 0; i < ARRAY_SIZE(mt7621_mibs); ++i) {
 		u64 counter;
+
+		if (len >= sizeof(buf))
+			break;
 		len += snprintf(buf + len, sizeof(buf) - len,
 				"%-11s: ", mt7621_mibs[i].name);
 		counter = get_mib_counter(priv, i, val->port_vlan);
