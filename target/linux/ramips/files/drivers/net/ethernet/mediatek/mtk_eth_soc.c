@@ -1726,12 +1726,11 @@ static int fe_remove(struct platform_device *pdev)
 
 	of_node_put(priv->switch_np);
 
-	netif_napi_del(&priv->rx_napi);
-	kfree(priv->hw_stats);
-
 	cancel_work_sync(&priv->pending_work);
 
 	unregister_netdev(dev);
+	netif_napi_del(&priv->rx_napi);
+	kfree(priv->hw_stats);
 	free_netdev(dev);
 	platform_set_drvdata(pdev, NULL);
 
