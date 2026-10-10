@@ -100,6 +100,7 @@ enum {
 struct mt7620_gsw {
 	struct device		*dev;
 	void __iomem		*base;
+	struct fe_priv		*priv;
 	int			irq;
 	int			port4;
 	unsigned long int	autopoll;
