@@ -1391,6 +1391,40 @@ static int fe_do_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	return phy_mii_ioctl(priv->phy_dev, ifr, cmd);
 }
 
+int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size)
+{
+	bool was_running = netif_running(priv->netdev);
+	u16 old_tx = priv->tx_ring.tx_ring_size;
+	u16 old_rx = priv->rx_ring.rx_ring_size;
+	int err;
+
+	if (was_running)
+		fe_stop(priv->netdev);
+
+	fe_free_dma(priv);
+
+	priv->tx_ring.tx_ring_size = new_tx_size;
+	priv->rx_ring.rx_ring_size = new_rx_size;
+
+	err = fe_init_dma(priv);
+	if (err) {
+		priv->tx_ring.tx_ring_size = old_tx;
+		priv->rx_ring.rx_ring_size = old_rx;
+		if (fe_init_dma(priv))
+			netif_err(priv, tx_err, priv->netdev,
+				  "DMA realloc rollback failed\n");
+	}
+
+	if (was_running) {
+		int oerr = fe_open(priv->netdev);
+
+		if (oerr && !err)
+			err = oerr;
+	}
+
+	return err;
+}
+
 static int fe_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct fe_priv *priv = netdev_priv(dev);
