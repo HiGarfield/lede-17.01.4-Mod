@@ -1473,8 +1473,29 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 	u16 old_buf = priv->rx_ring.rx_buf_size;
 	int err;
 
-	if (was_running)
+	if (was_running) {
 		fe_stop(priv->netdev);
+	} else {
+		/* The DMA engine may still be running here: it is enabled
+		 * in fe_init() (ndo_init) and only stopped again by
+		 * fe_stop()/fe_uninit(). Quiesce it before freeing the
+		 * rings the hardware may still be writing to.
+		 */
+		unsigned long flags;
+		int i;
+
+		spin_lock_irqsave(&priv->page_lock, flags);
+		fe_reg_w32(fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+			   ~(FE_TX_WB_DDONE | FE_RX_DMA_EN | FE_TX_DMA_EN),
+			   FE_REG_PDMA_GLO_CFG);
+		spin_unlock_irqrestore(&priv->page_lock, flags);
+		for (i = 0; i < 10; i++) {
+			if (!(fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+			      (FE_TX_DMA_BUSY | FE_RX_DMA_BUSY)))
+				break;
+			msleep(20);
+		}
+	}
 
 	/* free the old rings while rx_buf_size still describes their
 	 * mapping; only then switch to the new buffer geometry
@@ -1549,12 +1570,12 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 		new_frag = PAGE_SIZE;
 	new_buf = fe_max_buf_size(new_frag);
 
-	if (!netif_running(dev)) {
-		priv->rx_ring.frag_size = new_frag;
-		priv->rx_ring.rx_buf_size = new_buf;
-		return 0;
-	}
-
+	/* Rebuild the rings in the !running case too: they were
+	 * allocated by fe_init() with the old buffer geometry, and
+	 * merely updating frag_size/rx_buf_size would leave every
+	 * later unmap/build_skb disagreeing with what is actually
+	 * mapped in the ring.
+	 */
 	err = fe_realloc_dma(priv, priv->tx_ring.tx_ring_size,
 			     priv->rx_ring.rx_ring_size, new_frag, new_buf);
 	if (err) {
