@@ -1929,7 +1929,7 @@ static int fe_probe(struct platform_device *pdev)
 	err = register_netdev(netdev);
 	if (err) {
 		dev_err(&pdev->dev, "error bringing up device\n");
-		goto err_free_dev;
+		goto err_napi_del;
 	}
 
 	platform_set_drvdata(pdev, netdev);
@@ -1939,6 +1939,11 @@ static int fe_probe(struct platform_device *pdev)
 
 	return 0;
 
+err_napi_del:
+	/* pairs with netif_napi_add(): free_netdev() does not remove
+	 * the napi_struct from the poll list on this kernel
+	 */
+	netif_napi_del(&priv->rx_napi);
 err_free_dev:
 	kfree(priv->hw_stats);
 	of_node_put(priv->switch_np);
