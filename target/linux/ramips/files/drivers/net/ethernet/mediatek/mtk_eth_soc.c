@@ -1093,14 +1093,12 @@ static int fe_poll(struct napi_struct *napi, int budget)
 	}
 
 	tx_done = fe_poll_tx(priv, budget, tx_intr, &tx_again);
-	if (tx_done && !tx_again && !(status & tx_intr)) {
-		fe_reg_w32(tx_intr, FE_REG_FE_INT_STATUS);
-	}
-
 	rx_done = fe_poll_rx(napi, budget, priv, rx_intr);
-	if (rx_done && rx_done < budget && !(status & rx_intr)) {
-		fe_reg_w32(rx_intr, FE_REG_FE_INT_STATUS);
-	}
+	/* the rx/tx status bits were already cleared on entry above;
+	 * writing them again here based on the stale entry snapshot
+	 * would also clear completion events that arrived *during* this
+	 * poll and whose descriptors have not been processed yet
+	 */
 
 	if (unlikely(fe_status & status_intr)) {
 		if (hwstat && spin_trylock(&hwstat->stats_lock)) {
