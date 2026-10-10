@@ -1179,11 +1179,14 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	ports = RT305X_ESW_PORTS_NONE;
 	for (i = 0; i < val->len; i++) {
 		struct switch_port *p = &val->value.ports[i];
-		int port_mask = 1 << p->id;
-		bool untagged = !(p->flags & (1 << SWITCH_PORT_FLAG_TAGGED));
+		bool untagged;
+		int port_mask;
 
-		if (p->id >= RT305X_ESW_NUM_PORTS)
+		if (p->id < 0 || p->id >= RT305X_ESW_NUM_PORTS)
 			return -EINVAL;
+
+		port_mask = 1 << p->id;
+		untagged = !(p->flags & (1 << SWITCH_PORT_FLAG_TAGGED));
 
 		ports |= port_mask;
 		esw->ports[p->id].untag = untagged;
