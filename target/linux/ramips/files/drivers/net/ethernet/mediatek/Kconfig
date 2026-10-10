@@ -6,6 +6,10 @@ config NET_VENDOR_MEDIATEK
 
 config NET_MEDIATEK_SOC
 	def_tristate NET_VENDOR_MEDIATEK
+	# ethtool.o is always built into mtk-eth-soc and references PHYLIB
+	# symbols (phy_ethtool_gset/sset, phy_read_status, genphy_*), also
+	# on RT3050 where NET_MEDIATEK_MDIO is not selected
+	select PHYLIB
 
 if NET_MEDIATEK_SOC
 choice
