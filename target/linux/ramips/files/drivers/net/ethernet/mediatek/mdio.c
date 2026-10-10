@@ -282,8 +282,17 @@ int fe_mdio_init(struct fe_priv *priv)
 	}
 
 	if (!of_device_is_available(mii_np)) {
-		err = 0;
-		goto err_put_node;
+		/*
+		 * A disabled mdio-bus is not fatal: ports described with
+		 * "mediatek,fixed-link" never touch the MDIO bus, and every
+		 * mii_bus dereference is guarded
+		 * (rt2880_port_init(), mt7620_port_init(), fe_phy_connect()).
+		 * Succeed with priv->phy set and priv->mii_bus left NULL
+		 * instead of aborting the whole interface.
+		 */
+		dev_info(priv->dev, "mdio-bus is disabled, fixed-link only\n");
+		of_node_put(mii_np);
+		return 0;
 	}
 
 	priv->mii_bus = mdiobus_alloc();
