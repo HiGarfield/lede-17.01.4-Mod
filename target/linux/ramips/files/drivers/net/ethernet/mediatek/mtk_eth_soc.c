@@ -1252,7 +1252,8 @@ void fe_csum_config(struct fe_priv *priv)
 {
 	struct net_device *dev = priv_netdev(priv);
 
-	fe_txcsum_config((dev->features & NETIF_F_IP_CSUM));
+	fe_txcsum_config((dev->features &
+			  (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM)) != 0);
 	fe_rxcsum_config((dev->features & NETIF_F_RXCSUM));
 }
 
