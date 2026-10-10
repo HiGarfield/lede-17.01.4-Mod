@@ -190,7 +190,7 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 	unsigned long flags;
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
 		if (priv->phy->phy_fixed[i]) {
 			spin_lock_irqsave(&priv->phy->lock, flags);
 			priv->link[i] = 0;
@@ -199,6 +199,7 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		} else if (priv->phy->phy[i]) {
 			phy_disconnect(priv->phy->phy[i]);
+			priv->phy->phy[i] = NULL;
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i]) {
 			phy_detach(priv->mii_bus->phy_map[i]);
 		}
@@ -208,6 +209,17 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 			priv->phy->phy_node[i] = NULL;
 		}
 	}
+
+	/*
+	 * priv->phy_dev aliases one of the objects released just above and
+	 * priv->phy_flags says how it was obtained.  The ethtool paths use
+	 * both without re-deriving them from phy[], so a stale value here is
+	 * a dangling phy_device pointer.  Both callers of this function
+	 * (fe_init's error path and fe_uninit) are terminal, so dropping the
+	 * alias unconditionally is correct.
+	 */
+	priv->phy_dev = NULL;
+	priv->phy_flags = 0;
 }
 
 static void fe_phy_start(struct fe_priv *priv)
