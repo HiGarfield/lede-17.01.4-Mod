@@ -1205,8 +1205,7 @@ static int fe_hw_init(struct net_device *dev)
 	struct fe_priv *priv = netdev_priv(dev);
 	int i, err;
 
-	err = devm_request_irq(priv->dev, dev->irq, fe_handle_irq, 0,
-			       dev_name(priv->dev), dev);
+	err = request_irq(dev->irq, fe_handle_irq, 0, dev_name(priv->dev), dev);
 	if (err)
 		return err;
 
@@ -1231,6 +1230,10 @@ static int fe_hw_init(struct net_device *dev)
 	err = priv->soc->fwd_config(priv);
 	if (err) {
 		netdev_err(dev, "unable to configure frame engine\n");
+		/* the irq above is ours to release: fe_init() cannot tell
+		 * whether request_irq() or a later step failed
+		 */
+		free_irq(dev->irq, dev);
 		return err;
 	}
 
