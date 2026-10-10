@@ -136,22 +136,9 @@ out_get_link:
 static int fe_set_ringparam(struct net_device *dev,
 			    struct ethtool_ringparam *ring)
 {
-	struct fe_priv *priv = netdev_priv(dev);
-
-	if ((ring->tx_pending < 2) ||
-	    (ring->rx_pending < 2) ||
-	    (ring->rx_pending > MAX_DMA_DESC) ||
-	    (ring->tx_pending > MAX_DMA_DESC))
-		return -EINVAL;
-
-	dev->netdev_ops->ndo_stop(dev);
-
-	priv->tx_ring.tx_ring_size = BIT(fls(ring->tx_pending) - 1);
-	priv->rx_ring.rx_ring_size = BIT(fls(ring->rx_pending) - 1);
-
-	dev->netdev_ops->ndo_open(dev);
-
-	return 0;
+	/* 该 SoC 驱动的 DMA 描述符环在 probe 时固定分配，运行时重建涉及
+	 * NAPI/中断/SKB 生命周期，暂不支持。 */
+	return -EOPNOTSUPP;
 }
 
 static void fe_get_ringparam(struct net_device *dev,
