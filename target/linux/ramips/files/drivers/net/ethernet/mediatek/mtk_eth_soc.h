@@ -439,8 +439,8 @@ struct fe_tx_buf {
 	struct sk_buff *skb;
 	DEFINE_DMA_UNMAP_ADDR(dma_addr0);
 	DEFINE_DMA_UNMAP_ADDR(dma_addr1);
-	u16 dma_len0;
-	u16 dma_len1;
+	DEFINE_DMA_UNMAP_LEN(dma_len0);
+	DEFINE_DMA_UNMAP_LEN(dma_len1);
 };
 
 struct fe_tx_ring {
