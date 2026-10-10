@@ -906,6 +906,17 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 		if (!(trxd.rxd2 & RX_DMA_DONE))
 			break;
 
+		/* Never trust the hardware-reported length blindly: a
+		 * corrupted descriptor could make skb_put() run past the
+		 * end of the frag. Drop the packet and recycle the old,
+		 * still-mapped buffer instead.
+		 */
+		pktlen = RX_DMA_GET_PLEN0(trxd.rxd2);
+		if (unlikely(pktlen > ring->rx_buf_size)) {
+			stats->rx_dropped++;
+			goto release_desc;
+		}
+
 		/* alloc new buffer */
 		new_data = page_frag_alloc(&ring->frag_cache, ring->frag_size,
 					   GFP_ATOMIC);
@@ -935,7 +946,6 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 
 		dma_unmap_single(priv->dev, trxd.rxd1,
 				 ring->rx_buf_size, DMA_FROM_DEVICE);
-		pktlen = RX_DMA_GET_PLEN0(trxd.rxd2);
 		skb->dev = netdev;
 		skb_put(skb, pktlen);
 		if (trxd.rxd4 & checksum_bit)
