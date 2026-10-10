@@ -277,6 +277,14 @@ static int mt7621_gsw_probe(struct platform_device *pdev)
 
 	gsw->dev = &pdev->dev;
 	gsw->irq = platform_get_irq(pdev, 0);
+	/* do not swallow -EPROBE_DEFER: mapping it to 0 made the probe
+	 * succeed permanently without an interrupt (same fix as
+	 * mt7620_gsw_probe)
+	 */
+	if (gsw->irq == -EPROBE_DEFER)
+		return -EPROBE_DEFER;
+	if (gsw->irq < 0)
+		gsw->irq = 0;
 
 	platform_set_drvdata(pdev, gsw);
 
