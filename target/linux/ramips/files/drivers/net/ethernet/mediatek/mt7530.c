@@ -1278,13 +1278,6 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	else
 		swdev->ops = &mt7530_ops;
 
-	ret = register_switch(swdev, NULL);
-	if (ret) {
-		dev_err(dev, "failed to register mt7530\n");
-		mutex_destroy(&mt7530->reg_mutex);
-		return ERR_PTR(ret);
-	}
-
 	map = mt7530_find_mapping(dev->of_node);
 	if (map)
 		mt7530_apply_mapping(mt7530, map);
@@ -1297,6 +1290,27 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 		mt7530_w32(mt7530, REG_HWTRAP, 0x1117edf);
 	}
 	mutex_unlock(&mt7530->reg_mutex);
+
+	/*
+	 * Program the switch before publishing it.  register_switch()
+	 * makes the device reachable through the switch API, and
+	 * mt7530_apply_config() rewrites every port PCR/PVC, the VLAN
+	 * group table, the PVID registers and the mirror setup from the
+	 * zeroed priv->vlan_entries[] / priv->ports[].  A configuration
+	 * arriving through the API in that window was therefore reverted
+	 * a moment later.
+	 *
+	 * Neither mt7530_apply_mapping() nor mt7530_apply_config()
+	 * requires the device to be registered; both reach the private
+	 * state through container_of() on the embedded swdev.
+	 */
+	ret = register_switch(swdev, NULL);
+	if (ret) {
+		dev_err(dev, "failed to register mt7530\n");
+		mutex_destroy(&mt7530->reg_mutex);
+		return ERR_PTR(ret);
+	}
+
 	dev_info(dev, "loaded %s driver\n", swdev->name);
 
 	return swdev;
