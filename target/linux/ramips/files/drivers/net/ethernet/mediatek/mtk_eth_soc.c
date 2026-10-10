@@ -1404,25 +1404,44 @@ static int fe_do_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
 	return phy_mii_ioctl(priv->phy_dev, ifr, cmd);
 }
 
-int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size)
+int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
+		   u16 new_frag, u16 new_buf)
 {
 	bool was_running = netif_running(priv->netdev);
 	u16 old_tx = priv->tx_ring.tx_ring_size;
 	u16 old_rx = priv->rx_ring.rx_ring_size;
+	u16 old_frag = priv->rx_ring.frag_size;
+	u16 old_buf = priv->rx_ring.rx_buf_size;
 	int err;
 
 	if (was_running)
 		fe_stop(priv->netdev);
 
+	/* free the old rings while rx_buf_size still describes their
+	 * mapping; only then switch to the new buffer geometry
+	 */
 	fe_free_dma(priv);
 
 	priv->tx_ring.tx_ring_size = new_tx_size;
 	priv->rx_ring.rx_ring_size = new_rx_size;
+	priv->rx_ring.frag_size = new_frag;
+	priv->rx_ring.rx_buf_size = new_buf;
 
 	err = fe_init_dma(priv);
 	if (err) {
+		/*
+		 * The failed attempt may have allocated one of the two
+		 * rings before failing on the other. Release it before
+		 * reinitialising, otherwise kcalloc()/dma_alloc_coherent()
+		 * run again on top of the still-live pointers and the
+		 * previous tx_buf/tx_dma/rx_data/rx_dma are lost.
+		 */
+		fe_free_dma(priv);
+
 		priv->tx_ring.tx_ring_size = old_tx;
 		priv->rx_ring.rx_ring_size = old_rx;
+		priv->rx_ring.frag_size = old_frag;
+		priv->rx_ring.rx_buf_size = old_buf;
 		if (fe_init_dma(priv))
 			netif_err(priv, tx_err, priv->netdev,
 				  "DMA realloc rollback failed\n");
@@ -1441,7 +1460,8 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size)
 static int fe_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct fe_priv *priv = netdev_priv(dev);
-	int frag_size, old_mtu;
+	int frag_size, old_mtu, err;
+	u16 new_frag, new_buf;
 	u32 fwd_cfg;
 
 	if (!(priv->flags & FE_FLAG_JUMBO_FRAME))
@@ -1465,15 +1485,31 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 		return 0;
 
 	if (new_mtu <= ETH_DATA_LEN)
-		priv->rx_ring.frag_size = fe_max_frag_size(ETH_DATA_LEN);
+		new_frag = fe_max_frag_size(ETH_DATA_LEN);
 	else
-		priv->rx_ring.frag_size = PAGE_SIZE;
-	priv->rx_ring.rx_buf_size = fe_max_buf_size(priv->rx_ring.frag_size);
+		new_frag = PAGE_SIZE;
+	new_buf = fe_max_buf_size(new_frag);
 
-	if (!netif_running(dev))
+	if (!netif_running(dev)) {
+		priv->rx_ring.frag_size = new_frag;
+		priv->rx_ring.rx_buf_size = new_buf;
 		return 0;
+	}
 
-	fe_stop(dev);
+	err = fe_realloc_dma(priv, priv->tx_ring.tx_ring_size,
+			     priv->rx_ring.rx_ring_size, new_frag, new_buf);
+	if (err) {
+		dev->mtu = old_mtu;
+		return err;
+	}
+
+	/*
+	 * Program the jumbo frame bits only once the reallocation has
+	 * succeeded. They used to be written before it, and the error
+	 * path rolled back dev->mtu and the ring sizes but left the
+	 * hardware describing a frame size the driver no longer believes
+	 * in.
+	 */
 	if (!IS_ENABLED(CONFIG_SOC_MT7621)) {
 		fwd_cfg = fe_r32(FE_GDMA1_FWD_CFG);
 		if (new_mtu <= ETH_DATA_LEN) {
@@ -1486,7 +1522,7 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 		fe_w32(fwd_cfg, FE_GDMA1_FWD_CFG);
 	}
 
-	return fe_open(dev);
+	return 0;
 }
 
 static const struct net_device_ops fe_netdev_ops = {

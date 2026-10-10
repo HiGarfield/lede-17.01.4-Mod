@@ -518,7 +518,8 @@ u32 fe_reg_r32(enum fe_reg reg);
 
 void fe_reset(u32 reset_bits);
 
-int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size);
+int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
+		   u16 new_frag, u16 new_buf);
 
 static inline void *priv_netdev(struct fe_priv *priv)
 {
