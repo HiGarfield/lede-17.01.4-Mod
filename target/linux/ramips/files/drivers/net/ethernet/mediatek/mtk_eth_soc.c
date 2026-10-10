@@ -1549,6 +1549,9 @@ static int fe_probe(struct platform_device *pdev)
 	device_reset(&pdev->dev);
 
 	match = of_match_device(of_fe_match, &pdev->dev);
+	if (!match)
+		return -ENODEV;
+
 	soc = (struct fe_soc_data *)match->data;
 
 	if (soc->reg_table)
