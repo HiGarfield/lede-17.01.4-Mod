@@ -1398,6 +1398,20 @@ static int esw_probe(struct platform_device *pdev)
 	swdev->vlans = RT305X_ESW_NUM_VIDS;
 	swdev->ops = &esw_ops;
 
+	spin_lock_init(&esw->reg_rw_lock);
+
+	/*
+	 * Program the hardware and apply the (still empty) software
+	 * configuration before the switch becomes visible.  Both were
+	 * previously done after register_switch(): esw_hw_init() ends with
+	 * esw_apply_config(), which rewrites every VLAN ID, VLAN member
+	 * and port override register from the zeroed esw->vlans[] and
+	 * esw->ports[], so any write arriving through the switch API in
+	 * that window was silently reverted.  reg_rw_lock was likewise
+	 * initialised only after the device was reachable.
+	 */
+	esw_hw_init(esw);
+
 	ret = register_switch(swdev, NULL);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "register_switch failed\n");
@@ -1406,10 +1420,6 @@ static int esw_probe(struct platform_device *pdev)
 	}
 
 	platform_set_drvdata(pdev, esw);
-
-	spin_lock_init(&esw->reg_rw_lock);
-
-	esw_hw_init(esw);
 
 	reg_init = of_get_property(np, "ralink,rgmii", NULL);
 	if (reg_init && be32_to_cpu(*reg_init) == 1) {
