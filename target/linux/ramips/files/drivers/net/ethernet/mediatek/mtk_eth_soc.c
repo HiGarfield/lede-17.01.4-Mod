@@ -30,6 +30,7 @@
 #include <linux/tcp.h>
 #include <linux/io.h>
 #include <linux/bug.h>
+#include <linux/switch.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
 
@@ -1670,6 +1671,10 @@ static int fe_remove(struct platform_device *pdev)
 {
 	struct net_device *dev = platform_get_drvdata(pdev);
 	struct fe_priv *priv = netdev_priv(dev);
+	int i;
+
+	for (i = 0; i < priv->soc->gsw_dev_num; i++)
+		unregister_switch(priv->soc->gsw_dev[i]);
 
 	netif_napi_del(&priv->rx_napi);
 	kfree(priv->hw_stats);
