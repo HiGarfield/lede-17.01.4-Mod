@@ -1445,6 +1445,7 @@ static int esw_remove(struct platform_device *pdev)
 
 	if (esw) {
 		esw_w32(esw, ~0, RT305X_ESW_REG_IMR);
+		unregister_switch(&esw->swdev);
 		/* the irq was requested through devm, so its action is only
 		 * released after this function returns; drop it first,
 		 * otherwise irq_dispose_mapping() tears down (and possibly
