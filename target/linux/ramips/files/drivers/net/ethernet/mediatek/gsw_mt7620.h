@@ -118,8 +118,8 @@ int mt7620_has_carrier(struct fe_priv *priv);
 void mt7620_print_link_state(struct fe_priv *priv, int port, int link,
 			     int speed, int duplex);
 
-void mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val);
-u32 mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg);
+int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val);
+int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val);
 
 u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 			     u32 phy_register, u32 write_data);

@@ -105,14 +105,16 @@ static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
 			GSW_REG_GPC1);
 
 		/* set MT7530 central align */
-		val = mt7530_mdio_r32(gsw, 0x7830);
-		val &= ~BIT(0);
-		val |= BIT(1);
-		mt7530_mdio_w32(gsw, 0x7830, val);
+		if (!mt7530_mdio_r32(gsw, 0x7830, &val)) {
+			val &= ~BIT(0);
+			val |= BIT(1);
+			mt7530_mdio_w32(gsw, 0x7830, val);
+		}
 
-		val = mt7530_mdio_r32(gsw, 0x7a40);
-		val &= ~BIT(30);
-		mt7530_mdio_w32(gsw, 0x7a40, val);
+		if (!mt7530_mdio_r32(gsw, 0x7a40, &val)) {
+			val &= ~BIT(30);
+			mt7530_mdio_w32(gsw, 0x7a40, val);
+		}
 
 		mt7530_mdio_w32(gsw, 0x7a78, 0x855);
 	} else {

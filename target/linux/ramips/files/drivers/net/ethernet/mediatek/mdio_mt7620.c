@@ -55,12 +55,11 @@ u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 	return 0;
 }
 
-int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
+static int mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr,
+			   int phy_reg, u16 *val)
 {
-	u32 d;
-
 	if (mt7620_mii_busy_wait(gsw))
-		return 0xffff;
+		return -ETIMEDOUT;
 
 	mtk_switch_w32(gsw, GSW_MDIO_ACCESS | GSW_MDIO_START | GSW_MDIO_READ |
 		(phy_reg << GSW_MDIO_REG_SHIFT) |
@@ -68,9 +67,19 @@ int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 		MT7620A_GSW_REG_PIAC);
 
 	if (mt7620_mii_busy_wait(gsw))
-		return 0xffff;
+		return -ETIMEDOUT;
 
-	d = mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) & 0xffff;
+	*val = mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) & 0xffff;
+
+	return 0;
+}
+
+int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
+{
+	u16 d;
+
+	if (mt7620_mii_read(gsw, phy_addr, phy_reg, &d))
+		return 0xffff;
 
 	return d;
 }
@@ -91,22 +100,36 @@ int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 	return _mt7620_mii_read(gsw, phy_addr, phy_reg);
 }
 
-void mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
+int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
 {
-	_mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
-	_mt7620_mii_write(gsw, 0x1f, (reg >> 2) & 0xf,  val & 0xffff);
-	_mt7620_mii_write(gsw, 0x1f, 0x10, val >> 16);
+	/* abort the sequence on the first failed transaction: a partial
+	 * write leaves the indirect-address register pointing nowhere
+	 * sane
+	 */
+	if (_mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff))
+		return -ETIMEDOUT;
+	if (_mt7620_mii_write(gsw, 0x1f, (reg >> 2) & 0xf, val & 0xffff))
+		return -ETIMEDOUT;
+	if (_mt7620_mii_write(gsw, 0x1f, 0x10, val >> 16))
+		return -ETIMEDOUT;
+
+	return 0;
 }
 
-u32 mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg)
+int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 {
 	u16 high, low;
 
-	_mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
-	low = _mt7620_mii_read(gsw, 0x1f, (reg >> 2) & 0xf);
-	high = _mt7620_mii_read(gsw, 0x1f, 0x10);
+	if (_mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff))
+		return -ETIMEDOUT;
+	if (mt7620_mii_read(gsw, 0x1f, (reg >> 2) & 0xf, &low))
+		return -ETIMEDOUT;
+	if (mt7620_mii_read(gsw, 0x1f, 0x10, &high))
+		return -ETIMEDOUT;
 
-	return (high << 16) | (low & 0xffff);
+	*val = (high << 16) | low;
+
+	return 0;
 }
 
 static unsigned char *fe_speed_str(int speed)

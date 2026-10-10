@@ -40,15 +40,26 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	u32 reg, i;
 
-	reg = mt7530_mdio_r32(gsw, 0x700c);
+	/* The switch interrupt is IRQ_TYPE_LEVEL_HIGH and the MT7530
+	 * keeps the line asserted while (ISR & IMR) != 0, so the status
+	 * register has to be cleared on *every* exit path. Skipping the
+	 * write-back when the read failed leaves the source active and
+	 * the handler is re-entered immediately.
+	 */
+	if (mt7530_mdio_r32(gsw, 0x700c, &reg)) {
+		mt7530_mdio_w32(gsw, 0x700c, 0xffffffff);
+		return IRQ_HANDLED;
+	}
 	mt7530_mdio_w32(gsw, 0x700c, reg);
 
 	for (i = 0; i < 5; i++)
 		if (reg & BIT(i)) {
 			unsigned int link;
 
-			link = mt7530_mdio_r32(gsw,
-					       0x3008 + (i * 0x100)) & 0x1;
+			if (mt7530_mdio_r32(gsw, 0x3008 + (i * 0x100),
+					    &link))
+				continue;
+			link &= 0x1;
 
 			if (link != priv->link[i]) {
 				priv->link[i] = link;
@@ -100,9 +111,10 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 
 	/* Disable Flow Control Globally - MT7621 bug */
 	usleep_range(10, 20);
-	val = mt7530_mdio_r32(gsw, 0x1fe0);
-	val &= ~BIT(31);
-	mt7530_mdio_w32(gsw, 0x1fe0, val);
+	if (!mt7530_mdio_r32(gsw, 0x1fe0, &val)) {
+		val &= ~BIT(31);
+		mt7530_mdio_w32(gsw, 0x1fe0, val);
+	}
 
 	/* Disable flow control on Port 5 (GMAC) and Port 6 (CPU) */
 	/* (GE1, Force 1000M/FD, FC OFF, MAX_RX_LENGTH 1536) */
@@ -126,10 +138,11 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 	mt7530_mdio_w32(gsw, GSW_REG_GMACCR, 0x3F0B);
 
 	/* Enable Port 6, P5 as GMAC5, P5 disable */
-	val = mt7530_mdio_r32(gsw, 0x7804);
-	val &= ~BIT(8);
-	val |= BIT(6) | BIT(13) | BIT(16);
-	mt7530_mdio_w32(gsw, 0x7804, val);
+	if (!mt7530_mdio_r32(gsw, 0x7804, &val)) {
+		val &= ~BIT(8);
+		val |= BIT(6) | BIT(13) | BIT(16);
+		mt7530_mdio_w32(gsw, 0x7804, val);
+	}
 
 	val = rt_sysc_r32(0x10);
 	val = (val >> 6) & 0x7;
@@ -176,13 +189,15 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 	_mt7620_mii_write(gsw, 0, 14, 0x1);
 
 	/* set MT7530 central align */
-	val = mt7530_mdio_r32(gsw, 0x7830);
-	val &= ~BIT(0);
-	val |= BIT(1);
-	mt7530_mdio_w32(gsw, 0x7830, val);
-	val = mt7530_mdio_r32(gsw, 0x7a40);
-	val &= ~BIT(30);
-	mt7530_mdio_w32(gsw, 0x7a40, val);
+	if (!mt7530_mdio_r32(gsw, 0x7830, &val)) {
+		val &= ~BIT(0);
+		val |= BIT(1);
+		mt7530_mdio_w32(gsw, 0x7830, val);
+	}
+	if (!mt7530_mdio_r32(gsw, 0x7a40, &val)) {
+		val &= ~BIT(30);
+		mt7530_mdio_w32(gsw, 0x7a40, val);
+	}
 	mt7530_mdio_w32(gsw, 0x7a78, 0x855);
 
 	/* delay setting for 10/1000M */
@@ -222,9 +237,10 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 
 	/* enable irq */
 	mt7530_mdio_w32(gsw, 0x7008, 0x1f);
-	val = mt7530_mdio_r32(gsw, 0x7808);
-	val |= 3 << 16;
-	mt7530_mdio_w32(gsw, 0x7808, val);
+	if (!mt7530_mdio_r32(gsw, 0x7808, &val)) {
+		val |= 3 << 16;
+		mt7530_mdio_w32(gsw, 0x7808, val);
+	}
 }
 
 static const struct of_device_id mediatek_gsw_match[] = {
