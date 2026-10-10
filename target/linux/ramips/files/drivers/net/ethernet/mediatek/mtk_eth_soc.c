@@ -798,25 +798,38 @@ static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
 static inline int fe_cal_txd_req(struct sk_buff *skb)
 {
 	struct sk_buff *head = skb;
-	int i, nfrags = 0;
 	struct skb_frag_struct *frag;
+	unsigned int i, len;
+	int nfrags = 0;
 
 next_frag:
-	nfrags++;
-	if (skb_is_gso(skb)) {
-		for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
-			frag = &skb_shinfo(skb)->frags[i];
-			nfrags += DIV_ROUND_UP(frag->size, TX_DMA_BUF_LEN);
-		}
-	} else {
-		nfrags += skb_shinfo(skb)->nr_frags;
+	/*
+	 * fe_tx_dma_map_page() splits anything longer than TX_DMA_BUF_LEN
+	 * over several descriptors, so every length has to be rounded the
+	 * same way here.  Counting nr_frags as-is, and only rounding up
+	 * when skb_is_gso(), let a plain non-GSO skb whose fragment or
+	 * linear part exceeds TX_DMA_BUF_LEN come out too small.
+	 *
+	 * tx_num is used twice: as the ring-space reservation in
+	 * fe_start_xmit(), and as the iteration count of the rollback
+	 * loop in fe_tx_map_dma().  Under-counting both overran the
+	 * reservation and left already-dma_map_page()'d buffers without
+	 * a matching dma_unmap_page() on the error path.
+	 */
+	if ((len = skb_headlen(skb)) != 0)
+		nfrags += DIV_ROUND_UP(len, TX_DMA_BUF_LEN);
+	for (i = 0; i < skb_shinfo(skb)->nr_frags; i++) {
+		frag = &skb_shinfo(skb)->frags[i];
+		nfrags += DIV_ROUND_UP(skb_frag_size(frag), TX_DMA_BUF_LEN);
 	}
 
 	skb = fe_next_frag(head, skb);
 	if (skb)
 		goto next_frag;
 
-	return DIV_ROUND_UP(nfrags, 2);
+	/* fe_tx_map_dma() always emits a final descriptor, even if empty */
+	len = DIV_ROUND_UP(nfrags, 2);
+	return len > 1 ? len : 1;
 }
 
 static int fe_start_xmit(struct sk_buff *skb, struct net_device *dev)
