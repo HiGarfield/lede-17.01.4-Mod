@@ -873,18 +873,25 @@ static int fe_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	struct fe_tx_ring *ring = &priv->tx_ring;
 	struct net_device_stats *stats = &dev->stats;
 	int tx_num;
-	int len = skb->len;
+	int len;
 
 	if (unlikely(test_bit(__FE_DOWN, &priv->state))) {
+		stats->tx_dropped++;
 		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
 
 	if (fe_skb_padto(skb, priv)) {
 		netif_warn(priv, tx_err, dev, "tx padding failed!\n");
+		stats->tx_dropped++;
 		dev_kfree_skb_any(skb);
 		return NETDEV_TX_OK;
 	}
+
+	/* sample the length after padding: fe_skb_padto() may have
+	 * grown the skb
+	 */
+	len = skb->len;
 
 	tx_num = fe_cal_txd_req(skb);
 	if (unlikely(fe_empty_txd(ring) <= tx_num)) {
