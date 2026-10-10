@@ -55,7 +55,7 @@ u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 	return 0;
 }
 
-u32 _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
+int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 {
 	u32 d;
 

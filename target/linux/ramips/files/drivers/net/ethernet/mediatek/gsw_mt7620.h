@@ -122,7 +122,7 @@ u32 mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg);
 
 u32 _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 			     u32 phy_register, u32 write_data);
-u32 _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg);
+int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg);
 void mt7620_handle_carrier(struct fe_priv *priv);
 
 #endif
