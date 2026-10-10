@@ -1572,7 +1572,23 @@ static void fe_reset_pending(struct fe_priv *priv)
 	struct net_device *dev = priv->netdev;
 	int err;
 
+	/*
+	 * The reset is queued by fe_tx_timeout(), which only fires while
+	 * the interface is up, but this runs later from the workqueue.
+	 * The interface may have been closed in between, and the fe_open()
+	 * below would then clear __FE_DOWN, re-enable NAPI and restart the
+	 * transmit queue for a device that is administratively down.
+	 */
+	/* the netif_running() check must happen under rtnl: tested
+	 * locklessly, dev_close() could complete between the check and
+	 * the reset, and the fe_open() below would then bring an
+	 * administratively down device back up
+	 */
 	rtnl_lock();
+	if (!netif_running(dev)) {
+		rtnl_unlock();
+		return;
+	}
 	fe_stop(dev);
 
 	err = fe_open(dev);
