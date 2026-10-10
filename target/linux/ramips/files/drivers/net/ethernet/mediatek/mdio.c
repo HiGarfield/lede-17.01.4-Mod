@@ -322,4 +322,11 @@ void fe_mdio_cleanup(struct fe_priv *priv)
 	mdiobus_unregister(priv->mii_bus);
 	of_node_put(priv->mii_bus->dev.of_node);
 	kfree(priv->mii_bus);
+	/*
+	 * Drop our own reference too.  The "if (!priv->mii_bus) return"
+	 * guard above only makes this function idempotent while this
+	 * assignment exists; without it a second call would pass the
+	 * freed pointer to mdiobus_unregister() again.
+	 */
+	priv->mii_bus = NULL;
 }
