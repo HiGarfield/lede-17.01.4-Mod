@@ -249,8 +249,14 @@ int mtk_gsw_init(struct fe_priv *priv)
 	priv->soc->swpriv = gsw;
 
 	if (gsw->irq) {
-		request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
-			    "gsw", priv);
+		int irqerr = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
+					 "gsw", priv);
+
+		if (irqerr) {
+			dev_err(gsw->dev, "request_irq failed: %d\n", irqerr);
+			return irqerr;
+		}
+		gsw->priv = priv;
 		disable_irq(gsw->irq);
 	}
 
@@ -293,7 +299,19 @@ static int mt7621_gsw_probe(struct platform_device *pdev)
 
 static int mt7621_gsw_remove(struct platform_device *pdev)
 {
-	platform_set_drvdata(pdev, NULL);
+	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
+
+	if (gsw) {
+		if (gsw->irq && gsw->priv) {
+			free_irq(gsw->irq, gsw->priv);
+			/* both this remove and mtk_gsw_cleanup() release the
+			 * same irq; drop the dev_id pointer so whoever runs
+			 * second sees nothing left to free
+			 */
+			gsw->priv = NULL;
+		}
+		platform_set_drvdata(pdev, NULL);
+	}
 
 	return 0;
 }
