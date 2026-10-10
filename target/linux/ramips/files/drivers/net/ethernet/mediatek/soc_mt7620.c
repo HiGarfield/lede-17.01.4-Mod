@@ -16,6 +16,7 @@
 #include <linux/platform_device.h>
 #include <linux/if_vlan.h>
 #include <linux/of_net.h>
+#include <linux/switch.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
 
@@ -91,30 +92,51 @@ static const u16 mt7620_reg_table[FE_REG_COUNT] = {
 	[FE_REG_FE_INT_STATUS2] = MT7620_FE_INT_STATUS2,
 };
 
+static int mt7620_mt7530_probe(struct fe_priv *priv, void __iomem *base,
+			       struct mii_bus *bus, int vlan)
+{
+	struct switch_dev *swdev;
+
+	/* probing past the tracking array would register a switch_dev
+	 * nothing could ever unregister again
+	 */
+	if (priv->soc->gsw_dev_num >= ARRAY_SIZE(priv->soc->gsw_dev))
+		return -ENOSPC;
+
+	swdev = mt7530_probe(priv->dev, base, bus, vlan);
+	if (IS_ERR(swdev))
+		return PTR_ERR(swdev);
+
+	priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
+
+	return 0;
+}
+
 static int mt7620_gsw_config(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *) priv->soc->swpriv;
-	struct switch_dev *swdev;
+	int err;
 
 	/* is the mt7530 internal or external */
 	if (priv->mii_bus && priv->mii_bus->phy_map[0x1f]) {
-		swdev = mt7530_probe(priv->dev, gsw->base, NULL, 0);
-		if (IS_ERR(swdev))
-			return PTR_ERR(swdev);
-		if (priv->soc->gsw_dev_num < 2)
-			priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
+		err = mt7620_mt7530_probe(priv, gsw->base, NULL, 0);
+		if (err)
+			return err;
 
-		swdev = mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
-		if (IS_ERR(swdev))
-			return PTR_ERR(swdev);
-		if (priv->soc->gsw_dev_num < 2)
-			priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
+		err = mt7620_mt7530_probe(priv, NULL, priv->mii_bus, 1);
+		if (err) {
+			/* undo the first registration instead of leaving
+			 * a registered switch behind for a failed probe
+			 */
+			unregister_switch(priv->soc->gsw_dev[0]);
+			priv->soc->gsw_dev[0] = NULL;
+			priv->soc->gsw_dev_num = 0;
+			return err;
+		}
 	} else {
-		swdev = mt7530_probe(priv->dev, gsw->base, NULL, 1);
-		if (IS_ERR(swdev))
-			return PTR_ERR(swdev);
-		if (priv->soc->gsw_dev_num < 2)
-			priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
+		err = mt7620_mt7530_probe(priv, gsw->base, NULL, 1);
+		if (err)
+			return err;
 	}
 
 	return 0;
