@@ -212,6 +212,11 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		int tx_fc, rx_fc;
 		u32 val = 0;
 
+		if (priv->phy->phy_node[id]) {
+			of_node_put(priv->phy->phy_node[id]);
+			priv->phy->phy_node[id] = NULL;
+		}
+
 		priv->phy->speed[id] = be32_to_cpup(link++);
 		tx_fc = be32_to_cpup(link++);
 		rx_fc = be32_to_cpup(link++);
@@ -257,6 +262,11 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		gsw->autopoll |= BIT(id);
 		mt7620_auto_poll(gsw);
 		return;
+	}
+
+	if (priv->phy->phy_node[id]) {
+		of_node_put(priv->phy->phy_node[id]);
+		priv->phy->phy_node[id] = NULL;
 	}
 }
 
