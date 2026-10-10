@@ -1844,9 +1844,14 @@ static int fe_remove(struct platform_device *pdev)
 
 	of_node_put(priv->switch_np);
 
+	/* unregister first: while the device is still registered and up,
+	 * a TX timeout may re-arm pending_work; cancelling the work
+	 * before unregister_netdev() would let that work run after
+	 * free_netdev() on an already freed net_device.
+	 */
+	unregister_netdev(dev);
 	cancel_work_sync(&priv->pending_work);
 
-	unregister_netdev(dev);
 	netif_napi_del(&priv->rx_napi);
 	kfree(priv->hw_stats);
 	free_netdev(dev);
