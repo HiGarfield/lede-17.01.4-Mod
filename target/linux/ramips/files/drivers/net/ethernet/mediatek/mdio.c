@@ -176,6 +176,7 @@ static int fe_phy_connect(struct fe_priv *priv)
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i]) {
 			if (phy_init(priv, priv->mii_bus->phy_map[i]))
 				continue;
+			set_bit(i, &priv->phy->phy_attached);
 			if (!priv->phy_dev) {
 				priv->phy_dev = priv->mii_bus->phy_map[i];
 				priv->phy_flags = FE_PHY_FLAG_ATTACH;
@@ -201,8 +202,14 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 		} else if (priv->phy->phy[i]) {
 			phy_disconnect(priv->phy->phy[i]);
 			priv->phy->phy[i] = NULL;
-		} else if (priv->mii_bus && priv->mii_bus->phy_map[i]) {
+		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+			   test_bit(i, &priv->phy->phy_attached)) {
+			/* only detach PHYs that were actually attached by
+			 * fe_phy_connect(); detaching a never-attached PHY
+			 * unbalances the phy core's references
+			 */
 			phy_detach(priv->mii_bus->phy_map[i]);
+			clear_bit(i, &priv->phy->phy_attached);
 		}
 
 		if (priv->phy->phy_node[i]) {

@@ -365,6 +365,8 @@ struct fe_phy {
 	struct phy_device	*phy[8];
 	struct device_node	*phy_node[8];
 	const __be32		*phy_fixed[8];
+	/* bit i: mii_bus->phy_map[i] was successfully phy_attach()ed by us */
+	unsigned long		phy_attached;
 	int			duplex[8];
 	int			speed[8];
 	int			tx_fc[8];
