@@ -224,10 +224,13 @@ int mtk_gsw_init(struct fe_priv *priv)
 	if (!pdev)
 		return -ENODEV;
 
-	if (!of_device_is_compatible(np, mediatek_gsw_match->compatible))
+	if (!of_device_is_compatible(np, mediatek_gsw_match->compatible)) {
+		put_device(&pdev->dev);
 		return -EINVAL;
+	}
 
 	gsw = platform_get_drvdata(pdev);
+	put_device(&pdev->dev);
 	priv->soc->swpriv = gsw;
 
 	mt7620_hw_init(gsw, mt7620_mdio_mode(priv->dev->of_node));
