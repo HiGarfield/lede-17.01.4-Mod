@@ -109,6 +109,7 @@ struct mt7620_gsw {
 void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg);
 u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg);
 int mtk_gsw_init(struct fe_priv *priv);
+void mtk_gsw_cleanup(struct fe_priv *priv);
 
 int mt7620_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val);
 int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg);

@@ -344,6 +344,7 @@ static struct fe_soc_data mt7620_data = {
 	.fwd_config = mt7620_fwd_config,
 	.tx_dma = mt7620_tx_dma,
 	.switch_init = mtk_gsw_init,
+	.switch_cleanup = mtk_gsw_cleanup,
 	.switch_config = mt7620_gsw_config,
 	.port_init = mt7620_port_init,
 	.reg_table = mt7620_reg_table,

@@ -1455,6 +1455,8 @@ err_switch_cleanup:
 	 * would let swconfig operations run on devm-allocated private
 	 * data that is released when the probe unwinds (UAF).
 	 */
+	if (priv->soc->switch_cleanup)
+		priv->soc->switch_cleanup(priv);
 	fe_unregister_switches(priv);
 
 	return err;
@@ -1470,6 +1472,13 @@ static void fe_uninit(struct net_device *dev)
 		     ~(FE_TX_WB_DDONE | FE_RX_DMA_EN | FE_TX_DMA_EN),
 		     FE_REG_PDMA_GLO_CFG);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
+
+	/* release the switch irq requested with this fe_priv as dev_id
+	 * before this instance goes away
+	 */
+	if (priv->soc->switch_cleanup)
+		priv->soc->switch_cleanup(priv);
+
 	fe_free_dma(priv);
 
 	if (priv->phy)

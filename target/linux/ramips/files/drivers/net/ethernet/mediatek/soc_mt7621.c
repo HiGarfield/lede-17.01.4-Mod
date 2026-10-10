@@ -199,6 +199,7 @@ static struct fe_soc_data mt7621_data = {
 	.fwd_config = mt7621_fwd_config,
 	.tx_dma = mt7621_tx_dma,
 	.switch_init = mtk_gsw_init,
+	.switch_cleanup = mtk_gsw_cleanup,
 	.switch_config = mt7621_gsw_config,
 	.reg_table = mt7621_reg_table,
 	.pdma_glo_cfg = FE_PDMA_SIZE_16DWORDS,

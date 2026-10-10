@@ -258,6 +258,24 @@ int mtk_gsw_init(struct fe_priv *priv)
 	return 0;
 }
 
+void mtk_gsw_cleanup(struct fe_priv *priv)
+{
+	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+
+	if (!gsw)
+		return;
+
+	/* the irq was requested with the fe_priv as dev_id; release it
+	 * on the fe side too, otherwise the handler may run after the
+	 * netdev/fe_priv is gone (UAF), and a retried fe_init would
+	 * request the same irq twice
+	 */
+	if (gsw->irq && gsw->priv) {
+		free_irq(gsw->irq, gsw->priv);
+		gsw->priv = NULL;
+	}
+}
+
 static int mt7620_gsw_probe(struct platform_device *pdev)
 {
 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);

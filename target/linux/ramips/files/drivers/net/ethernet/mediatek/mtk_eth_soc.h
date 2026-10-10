@@ -386,6 +386,7 @@ struct fe_soc_data {
 	int (*fwd_config)(struct fe_priv *priv);
 	void (*tx_dma)(struct fe_tx_dma *txd);
 	int (*switch_init)(struct fe_priv *priv);
+	void (*switch_cleanup)(struct fe_priv *priv);
 	int (*switch_config)(struct fe_priv *priv);
 	void (*port_init)(struct fe_priv *priv, struct device_node *port);
 	int (*has_carrier)(struct fe_priv *priv);
