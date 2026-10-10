@@ -259,7 +259,8 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		return;
 	}
 
-	if (priv->phy->phy_node[id] && priv->mii_bus->phy_map[id]) {
+	if (priv->phy->phy_node[id] && priv->mii_bus &&
+	    priv->mii_bus->phy_map[id]) {
 		u32 val = PMCR_BACKPRES | PMCR_BACKOFF | PMCR_RX_EN |
 			PMCR_TX_EN |  PMCR_MAC_MODE | PMCR_IPG;
 
