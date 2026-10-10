@@ -209,7 +209,6 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 
 	if (priv->phy->phy_fixed[id]) {
 		const __be32 *link = priv->phy->phy_fixed[id];
-		int tx_fc, rx_fc;
 		u32 val = 0;
 
 		if (priv->phy->phy_node[id]) {
@@ -217,10 +216,17 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 			priv->phy->phy_node[id] = NULL;
 		}
 
+		/*
+		 * Word order of "mediatek,fixed-link" is
+		 * <speed duplex tx_fc rx_fc>.  This must stay in sync with
+		 * rt2880_port_init() in mdio_rt2880.c, which parses the very
+		 * same DT property.  Keep tx_fc/rx_fc in priv->phy as well so
+		 * the port state is complete regardless of the SoC.
+		 */
 		priv->phy->speed[id] = be32_to_cpup(link++);
-		tx_fc = be32_to_cpup(link++);
-		rx_fc = be32_to_cpup(link++);
 		priv->phy->duplex[id] = be32_to_cpup(link++);
+		priv->phy->tx_fc[id] = be32_to_cpup(link++);
+		priv->phy->rx_fc[id] = be32_to_cpup(link++);
 		priv->link[id] = 1;
 
 		switch (priv->phy->speed[id]) {
@@ -242,9 +248,9 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		val = PMCR_SPEED(val);
 		val |= PMCR_LINK | PMCR_BACKPRES | PMCR_BACKOFF | PMCR_RX_EN |
 			PMCR_TX_EN | PMCR_FORCE | PMCR_MAC_MODE | PMCR_IPG;
-		if (tx_fc)
+		if (priv->phy->tx_fc[id])
 			val |= PMCR_TX_FC;
-		if (rx_fc)
+		if (priv->phy->rx_fc[id])
 			val |= PMCR_RX_FC;
 		if (priv->phy->duplex[id])
 			val |= PMCR_DUPLEX;
