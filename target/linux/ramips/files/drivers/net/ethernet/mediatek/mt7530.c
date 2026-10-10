@@ -381,7 +381,7 @@ mt7530_get_port_pvid(struct switch_dev *dev, int port, int *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (port >= MT7530_NUM_PORTS)
+	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
@@ -399,7 +399,7 @@ mt7530_set_port_pvid(struct switch_dev *dev, int port, int pvid)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (port >= MT7530_NUM_PORTS)
+	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	if (pvid < MT7530_MIN_VID || pvid > MT7530_MAX_VID)
