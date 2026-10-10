@@ -1120,7 +1120,6 @@ static int esw_set_port_pvid(struct switch_dev *dev, int port, int val)
 static int esw_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
-	u32 vmsc, poc2;
 	int vlan_idx = -1;
 	int i;
 
@@ -1129,10 +1128,14 @@ static int esw_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	if (val->port_vlan < 0 || val->port_vlan >= RT305X_ESW_NUM_VIDS)
 		return -EINVAL;
 
-	/* valid vlan? */
+	/* Read back the software state written by esw_set_vlan_ports():
+	 * the set side only touches the hardware on apply, so reading
+	 * the registers here returned stale data or -EINVAL for a
+	 * pending configuration.
+	 */
 	for (i = 0; i < RT305X_ESW_NUM_VLANS; i++) {
-		if (esw_get_vlan_id(esw, i) == val->port_vlan &&
-		    esw_get_vmsc(esw, i) != RT305X_ESW_PORTS_NONE) {
+		if (esw->vlans[i].vid == val->port_vlan &&
+		    esw->vlans[i].ports != RT305X_ESW_PORTS_NONE) {
 			vlan_idx = i;
 			break;
 		}
@@ -1141,19 +1144,16 @@ static int esw_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	if (vlan_idx == -1)
 		return -EINVAL;
 
-	vmsc = esw_get_vmsc(esw, vlan_idx);
-	poc2 = esw_r32(esw, RT305X_ESW_REG_POC2);
-
 	for (i = 0; i < RT305X_ESW_NUM_PORTS; i++) {
 		struct switch_port *p;
 		int port_mask = 1 << i;
 
-		if (!(vmsc & port_mask))
+		if (!(esw->vlans[vlan_idx].ports & port_mask))
 			continue;
 
 		p = &val->value.ports[val->len++];
 		p->id = i;
-		if (poc2 & (port_mask << RT305X_ESW_POC2_UNTAG_EN_S))
+		if (esw->ports[i].untag)
 			p->flags = 0;
 		else
 			p->flags = 1 << SWITCH_PORT_FLAG_TAGGED;
