@@ -134,7 +134,8 @@ static int fe_phy_connect(struct fe_priv *priv)
 				priv->phy_flags = FE_PHY_FLAG_PORT;
 			}
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i]) {
-			phy_init(priv, priv->mii_bus->phy_map[i]);
+			if (phy_init(priv, priv->mii_bus->phy_map[i]))
+				continue;
 			if (!priv->phy_dev) {
 				priv->phy_dev = priv->mii_bus->phy_map[i];
 				priv->phy_flags = FE_PHY_FLAG_ATTACH;
