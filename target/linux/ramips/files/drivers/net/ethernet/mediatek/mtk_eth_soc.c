@@ -1666,6 +1666,7 @@ static int fe_probe(struct platform_device *pdev)
 
 err_free_dev:
 	kfree(priv->hw_stats);
+	of_node_put(priv->switch_np);
 	free_netdev(netdev);
 err_iounmap:
 	devm_iounmap(&pdev->dev, fe_base);
@@ -1681,6 +1682,8 @@ static int fe_remove(struct platform_device *pdev)
 
 	for (i = 0; i < priv->soc->gsw_dev_num; i++)
 		unregister_switch(priv->soc->gsw_dev[i]);
+
+	of_node_put(priv->switch_np);
 
 	netif_napi_del(&priv->rx_napi);
 	kfree(priv->hw_stats);
