@@ -226,6 +226,12 @@ struct rt305x_esw {
 	 */
 	struct mutex		mii_lock;
 
+	/* Serialises esw_apply_config() against the set callbacks that
+	 * modify the software state it reads, so a VLANI/VMSC/PVIDC
+	 * triple cannot be programmed half old, half new
+	 */
+	struct mutex		update_lock;
+
 	unsigned char		port_map;
 	unsigned char		port_disable;
 	unsigned int		reg_initval_fct2;
@@ -743,6 +749,8 @@ static int esw_apply_config(struct switch_dev *dev)
 	u8 en_vlan = 0;
 	u8 untag = 0;
 
+	mutex_lock(&esw->update_lock);
+
 	for (i = 0; i < RT305X_ESW_NUM_VLANS; i++) {
 		u32 vid, vmsc;
 		if (esw->global_vlan_enable) {
@@ -804,6 +812,8 @@ static int esw_apply_config(struct switch_dev *dev)
 		esw_set_vmsc(esw, 0, RT305X_ESW_PORTS_ALL);
 	}
 
+	mutex_unlock(&esw->update_lock);
+
 	return ret;
 }
 
@@ -811,9 +821,15 @@ static int esw_reset_switch(struct switch_dev *dev)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	/* serialise the state reset against concurrent set callbacks;
+	 * esw_hw_init() calls esw_apply_config(), which takes the lock
+	 * itself, so it must run unlocked here
+	 */
+	mutex_lock(&esw->update_lock);
 	esw->global_vlan_enable = 0;
 	memset(esw->ports, 0, sizeof(esw->ports));
 	memset(esw->vlans, 0, sizeof(esw->vlans));
+	mutex_unlock(&esw->update_lock);
 	esw_hw_init(esw);
 
 	return 0;
@@ -836,7 +852,9 @@ static int esw_set_vlan_enable(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	mutex_lock(&esw->update_lock);
 	esw->global_vlan_enable = val->value.i != 0;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -858,7 +876,9 @@ static int esw_set_alt_vlan_disable(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	mutex_lock(&esw->update_lock);
 	esw->alt_vlan_disable = val->value.i != 0;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -1002,6 +1022,7 @@ static int esw_set_port_bool(struct switch_dev *dev,
 	    val->value.i < 0 || val->value.i > 1)
 		return -EINVAL;
 
+	mutex_lock(&esw->update_lock);
 	switch (attr->id) {
 	case RT305X_ESW_ATTR_PORT_DISABLE:
 		esw->ports[idx].disable = val->value.i;
@@ -1013,8 +1034,10 @@ static int esw_set_port_bool(struct switch_dev *dev,
 		esw->ports[idx].untag = val->value.i;
 		break;
 	default:
+		mutex_unlock(&esw->update_lock);
 		return -EINVAL;
 	}
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -1112,7 +1135,9 @@ static int esw_set_port_pvid(struct switch_dev *dev, int port, int val)
 	if (val < 0 || val > RT305X_ESW_PVIDC_PVID_M)
 		return -EINVAL;
 
+	mutex_lock(&esw->update_lock);
 	esw->ports[port].pvid = val;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -1173,6 +1198,8 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	    val->len > RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
+	mutex_lock(&esw->update_lock);
+
 	/* one of the already defined vlans? */
 	for (i = 0; i < RT305X_ESW_NUM_VLANS; i++) {
 		if (esw->vlans[i].vid == val->port_vlan &&
@@ -1190,7 +1217,7 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 
 	/* bail if all slots are in use */
 	if (vlan_idx == -1)
-		return -EINVAL;
+		goto out_unlock;
 
 	/* validate everything first: modifying esw->ports[] while
 	 * scanning and then bailing out on a bad port id left the
@@ -1200,7 +1227,7 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 		struct switch_port *p = &val->value.ports[i];
 
 		if (p->id < 0 || p->id >= RT305X_ESW_NUM_PORTS)
-			return -EINVAL;
+			goto out_unlock;
 	}
 
 	ports = RT305X_ESW_PORTS_NONE;
@@ -1221,7 +1248,14 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	else
 		esw->vlans[vlan_idx].vid = val->port_vlan;
 
+	mutex_unlock(&esw->update_lock);
+
 	return 0;
+
+out_unlock:
+	mutex_unlock(&esw->update_lock);
+
+	return -EINVAL;
 }
 
 static const struct switch_attr esw_global[] = {
@@ -1421,6 +1455,7 @@ static int esw_probe(struct platform_device *pdev)
 
 	spin_lock_init(&esw->reg_rw_lock);
 	mutex_init(&esw->mii_lock);
+	mutex_init(&esw->update_lock);
 
 	/*
 	 * Program the hardware and apply the (still empty) software
