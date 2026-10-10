@@ -22,6 +22,7 @@
 #include <linux/netdevice.h>
 #include <linux/netlink.h>
 #include <linux/bitops.h>
+#include <linux/bitmap.h>
 #include <net/genetlink.h>
 #include <linux/switch.h>
 #include <linux/delay.h>
@@ -215,6 +216,11 @@ struct mt7530_priv {
 	bool			global_vlan_enable;
 	struct mt7530_vlan_entry	vlan_entries[MT7530_NUM_VLANS];
 	struct mt7530_port_entry	port_entries[MT7530_NUM_PORTS];
+	/* On MT7621 a full clear+rewrite of the table is 4095 vtcr
+	 * transactions under reg_mutex (seconds to minutes worst case).
+	 * Track which entries changed and touch only those.
+	 */
+	DECLARE_BITMAP(vlan_dirty, MT7530_NUM_VLANS);
 };
 
 struct mt7530_mapping {
@@ -291,6 +297,15 @@ mt7530_reset_switch(struct switch_dev *dev)
 	for (i = 0; i < MT7530_NUM_VLANS; i++) {
 		priv->vlan_entries[i].vid = i;
 	}
+
+	/*
+	 * The software state is empty again while the hardware still
+	 * holds the old table.  Mark every slot dirty so the next
+	 * apply_config() rewrites them: with dirty tracking, an empty
+	 * bitmap would otherwise skip the whole table and leave
+	 * hardware and software permanently diverged.
+	 */
+	bitmap_fill(priv->vlan_dirty, MT7530_NUM_VLANS);
 
 	return 0;
 }
@@ -489,6 +504,7 @@ mt7530_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	}
 	priv->vlan_entries[val->port_vlan].member = member;
 	priv->vlan_entries[val->port_vlan].etags = etags;
+	set_bit(val->port_vlan, priv->vlan_dirty);
 
 	return 0;
 }
@@ -511,6 +527,7 @@ mt7530_set_vid(struct switch_dev *dev, const struct switch_attr *attr,
 		return -EINVAL;
 
 	priv->vlan_entries[vlan].vid = vid;
+	set_bit(vlan, priv->vlan_dirty);
 	return 0;
 }
 
@@ -733,27 +750,23 @@ mt7530_apply_config(struct switch_dev *dev)
 		mt7530_w32(priv, REG_ESW_PORT_PVC(i), pvc_mode);
 	}
 
-	/* first clear the swtich vlan table */
-	for (i = 0; i < MT7530_NUM_VLANS; i++) {
-		err = mt7530_write_vlan_entry(priv, i, i, 0, 0);
-		if (err)
-			goto out_unlock;
-	}
-
-	/* now program only vlans with members to avoid
-	   clobbering remapped entries in later iterations */
-	for (i = 0; i < MT7530_NUM_VLANS; i++) {
+	/* Rewrite only the entries that changed since the last apply:
+	 * on MT7621 a full-table clear+rewrite is 4095 vtcr transactions
+	 * while holding reg_mutex (seconds to minutes worst case),
+	 * blocking every other swconfig and link operation. Clean
+	 * entries are known to match the hardware already; a dirty
+	 * entry with no members is invalidated by the write itself.
+	 */
+	for_each_set_bit(i, priv->vlan_dirty, MT7530_NUM_VLANS) {
 		u16 vid = priv->vlan_entries[i].vid;
 		u8 member = priv->vlan_entries[i].member;
 		u8 etags = priv->vlan_entries[i].etags;
-
-		if (!member)
-			continue;
 
 		err = mt7530_write_vlan_entry(priv, i, vid, member, etags);
 		if (err)
 			goto out_unlock;
 	}
+	bitmap_zero(priv->vlan_dirty, MT7530_NUM_VLANS);
 
 	/* Port Default PVID */
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
@@ -1262,7 +1275,7 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	struct switch_dev *swdev;
 	struct mt7530_priv *mt7530;
 	struct mt7530_mapping *map;
-	int ret;
+	int i, ret;
 
 	mt7530 = devm_kzalloc(dev, sizeof(struct mt7530_priv), GFP_KERNEL);
 	if (!mt7530)
@@ -1293,9 +1306,25 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	else
 		swdev->ops = &mt7530_ops;
 
+	/*
+	 * On MT7621 the VLAN table is addressed by VID
+	 * (mt7530_write_vlan_entry() -> mt7530_vtcr(priv, 1, vid)), so a
+	 * slot whose vid is still 0 makes the first apply write VID 0
+	 * MT7530_NUM_VLANS times and never invalidate VID 1..4094.  Seed
+	 * vid == index first: that is the invariant mt7530_set_vid()
+	 * enforces on MT7621, what mt7621_get_vid() reports, what
+	 * mt7530_reset_switch() already restores, and what the removed
+	 * full-table clear loop ((priv, i, i, 0, 0)) relied on.  A DT
+	 * mapping applied below still overrides it.
+	 */
+	for (i = 0; i < MT7530_NUM_VLANS; i++)
+		mt7530->vlan_entries[i].vid = i;
+
 	map = mt7530_find_mapping(dev->of_node);
 	if (map)
 		mt7530_apply_mapping(mt7530, map);
+	/* the very first apply must program the whole table */
+	bitmap_fill(mt7530->vlan_dirty, MT7530_NUM_VLANS);
 	mt7530_apply_config(swdev);
 
 	mutex_lock(&mt7530->reg_mutex);
