@@ -1354,6 +1354,17 @@ static int fe_stop(struct net_device *dev)
 	return 0;
 }
 
+static void fe_unregister_switches(struct fe_priv *priv)
+{
+	int i;
+
+	for (i = 0; i < priv->soc->gsw_dev_num; i++) {
+		unregister_switch(priv->soc->gsw_dev[i]);
+		priv->soc->gsw_dev[i] = NULL;
+	}
+	priv->soc->gsw_dev_num = 0;
+}
+
 static int __init fe_init(struct net_device *dev)
 {
 	struct fe_priv *priv = netdev_priv(dev);
@@ -1392,7 +1403,7 @@ static int __init fe_init(struct net_device *dev)
 
 	err = fe_mdio_init(priv);
 	if (err)
-		return err;
+		goto err_switch_cleanup;
 
 	if (priv->soc->port_init)
 		for_each_child_of_node(priv->dev->of_node, port)
@@ -1438,6 +1449,13 @@ err_phy_disconnect:
 	if (priv->phy)
 		priv->phy->disconnect(priv);
 	fe_mdio_cleanup(priv);
+err_switch_cleanup:
+	/* switch_init() may already have registered switch devices
+	 * (gsw_dev[]): leaving them registered while this probe fails
+	 * would let swconfig operations run on devm-allocated private
+	 * data that is released when the probe unwinds (UAF).
+	 */
+	fe_unregister_switches(priv);
 
 	return err;
 }
@@ -1837,10 +1855,8 @@ static int fe_remove(struct platform_device *pdev)
 {
 	struct net_device *dev = platform_get_drvdata(pdev);
 	struct fe_priv *priv = netdev_priv(dev);
-	int i;
 
-	for (i = 0; i < priv->soc->gsw_dev_num; i++)
-		unregister_switch(priv->soc->gsw_dev[i]);
+	fe_unregister_switches(priv);
 
 	of_node_put(priv->switch_np);
 
