@@ -965,6 +965,10 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 					  DMA_FROM_DEVICE);
 		if (unlikely(dma_mapping_error(priv->dev, dma_addr))) {
 			skb_free_frag(new_data);
+			/* count the drop like the other two allocation
+			 * failure paths do
+			 */
+			stats->rx_dropped++;
 			goto release_desc;
 		}
 
