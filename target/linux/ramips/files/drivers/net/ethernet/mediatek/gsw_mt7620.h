@@ -113,6 +113,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv);
 
 int mt7620_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val);
 int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg);
+void mt7620_mdio_reset(struct fe_priv *priv);
 void mt7620_mdio_link_adjust(struct fe_priv *priv, int port);
 int mt7620_has_carrier(struct fe_priv *priv);
 void mt7620_print_link_state(struct fe_priv *priv, int port, int link,

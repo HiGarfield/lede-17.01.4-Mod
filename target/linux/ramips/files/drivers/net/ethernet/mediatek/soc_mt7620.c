@@ -356,6 +356,7 @@ static struct fe_soc_data mt7620_data = {
 	.has_carrier = mt7620_has_carrier,
 	.mdio_read = mt7620_mdio_read,
 	.mdio_write = mt7620_mdio_write,
+	.mdio_reset = mt7620_mdio_reset,
 	.mdio_adjust_link = mt7620_mdio_link_adjust,
 };
 

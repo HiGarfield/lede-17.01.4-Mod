@@ -20,6 +20,23 @@
 #include "gsw_mt7620.h"
 #include "mdio.h"
 
+void mt7620_mdio_reset(struct fe_priv *priv)
+{
+	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+
+	if (!gsw)
+		return;
+
+	/* clear the busy/start bit so a wedged engine accepts new
+	 * commands again
+	 */
+	mtk_switch_w32(gsw,
+		       mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) &
+		       ~GSW_MDIO_ACCESS,
+		       MT7620A_GSW_REG_PIAC);
+	udelay(10);
+}
+
 static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 {
 	unsigned long t_start = jiffies;
@@ -33,6 +50,14 @@ static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 	}
 
 	dev_err(gsw->dev, "mdio: MDIO timeout\n");
+	/* without this recovery the busy bit would stay set and every
+	 * later transfer would time out as well
+	 */
+	mtk_switch_w32(gsw,
+		       mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) &
+		       ~GSW_MDIO_ACCESS,
+		       MT7620A_GSW_REG_PIAC);
+	udelay(10);
 	return -1;
 }
 

@@ -18,7 +18,15 @@
 
 static int fe_mdio_reset(struct mii_bus *bus)
 {
-	/* TODO */
+	struct fe_priv *priv = bus->priv;
+
+	/* A timed-out transaction leaves the controller's busy bit set
+	 * and every later transfer times out as well. Let the SoC glue
+	 * clear that bit so the engine accepts commands again.
+	 */
+	if (priv->soc->mdio_reset)
+		priv->soc->mdio_reset(priv);
+
 	return 0;
 }
 

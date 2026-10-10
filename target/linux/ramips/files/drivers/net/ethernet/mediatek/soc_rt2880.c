@@ -64,6 +64,7 @@ struct fe_soc_data rt2880_data = {
 	.status_int = FE_CNT_GDM_AF,
 	.mdio_read = rt2880_mdio_read,
 	.mdio_write = rt2880_mdio_write,
+	.mdio_reset = rt2880_mdio_reset,
 	.mdio_adjust_link = rt2880_mdio_link_adjust,
 	.port_init = rt2880_port_init,
 };

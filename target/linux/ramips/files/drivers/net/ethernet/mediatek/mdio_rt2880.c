@@ -84,6 +84,15 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		    (priv->phy->duplex[0] == DUPLEX_FULL) ? "Full" : "Half");
 }
 
+void rt2880_mdio_reset(struct fe_priv *priv)
+{
+	/* clear the busy/start bit so a wedged controller accepts new
+	 * commands again
+	 */
+	fe_w32(fe_r32(FE_MDIO_ACCESS) & ~BIT(31), FE_MDIO_ACCESS);
+	udelay(10);
+}
+
 static int rt2880_mdio_wait_ready(struct fe_priv *priv)
 {
 	int retries;
@@ -103,6 +112,10 @@ static int rt2880_mdio_wait_ready(struct fe_priv *priv)
 	}
 
 	dev_err(priv->dev, "MDIO operation timed out\n");
+	/* without this recovery the busy bit would stay set and every
+	 * later transfer would time out as well
+	 */
+	rt2880_mdio_reset(priv);
 	return -ETIMEDOUT;
 }
 

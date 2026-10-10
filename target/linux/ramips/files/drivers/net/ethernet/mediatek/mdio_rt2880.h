@@ -16,6 +16,7 @@
 #define _RALINK_MDIO_RT2880_H__
 
 void rt2880_mdio_link_adjust(struct fe_priv *priv, int port);
+void rt2880_mdio_reset(struct fe_priv *priv);
 int rt2880_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg);
 int rt2880_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val);
 void rt2880_port_init(struct fe_priv *priv, struct device_node *np);
