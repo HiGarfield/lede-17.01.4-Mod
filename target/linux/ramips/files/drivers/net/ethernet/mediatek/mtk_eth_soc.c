@@ -1633,12 +1633,29 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 	return err;
 }
 
+static void fe_jumbo_config(struct net_device *dev, int frag_size)
+{
+	u32 fwd_cfg;
+
+	if (IS_ENABLED(CONFIG_SOC_MT7621))
+		return;
+
+	fwd_cfg = fe_r32(FE_GDMA1_FWD_CFG);
+	if (dev->mtu <= ETH_DATA_LEN) {
+		fwd_cfg &= ~FE_GDM1_JMB_EN;
+	} else {
+		fwd_cfg &= ~(FE_GDM1_JMB_LEN_MASK << FE_GDM1_JMB_LEN_SHIFT);
+		fwd_cfg |= (DIV_ROUND_UP(frag_size, 1024) <<
+				FE_GDM1_JMB_LEN_SHIFT) | FE_GDM1_JMB_EN;
+	}
+	fe_w32(fwd_cfg, FE_GDMA1_FWD_CFG);
+}
+
 static int fe_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct fe_priv *priv = netdev_priv(dev);
 	int frag_size, old_mtu, err;
 	u16 new_frag, new_buf;
-	u32 fwd_cfg;
 
 	if (!(priv->flags & FE_FLAG_JUMBO_FRAME))
 		return eth_change_mtu(dev, new_mtu);
@@ -1657,8 +1674,14 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	/* return early if the buffer sizes will not change */
 	if (old_mtu <= ETH_DATA_LEN && new_mtu <= ETH_DATA_LEN)
 		return 0;
-	if (old_mtu > ETH_DATA_LEN && new_mtu > ETH_DATA_LEN)
+	if (old_mtu > ETH_DATA_LEN && new_mtu > ETH_DATA_LEN) {
+		/* the rings stay as they are, but the hardware jumbo
+		 * frame length must still track the new MTU
+		 * (e.g. 9000 -> 2000)
+		 */
+		fe_jumbo_config(dev, frag_size);
 		return 0;
+	}
 
 	if (new_mtu <= ETH_DATA_LEN)
 		new_frag = fe_max_frag_size(ETH_DATA_LEN);
@@ -1686,17 +1709,7 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	 * hardware describing a frame size the driver no longer believes
 	 * in.
 	 */
-	if (!IS_ENABLED(CONFIG_SOC_MT7621)) {
-		fwd_cfg = fe_r32(FE_GDMA1_FWD_CFG);
-		if (new_mtu <= ETH_DATA_LEN) {
-			fwd_cfg &= ~FE_GDM1_JMB_EN;
-		} else {
-			fwd_cfg &= ~(FE_GDM1_JMB_LEN_MASK << FE_GDM1_JMB_LEN_SHIFT);
-			fwd_cfg |= (DIV_ROUND_UP(frag_size, 1024) <<
-					FE_GDM1_JMB_LEN_SHIFT) | FE_GDM1_JMB_EN;
-		}
-		fe_w32(fwd_cfg, FE_GDMA1_FWD_CFG);
-	}
+	fe_jumbo_config(dev, frag_size);
 
 	return 0;
 }
