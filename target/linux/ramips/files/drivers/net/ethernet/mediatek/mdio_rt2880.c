@@ -127,7 +127,7 @@ int rt2880_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 
 	err = rt2880_mdio_wait_ready(priv);
 	if (err)
-		return 0xffff;
+		return err;
 
 	t = (phy_addr << 24) | (phy_reg << 16);
 	fe_w32(t, FE_MDIO_ACCESS);
@@ -136,7 +136,7 @@ int rt2880_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 
 	err = rt2880_mdio_wait_ready(priv);
 	if (err)
-		return 0xffff;
+		return err;
 
 	pr_debug("%s: addr=%04x, reg=%04x, value=%04x\n", __func__,
 		 phy_addr, phy_reg, fe_r32(FE_MDIO_ACCESS) & 0xffff);
