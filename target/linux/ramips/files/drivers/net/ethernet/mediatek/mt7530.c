@@ -818,11 +818,20 @@ mt7530_apply_config(struct switch_dev *dev)
 	}
 
 	/* set mirroring monitor port */
-	if (is_mirror) {
+	{
 		u32 val = mt7530_r32(priv, REG_ESW_WT_MAC_MFC);
-		val |= REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
-		val &= ~REG_ESW_WT_MAC_MFC_MIRROR_DEST_MASK;
-		val |= priv->mirror_dest_port;
+
+		if (is_mirror) {
+			val |= REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
+			val &= ~REG_ESW_WT_MAC_MFC_MIRROR_DEST_MASK;
+			val |= priv->mirror_dest_port;
+		} else {
+			/* mirroring must also be turned off again: the
+			 * enable bit used to stay set forever once any
+			 * mirror had been applied
+			 */
+			val &= ~REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
+		}
 		mt7530_w32(priv, REG_ESW_WT_MAC_MFC, val);
 	}
 
