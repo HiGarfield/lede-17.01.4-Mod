@@ -930,10 +930,10 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
 					       RX_DMA_VID(trxd.rxd3));
 
-			stats->rx_packets++;
-			stats->rx_bytes += pktlen;
+		stats->rx_packets++;
+		stats->rx_bytes += pktlen;
 
-			napi_gro_receive(napi, skb);
+		napi_gro_receive(napi, skb);
 
 		ring->rx_data[idx] = new_data;
 		rxd->rxd1 = (unsigned int)dma_addr;
