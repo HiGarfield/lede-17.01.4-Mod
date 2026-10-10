@@ -868,8 +868,10 @@ static int mt7530_set_port_link(struct switch_dev *sw_dev, int port,
 				adv |= ADVERTISE_100HALF;
 			break;
 		case SWITCH_PORT_SPEED_1000:
-			if (!ercap || !link->duplex)
+			if (!ercap || !link->duplex) {
+				mutex_unlock(&priv->reg_mutex);
 				return -ENOTSUPP;
+			}
 			/* PHY only supports 1000FULL */
 			gctrl |= ADVERTISE_1000FULL;
 			break;
