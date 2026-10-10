@@ -523,9 +523,11 @@ mt7530_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
 	u32 vid;
 	int vlan;
 
-	mutex_lock(&priv->reg_mutex);
-
 	vlan = val->port_vlan;
+	if (vlan < 0 || vlan >= MT7530_NUM_VLANS)
+		return -EINVAL;
+
+	mutex_lock(&priv->reg_mutex);
 
 	vid = mt7530_r32(priv, REG_ESW_VLAN_VTIM(vlan));
 	if (vlan & 1)
