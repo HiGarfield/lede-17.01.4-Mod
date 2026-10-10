@@ -113,8 +113,7 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
 	phy_mode = of_get_phy_mode(phy_node);
 	if (phy_mode < 0) {
 		dev_err(priv->dev, "incorrect phy-mode %d\n", phy_mode);
-		priv->phy->phy_node[port] = NULL;
-		of_node_put(phy_node);
+		fe_phy_forget_node(priv, phy_node);
 		return -EINVAL;
 	}
 
@@ -122,8 +121,7 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
 				0, phy_mode);
 	if (!phydev) {
 		dev_err(priv->dev, "could not connect to PHY\n");
-		priv->phy->phy_node[port] = NULL;
-		of_node_put(phy_node);
+		fe_phy_forget_node(priv, phy_node);
 		return -ENODEV;
 	}
 
