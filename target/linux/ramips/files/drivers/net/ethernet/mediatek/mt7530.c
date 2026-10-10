@@ -357,7 +357,7 @@ mt7530_w32(struct mt7530_priv *priv, u32 reg, u32 val)
 	iowrite32(val, priv->base + reg);
 }
 
-static void
+static int
 mt7530_vtcr(struct mt7530_priv *priv, u32 cmd, u32 val)
 {
 	int i;
@@ -372,8 +372,12 @@ mt7530_vtcr(struct mt7530_priv *priv, u32 cmd, u32 val)
 
 		udelay(1000);
 	}
-	if (i == 20)
+	if (i == 20) {
 		printk("mt7530: vtcr timeout\n");
+		return -ETIMEDOUT;
+	}
+
+	return 0;
 }
 
 static int
@@ -425,7 +429,10 @@ mt7530_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 
 	mutex_lock(&priv->reg_mutex);
 
-	mt7530_vtcr(priv, 0, val->port_vlan);
+	if (mt7530_vtcr(priv, 0, val->port_vlan)) {
+		mutex_unlock(&priv->reg_mutex);
+		return -ETIMEDOUT;
+	}
 
 	member = mt7530_r32(priv, REG_ESW_VLAN_VAWD1);
 	member >>= 16;
