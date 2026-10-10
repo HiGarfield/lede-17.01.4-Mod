@@ -125,20 +125,30 @@ void fe_reset(u32 reset_bits)
 	usleep_range(10, 20);
 }
 
-static inline void fe_int_disable(u32 mask)
+static inline void fe_int_disable(struct fe_priv *priv, u32 mask)
 {
+	unsigned long flags;
+
+	/* the read-modify-write must be serialised: the irq handler,
+	 * NAPI completion and open/stop paths all race on INT_ENABLE */
+	spin_lock_irqsave(&priv->page_lock, flags);
 	fe_reg_w32(fe_reg_r32(FE_REG_FE_INT_ENABLE) & ~mask,
 		   FE_REG_FE_INT_ENABLE);
 	/* flush write */
 	fe_reg_r32(FE_REG_FE_INT_ENABLE);
+	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 
-static inline void fe_int_enable(u32 mask)
+static inline void fe_int_enable(struct fe_priv *priv, u32 mask)
 {
+	unsigned long flags;
+
+	spin_lock_irqsave(&priv->page_lock, flags);
 	fe_reg_w32(fe_reg_r32(FE_REG_FE_INT_ENABLE) | mask,
 		   FE_REG_FE_INT_ENABLE);
 	/* flush write */
 	fe_reg_r32(FE_REG_FE_INT_ENABLE);
+	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 
 static inline void fe_hw_set_macaddr(struct fe_priv *priv, unsigned char *mac)
@@ -1121,7 +1131,7 @@ static int fe_poll(struct napi_struct *napi, int budget)
 
 	if (!tx_again && (rx_done < budget)) {
 		if (likely(napi_complete_done(napi, rx_done) && !test_bit(__FE_DOWN, &priv->state))) {
-			fe_int_enable(tx_intr | rx_intr);
+			fe_int_enable(priv, tx_intr | rx_intr);
 		}
 	} else {
 		rx_done = budget;
@@ -1172,7 +1182,7 @@ static irqreturn_t fe_handle_irq(int irq, void *dev)
 	int_mask = (priv->soc->rx_int | priv->soc->tx_int);
 	if (likely(status & int_mask)) {
 		if (likely(napi_schedule_prep(&priv->rx_napi))) {
-			fe_int_disable(int_mask);
+			fe_int_disable(priv, int_mask);
 			__napi_schedule(&priv->rx_napi);
 		}
 	} else {
@@ -1188,9 +1198,9 @@ static void fe_poll_controller(struct net_device *dev)
 	struct fe_priv *priv = netdev_priv(dev);
 	u32 int_mask = priv->soc->tx_int | priv->soc->rx_int;
 
-	fe_int_disable(int_mask);
+	fe_int_disable(priv, int_mask);
 	fe_handle_irq(dev->irq, dev);
-	fe_int_enable(int_mask);
+	fe_int_enable(priv, int_mask);
 }
 #endif
 
@@ -1275,7 +1285,7 @@ static int fe_hw_init(struct net_device *dev)
 	fe_reg_w32(0, FE_REG_DLY_INT_CFG);
 
 	/* disable all interrupts during hw init */
-	fe_int_disable(~0);
+	fe_int_disable(priv, ~0);
 
 	/* frame engine will push VLAN tag regarding to VIDX feild in Tx desc */
 	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
@@ -1337,7 +1347,7 @@ static int fe_open(struct net_device *dev)
 	clear_bit(__FE_DOWN, &priv->state);
 
 	napi_enable(&priv->rx_napi);
-	fe_int_enable(priv->soc->tx_int | priv->soc->rx_int);
+	fe_int_enable(priv, priv->soc->tx_int | priv->soc->rx_int);
 	netif_start_queue(dev);
 
 	return 0;
@@ -1352,7 +1362,7 @@ static int fe_stop(struct net_device *dev)
 	set_bit(__FE_DOWN, &priv->state);
 
 	netif_tx_disable(dev);
-	fe_int_disable(priv->soc->tx_int | priv->soc->rx_int);
+	fe_int_disable(priv, priv->soc->tx_int | priv->soc->rx_int);
 	/*
 	 * Must be the synchronising variant: napi_disable_sync() does not
 	 * exist on kernel 4.4, but 4.4's napi_disable() already sleeps
