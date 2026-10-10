@@ -72,7 +72,8 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		mdio_cfg |= FE_MDIO_CFG_GP1_SPEED_1000;
 		break;
 	default:
-		BUG();
+		WARN_ON(1);
+		return;
 	}
 
 	fe_w32(mdio_cfg, FE_MDIO_CFG);
