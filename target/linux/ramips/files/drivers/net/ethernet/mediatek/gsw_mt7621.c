@@ -249,6 +249,14 @@ int mtk_gsw_init(struct fe_priv *priv)
 
 	gsw = platform_get_drvdata(pdev);
 	put_device(&pdev->dev);
+	/* the platform device exists but has no drvdata yet: the gsw
+	 * driver has not finished probing. -ENODEV would make fe_init()
+	 * fail permanently and take the whole ethernet down with no
+	 * retry, so ask for a deferred probe instead.
+	 */
+	if (!gsw)
+		return -EPROBE_DEFER;
+
 	priv->soc->swpriv = gsw;
 
 	if (gsw->irq) {

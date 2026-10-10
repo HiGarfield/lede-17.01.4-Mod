@@ -1331,11 +1331,19 @@ static int __init fe_init(struct net_device *dev)
 
 	priv->soc->reset_fe();
 
-	if (priv->soc->switch_init)
-		if (priv->soc->switch_init(priv)) {
-			netdev_err(dev, "failed to initialize switch core\n");
-			return -ENODEV;
+	if (priv->soc->switch_init) {
+		int swerr = priv->soc->switch_init(priv);
+
+		if (swerr) {
+			netdev_err(dev, "failed to initialize switch core: %d\n",
+				   swerr);
+			/* propagate -EPROBE_DEFER instead of collapsing it
+			 * into -ENODEV: a switch that has not probed yet
+			 * must not permanently kill this device
+			 */
+			return swerr;
 		}
+	}
 
 	mac_addr = of_get_mac_address(priv->dev->of_node);
 	if (mac_addr)
