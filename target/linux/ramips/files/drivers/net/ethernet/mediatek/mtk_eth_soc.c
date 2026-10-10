@@ -1104,8 +1104,12 @@ static int fe_poll(struct napi_struct *napi, int budget)
 		if (hwstat && spin_trylock(&hwstat->stats_lock)) {
 			fe_stats_update(priv);
 			spin_unlock(&hwstat->stats_lock);
+			/* only acknowledge the counter-full event once the
+			 * counters have actually been folded in; otherwise
+			 * this increment is lost forever
+			 */
+			fe_reg_w32(status_intr, status_reg);
 		}
-		fe_reg_w32(status_intr, status_reg);
 	}
 
 	if (unlikely(netif_msg_intr(priv))) {
