@@ -837,8 +837,12 @@ static int mt7530_set_port_link(struct switch_dev *sw_dev, int port,
 {
 	struct mt7530_priv *priv = container_of(sw_dev, struct mt7530_priv, swdev);
 	int ret;
+
 	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
+
+	if (!priv->bus)
+		return -EOPNOTSUPP;
 
 	mutex_lock(&priv->reg_mutex);
 
@@ -1071,6 +1075,9 @@ static int mt7530_phy_read16(struct switch_dev *dev, int addr,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	if (!priv->bus)
+		return -EOPNOTSUPP;
+
 	*value = mdiobus_read(priv->bus, addr, reg);
 
 	return 0;
@@ -1080,6 +1087,9 @@ static int mt7530_phy_write16(struct switch_dev *dev, int addr,
 					u8 reg, u16 value)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+
+	if (!priv->bus)
+		return -EOPNOTSUPP;
 
 	return mdiobus_write(priv->bus, addr, reg, value);
 }
