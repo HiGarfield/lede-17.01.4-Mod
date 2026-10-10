@@ -1227,8 +1227,11 @@ static int fe_hw_init(struct net_device *dev)
 			       fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
 			       (i * 2));
 
-	if (priv->soc->fwd_config(priv))
-		netdev_err(dev, "unable to get clock\n");
+	err = priv->soc->fwd_config(priv);
+	if (err) {
+		netdev_err(dev, "unable to configure frame engine\n");
+		return err;
+	}
 
 	if (fe_reg_table[FE_REG_FE_RST_GL]) {
 		fe_reg_w32(1, FE_REG_FE_RST_GL);
