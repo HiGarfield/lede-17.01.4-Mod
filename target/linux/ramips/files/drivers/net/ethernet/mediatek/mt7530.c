@@ -626,7 +626,7 @@ mt7530_set_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 	return 0;
 }
 
-static void
+static int
 mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
 	                    u8 ports, u8 etags)
 {
@@ -666,9 +666,9 @@ mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
 
 	/* write to vlan table */
 #ifdef CONFIG_SOC_MT7621
-	mt7530_vtcr(priv, 1, vid);
+	return mt7530_vtcr(priv, 1, vid);
 #else
-	mt7530_vtcr(priv, 1, vlan);
+	return mt7530_vtcr(priv, 1, vlan);
 #endif
 }
 
@@ -676,7 +676,7 @@ static int
 mt7530_apply_config(struct switch_dev *dev)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
-	int i, j;
+	int i, j, err = 0;
 	u8 tag_ports;
 	u8 untag_ports;
 	bool is_mirror = false;
@@ -734,8 +734,11 @@ mt7530_apply_config(struct switch_dev *dev)
 	}
 
 	/* first clear the swtich vlan table */
-	for (i = 0; i < MT7530_NUM_VLANS; i++)
-		mt7530_write_vlan_entry(priv, i, i, 0, 0);
+	for (i = 0; i < MT7530_NUM_VLANS; i++) {
+		err = mt7530_write_vlan_entry(priv, i, i, 0, 0);
+		if (err)
+			goto out_unlock;
+	}
 
 	/* now program only vlans with members to avoid
 	   clobbering remapped entries in later iterations */
@@ -744,8 +747,12 @@ mt7530_apply_config(struct switch_dev *dev)
 		u8 member = priv->vlan_entries[i].member;
 		u8 etags = priv->vlan_entries[i].etags;
 
-		if (member)
-			mt7530_write_vlan_entry(priv, i, vid, member, etags);
+		if (!member)
+			continue;
+
+		err = mt7530_write_vlan_entry(priv, i, vid, member, etags);
+		if (err)
+			goto out_unlock;
 	}
 
 	/* Port Default PVID */
@@ -791,6 +798,14 @@ mt7530_apply_config(struct switch_dev *dev)
 	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
+
+out_unlock:
+	/* propagate the vtcr timeout: pretending the apply succeeded
+	 * would leave the software and hardware VLAN tables diverged
+	 */
+	mutex_unlock(&priv->reg_mutex);
+
+	return err;
 }
 
 static int
