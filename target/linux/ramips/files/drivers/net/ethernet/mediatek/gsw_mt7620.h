@@ -16,6 +16,7 @@
 #define _RALINK_GSW_MT7620_H__
 
 #include <linux/spinlock.h>
+#include <linux/workqueue.h>
 
 /* a PHY register access takes tens of microseconds; 100ms is already
  * a huge margin, while the old 5s busy-wait could stall a softirq or
@@ -115,6 +116,10 @@ struct mt7620_gsw {
 	 * MT7621 irq handler, bypassing the mdiobus lock
 	 */
 	spinlock_t		mdio_lock;
+	/* MT7621: MDIO is too slow for hardirq, link handling is
+	 * deferred to this work item
+	 */
+	struct work_struct	irq_work;
 };
 
 void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg);

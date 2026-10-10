@@ -18,6 +18,7 @@
 #include <linux/platform_device.h>
 #include <linux/of_device.h>
 #include <linux/of_irq.h>
+#include <linux/workqueue.h>
 
 #include <ralink_regs.h>
 
@@ -34,21 +35,30 @@ u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg)
 	return ioread32(gsw->base + reg);
 }
 
-static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
+static void gsw_irq_work_mt7621(struct work_struct *work)
 {
-	struct fe_priv *priv = (struct fe_priv *)_priv;
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct mt7620_gsw *gsw = container_of(work, struct mt7620_gsw,
+					      irq_work);
+	struct fe_priv *priv = gsw->priv;
 	u32 reg, i;
+
+	/* MDIO transactions involve busy-waiting the PIAC and are far
+	 * too slow for hardirq context; they run here in process
+	 * context instead
+	 */
+	if (!priv)
+		goto out_reenable;
 
 	/* The switch interrupt is IRQ_TYPE_LEVEL_HIGH and the MT7530
 	 * keeps the line asserted while (ISR & IMR) != 0, so the status
 	 * register has to be cleared on *every* exit path. Skipping the
 	 * write-back when the read failed leaves the source active and
-	 * the handler is re-entered immediately.
+	 * enable_irq() below re-enters the handler immediately, which
+	 * spins the interrupt/work pair forever.
 	 */
 	if (mt7530_mdio_r32(gsw, 0x700c, &reg)) {
 		mt7530_mdio_w32(gsw, 0x700c, 0xffffffff);
-		return IRQ_HANDLED;
+		goto out_reenable;
 	}
 	mt7530_mdio_w32(gsw, 0x700c, reg);
 
@@ -73,6 +83,18 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
 		}
 
 	mt7620_handle_carrier(priv);
+
+out_reenable:
+	enable_irq(gsw->irq);
+}
+
+static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
+{
+	struct fe_priv *priv = (struct fe_priv *)_priv;
+	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+
+	disable_irq_nosync(irq);
+	schedule_work(&gsw->irq_work);
 
 	return IRQ_HANDLED;
 }
@@ -276,8 +298,11 @@ int mtk_gsw_init(struct fe_priv *priv)
 	priv->soc->swpriv = gsw;
 
 	if (gsw->irq) {
-		int irqerr = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
-					 "gsw", priv);
+		int irqerr;
+
+		INIT_WORK(&gsw->irq_work, gsw_irq_work_mt7621);
+		irqerr = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
+				     "gsw", priv);
 
 		if (irqerr) {
 			dev_err(gsw->dev, "request_irq failed: %d\n", irqerr);
@@ -308,6 +333,13 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 * request the same irq twice
 	 */
 	if (gsw->irq && gsw->priv) {
+		/* Stop the source first and drain the deferred link work
+		 * *before* dropping the handler: the work re-enables the
+		 * irq on exit, which would resurrect an interrupt that
+		 * has already been freed ("Unbalanced enable for IRQ").
+		 */
+		disable_irq(gsw->irq);
+		cancel_work_sync(&gsw->irq_work);
 		free_irq(gsw->irq, gsw->priv);
 		gsw->priv = NULL;
 	}
@@ -349,6 +381,12 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 
 	if (gsw) {
 		if (gsw->irq && gsw->priv) {
+			/* gsw is devm allocated: returning from remove
+			 * frees it, so the queued link work must be gone
+			 * first or it dereferences freed memory.
+			 */
+			disable_irq(gsw->irq);
+			cancel_work_sync(&gsw->irq_work);
 			free_irq(gsw->irq, gsw->priv);
 			/* both this remove and mtk_gsw_cleanup() release the
 			 * same irq; drop the dev_id pointer so whoever runs
