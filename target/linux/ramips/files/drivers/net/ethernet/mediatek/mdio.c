@@ -103,9 +103,13 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
 	return 0;
 }
 
-static void phy_init(struct fe_priv *priv, struct phy_device *phy)
+static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 {
-	phy_attach(priv->netdev, dev_name(&phy->dev), PHY_INTERFACE_MODE_MII);
+	struct phy_device *p;
+
+	p = phy_attach(priv->netdev, dev_name(&phy->dev), PHY_INTERFACE_MODE_MII);
+	if (!p)
+		return -ENODEV;
 
 	phy->autoneg = AUTONEG_ENABLE;
 	phy->speed = 0;
@@ -115,6 +119,8 @@ static void phy_init(struct fe_priv *priv, struct phy_device *phy)
 	phy->advertising = phy->supported | ADVERTISED_Autoneg;
 
 	phy_start_aneg(phy);
+
+	return 0;
 }
 
 static int fe_phy_connect(struct fe_priv *priv)
