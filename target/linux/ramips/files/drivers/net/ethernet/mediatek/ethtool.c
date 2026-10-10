@@ -53,7 +53,11 @@ static int fe_set_settings(struct net_device *dev,
 		goto out_sset;
 
 	if (cmd->phy_address != priv->phy_dev->addr) {
-		if (priv->phy->phy_node[cmd->phy_address]) {
+		if (priv->phy->phy_node[cmd->phy_address] &&
+		    priv->phy->phy[cmd->phy_address]) {
+			/* phy_node[] marks a described PHY; phy[] is only
+			 * filled once the connect actually succeeded
+			 */
 			priv->phy_dev = priv->phy->phy[cmd->phy_address];
 			priv->phy_flags = FE_PHY_FLAG_PORT;
 		} else if (priv->mii_bus &&
