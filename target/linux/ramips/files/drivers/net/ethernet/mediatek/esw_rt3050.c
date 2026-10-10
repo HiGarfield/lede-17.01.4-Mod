@@ -1081,7 +1081,7 @@ static int esw_get_port_pvid(struct switch_dev *dev, int port, int *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
-	if (port >= RT305X_ESW_NUM_PORTS)
+	if (port < 0 || port >= RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
 	*val = esw_get_pvid(esw, port);
@@ -1093,7 +1093,7 @@ static int esw_set_port_pvid(struct switch_dev *dev, int port, int val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
-	if (port >= RT305X_ESW_NUM_PORTS)
+	if (port < 0 || port >= RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
 	esw->ports[port].pvid = val;
