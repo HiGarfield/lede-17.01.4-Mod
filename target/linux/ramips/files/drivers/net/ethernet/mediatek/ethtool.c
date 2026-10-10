@@ -46,6 +46,9 @@ static int fe_set_settings(struct net_device *dev,
 {
 	struct fe_priv *priv = netdev_priv(dev);
 
+	if (cmd->phy_address >= 8)
+		return -EINVAL;
+
 	if (!priv->phy_dev)
 		goto out_sset;
 
