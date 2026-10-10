@@ -1364,8 +1364,10 @@ static int esw_probe(struct platform_device *pdev)
 	esw->dev = &pdev->dev;
 	esw->irq = irq_of_parse_and_map(np, 0);
 	esw->base = devm_ioremap_resource(&pdev->dev, res);
-	if (IS_ERR(esw->base))
+	if (IS_ERR(esw->base)) {
+		irq_dispose_mapping(esw->irq);
 		return PTR_ERR(esw->base);
+	}
 
 	port_map = of_get_property(np, "mediatek,portmap", NULL);
 	if (port_map)
@@ -1399,6 +1401,7 @@ static int esw_probe(struct platform_device *pdev)
 	ret = register_switch(swdev, NULL);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "register_switch failed\n");
+		irq_dispose_mapping(esw->irq);
 		return ret;
 	}
 
@@ -1417,6 +1420,7 @@ static int esw_probe(struct platform_device *pdev)
 		dev_err(&pdev->dev, "RGMII mode, not exporting switch device.\n");
 		unregister_switch(&esw->swdev);
 		platform_set_drvdata(pdev, NULL);
+		irq_dispose_mapping(esw->irq);
 		return -ENODEV;
 	}
 
@@ -1437,6 +1441,13 @@ static int esw_remove(struct platform_device *pdev)
 
 	if (esw) {
 		esw_w32(esw, ~0, RT305X_ESW_REG_IMR);
+		/* the irq was requested through devm, so its action is only
+		 * released after this function returns; drop it first,
+		 * otherwise irq_dispose_mapping() tears down (and possibly
+		 * recycles) a mapping that still carries esw_interrupt
+		 */
+		devm_free_irq(&pdev->dev, esw->irq, esw);
+		irq_dispose_mapping(esw->irq);
 		platform_set_drvdata(pdev, NULL);
 	}
 
