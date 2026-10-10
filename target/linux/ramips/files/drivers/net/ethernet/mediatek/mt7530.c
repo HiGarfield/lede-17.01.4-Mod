@@ -795,12 +795,22 @@ mt7530_apply_config(struct switch_dev *dev)
 
 	/* Port Default PVID */
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
-		int vlan = priv->port_entries[i].pvid;
 		u16 pvid = 0;
 		u32 val;
 
-		if (vlan < MT7530_NUM_VLANS && priv->vlan_entries[vlan].member)
-			pvid = priv->vlan_entries[vlan].vid;
+		/* port_entries[].pvid is a VID, not an array index:
+		 * locate the configured entry carrying this VID. Using
+		 * it as a subscript made a pvid > 15 silently fall back
+		 * to 0 on MT7620 (NUM_VLANS=16).
+		 */
+		for (j = 0; j < MT7530_NUM_VLANS; j++) {
+			if (priv->vlan_entries[j].member &&
+			    priv->vlan_entries[j].vid ==
+						priv->port_entries[i].pvid) {
+				pvid = priv->vlan_entries[j].vid;
+				break;
+			}
+		}
 
 		val = mt7530_r32(priv, REG_ESW_PORT_PPBV1(i));
 		val &= ~0xfff;
