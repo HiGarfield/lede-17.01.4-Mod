@@ -181,6 +181,9 @@
 #define MT7621_STATS_RDPC_ING	0xB4
 #define MT7621_STATS_RDPC_ARL	0xB8
 
-int mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vlan);
+struct switch_dev;
+
+struct switch_dev *mt7530_probe(struct device *dev, void __iomem *base,
+				struct mii_bus *bus, int vlan);
 
 #endif

@@ -356,6 +356,7 @@ struct fe_tx_dma {
 } __packed __aligned(4);
 
 struct fe_priv;
+struct switch_dev;
 
 struct fe_phy {
 	/* make sure that phy operations are atomic */
@@ -395,6 +396,8 @@ struct fe_soc_data {
 	void (*reset_ports)(struct fe_priv *priv);
 
 	void *swpriv;
+	struct switch_dev *gsw_dev[2];
+	int gsw_dev_num;
 	u32 pdma_glo_cfg;
 	u32 rx_int;
 	u32 tx_int;

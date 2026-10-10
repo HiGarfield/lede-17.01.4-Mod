@@ -1205,7 +1205,7 @@ static const struct switch_dev_ops mt7530_ops = {
 	.phy_write16 = mt7530_phy_write16,
 };
 
-int
+struct switch_dev *
 mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vlan)
 {
 	struct switch_dev *swdev;
@@ -1215,7 +1215,7 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 
 	mt7530 = devm_kzalloc(dev, sizeof(struct mt7530_priv), GFP_KERNEL);
 	if (!mt7530)
-		return -ENOMEM;
+		return ERR_PTR(-ENOMEM);
 
 	mt7530->base = base;
 	mt7530->bus = bus;
@@ -1246,7 +1246,7 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	if (ret) {
 		dev_err(dev, "failed to register mt7530\n");
 		mutex_destroy(&mt7530->reg_mutex);
-		return ret;
+		return ERR_PTR(ret);
 	}
 
 	map = mt7530_find_mapping(dev->of_node);
@@ -1263,5 +1263,5 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	mutex_unlock(&mt7530->reg_mutex);
 	dev_info(dev, "loaded %s driver\n", swdev->name);
 
-	return 0;
+	return swdev;
 }
