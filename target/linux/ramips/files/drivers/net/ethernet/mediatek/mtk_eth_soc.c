@@ -1577,6 +1577,13 @@ static int fe_probe(struct platform_device *pdev)
 		goto err_iounmap;
 	}
 
+	/*
+	 * Set priv up before any path that can reach err_free_dev:
+	 * that label frees priv->hw_stats and puts priv->switch_np.
+	 */
+	priv = netdev_priv(netdev);
+	spin_lock_init(&priv->page_lock);
+
 	SET_NETDEV_DEV(netdev, &pdev->dev);
 	netdev->netdev_ops = &fe_netdev_ops;
 	netdev->base_addr = (unsigned long)fe_base;
@@ -1599,8 +1606,6 @@ static int fe_probe(struct platform_device *pdev)
 	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
 		netdev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
 
-	priv = netdev_priv(netdev);
-	spin_lock_init(&priv->page_lock);
 	if (fe_reg_table[FE_REG_FE_COUNTER_BASE]) {
 		priv->hw_stats = kzalloc(sizeof(*priv->hw_stats), GFP_KERNEL);
 		if (!priv->hw_stats) {
@@ -1660,6 +1665,7 @@ static int fe_probe(struct platform_device *pdev)
 	return 0;
 
 err_free_dev:
+	kfree(priv->hw_stats);
 	free_netdev(netdev);
 err_iounmap:
 	devm_iounmap(&pdev->dev, fe_base);
