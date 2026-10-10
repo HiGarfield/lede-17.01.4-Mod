@@ -828,7 +828,7 @@ static int mt7530_set_port_link(struct switch_dev *sw_dev, int port,
 
 		sw_dev->ops->phy_read16(sw_dev, port, MII_BMSR, &bmsr);
 		/* ERCAP means we have MII_CTRL1000 register */
-		ercap = !!(bmsr | BMSR_ERCAP);
+		ercap = !!(bmsr & BMSR_ERCAP);
 
 		adv = ADVERTISE_CSMA | ADVERTISE_PAUSE_CAP | ADVERTISE_PAUSE_ASYM;
 		gctrl = CTL1000_ENABLE_MASTER;
