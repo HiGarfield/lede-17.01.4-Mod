@@ -526,6 +526,16 @@ mt7530_set_vid(struct switch_dev *dev, const struct switch_attr *attr,
 	if (vid < MT7530_MIN_VID || vid > MT7530_MAX_VID)
 		return -EINVAL;
 
+#ifdef CONFIG_SOC_MT7621
+	/* On MT7621 the VLAN table is indexed by VID directly:
+	 * get_vlan_ports() reads entries back by VID, so remapping a
+	 * slot to a different VID would desynchronise get and set.
+	 * Keep index == VID.
+	 */
+	if (vid != vlan)
+		return -EINVAL;
+#endif
+
 	priv->vlan_entries[vlan].vid = vid;
 	set_bit(vlan, priv->vlan_dirty);
 	return 0;
@@ -535,7 +545,15 @@ static int
 mt7621_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
 		struct switch_val *val)
 {
-	val->value.i = val->port_vlan;
+	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_VLANS)
+		return -EINVAL;
+
+	/* pair with mt7530_set_vid(): report the configured VID, not
+	 * the array index
+	 */
+	val->value.i = priv->vlan_entries[val->port_vlan].vid;
 	return 0;
 }
 
