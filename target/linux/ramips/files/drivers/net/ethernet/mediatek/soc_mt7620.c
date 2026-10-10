@@ -259,21 +259,23 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		return;
 	}
 
-	if (priv->phy->phy_node[id] && priv->mii_bus &&
-	    priv->mii_bus->phy_map[id]) {
+	if (priv->phy->phy_node[id]) {
 		u32 val = PMCR_BACKPRES | PMCR_BACKOFF | PMCR_RX_EN |
 			PMCR_TX_EN |  PMCR_MAC_MODE | PMCR_IPG;
 
+		/* The old check keyed on phy_map[id], requiring the MDIO
+		 * address to equal the port id; a PHY described by a node
+		 * connects by node regardless of its bus address. Only
+		 * program PMCR/autopoll once the connect succeeded --
+		 * fe_connect_phy_node() already dropped the node on
+		 * failure.
+		 */
+		if (fe_connect_phy_node(priv, priv->phy->phy_node[id]))
+			return;
+
 		mtk_switch_w32(gsw, val, GSW_REG_PORT_PMCR(id));
-		fe_connect_phy_node(priv, priv->phy->phy_node[id]);
 		gsw->autopoll |= BIT(id);
 		mt7620_auto_poll(gsw);
-		return;
-	}
-
-	if (priv->phy->phy_node[id]) {
-		of_node_put(priv->phy->phy_node[id]);
-		priv->phy->phy_node[id] = NULL;
 	}
 }
 
