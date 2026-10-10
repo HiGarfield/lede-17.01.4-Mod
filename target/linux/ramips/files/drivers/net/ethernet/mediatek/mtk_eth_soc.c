@@ -436,6 +436,17 @@ void fe_stats_update(struct fe_priv *priv)
 	u64_stats_update_begin(&hwstats->syncp);
 
 	if (IS_ENABLED(CONFIG_SOC_MT7621)) {
+		/* The byte counters are accumulated with += here, which
+		 * only makes sense if the hardware clears them on read.
+		 * Under that semantic the lo->hi read order below is
+		 * already tear-safe: a wrap between the reads folds the
+		 * carry into the hi word while the pre-wrap lo word is
+		 * still large, so the pair stays consistent. A hi->lo
+		 * order (or re-reads) would instead *lose* data because
+		 * the second read returns post-clear values. Do not
+		 * "fix" the order without changing the accumulation
+		 * model.
+		 */
 		hwstats->rx_bytes			+= fe_r32(base);
 		stats					=  fe_r32(base + 0x04);
 		if (stats)
