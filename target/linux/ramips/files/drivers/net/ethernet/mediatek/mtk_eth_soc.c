@@ -1688,6 +1688,10 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 			return -EINVAL;
 
 	frag_size = fe_max_frag_size(new_mtu);
+	/* 68 is the minimum payload (ETH_MIN_MTU does not exist in the
+	 * 4.4 headers); it already accounts for the minimum
+	 * 802.1q-tagged frame the MAC must transport
+	 */
 	if (new_mtu < 68 || frag_size > PAGE_SIZE)
 		return -EINVAL;
 
