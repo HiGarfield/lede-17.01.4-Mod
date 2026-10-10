@@ -567,6 +567,9 @@ mt7530_get_port_mirror_rx(struct switch_dev *dev, const struct switch_attr *attr
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+		return -EINVAL;
+
 	val->value.i =  priv->port_entries[val->port_vlan].mirror_rx;
 
 	return 0;
@@ -577,6 +580,9 @@ mt7530_set_port_mirror_rx(struct switch_dev *dev, const struct switch_attr *attr
 		struct switch_val *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+		return -EINVAL;
 
 	priv->port_entries[val->port_vlan].mirror_rx = val->value.i;
 
@@ -589,6 +595,9 @@ mt7530_get_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+		return -EINVAL;
+
 	val->value.i =  priv->port_entries[val->port_vlan].mirror_tx;
 
 	return 0;
@@ -599,6 +608,9 @@ mt7530_set_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 		struct switch_val *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+		return -EINVAL;
 
 	priv->port_entries[val->port_vlan].mirror_tx = val->value.i;
 
