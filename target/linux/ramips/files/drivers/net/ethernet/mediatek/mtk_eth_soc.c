@@ -1664,6 +1664,7 @@ static int fe_probe(struct platform_device *pdev)
 	fe_base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(fe_base)) {
 		err = -EADDRNOTAVAIL;
+		fe_base = NULL;
 		goto err_out;
 	}
 
@@ -1767,6 +1768,12 @@ err_free_dev:
 	free_netdev(netdev);
 err_iounmap:
 	devm_iounmap(&pdev->dev, fe_base);
+	/* leave no dangling state behind: a stale fe_base makes the next
+	 * probe bail out with -EBUSY and points fe_r32/fe_w32 at an
+	 * unmapped address
+	 */
+	fe_base = NULL;
+	fe_reg_table = fe_reg_table_default;
 err_out:
 	return err;
 }
