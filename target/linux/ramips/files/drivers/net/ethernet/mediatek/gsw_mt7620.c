@@ -267,6 +267,8 @@ static int mt7620_gsw_probe(struct platform_device *pdev)
 		gsw->port4 = PORT4_EPHY;
 
 	gsw->irq = platform_get_irq(pdev, 0);
+	if (gsw->irq < 0)
+		gsw->irq = 0;
 
 	platform_set_drvdata(pdev, gsw);
 
