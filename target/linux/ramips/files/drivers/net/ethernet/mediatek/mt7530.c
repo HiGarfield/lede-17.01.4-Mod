@@ -923,7 +923,14 @@ static int mt7530_set_port_link(struct switch_dev *sw_dev, int port,
 		u16 bmsr, adv, gctrl;
 		bool ercap;
 
-		sw_dev->ops->phy_read16(sw_dev, port, MII_BMSR, &bmsr);
+		/* a failed read would leave bmsr holding garbage (or a
+		 * truncated negative errno) and ercap would steer the
+		 * 1000M configuration down the wrong branch
+		 */
+		if (sw_dev->ops->phy_read16(sw_dev, port, MII_BMSR, &bmsr)) {
+			mutex_unlock(&priv->reg_mutex);
+			return -EIO;
+		}
 		/* ERCAP means we have MII_CTRL1000 register */
 		ercap = !!(bmsr & BMSR_ERCAP);
 
