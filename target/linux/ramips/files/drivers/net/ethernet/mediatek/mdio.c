@@ -153,7 +153,7 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 	unsigned long flags;
 	int i;
 
-	for (i = 0; i < 8; i++)
+	for (i = 0; i < 8; i++) {
 		if (priv->phy->phy_fixed[i]) {
 			spin_lock_irqsave(&priv->phy->lock, flags);
 			priv->link[i] = 0;
@@ -165,6 +165,12 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i]) {
 			phy_detach(priv->mii_bus->phy_map[i]);
 		}
+
+		if (priv->phy->phy_node[i]) {
+			of_node_put(priv->phy->phy_node[i]);
+			priv->phy->phy_node[i] = NULL;
+		}
+	}
 }
 
 static void fe_phy_start(struct fe_priv *priv)
