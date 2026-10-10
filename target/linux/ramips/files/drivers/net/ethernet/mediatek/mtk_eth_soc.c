@@ -1600,6 +1600,11 @@ static int fe_probe(struct platform_device *pdev)
 
 	soc = (struct fe_soc_data *)match->data;
 
+	if (fe_base) {
+		dev_err(&pdev->dev, "driver supports a single instance only\n");
+		return -EBUSY;
+	}
+
 	if (soc->reg_table)
 		fe_reg_table = soc->reg_table;
 	else
@@ -1733,6 +1738,8 @@ static int fe_remove(struct platform_device *pdev)
 	kfree(priv->hw_stats);
 	free_netdev(dev);
 	platform_set_drvdata(pdev, NULL);
+	fe_base = NULL;
+	fe_reg_table = fe_reg_table_default;
 
 	return 0;
 }
