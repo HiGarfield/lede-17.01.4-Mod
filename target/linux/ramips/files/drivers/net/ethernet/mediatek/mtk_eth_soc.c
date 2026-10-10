@@ -912,7 +912,10 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 		/* receive data */
 		skb = build_skb(data, ring->frag_size);
 		if (unlikely(!skb)) {
+			dma_unmap_single(priv->dev, dma_addr, ring->rx_buf_size,
+					 DMA_FROM_DEVICE);
 			skb_free_frag(new_data);
+			stats->rx_dropped++;
 			goto release_desc;
 		}
 		skb_reserve(skb, NET_SKB_PAD + NET_IP_ALIGN);
