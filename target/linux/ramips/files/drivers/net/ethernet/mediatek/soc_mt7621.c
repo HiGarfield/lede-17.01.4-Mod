@@ -164,6 +164,9 @@ static void mt7621_reset_ports(struct fe_priv *priv)
 	u8 i;
 	u32 val;
 
+	if (!gsw)
+		return;
+
 	/* Disable all ports */
 	for (i = 0; i <= 4; i++) {
 		val = _mt7620_mii_read(gsw, i, 0x0);
