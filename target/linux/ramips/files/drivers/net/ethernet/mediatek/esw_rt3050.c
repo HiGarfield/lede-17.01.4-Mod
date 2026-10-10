@@ -393,11 +393,22 @@ static unsigned esw_get_port_disable(struct rt305x_esw *esw)
 	       RT305X_ESW_POC0_DIS_PORT_M;
 }
 
-static void esw_set_port_disable(struct rt305x_esw *esw, unsigned disable_mask)
+static void esw_phy_power(struct rt305x_esw *esw, int port, bool up)
+{
+	u32 val = up ? (BMCR_FULLDPLX | BMCR_ANENABLE | BMCR_SPEED100)
+		     : BMCR_PDOWN;
+
+	if (rt305x_mii_write(esw, port, MII_BMCR, val))
+		dev_warn(esw->dev, "port %d: PHY power-%s failed\n",
+			 port, up ? "up" : "down");
+}
+
+static int esw_set_port_disable(struct rt305x_esw *esw, unsigned disable_mask)
 {
 	unsigned old_mask;
 	unsigned enable_mask;
 	unsigned changed;
+	int ret = 0;
 	int i;
 
 	old_mask = esw_get_port_disable(esw);
@@ -415,15 +426,16 @@ static void esw_set_port_disable(struct rt305x_esw *esw, unsigned disable_mask)
 			continue;
 		if (disable_mask & (1 << i)) {
 			/* disable */
-			rt305x_mii_write(esw, i, MII_BMCR,
-					 BMCR_PDOWN);
+			if (rt305x_mii_write(esw, i, MII_BMCR, BMCR_PDOWN))
+				ret = -EIO;
 		} else {
 			/* enable */
-			rt305x_mii_write(esw, i, MII_BMCR,
-					 BMCR_FULLDPLX |
-					 BMCR_ANENABLE |
-					 BMCR_ANRESTART |
-					 BMCR_SPEED100);
+			if (rt305x_mii_write(esw, i, MII_BMCR,
+					     BMCR_FULLDPLX |
+					     BMCR_ANENABLE |
+					     BMCR_ANRESTART |
+					     BMCR_SPEED100))
+				ret = -EIO;
 		}
 	}
 
@@ -432,6 +444,8 @@ static void esw_set_port_disable(struct rt305x_esw *esw, unsigned disable_mask)
 		       (RT305X_ESW_POC0_DIS_PORT_M <<
 			RT305X_ESW_POC0_DIS_PORT_S),
 		       disable_mask << RT305X_ESW_POC0_DIS_PORT_S);
+
+	return ret;
 }
 
 static void esw_set_gsc(struct rt305x_esw *esw)
@@ -526,14 +540,7 @@ static void esw_hw_init(struct rt305x_esw *esw)
 
 		rt305x_mii_write(esw, 0, 31, 0x8000);
 		for (i = 0; i < 5; i++) {
-			if (esw->ports[i].disable) {
-				rt305x_mii_write(esw, i, MII_BMCR, BMCR_PDOWN);
-			} else {
-				rt305x_mii_write(esw, i, MII_BMCR,
-						 BMCR_FULLDPLX |
-						 BMCR_ANENABLE |
-						 BMCR_SPEED100);
-			}
+			esw_phy_power(esw, i, !esw->ports[i].disable);
 			/* TX10 waveform coefficient LSB=0 disable PHY */
 			rt305x_mii_write(esw, i, 26, 0x1601);
 			/* TX100/TX10 AD/DA current bias */
@@ -582,14 +589,7 @@ static void esw_hw_init(struct rt305x_esw *esw)
 		/* local registers */
 		rt305x_mii_write(esw, 0, 31, 0x8000);
 		for (i = 0; i < 5; i++) {
-			if (esw->ports[i].disable) {
-				rt305x_mii_write(esw, i, MII_BMCR, BMCR_PDOWN);
-			} else {
-				rt305x_mii_write(esw, i, MII_BMCR,
-						 BMCR_FULLDPLX |
-						 BMCR_ANENABLE |
-						 BMCR_SPEED100);
-			}
+			esw_phy_power(esw, i, !esw->ports[i].disable);
 			/* TX10 waveform coefficient LSB=0 disable PHY */
 			rt305x_mii_write(esw, i, 26, 0x1601);
 			/* TX100/TX10 AD/DA current bias */
@@ -638,7 +638,7 @@ static void esw_hw_init(struct rt305x_esw *esw)
 
 		for (i = 0; i < 5; i++) {
 			rt305x_mii_write(esw, i, 31, 0x8000);
-			rt305x_mii_write(esw, i,  0, 0x3100);
+			esw_phy_power(esw, i, true);
 			rt305x_mii_write(esw, i, 30, 0xa000);
 			rt305x_mii_write(esw, i, 31, 0xa000);
 			rt305x_mii_write(esw, i, 16, 0x0606);
@@ -667,14 +667,7 @@ static void esw_hw_init(struct rt305x_esw *esw)
 	} else {
 		rt305x_mii_write(esw, 0, 31, 0x8000);
 		for (i = 0; i < 5; i++) {
-			if (esw->ports[i].disable) {
-				rt305x_mii_write(esw, i, MII_BMCR, BMCR_PDOWN);
-			} else {
-				rt305x_mii_write(esw, i, MII_BMCR,
-						 BMCR_FULLDPLX |
-						 BMCR_ANENABLE |
-						 BMCR_SPEED100);
-			}
+			esw_phy_power(esw, i, !esw->ports[i].disable);
 			/* TX10 waveform coefficient */
 			rt305x_mii_write(esw, i, 26, 0x1601);
 			/* TX100/TX10 AD/DA current bias */
@@ -744,7 +737,7 @@ static irqreturn_t esw_interrupt(int irq, void *_esw)
 static int esw_apply_config(struct switch_dev *dev)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
-	int i;
+	int i, ret;
 	u8 disable = 0;
 	u8 doubletag = 0;
 	u8 en_vlan = 0;
@@ -785,7 +778,11 @@ static int esw_apply_config(struct switch_dev *dev)
 	}
 
 	esw_set_gsc(esw);
-	esw_set_port_disable(esw, disable);
+	/* finish programming the remaining registers even when a PHY
+	 * write timed out, but report the failure to the caller instead
+	 * of pretending the port state matches the request
+	 */
+	ret = esw_set_port_disable(esw, disable);
 	esw_rmw(esw, RT305X_ESW_REG_SGC2,
 		       (RT305X_ESW_SGC2_DOUBLE_TAG_M <<
 			RT305X_ESW_SGC2_DOUBLE_TAG_S),
@@ -807,7 +804,7 @@ static int esw_apply_config(struct switch_dev *dev)
 		esw_set_vmsc(esw, 0, RT305X_ESW_PORTS_ALL);
 	}
 
-	return 0;
+	return ret;
 }
 
 static int esw_reset_switch(struct switch_dev *dev)
