@@ -238,6 +238,14 @@ struct rt305x_esw {
 	unsigned int		reg_initval_fpa2;
 	unsigned int		reg_led_polarity;
 
+	/* software accumulation for the 16-bit hardware packet
+	 * counters, which wrap quickly on fast ports
+	 */
+	u16			last_recv[RT305X_ESW_NUM_LANWAN][2];
+	u32			accum_recv[RT305X_ESW_NUM_LANWAN][2];
+	u16			last_tr[RT305X_ESW_NUM_LANWAN][2];
+	u32			accum_tr[RT305X_ESW_NUM_LANWAN][2];
+
 	struct switch_dev	swdev;
 	bool			global_vlan_enable;
 	bool			alt_vlan_disable;
@@ -1068,8 +1076,22 @@ static int esw_get_port_recv_badgood(struct switch_dev *dev,
 
 	if (idx < 0 || idx >= RT305X_ESW_NUM_LANWAN)
 		return -EINVAL;
+
+	/* the hardware counters are only 16 bits wide and wrap within
+	 * seconds on a busy port; fold each read into a software
+	 * accumulator so userspace sees a monotonically growing value
+	 */
+	mutex_lock(&esw->update_lock);
 	reg = esw_r32(esw, RT305X_ESW_REG_PXPC(idx));
-	val->value.i = (reg >> shift) & 0xffff;
+	{
+		u16 cur = (reg >> shift) & 0xffff;
+		int w = shift ? 1 : 0;
+
+		esw->accum_recv[idx][w] += (u16)(cur - esw->last_recv[idx][w]);
+		esw->last_recv[idx][w] = cur;
+		val->value.i = esw->accum_recv[idx][w];
+	}
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -1091,8 +1113,17 @@ esw_get_port_tr_badgood(struct switch_dev *dev,
 	if (idx < 0 || idx >= RT305X_ESW_NUM_LANWAN)
 		return -EINVAL;
 
+	mutex_lock(&esw->update_lock);
 	reg = esw_r32(esw, RT5350_ESW_REG_PXTPC(idx));
-	val->value.i = (reg >> shift) & 0xffff;
+	{
+		u16 cur = (reg >> shift) & 0xffff;
+		int w = shift ? 1 : 0;
+
+		esw->accum_tr[idx][w] += (u16)(cur - esw->last_tr[idx][w]);
+		esw->last_tr[idx][w] = cur;
+		val->value.i = esw->accum_tr[idx][w];
+	}
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
