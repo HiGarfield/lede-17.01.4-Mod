@@ -1147,7 +1147,10 @@ static int esw_set_port_pvid(struct switch_dev *dev, int port, int val)
 	if (port < 0 || port >= RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
-	if (val < 0 || val > RT305X_ESW_PVIDC_PVID_M)
+	/* 4095 doubles as RT305X_ESW_VLAN_NONE and must not be
+	 * assignable as a PVID
+	 */
+	if (val < 0 || val >= RT305X_ESW_VLAN_NONE)
 		return -EINVAL;
 
 	mutex_lock(&esw->update_lock);
