@@ -335,7 +335,8 @@ int fe_mdio_init(struct fe_priv *priv)
 	return 0;
 
 err_free_bus:
-	kfree(priv->mii_bus);
+	/* mdiobus_alloc() pairs with mdiobus_free(), not kfree() */
+	mdiobus_free(priv->mii_bus);
 err_put_node:
 	of_node_put(mii_np);
 	priv->mii_bus = NULL;
@@ -353,7 +354,7 @@ void fe_mdio_cleanup(struct fe_priv *priv)
 
 	mdiobus_unregister(priv->mii_bus);
 	of_node_put(priv->mii_bus->dev.of_node);
-	kfree(priv->mii_bus);
+	mdiobus_free(priv->mii_bus);
 	/*
 	 * Drop our own reference too.  The "if (!priv->mii_bus) return"
 	 * guard above only makes this function idempotent while this
