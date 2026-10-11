@@ -34,11 +34,14 @@ static int rt3883_fwd_config(struct fe_priv *priv)
 	if (ret)
 		return ret;
 
+	/* every step that can fail sits before this point, so no
+	 * rollback of the clock setup is needed afterwards
+	 */
 	fe_fwd_config(priv);
 	fe_w32(FE_PSE_FQFC_CFG_256Q, FE_PSE_FQ_CFG);
 	fe_csum_config(priv);
 
-	return ret;
+	return 0;
 }
 
 static void rt3883_init_data(struct fe_soc_data *data,
