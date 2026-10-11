@@ -1607,6 +1607,13 @@ static void fe_uninit(struct net_device *dev)
 		msleep(20);
 	}
 
+	/* cut the interrupt sources before the lengthy cleanup below:
+	 * phy disconnect and MDIO teardown can take long enough for the
+	 * irq handler to run against half-torn-down state
+	 */
+	fe_reg_w32(0, FE_REG_FE_INT_ENABLE);
+	free_irq(dev->irq, dev);
+
 	/* release the switch irq requested with this fe_priv as dev_id
 	 * before this instance goes away
 	 */
@@ -1618,9 +1625,6 @@ static void fe_uninit(struct net_device *dev)
 	if (priv->phy)
 		priv->phy->disconnect(priv);
 	fe_mdio_cleanup(priv);
-
-	fe_reg_w32(0, FE_REG_FE_INT_ENABLE);
-	free_irq(dev->irq, dev);
 }
 
 static int fe_do_ioctl(struct net_device *dev, struct ifreq *ifr, int cmd)
