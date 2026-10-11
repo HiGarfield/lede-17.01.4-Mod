@@ -173,7 +173,13 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	int phy_mode;
 
 	if (!id || (be32_to_cpu(*id) != 0)) {
-		pr_err("%s: invalid port id\n", np->name);
+		/* only port 0 is wired up on these SoCs; a DT describing
+		 * additional ports (e.g. rt3883's second GMAC) used to be
+		 * dropped silently
+		 */
+		dev_warn(priv->dev,
+			 "%s: port id %d not supported by this driver\n",
+			 np->name, id ? be32_to_cpu(*id) : -1);
 		return;
 	}
 
