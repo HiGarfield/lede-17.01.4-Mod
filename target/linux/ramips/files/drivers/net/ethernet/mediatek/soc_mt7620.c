@@ -276,6 +276,10 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 			dev_err(priv->dev, "invalid link speed: %d\n",
 				priv->phy->speed[id]);
 			priv->phy->phy_fixed[id] = 0;
+			/* undo the early link-up above: the carrier must
+			 * not stay up for a port we just rejected
+			 */
+			priv->link[id] = 0;
 			return;
 		}
 		val = PMCR_SPEED(val);

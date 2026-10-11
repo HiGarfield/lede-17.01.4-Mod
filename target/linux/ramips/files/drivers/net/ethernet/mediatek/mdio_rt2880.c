@@ -236,6 +236,10 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 			dev_err(priv->dev, "invalid link speed: %d\n",
 				priv->phy->speed[0]);
 			priv->phy->phy_fixed[0] = 0;
+			/* undo the early link-up above: the carrier must
+			 * not stay up for a port we just rejected
+			 */
+			priv->link[0] = 0;
 			return;
 		}
 		dev_info(priv->dev, "using fixed link parameters\n");
