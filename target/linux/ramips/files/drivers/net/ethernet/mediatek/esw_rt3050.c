@@ -1428,7 +1428,8 @@ static int esw_probe(struct platform_device *pdev)
 	esw->irq = irq_of_parse_and_map(np, 0);
 	esw->base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(esw->base)) {
-		irq_dispose_mapping(esw->irq);
+		if (esw->irq > 0)
+			irq_dispose_mapping(esw->irq);
 		return PTR_ERR(esw->base);
 	}
 
@@ -1490,34 +1491,39 @@ static int esw_probe(struct platform_device *pdev)
 	 */
 	esw_hw_init(esw);
 
+	/*
+	 * External switch connected to RGMII interface; decide before
+	 * registering anything instead of registering and unregistering
+	 * the switch device again.  This must stay *after* esw_hw_init():
+	 * the internal ESW is still in the data path on these boards, so
+	 * bailing out before its hardware setup would leave the ports
+	 * dead.
+	 */
+	reg_init = of_get_property(np, "ralink,rgmii", NULL);
+	if (reg_init && be32_to_cpu(*reg_init) == 1) {
+		dev_err(&pdev->dev, "RGMII mode, not exporting switch device.\n");
+		if (esw->irq > 0)
+			irq_dispose_mapping(esw->irq);
+		return -ENODEV;
+	}
+
 	ret = register_switch(swdev, NULL);
 	if (ret < 0) {
 		dev_err(&pdev->dev, "register_switch failed\n");
-		irq_dispose_mapping(esw->irq);
+		if (esw->irq > 0)
+			irq_dispose_mapping(esw->irq);
 		return ret;
 	}
 
 	platform_set_drvdata(pdev, esw);
-
-	reg_init = of_get_property(np, "ralink,rgmii", NULL);
-	if (reg_init && be32_to_cpu(*reg_init) == 1) {
-		/* 
-		 * External switch connected to RGMII interface. 
-		 * Unregister the switch device after initialization. 
-		 */
-		dev_err(&pdev->dev, "RGMII mode, not exporting switch device.\n");
-		unregister_switch(&esw->swdev);
-		platform_set_drvdata(pdev, NULL);
-		irq_dispose_mapping(esw->irq);
-		return -ENODEV;
-	}
 
 	ret = devm_request_irq(&pdev->dev, esw->irq, esw_interrupt, 0, "esw",
 			       esw);
 
 	if (ret) {
 		unregister_switch(&esw->swdev);
-		irq_dispose_mapping(esw->irq);
+		if (esw->irq > 0)
+			irq_dispose_mapping(esw->irq);
 		return ret;
 	}
 
@@ -1534,13 +1540,16 @@ static int esw_remove(struct platform_device *pdev)
 	if (esw) {
 		esw_w32(esw, ~0, RT305X_ESW_REG_IMR);
 		unregister_switch(&esw->swdev);
-		/* the irq was requested through devm, so its action is only
-		 * released after this function returns; drop it first,
-		 * otherwise irq_dispose_mapping() tears down (and possibly
-		 * recycles) a mapping that still carries esw_interrupt
-		 */
-		devm_free_irq(&pdev->dev, esw->irq, esw);
-		irq_dispose_mapping(esw->irq);
+		if (esw->irq > 0) {
+			/* the irq was requested through devm, so its action
+			 * is only released after this function returns; drop
+			 * it first, otherwise irq_dispose_mapping() tears
+			 * down (and possibly recycles) a mapping that still
+			 * carries esw_interrupt
+			 */
+			devm_free_irq(&pdev->dev, esw->irq, esw);
+			irq_dispose_mapping(esw->irq);
+		}
 		platform_set_drvdata(pdev, NULL);
 	}
 
