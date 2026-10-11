@@ -331,6 +331,11 @@ static int mt7620_gsw_probe(struct platform_device *pdev)
 		gsw->port4 = PORT4_EPHY;
 
 	gsw->irq = platform_get_irq(pdev, 0);
+	/* do not swallow -EPROBE_DEFER: mapping it to 0 made the probe
+	 * succeed permanently without an interrupt
+	 */
+	if (gsw->irq == -EPROBE_DEFER)
+		return -EPROBE_DEFER;
 	if (gsw->irq < 0)
 		gsw->irq = 0;
 
