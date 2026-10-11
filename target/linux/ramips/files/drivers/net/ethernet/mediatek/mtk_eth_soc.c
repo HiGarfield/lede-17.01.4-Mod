@@ -196,8 +196,11 @@ static inline int fe_max_buf_size(int frag_size)
 	int buf_size = frag_size - NET_SKB_PAD - NET_IP_ALIGN -
 		       SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
 
-	if (WARN_ON_ONCE(buf_size < MAX_RX_LENGTH))
-		return MAX_RX_LENGTH;
+	/* warn but still return the true capacity: pretending the frag
+	 * could hold MAX_RX_LENGTH when it cannot would make the caller
+	 * program a larger DMA length than the buffer really has
+	 */
+	WARN_ON_ONCE(buf_size < MAX_RX_LENGTH);
 	return buf_size;
 }
 
