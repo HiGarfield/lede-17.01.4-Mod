@@ -497,10 +497,13 @@ static struct rtnl_link_stats64 *fe_get_stats64(struct net_device *dev,
 	}
 
 	if (netif_running(dev) && netif_device_present(dev)) {
-		if (spin_trylock_bh(&hwstats->stats_lock)) {
-			fe_stats_update(priv);
-			spin_unlock_bh(&hwstats->stats_lock);
-		}
+		/* take the lock unconditionally: a failed trylock silently
+		 * skipped the update, and increments sitting in the 32-bit
+		 * hardware counters were lost once they wrapped
+		 */
+		spin_lock_bh(&hwstats->stats_lock);
+		fe_stats_update(priv);
+		spin_unlock_bh(&hwstats->stats_lock);
 	}
 
 	do {
