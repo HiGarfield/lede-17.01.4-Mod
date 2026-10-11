@@ -42,6 +42,13 @@ static void fe_phy_link_adjust(struct net_device *dev)
 			struct phy_device *phydev = priv->phy->phy[i];
 			int status_change = 0;
 
+			/* phy_node[] is set before the connect fills phy[];
+			 * a state machine running in that window (or after a
+			 * failed connect) must not be dereferenced
+			 */
+			if (!phydev)
+				continue;
+
 			if (phydev->link)
 				if (priv->phy->duplex[i] != phydev->duplex ||
 				    priv->phy->speed[i] != phydev->speed)
