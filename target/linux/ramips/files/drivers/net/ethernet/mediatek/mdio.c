@@ -151,8 +151,21 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
 static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 {
 	struct phy_device *p;
+	int phy_mode;
 
-	p = phy_attach(priv->netdev, dev_name(&phy->dev), PHY_INTERFACE_MODE_MII);
+	/* honour the phy-mode from the PHY's own DT node instead of
+	 * hardcoding MII: RGMII/RMII boards would otherwise attach
+	 * with the wrong interface mode
+	 */
+	/* This is the fallback path for PHYs that the bus scan found and
+	 * that therefore have no DT node: their dev.of_node is NULL and
+	 * handing NULL to the OF accessors dereferences it.
+	 */
+	phy_mode = phy->dev.of_node ? of_get_phy_mode(phy->dev.of_node) : -ENODEV;
+	if (phy_mode < 0)
+		phy_mode = PHY_INTERFACE_MODE_MII;
+
+	p = phy_attach(priv->netdev, dev_name(&phy->dev), phy_mode);
 	/* phy_attach() returns an ERR_PTR() on failure, not NULL */
 	if (IS_ERR(p))
 		return PTR_ERR(p);
