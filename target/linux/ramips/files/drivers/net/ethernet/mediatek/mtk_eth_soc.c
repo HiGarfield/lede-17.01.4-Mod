@@ -427,6 +427,11 @@ static int fe_init_dma(struct fe_priv *priv)
 			 !is_power_of_2(priv->rx_ring.rx_ring_size)))
 		return -EINVAL;
 
+	/* rxd1/txd1 are 32-bit descriptor fields; the driver silently
+	 * truncates dma_addr_t on wider platforms
+	 */
+	BUILD_BUG_ON(sizeof(dma_addr_t) > sizeof(u32));
+
 	err = fe_alloc_tx(priv);
 	if (err)
 		return err;
