@@ -272,6 +272,11 @@ static void fe_phy_stop(struct fe_priv *priv)
 }
 
 static struct fe_phy phy_ralink = {
+	/* statically initialised: re-running spin_lock_init() on every
+	 * fe_mdio_init() would reset the lock while a previous
+	 * instance's PHY state machine could still hold it
+	 */
+	.lock = __SPIN_LOCK_UNLOCKED(phy_ralink.lock),
 	.connect = fe_phy_connect,
 	.disconnect = fe_phy_disconnect,
 	.start = fe_phy_start,
@@ -286,7 +291,6 @@ int fe_mdio_init(struct fe_priv *priv)
 	if (!priv->soc->mdio_read || !priv->soc->mdio_write)
 		return 0;
 
-	spin_lock_init(&phy_ralink.lock);
 	priv->phy = &phy_ralink;
 
 	mii_np = of_get_child_by_name(priv->dev->of_node, "mdio-bus");
