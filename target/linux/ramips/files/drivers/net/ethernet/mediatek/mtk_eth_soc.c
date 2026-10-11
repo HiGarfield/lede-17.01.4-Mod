@@ -30,6 +30,7 @@
 #include <linux/tcp.h>
 #include <linux/io.h>
 #include <linux/bug.h>
+#include <linux/bitmap.h>
 #include <linux/switch.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
@@ -1837,6 +1838,12 @@ static void fe_pending_work(struct work_struct *work)
 		if (pending)
 			fe_work[i].action(priv);
 	}
+
+	/* a timeout arriving while an action ran re-set its bit after
+	 * we cleared it; run again instead of dropping the request
+	 */
+	if (!bitmap_empty(priv->pending_flags, FE_FLAG_MAX))
+		schedule_work(&priv->pending_work);
 }
 
 static int fe_probe(struct platform_device *pdev)
