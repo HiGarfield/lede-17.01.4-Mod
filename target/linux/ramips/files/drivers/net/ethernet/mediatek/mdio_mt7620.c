@@ -219,6 +219,12 @@ int mt7620_has_carrier(struct fe_priv *priv)
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	int i;
 
+	/* a DT without a gsw node leaves swpriv NULL; report carrier
+	 * rather than dereferencing it
+	 */
+	if (!gsw)
+		return 1;
+
 	for (i = 0; i < GSW_PORT6; i++)
 		if (mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i)) & 0x1)
 			return 1;
