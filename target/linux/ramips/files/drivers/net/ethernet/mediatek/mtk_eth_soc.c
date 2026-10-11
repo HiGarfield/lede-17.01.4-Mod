@@ -1159,8 +1159,11 @@ static int fe_poll(struct napi_struct *napi, int budget)
 		if (likely(napi_complete_done(napi, rx_done) && !test_bit(__FE_DOWN, &priv->state))) {
 			fe_int_enable(priv, tx_intr | rx_intr);
 		}
-	} else {
-		rx_done = budget;
+	} else if (tx_again) {
+		/* report the full budget only to keep NAPI polling for
+		 * the pending TX reclaim; the real rx_done is what it is
+		 */
+		return budget;
 	}
 
 	return rx_done;
