@@ -17,6 +17,7 @@
 #include <linux/if_vlan.h>
 #include <linux/of_net.h>
 #include <linux/delay.h>
+#include <linux/switch.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
 
@@ -85,13 +86,24 @@ static int mt7621_gsw_config(struct fe_priv *priv)
 {
 	struct switch_dev *swdev;
 
-	if (priv->mii_bus && priv->mii_bus->phy_map[0x1f]) {
-		swdev = mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
-		if (IS_ERR(swdev))
-			return PTR_ERR(swdev);
-		if (priv->soc->gsw_dev_num < 2)
-			priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
+	/* the MT7530 must answer at MDIO address 0x1f; succeeding
+	 * silently without it would leave FE_FLAG_HAS_SWITCH set with
+	 * no switch behind it
+	 */
+	if (!priv->mii_bus || !priv->mii_bus->phy_map[0x1f]) {
+		dev_err(priv->dev, "MT7530 not found on the MDIO bus\n");
+		return -ENODEV;
 	}
+
+	swdev = mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
+	if (IS_ERR(swdev))
+		return PTR_ERR(swdev);
+
+	if (priv->soc->gsw_dev_num >= ARRAY_SIZE(priv->soc->gsw_dev)) {
+		unregister_switch(swdev);
+		return -ENOSPC;
+	}
+	priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
 
 	return 0;
 }
