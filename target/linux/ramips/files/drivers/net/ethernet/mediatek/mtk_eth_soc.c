@@ -55,8 +55,8 @@
 
 #define TX_DMA_DESP2_DEF	(TX_DMA_LS0 | TX_DMA_DONE)
 #define TX_DMA_DESP4_DEF	(TX_DMA_QN(3) | TX_DMA_PN(1))
-#define NEXT_TX_DESP_IDX(X)	(((X) + 1) & (ring->tx_ring_size - 1))
-#define NEXT_RX_DESP_IDX(X)	(((X) + 1) & (ring->rx_ring_size - 1))
+#define NEXT_TX_DESP_IDX(X)	(((X) + 1) & ((ring)->tx_ring_size - 1))
+#define NEXT_RX_DESP_IDX(X)	(((X) + 1) & ((ring)->rx_ring_size - 1))
 
 #define SYSC_REG_RSTCTRL	0x34
 
