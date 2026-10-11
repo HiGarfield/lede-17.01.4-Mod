@@ -29,11 +29,12 @@ static int fe_get_settings(struct net_device *dev,
 	if (!priv->phy_dev)
 		goto out_gset;
 
-	if (priv->phy_flags == FE_PHY_FLAG_ATTACH) {
-		err = phy_read_status(priv->phy_dev);
-		if (err)
-			goto out_gset;
-	}
+	/* refresh the state for both attachment styles; the PORT branch
+	 * used to report stale cached values
+	 */
+	err = phy_read_status(priv->phy_dev);
+	if (err)
+		goto out_gset;
 
 	return phy_ethtool_gset(priv->phy_dev, cmd);
 
