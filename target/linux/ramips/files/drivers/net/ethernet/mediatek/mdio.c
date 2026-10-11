@@ -254,6 +254,13 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 	 */
 	priv->phy_dev = NULL;
 	priv->phy_flags = 0;
+
+	/* drop the fixed-link pointers as well: they alias DT property
+	 * storage, and leaving them behind lets a re-probe of the global
+	 * phy_ralink singleton act on stale values
+	 */
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy_fixed); i++)
+		priv->phy->phy_fixed[i] = NULL;
 }
 
 static void fe_phy_start(struct fe_priv *priv)
