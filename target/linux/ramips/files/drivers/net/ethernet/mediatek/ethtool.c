@@ -214,7 +214,7 @@ static void fe_get_ethtool_stats(struct net_device *dev,
 	} while (u64_stats_fetch_retry_irq(&hwstats->syncp, start));
 }
 
-static struct ethtool_ops fe_ethtool_ops = {
+static const struct ethtool_ops fe_ethtool_ops = {
 	.get_settings		= fe_get_settings,
 	.set_settings		= fe_set_settings,
 	.get_drvinfo		= fe_get_drvinfo,
@@ -226,16 +226,31 @@ static struct ethtool_ops fe_ethtool_ops = {
 	.get_ringparam		= fe_get_ringparam,
 };
 
+static const struct ethtool_ops fe_ethtool_ops_stats = {
+	.get_settings		= fe_get_settings,
+	.set_settings		= fe_set_settings,
+	.get_drvinfo		= fe_get_drvinfo,
+	.get_msglevel		= fe_get_msglevel,
+	.set_msglevel		= fe_set_msglevel,
+	.nway_reset		= fe_nway_reset,
+	.get_link		= fe_get_link,
+	.set_ringparam		= fe_set_ringparam,
+	.get_ringparam		= fe_get_ringparam,
+	.get_strings		= fe_get_strings,
+	.get_sset_count		= fe_get_sset_count,
+	.get_ethtool_stats	= fe_get_ethtool_stats,
+};
+
 void fe_set_ethtool_ops(struct net_device *netdev)
 {
 	struct fe_priv *priv = netdev_priv(netdev);
 	struct fe_soc_data *soc = priv->soc;
 
-	if (soc->reg_table[FE_REG_FE_COUNTER_BASE]) {
-		fe_ethtool_ops.get_strings = fe_get_strings;
-		fe_ethtool_ops.get_sset_count = fe_get_sset_count;
-		fe_ethtool_ops.get_ethtool_stats = fe_get_ethtool_stats;
-	}
-
-	netdev->ethtool_ops = &fe_ethtool_ops;
+	/* pick one of the two const tables instead of mutating a shared
+	 * struct at probe time
+	 */
+	if (soc->reg_table[FE_REG_FE_COUNTER_BASE])
+		netdev->ethtool_ops = &fe_ethtool_ops_stats;
+	else
+		netdev->ethtool_ops = &fe_ethtool_ops;
 }
