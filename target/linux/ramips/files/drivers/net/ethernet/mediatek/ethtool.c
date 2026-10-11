@@ -184,6 +184,14 @@ static void fe_get_ethtool_stats(struct net_device *dev,
 	unsigned int start;
 	int i;
 
+	/* the copy below relies on the FE_STAT_REG_DECLARE expansion
+	 * filling the tail of struct fe_hw_stats in the same order the
+	 * string table lists them, starting at tx_bytes
+	 */
+	BUILD_BUG_ON(offsetof(struct fe_hw_stats, tx_bytes) +
+		     ARRAY_SIZE(fe_gdma_str) * sizeof(u64) >
+		     sizeof(struct fe_hw_stats));
+
 	if (netif_running(dev) && netif_device_present(dev)) {
 		/* _bh like fe_get_stats64(): without it a softirq on the
 		 * same CPU (fe_poll's own trylock) makes this read lose
