@@ -409,6 +409,12 @@ no_tx_mem:
 	return -ENOMEM;
 }
 
+/* Contract: on failure this function may leave one ring fully or
+ * partially allocated; the caller MUST call fe_free_dma(), whose
+ * fe_clean_tx()/fe_clean_rx() tolerate (and release) half-initialised
+ * rings. fe_alloc_tx()/fe_alloc_rx() deliberately do not roll back
+ * their own partial allocations.
+ */
 static int fe_init_dma(struct fe_priv *priv)
 {
 	int err;
