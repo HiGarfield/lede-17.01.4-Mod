@@ -1517,18 +1517,22 @@ static int esw_probe(struct platform_device *pdev)
 
 	platform_set_drvdata(pdev, esw);
 
-	ret = devm_request_irq(&pdev->dev, esw->irq, esw_interrupt, 0, "esw",
-			       esw);
-
-	if (ret) {
-		unregister_switch(&esw->swdev);
-		if (esw->irq > 0)
+	/* a missing interrupts property must not kill the whole switch:
+	 * link status still reaches the FE driver through its carrier
+	 * polling
+	 */
+	if (esw->irq > 0) {
+		ret = devm_request_irq(&pdev->dev, esw->irq, esw_interrupt,
+				       0, "esw", esw);
+		if (ret) {
+			unregister_switch(&esw->swdev);
 			irq_dispose_mapping(esw->irq);
-		return ret;
-	}
+			return ret;
+		}
 
-	esw_w32(esw, RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_ISR);
-	esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
+		esw_w32(esw, RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_ISR);
+		esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
+	}
 
 	return 0;
 }
