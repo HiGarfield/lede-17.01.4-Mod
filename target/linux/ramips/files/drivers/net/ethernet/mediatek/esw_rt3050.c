@@ -289,6 +289,14 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 	 */
 	mutex_lock(&esw->mii_lock);
 
+	/* NOTE on WT_DONE polarity: the first wait below breaks when
+	 * WT_DONE is *clear*, the second when it is *set*. This is only
+	 * self-consistent if issuing the PCR0 command clears a
+	 * previously latched WT_DONE. The driver has always relied on
+	 * that behaviour (a stuck flag would surface as an immediate
+	 * MDIO timeout on the very first write); verify against the
+	 * datasheet before "fixing" either condition.
+	 */
 	while (1) {
 		if (!(esw_r32(esw, RT305X_ESW_REG_PCR1) &
 		      RT305X_ESW_PCR1_WT_DONE))
