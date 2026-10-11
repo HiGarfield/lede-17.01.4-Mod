@@ -1433,12 +1433,25 @@ static int esw_probe(struct platform_device *pdev)
 	}
 
 	port_map = of_get_property(np, "mediatek,portmap", NULL);
-	if (port_map)
-		esw->port_map = be32_to_cpu(*port_map);
+	if (port_map) {
+		u32 v = be32_to_cpu(*port_map);
+
+		/* the field is u8: flag out-of-range DT values instead of
+		 * silently truncating the high bits
+		 */
+		if (WARN_ON(v > 0xff))
+			v &= 0xff;
+		esw->port_map = v;
+	}
 
 	port_disable = of_get_property(np, "mediatek,portdisable", NULL);
-	if (port_disable)
-		esw->port_disable = be32_to_cpu(*port_disable);
+	if (port_disable) {
+		u32 v = be32_to_cpu(*port_disable);
+
+		if (WARN_ON(v > 0xff))
+			v &= 0xff;
+		esw->port_disable = v;
+	}
 
 	reg_init = of_get_property(np, "ralink,fct2", NULL);
 	if (reg_init)
