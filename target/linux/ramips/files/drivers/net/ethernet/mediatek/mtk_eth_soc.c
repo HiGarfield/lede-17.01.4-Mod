@@ -841,6 +841,14 @@ static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
 
 	ret = 0;
 	if (unlikely(skb->len < VLAN_ETH_ZLEN)) {
+		/* FE_FLAG_PADDING_64B: the hardware pads short frames to
+		 * 64 bytes itself, so software only has to act when
+		 * FE_FLAG_PADDING_BUG says that mechanism is broken.
+		 *
+		 * Tag handling: a present (hwaccel) tag is not part of
+		 * the wire length the MAC sees, so pad to ETH_ZLEN; an
+		 * inlined 8021Q header makes the wire frame VLAN_ETH_ZLEN.
+		 */
 		if ((priv->flags & FE_FLAG_PADDING_64B) &&
 		    !(priv->flags & FE_FLAG_PADDING_BUG))
 			return ret;
