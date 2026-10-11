@@ -201,9 +201,11 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	case PHY_INTERFACE_MODE_RMII:
 		break;
 	default:
+		/* this was printing priv->phy->speed[0] (uninitialised or
+		 * garbage here) as the port number
+		 */
 		if (!priv->phy->phy_fixed[0])
-			dev_err(priv->dev, "port %d - invalid phy mode\n",
-				priv->phy->speed[0]);
+			dev_err(priv->dev, "port 0 - invalid phy mode\n");
 		break;
 	}
 
