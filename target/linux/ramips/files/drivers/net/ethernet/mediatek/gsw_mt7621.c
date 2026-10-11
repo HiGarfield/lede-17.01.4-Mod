@@ -276,12 +276,14 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 		_mt7620_mii_write(gsw, i, 0, mii_val);
 	}
 
-	/* enable irq */
-	mt7530_mdio_w32(gsw, 0x7008, 0x1f);
 	if (!mt7530_mdio_r32(gsw, 0x7808, &val)) {
 		val |= 3 << 16;
 		mt7530_mdio_w32(gsw, 0x7808, val);
 	}
+	/* the IMR write moved to mtk_gsw_init(): enabling the switch
+	 * interrupt mask without a registered handler would leave a
+	 * spurious interrupt source hanging
+	 */
 }
 
 static const struct of_device_id mediatek_gsw_match[] = {
@@ -333,8 +335,13 @@ int mtk_gsw_init(struct fe_priv *priv)
 
 	mt7621_hw_init(gsw, np);
 
-	if (gsw->irq)
+	if (gsw->irq) {
+		/* only now unmask the switch interrupt sources, when the
+		 * handler is actually registered
+		 */
+		mt7530_mdio_w32(gsw, 0x7008, 0x1f);
 		enable_irq(gsw->irq);
+	}
 
 	return 0;
 }
