@@ -6,6 +6,11 @@ config NET_VENDOR_MEDIATEK
 
 config NET_MEDIATEK_SOC
 	def_tristate NET_VENDOR_MEDIATEK
+	# every supported SoC has exactly one MAC entry in the choice
+	# below; without this dependency an empty choice would still
+	# build mtk-eth-soc.o, which references of_fe_match defined only
+	# in the soc_*.o files -> undefined reference at link time
+	depends on SOC_RT288X || SOC_RT305X || SOC_RT3883 || SOC_MT7620 || SOC_MT7621
 	# ethtool.o is always built into mtk-eth-soc and references PHYLIB
 	# symbols (phy_ethtool_gset/sset, phy_read_status, genphy_*), also
 	# on RT3050 where NET_MEDIATEK_MDIO is not selected
