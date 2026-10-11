@@ -185,9 +185,13 @@ static void fe_get_ethtool_stats(struct net_device *dev,
 	int i;
 
 	if (netif_running(dev) && netif_device_present(dev)) {
-		if (spin_trylock(&hwstats->stats_lock)) {
+		/* _bh like fe_get_stats64(): without it a softirq on the
+		 * same CPU (fe_poll's own trylock) makes this read lose
+		 * the update
+		 */
+		if (spin_trylock_bh(&hwstats->stats_lock)) {
 			fe_stats_update(priv);
-			spin_unlock(&hwstats->stats_lock);
+			spin_unlock_bh(&hwstats->stats_lock);
 		}
 	}
 
