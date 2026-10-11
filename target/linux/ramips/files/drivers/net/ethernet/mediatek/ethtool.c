@@ -54,6 +54,11 @@ static int fe_set_settings(struct net_device *dev,
 		goto out_sset;
 
 	if (cmd->phy_address != priv->phy_dev->addr) {
+		/* phy_dev is read locklessly by the PHY state machine
+		 * callbacks and the other ethtool paths; serialise the
+		 * switch against them
+		 */
+		spin_lock_irq(&priv->phy->lock);
 		if (priv->phy->phy_node[cmd->phy_address] &&
 		    priv->phy->phy[cmd->phy_address]) {
 			/* phy_node[] marks a described PHY; phy[] is only
@@ -67,8 +72,10 @@ static int fe_set_settings(struct net_device *dev,
 				priv->mii_bus->phy_map[cmd->phy_address];
 			priv->phy_flags = FE_PHY_FLAG_ATTACH;
 		} else {
+			spin_unlock_irq(&priv->phy->lock);
 			goto out_sset;
 		}
+		spin_unlock_irq(&priv->phy->lock);
 	}
 
 	return phy_ethtool_sset(priv->phy_dev, cmd);
