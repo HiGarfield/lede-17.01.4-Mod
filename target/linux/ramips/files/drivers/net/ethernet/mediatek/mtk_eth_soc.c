@@ -1763,7 +1763,11 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	frag_size = fe_max_frag_size(new_mtu);
 	/* 68 is the minimum payload (ETH_MIN_MTU does not exist in the
 	 * 4.4 headers); it already accounts for the minimum
-	 * 802.1q-tagged frame the MAC must transport
+	 * 802.1q-tagged frame the MAC must transport.
+	 * The upper bound is implicit: frag_size is capped by PAGE_SIZE
+	 * (RX buffers come from page frags), so MTUs beyond roughly
+	 * PAGE_SIZE - overhead are rejected here rather than by an
+	 * explicit limit; MT7621 adds its own stricter cap above.
 	 */
 	if (new_mtu < 68 || frag_size > PAGE_SIZE)
 		return -EINVAL;
