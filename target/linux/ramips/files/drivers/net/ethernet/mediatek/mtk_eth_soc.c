@@ -419,6 +419,14 @@ static int fe_init_dma(struct fe_priv *priv)
 {
 	int err;
 
+	/* the descriptor index macros (NEXT_*_DESP_IDX) and the
+	 * calc-index initialisation wrap with (size - 1) as a bitmask:
+	 * ring sizes must be powers of two
+	 */
+	if (WARN_ON_ONCE(!is_power_of_2(priv->tx_ring.tx_ring_size) ||
+			 !is_power_of_2(priv->rx_ring.rx_ring_size)))
+		return -EINVAL;
+
 	err = fe_alloc_tx(priv);
 	if (err)
 		return err;
