@@ -1101,9 +1101,21 @@ static int fe_poll_tx(struct fe_priv *priv, int budget, u32 tx_intr,
 	}
 	ring->tx_free_idx = idx;
 
-	if (idx != hwidx && done) {
+	/* done only counts skb-carrying descriptors: with done == 0 and
+	 * idx != hwidx there can still be unreclaimed (dummy)
+	 * descriptors left, which would otherwise wait for the next TX
+	 * interrupt instead of another poll
+	 */
+	/* Ask for another poll only while the blocking descriptor still
+	 * carries an skb. idx != hwidx with skb == NULL means the ring
+	 * state is inconsistent (nothing can ever be reclaimed from that
+	 * slot); requesting another poll there would make fe_poll()
+	 * return the full budget forever, so napi_complete_done() and
+	 * fe_int_enable() are never reached and the interface dies with
+	 * ksoftirqd spinning.
+	 */
+	if (idx != hwidx && ring->tx_buf[idx].skb)
 		*tx_again = 1;
-	}
 
 	if (done) {
 		netdev_completed_queue(netdev, done, bytes_compl);
