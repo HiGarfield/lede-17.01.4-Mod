@@ -155,8 +155,24 @@ jobs:
           key: ${{ steps.tc.outputs.key }}
           restore-keys: ${{ steps.tc.outputs.restore }}
 
+      - name: Detect toolchain cache hit
+        if: env.TARGET_DEVICE != 'dl'
+        run: |
+          # The primary key carries a timestamp, so it practically never
+          # matches exactly; a hit through restore-keys is reported as
+          # cache-matched-key.  Treat both as "fetch succeeded" so the
+          # success/failure branches below and the save step all agree.
+          matched="${{ steps.toolchain.outputs.cache-matched-key }}"
+          exact="${{ steps.toolchain.outputs.cache-hit }}"
+          echo "toolchain cache: cache-hit='$exact', cache-matched-key='$matched'"
+          if [ "$exact" = "true" ] || [ -n "$matched" ]; then
+            echo "TC_CACHE_HIT=true" >> $GITHUB_ENV
+          else
+            echo "TC_CACHE_HIT=false" >> $GITHUB_ENV
+          fi
+
       - name: Skip toolchain rebuild on cache hit
-        if: env.TARGET_DEVICE != 'dl' && steps.toolchain.outputs.cache-matched-key != ''
+        if: env.TARGET_DEVICE != 'dl' && env.TC_CACHE_HIT == 'true'
         working-directory: ${{ env.WORKING_DIR }}
         run: |
           sed -i 's/ $(tool.*\/stamp-compile)//;' Makefile
@@ -202,8 +218,12 @@ jobs:
           path: ${{ env.WORKING_DIR }}/dl
           key: ${{ github.repository_id }}-dl-${{ github.run_id }}
 
-      - name: Save toolchain cache
-        if: env.TARGET_DEVICE != 'dl' && steps.toolchain.outputs.cache-hit != 'true'
+      # Save only when the fetch above failed (TC_CACHE_HIT=false): a
+      # successful fetch already means this toolchain is in the cache,
+      # and saving again under a fresh timestamped key would just add a
+      # duplicate entry on every run.
+      - name: Save toolchain cache (fetch miss only)
+        if: env.TARGET_DEVICE != 'dl' && env.TC_CACHE_HIT == 'false'
         uses: actions/cache/save@main
         with:
           path: |
