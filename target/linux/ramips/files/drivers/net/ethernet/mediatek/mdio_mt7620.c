@@ -137,6 +137,19 @@ int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 	return d;
 }
 
+int mt7620_mii_read_reg(struct mt7620_gsw *gsw, int phy_addr, int phy_reg,
+			u16 *val)
+{
+	unsigned long flags;
+	int ret;
+
+	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	ret = __mt7620_mii_read(gsw, phy_addr, phy_reg, val);
+	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+
+	return ret;
+}
+
 int mt7620_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 {
 	struct fe_priv *priv = bus->priv;

@@ -122,9 +122,18 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 
 	/* turn off all PHYs */
 	for (i = 0; i <= 4; i++) {
-		val = _mt7620_mii_read(gsw, i, 0x0);
-		val |= BIT(11);
-		_mt7620_mii_write(gsw, i, 0x0, val);
+		u16 mii_val;
+
+		/* a timed-out read returns garbage that must not be
+		 * OR-ed and written back into the BMCR
+		 */
+		if (mt7620_mii_read_reg(gsw, i, 0x0, &mii_val)) {
+			dev_warn(gsw->dev, "PHY %d: power-down read failed\n",
+				 i);
+			continue;
+		}
+		mii_val |= BIT(11);
+		_mt7620_mii_write(gsw, i, 0x0, mii_val);
 	}
 
 	/* reset the switch */
@@ -148,9 +157,14 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 
 	/* turn off pause advertisement on all PHYs */
 	for (i = 0; i <= 4; i++) {
-		val = _mt7620_mii_read(gsw, i, 0x04);
-		val &= ~BIT(10);
-		_mt7620_mii_write(gsw, i, 0x04, val);
+		u16 mii_val;
+
+		if (mt7620_mii_read_reg(gsw, i, 0x04, &mii_val)) {
+			dev_warn(gsw->dev, "PHY %d: pause read failed\n", i);
+			continue;
+		}
+		mii_val &= ~BIT(10);
+		_mt7620_mii_write(gsw, i, 0x04, mii_val);
 	}
 
 	/* (GE2, Link down) */
@@ -252,9 +266,14 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 
 	/* turn on all PHYs */
 	for (i = 0; i <= 4; i++) {
-		val = _mt7620_mii_read(gsw, i, 0);
-		val &= ~BIT(11);
-		_mt7620_mii_write(gsw, i, 0, val);
+		u16 mii_val;
+
+		if (mt7620_mii_read_reg(gsw, i, 0, &mii_val)) {
+			dev_warn(gsw->dev, "PHY %d: power-up read failed\n", i);
+			continue;
+		}
+		mii_val &= ~BIT(11);
+		_mt7620_mii_write(gsw, i, 0, mii_val);
 	}
 
 	/* enable irq */

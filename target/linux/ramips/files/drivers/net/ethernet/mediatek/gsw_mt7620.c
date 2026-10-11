@@ -174,9 +174,18 @@ static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
 
 		/* turn on all PHYs */
 		for (i = 0; i <= 4; i++) {
-			val = _mt7620_mii_read(gsw, i, 0);
-			val &= ~BIT(11);
-			_mt7620_mii_write(gsw, i, 0, val);
+			u16 mii_val;
+
+			/* a timed-out read must not be OR-ed and written
+			 * back: it would program 0xffff into the BMCR
+			 */
+			if (mt7620_mii_read_reg(gsw, i, 0, &mii_val)) {
+				dev_warn(gsw->dev,
+					 "PHY %d: power-up read failed\n", i);
+				continue;
+			}
+			mii_val &= ~BIT(11);
+			_mt7620_mii_write(gsw, i, 0, mii_val);
 		}
 	}
 

@@ -181,16 +181,24 @@ static void mt7621_reset_ports(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = priv->soc->swpriv;
 	u8 i;
-	u32 val;
 
 	if (!gsw)
 		return;
 
 	/* Disable all ports */
 	for (i = 0; i <= 4; i++) {
-		val = _mt7620_mii_read(gsw, i, 0x0);
-		val |= BIT(11);
-		_mt7620_mii_write(gsw, i, 0x0, val);
+		u16 mii_val;
+
+		/* a timed-out read returns garbage that must not be
+		 * OR-ed and written back into the BMCR
+		 */
+		if (mt7620_mii_read_reg(gsw, i, 0x0, &mii_val)) {
+			dev_warn(priv->dev, "PHY %d: power-down read failed\n",
+				 i);
+			continue;
+		}
+		mii_val |= BIT(11);
+		_mt7620_mii_write(gsw, i, 0x0, mii_val);
 	}
 
 	/* Allow ports a (short) time to settle */
@@ -198,9 +206,15 @@ static void mt7621_reset_ports(struct fe_priv *priv)
 
 	/* Enable ports */
 	for (i = 0; i <= 4; i++) {
-		val = _mt7620_mii_read(gsw, i, 0);
-		val &= ~BIT(11);
-		_mt7620_mii_write(gsw, i, 0, val);
+		u16 mii_val;
+
+		if (mt7620_mii_read_reg(gsw, i, 0, &mii_val)) {
+			dev_warn(priv->dev, "PHY %d: power-up read failed\n",
+				 i);
+			continue;
+		}
+		mii_val &= ~BIT(11);
+		_mt7620_mii_write(gsw, i, 0, mii_val);
 	}
 }
 
