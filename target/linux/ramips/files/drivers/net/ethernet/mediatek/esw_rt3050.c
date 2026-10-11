@@ -835,6 +835,13 @@ static int esw_reset_switch(struct switch_dev *dev)
 	 */
 	mutex_lock(&esw->update_lock);
 	esw->global_vlan_enable = 0;
+	/* reset the global attributes too: esw_apply_config() would
+	 * otherwise write the stale storm-protection / LED / alt-vlan
+	 * values back into the hardware on the re-init below
+	 */
+	esw->bc_storm_protect = 0;
+	esw->led_frequency = 0;
+	esw->alt_vlan_disable = 0;
 	memset(esw->ports, 0, sizeof(esw->ports));
 	memset(esw->vlans, 0, sizeof(esw->vlans));
 	mutex_unlock(&esw->update_lock);
