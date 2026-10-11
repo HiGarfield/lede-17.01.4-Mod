@@ -178,7 +178,7 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 	const __be32 *_id = of_get_property(np, "reg", NULL);
 	int phy_mode, size, id;
 	int shift = 12;
-	u32 val, mask = 0;
+	u32 mask = 0;
 	int min = (gsw->port4 == PORT4_EPHY) ? (5) : (4);
 
 	if (!_id || (be32_to_cpu(*_id) < min) || (be32_to_cpu(*_id) > 5)) {
@@ -235,10 +235,10 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 	if (!priv->phy->phy_node[id] && !priv->phy->phy_fixed[id])
 		return;
 
-	val = rt_sysc_r32(SYSC_REG_CFG1);
-	val &= ~(3 << shift);
-	val |= mask << shift;
-	rt_sysc_w32(val, SYSC_REG_CFG1);
+	/* atomic rmw: a manual read-modify-write of CFG1 races the other
+	 * drivers touching this shared register
+	 */
+	rt_sysc_m32(3 << shift, mask << shift, SYSC_REG_CFG1);
 
 	if (priv->phy->phy_fixed[id]) {
 		const __be32 *link = priv->phy->phy_fixed[id];
