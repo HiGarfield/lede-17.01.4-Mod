@@ -151,8 +151,12 @@ static void fe_get_ringparam(struct net_device *dev,
 {
 	struct fe_priv *priv = netdev_priv(dev);
 
-	ring->rx_max_pending = MAX_DMA_DESC;
-	ring->tx_max_pending = MAX_DMA_DESC;
+	/* set_ringparam is not supported, so there is no meaningful
+	 * 'max' beyond the current fixed sizes; reporting MAX_DMA_DESC
+	 * here while the MT7621 ring was larger contradicted itself
+	 */
+	ring->rx_max_pending = priv->rx_ring.rx_ring_size;
+	ring->tx_max_pending = priv->tx_ring.tx_ring_size;
 	ring->rx_pending = priv->rx_ring.rx_ring_size;
 	ring->tx_pending = priv->tx_ring.tx_ring_size;
 }
