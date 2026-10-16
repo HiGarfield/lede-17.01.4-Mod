@@ -274,6 +274,9 @@ ramips_board_detect() {
 	*"Linksys EA7500 v2")
 		name="ea7500-v2"
 		;;
+	*"Linksys EA8100")
+		name="ea8100-v1"
+		;;
 	*"M3")
 		name="m3"
 		;;

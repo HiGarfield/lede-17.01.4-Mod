@@ -12,4 +12,7 @@ start() {
 	if [ $board = "ea7500-v2" ]; then
 		mtd resetbc s_env || true
 	fi
+	if [ $board = "ea8100-v1" ]; then
+		mtd resetbc s_env || true
+	fi
 }

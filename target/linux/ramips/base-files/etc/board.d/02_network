@@ -387,6 +387,10 @@ ramips_setup_interfaces()
 		ucidef_add_switch "switch0" \
 			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
 		;;
+	ea8100-v1)
+		ucidef_add_switch "switch0" \
+			"0:wan" "1:lan" "2:lan" "3:lan" "4:lan" "6@eth0"
+		;;
 	hc5962)
 		ucidef_add_switch "switch0" \
 			"1:lan" "2:lan" "3:lan" "4:wan" "6@eth0"
@@ -506,6 +510,10 @@ ramips_setup_macs()
 		wan_mac=$(mtd_get_mac_ascii config WAN_MAC_ADDR)
 		;;
 	ea7500-v2)
+		lan_mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
+		wan_mac=$lan_mac
+		;;
+	ea8100-v1)
 		lan_mac=$(mtd_get_mac_ascii devinfo hw_mac_addr)
 		wan_mac=$lan_mac
 		;;

@@ -49,6 +49,9 @@ get_status_led() {
 	ea7500-v2)
 		status_led="$board:white:power"
 		;;
+	ea8100-v1)
+		status_led="$board:white:power"
+		;;
 	3g-6200nl)
 		status_led="$board:green:internet"
 		;;
