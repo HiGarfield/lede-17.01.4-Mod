@@ -1,0 +1,176 @@
+name: Enumerate build targets
+description: >
+  Lists the devices under conf/ and groups them by the toolchain they need,
+  then derives every value the CI workflows use as a cache key or a matrix
+  input.
+
+# One toolchain is built per group instead of one per device.  The tools/
+# and toolchain/ stages only read the symbols listed in toolchain_hash()
+# below, so devices whose symbols hash to the same value can share a
+# toolchain even when their package selection differs.
+
+inputs:
+  source-repo:
+    description: 'owner/repo to clone when the workflow runs outside the source tree'
+    required: false
+    default: HiGarfield/lede-17.01.4-Mod
+  requested:
+    description: 'Comma separated device names, or "all" for every conf/.config.*'
+    required: false
+    default: all
+
+outputs:
+  working-dir:
+    description: Absolute path of the source tree
+    value: ${{ steps.enumerate.outputs.working-dir }}
+  targets:
+    description: 'JSON array of {"target": <device>, "group": <toolchain group>}'
+    value: ${{ steps.enumerate.outputs.targets }}
+  tc-groups:
+    description: 'JSON array of {"group": <toolchain group>, "representative": <device>}'
+    value: ${{ steps.enumerate.outputs.tc-groups }}
+  version:
+    description: Release tag, taken from the version file
+    value: ${{ steps.enumerate.outputs.version }}
+  tools-hash:
+    description: Short hash of the last commit that touched tools/ or toolchain/
+    value: ${{ steps.enumerate.outputs.tools-hash }}
+  dl-hash:
+    description: Digest of the trees that decide which sources get downloaded
+    value: ${{ steps.enumerate.outputs.dl-hash }}
+
+runs:
+  using: composite
+  steps:
+    - name: Enumerate the devices and group them by toolchain
+      id: enumerate
+      shell: bash
+      env:
+        SOURCE_REPO: ${{ inputs.source-repo }}
+        REQUESTED: ${{ inputs.requested }}
+      run: |
+        set -euo pipefail
+
+        # Two layouts have to work:
+        #   * the workflow runs in the source tree, where version and conf/
+        #     sit at the checkout root, or
+        #   * the workflow runs in a bare repository that only carries
+        #     .github, so the source tree is cloned into source/ first.
+        # Keep this in sync with ./.github/actions/setup-build-env.
+        if [ -f "${GITHUB_WORKSPACE}/version" ]; then
+          working_dir="${GITHUB_WORKSPACE}"
+        else
+          # Full clone: the toolchain key and the dl key both read history.
+          git clone "https://github.com/${SOURCE_REPO}.git" "${GITHUB_WORKSPACE}/source"
+          working_dir="${GITHUB_WORKSPACE}/source"
+        fi
+
+        cd "${working_dir}"
+
+        if [ ! -f version ]; then
+          echo "::error::no version file in ${working_dir}"
+          exit 1
+        fi
+
+        if ! command -v jq >/dev/null 2>&1; then
+          sudo apt-get update -qq -y
+          sudo apt-get install -y -qq jq
+        fi
+
+        # -----------------------------------------------------------------
+        # Toolchain groups
+        #
+        # Only the symbols below reach the tools/ and toolchain/ stages.
+        # Every other .config symbol (package selection, image options,
+        # ...) leaves the compiler untouched, so two devices sharing these
+        # values can share a toolchain.
+        #
+        # CONFIG_TARGET_OPTIMIZATION belongs on the list because
+        # toolchain/wrapper/Makefile bakes it into the wrapper installed
+        # in $(TOOLCHAIN_DIR)/bin, so -mtune=24kc and -mtune=74kc really
+        # are two different toolchains even though CONFIG_CPU_TYPE pins
+        # both to staging_dir/toolchain-mips_24kc_gcc-*.
+        #
+        # Keep this list in sync with toolchain/ and
+        # include/toolchain-build.mk.
+        # -----------------------------------------------------------------
+        toolchain_hash() {
+          grep -E '^CONFIG_(ARCH|CPU_TYPE|TARGET_OPTIMIZATION|SOFT_FLOAT|USE_MIPS16|GCC_USE|GCC_VERSION|GCC_VERSION_|LIBC|LIBC_VERSION|BINUTILS_VERSION|BINUTILS_USE|GDB|USE_MUSL|EXTERNAL_TOOLCHAIN|NATIVE_TOOLCHAIN|MIPS64_ABI|HAS_SPE_FPU|TARGET_NAME)=' "$1" |
+            sha1sum | cut -c1-12
+        }
+
+        declare -a names=()
+        for f in conf/.config.*; do
+          [ -f "$f" ] || continue
+          name=${f#conf/.config.}
+          # Device names end up in JSON, in file names and in cache keys
+          case "$name" in
+            *[!A-Za-z0-9._-]*)
+              echo "::error::unsupported characters in config name '${name}'"
+              exit 1
+              ;;
+          esac
+          names+=("${name}")
+        done
+
+        if [ "${#names[@]}" -eq 0 ]; then
+          echo "::error::no conf/.config.* file found under ${working_dir}"
+          exit 1
+        fi
+
+        mapfile -t names < <(printf '%s\n' "${names[@]}" | sort)
+
+        if [ "${REQUESTED}" != "all" ]; then
+          declare -a selected=()
+          IFS=',' read -r -a wanted <<<"${REQUESTED}"
+          for w in "${wanted[@]}"; do
+            w=$(printf '%s' "$w" | tr -d '[:space:]')
+            [ -n "$w" ] || continue
+            if [ ! -f "conf/.config.${w}" ]; then
+              echo "::error::no conf/.config.${w} for the requested target '${w}'"
+              exit 1
+            fi
+            selected+=("${w}")
+          done
+          if [ "${#selected[@]}" -eq 0 ]; then
+            echo "::error::the requested target list is empty"
+            exit 1
+          fi
+          mapfile -t names < <(printf '%s\n' "${selected[@]}" | sort -u)
+        fi
+
+        declare -a target_rows=()
+        declare -A representative=()
+        for name in "${names[@]}"; do
+          config="conf/.config.${name}"
+          arch=$(sed -n 's/^CONFIG_ARCH="\(.*\)"/\1/p' "${config}")
+          if [ -z "${arch}" ]; then
+            echo "::error::CONFIG_ARCH is not set in ${config}"
+            exit 1
+          fi
+          group="${arch}-$(toolchain_hash "${config}")"
+          target_rows+=("{\"target\":\"${name}\",\"group\":\"${group}\"}")
+          # names is sorted, so the first device of a group is deterministic
+          if [ -z "${representative[${group}]:-}" ]; then
+            representative[${group}]="${name}"
+          fi
+        done
+
+        declare -a group_rows=()
+        for group in "${!representative[@]}"; do
+          group_rows+=("{\"group\":\"${group}\",\"representative\":\"${representative[${group}]}\"}")
+        done
+
+        {
+          echo "working-dir=${working_dir}"
+          echo "targets=$(printf '%s\n' "${target_rows[@]}" | jq -sc .)"
+          echo "tc-groups=$(printf '%s\n' "${group_rows[@]}" | sort | jq -sc .)"
+          echo "version=$(cat version)"
+          echo "tools-hash=$(git log --pretty=tformat:%h -n1 tools toolchain)"
+          # The tarballs in dl/ are decided by these trees: package and
+          # feeds carry PKG_SOURCE, target/toolchain/tools add their own
+          # downloads and conf/ decides which of them a build asks for.
+          echo "dl-hash=$(git rev-parse HEAD:package HEAD:feeds HEAD:target HEAD:toolchain HEAD:tools HEAD:conf | sha1sum | cut -c1-12)"
+        } >> "${GITHUB_OUTPUT}"
+
+        echo "Enumerated ${#names[@]} device(s) using ${#group_rows[@]} toolchain group(s) from ${working_dir}"

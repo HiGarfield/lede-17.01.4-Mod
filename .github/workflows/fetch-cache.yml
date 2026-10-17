@@ -1,99 +1,97 @@
-name: fetch cache
+# Keeps the toolchain cache entries alive.
+#
+# GitHub evicts a cache entry that has not been read for seven days. The CI
+# workflow only reads the entries a push actually needs, so between two
+# releases they can expire and the next build pays for a full toolchain
+# rebuild. This workflow reads every entry on a schedule, which resets that
+# timer.
+#
+# There is no save step on purpose: only the CI workflow publishes toolchain
+# entries, and reading one is enough to refresh it. The dl cache needs no
+# keep-alive either, it is content addressed and re-downloading it after an
+# eviction is cheaper than fetching it here on every run.
+
+name: Refresh toolchain cache
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 0 */3 * *"
+    # Every five days, well inside the seven day eviction window even when
+    # a scheduled run is delayed.
+    - cron: '0 0 */5 * *'
 
 permissions:
   contents: read
 
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: true
+
 env:
+  # Same two layouts as CI.yml: the checkout is either already the source
+  # tree, or it is a bare repository carrying only .github and the source
+  # tree gets cloned from SOURCE_REPO into source/.
   SOURCE_REPO: HiGarfield/lede-17.01.4-Mod
 
 jobs:
-  generate_archs:
+  generate-matrix:
     runs-on: ubuntu-26.04
+    timeout-minutes: 10
     outputs:
-      archs: ${{ steps.set-archs.outputs.archs }}
+      tc-groups: ${{ steps.targets.outputs.tc-groups }}
+      tools-hash: ${{ steps.targets.outputs.tools-hash }}
     steps:
-      - uses: actions/checkout@main
-
-      - name: Enumerate target architectures
-        id: set-archs
-        run: |
-          command -v jq >/dev/null 2>&1 || sudo apt-get install -y -qq jq
-          if [ -f version ]; then
-            conf_dir=conf
-          else
-            git clone https://github.com/${SOURCE_REPO}.git source
-            conf_dir=source/conf
-          fi
-          archs=$(
-            for f in "$conf_dir"/.config.*; do
-              [ -f "$f" ] || continue
-              sed -n 's/^CONFIG_TARGET_BOARD="\(.*\)"/\1/p' "$f"
-            done | sort -u
-          )
-          if [ -z "$archs" ]; then
-            echo "Error: no CONFIG_TARGET_BOARD architectures found in $conf_dir/.config.*" >&2
-            exit 1
-          fi
-          archs_json=$(printf '%s\n' "$archs" | jq -R . | jq -sc .)
-          echo "archs=$archs_json" >> $GITHUB_OUTPUT
-
-  fetch_cache:
-    needs: generate_archs
-    runs-on: ubuntu-26.04
-
-    strategy:
-      fail-fast: false
-      matrix:
-        arch: ${{ fromJson(needs.generate_archs.outputs.archs) }}
-
-    steps:
-      - uses: actions/checkout@main
+      # Full history: the cached key carries the last commit that touched
+      # tools/ or toolchain/.
+      - name: Check out the repository with full history
+        uses: actions/checkout@main
         with:
           fetch-depth: 0
 
-      - name: Prepare source
-        run: |
-          if [ -f version ]; then
-            echo "WORKING_DIR=$PWD" >> $GITHUB_ENV
-          else
-            git clone https://github.com/${SOURCE_REPO}.git source
-            echo "WORKING_DIR=$PWD/source" >> $GITHUB_ENV
-          fi
+      - name: Enumerate the devices and the toolchain groups
+        id: targets
+        uses: ./.github/actions/enumerate-targets
+        with:
+          source-repo: ${{ env.SOURCE_REPO }}
 
-      - name: Install build deps
-        run: |
-          sudo apt-get update -qq -y
-          sudo apt-get install -qq -y build-essential
+  refresh-toolchain-cache:
+    needs: [generate-matrix]
+    runs-on: ubuntu-26.04
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJson(needs.generate-matrix.outputs.tc-groups) }}
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@main
 
-      - name: Generate cache mixkey
-        id: mixkey
-        working-directory: ${{ env.WORKING_DIR }}
-        run: |
-          gcc_hash=$(gcc --version | sha1sum | cut -c1-8)
-          tl_hash=$(git log --pretty=tformat:"%h" -n1 tools toolchain | head -n1)
-          base="${{ matrix.arch }}-${gcc_hash}-cache-openwrt-${tl_hash}"
-          echo "restore=$base" >> $GITHUB_OUTPUT
-          echo "key=$base-$(date +%s)" >> $GITHUB_OUTPUT
+      # Installs build-essential as well: the cache key hashes the compiler
+      # version, so this job has to end up with the same gcc as a CI build.
+      - name: Prepare the build environment
+        id: env
+        uses: ./.github/actions/setup-build-env
+        with:
+          source-repo: ${{ env.SOURCE_REPO }}
+          target: ${{ matrix.representative }}
+          group: ${{ matrix.group }}
+          tools-hash: ${{ needs.generate-matrix.outputs.tools-hash }}
 
-      - name: Restore toolchain cache
-        id: toolchain
+      # Reading the entry is the whole point of this job: it resets the
+      # eviction timer without publishing anything.
+      - name: Restore the toolchain cache
+        id: restore
         uses: actions/cache/restore@main
         with:
           path: |
-            ${{ env.WORKING_DIR }}/staging_dir/host*
-            ${{ env.WORKING_DIR }}/staging_dir/tool*
-            ${{ env.WORKING_DIR }}/.ccache
-          key: ${{ steps.mixkey.outputs.key }}
-          restore-keys: ${{ steps.mixkey.outputs.restore }}
+            ${{ steps.env.outputs.working-dir }}/staging_dir/host*
+            ${{ steps.env.outputs.working-dir }}/staging_dir/tool*
+          key: ${{ steps.env.outputs.cache-key }}
 
-      - name: Restore dl cache
-        uses: actions/cache/restore@main
-        with:
-          path: ${{ env.WORKING_DIR }}/dl
-          key: ${{ github.repository_id }}-dl-${{ github.run_id }}
-          restore-keys: ${{ github.repository_id }}-dl-
+      - name: Report the refresh result
+        run: |
+          if [ "${{ steps.restore.outputs.cache-hit }}" = "true" ]; then
+            echo "refreshed ${{ steps.env.outputs.cache-key }}"
+          else
+            echo "::warning::${{ steps.env.outputs.cache-key }} is gone, the next CI run rebuilds it"
+          fi

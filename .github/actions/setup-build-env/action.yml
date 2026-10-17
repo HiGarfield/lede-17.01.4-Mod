@@ -1,0 +1,121 @@
+name: Set up build environment
+description: >
+  Installs the host build dependencies, applies the tree tweaks the CI needs
+  and resolves the toolchain cache key.
+
+inputs:
+  source-repo:
+    description: 'owner/repo to clone when the workflow runs outside the source tree'
+    required: false
+    default: HiGarfield/lede-17.01.4-Mod
+  target:
+    description: 'Device name (suffix of conf/.config.<name>). Leave empty for jobs that build no device.'
+    required: false
+    default: ''
+  group:
+    description: Toolchain group id, as produced by ./.github/actions/enumerate-targets
+    required: false
+    default: ''
+  tools-hash:
+    description: Short hash of the last commit that touched tools/ or toolchain/
+    required: false
+    default: ''
+  key-suffix:
+    description: Extra discriminator appended to the toolchain cache key
+    required: false
+    default: v1
+  skip-toolchain-prereqs:
+    description: "'true' to drop the tools/ and toolchain/ prerequisites from the top level Makefile"
+    required: false
+    default: 'false'
+
+outputs:
+  working-dir:
+    description: Absolute path of the source tree
+    value: ${{ steps.setup.outputs.working-dir }}
+  gcc-hash:
+    description: Digest of the host compiler version
+    value: ${{ steps.setup.outputs.gcc-hash }}
+  cache-key:
+    description: Toolchain cache key, meaningful only when the group input is set
+    value: tc-${{ inputs.group }}-${{ steps.setup.outputs.gcc-hash }}-${{ inputs.tools-hash }}-${{ inputs.key-suffix }}
+
+runs:
+  using: composite
+  steps:
+    - name: Install the dependencies and resolve the cache key
+      id: setup
+      shell: bash
+      env:
+        SOURCE_REPO: ${{ inputs.source-repo }}
+        TARGET: ${{ inputs.target }}
+        SKIP_TOOLCHAIN_PREREQS: ${{ inputs.skip-toolchain-prereqs }}
+      run: |
+        set -euo pipefail
+
+        # Two layouts have to work:
+        #   * the workflow runs in the source tree, where version and conf/
+        #     sit at the checkout root, or
+        #   * the workflow runs in a bare repository that only carries
+        #     .github, so the source tree is cloned into source/ first.
+        # Everything below runs inside that tree, never in the checkout
+        # root, so both layouts behave identically.
+        # Keep this in sync with ./.github/actions/enumerate-targets.
+        if [ -f "${GITHUB_WORKSPACE}/version" ]; then
+          working_dir="${GITHUB_WORKSPACE}"
+        else
+          git clone "https://github.com/${SOURCE_REPO}.git" "${GITHUB_WORKSPACE}/source"
+          working_dir="${GITHUB_WORKSPACE}/source"
+        fi
+
+        cd "${working_dir}"
+
+        if [ ! -f version ]; then
+          echo "::error::no version file in ${working_dir}"
+          exit 1
+        fi
+
+        # The runner image pre-installs a lot of software the build never
+        # touches. Hand the disk back so the package build has room.
+        sudo swapoff -a || true
+        sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /mnt/swapfile
+
+        sudo apt-get update -qq -y
+        sudo apt-get install -qq -y build-essential gettext gawk subversion zlib1g-dev
+
+        # make prereq insists on a "python" command. The only two host
+        # scripts that still run under it (wireless-regdb db2fw.py and
+        # ca-certificates certdata2pem.py) produce identical output under
+        # python3, and building CPython 2.7 here costs minutes on every
+        # matrix entry for no benefit.
+        if ! command -v python >/dev/null 2>&1; then
+          sudo ln -s "$(command -v python3)" /usr/local/bin/python
+        fi
+        python -V
+
+        sed -i 's/HOST_BUILD_PARALLEL ?=/HOST_BUILD_PARALLEL ?= 1/g' include/host-build.mk
+        sed -i 's/PKG_BUILD_PARALLEL ?=/PKG_BUILD_PARALLEL ?= 1/g' include/package.mk
+        rm -f package/firmware/wireless-regdb/patches/501-limit-tx-power.patch
+
+        if [ "${SKIP_TOOLCHAIN_PREREQS}" = "true" ]; then
+          # The cache carries staging_dir only. The tools/ install stamp
+          # sits in staging_dir/stamp, which is not part of the cached
+          # paths, and both stamp files depend on tmp/.build, which every
+          # checkout regenerates. Left alone, make would judge the
+          # toolchain out of date and rebuild it from scratch. Drop the
+          # prerequisites instead: the toolchain job has already built it.
+          sed -i 's/ $(tool.*\/stamp-compile)//;' Makefile
+          sed -i 's/ $(tool.*\/stamp-install)//;' Makefile
+        fi
+
+        if [ -n "${TARGET}" ] && [ ! -f "conf/.config.${TARGET}" ]; then
+          echo "::error::conf/.config.${TARGET} does not exist"
+          exit 1
+        fi
+
+        {
+          echo "working-dir=${working_dir}"
+          # Hashed after the dependency install above: build-essential can
+          # change the compiler, and the toolchain cache is keyed on it.
+          echo "gcc-hash=$(gcc --version | sha1sum | cut -c1-8)"
+        } >> "${GITHUB_OUTPUT}"
