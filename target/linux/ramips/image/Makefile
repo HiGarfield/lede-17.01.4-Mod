@@ -52,6 +52,11 @@ endef
 # only has to memcpy the payload to KERNEL_LOADADDR and jump to it. Needed for
 # bootloaders that cannot decompress an IH_COMP_LZMA uImage (e.g. the Linksys
 # EA7500 v2 / EA8100 U-Boot).
+#
+# Ordering: a Device/<name> block is expanded line by line after Device/Default,
+# so a device that assigns its own KERNEL := *after* this macro silently wins and
+# keeps building a plain lzma uImage. Reference the macro after the custom KERNEL
+# (or fold "| loader-kernel | uImage none" into it) for those devices.
 define Device/uimage-lzma-loader
   KERNEL := $(KERNEL_DTB) | loader-kernel | uImage none
 endef

@@ -61,6 +61,7 @@ endef
 TARGET_DEVICES += rg-nbr700gw
 
 define Device/a3004ns
+  $(Device/uimage-lzma-loader)
   DTS := A3004NS
   IMAGE_SIZE := 16128k
   DEVICE_TITLE := TOTOLINK A3004NS
@@ -69,6 +70,7 @@ endef
 TARGET_DEVICES += a3004ns
 
 define Device/11acnas
+  $(Device/uimage-lzma-loader)
   DTS := 11ACNAS
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := WeVO 11AC NAS Router
@@ -106,6 +108,7 @@ endef
 TARGET_DEVICES += dir-860l-b1
 
 define Device/ew1200
+  $(Device/uimage-lzma-loader)
   DTS := EW1200
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := AFOUNDRY EW1200
@@ -123,6 +126,7 @@ endef
 TARGET_DEVICES += firewrt
 
 define Device/hc5962
+  $(Device/uimage-lzma-loader)
   DTS := HC5962
   BLOCKSIZE := 128k
   PAGESIZE := 2048
@@ -146,6 +150,7 @@ endef
 TARGET_DEVICES += mt7621
 
 define Device/newifi-d1
+  $(Device/uimage-lzma-loader)
   DTS := Newifi-D1
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
   DEVICE_TITLE := Newifi D1
@@ -155,6 +160,7 @@ endef
 TARGET_DEVICES += newifi-d1
 
 define Device/newifi-d2
+  $(Device/uimage-lzma-loader)
   DTS := Newifi-D2
   IMAGE_SIZE := $(ralink_default_fw_size_32M)
   DEVICE_TITLE := Newifi D2
@@ -195,12 +201,14 @@ endef
 TARGET_DEVICES += rb750gr3
 
 define Device/re6500
+  $(Device/uimage-lzma-loader)
   DTS := RE6500
   DEVICE_TITLE := Linksys RE6500
 endef
 TARGET_DEVICES += re6500
 
 define Device/sap-g3200u3
+  $(Device/uimage-lzma-loader)
   DTS := SAP-G3200U3
   DEVICE_TITLE := STORYLiNK SAP-G3200U3
   DEVICE_PACKAGES := kmod-usb3 kmod-usb-ledtrig-usbport
@@ -208,6 +216,7 @@ endef
 TARGET_DEVICES += sap-g3200u3
 
 define Device/sk-wb8
+  $(Device/uimage-lzma-loader)
   DTS := SK-WB8
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := SamKnows Whitebox 8
@@ -216,6 +225,7 @@ endef
 TARGET_DEVICES += sk-wb8
 
 define Device/timecloud
+  $(Device/uimage-lzma-loader)
   DTS := Timecloud
   DEVICE_TITLE := Thunder Timecloud
   DEVICE_PACKAGES := kmod-usb3
@@ -226,7 +236,10 @@ define Device/ubnt-erx
   DTS := UBNT-ERX
   FILESYSTEMS := squashfs
   KERNEL_SIZE := 3145728
-  KERNEL := $(KERNEL_DTB) | uImage lzma
+# Same chain as the uimage-lzma-loader macro, spelled out because this device
+# already overrides KERNEL: the macro has to come after this line, otherwise
+# it is silently overridden.
+  KERNEL := $(KERNEL_DTB) | loader-kernel | uImage none
   IMAGES := sysupgrade.tar
   KERNEL_INITRAMFS := $$(KERNEL) | ubnt-erx-factory-image $(KDIR)/tmp/$$(KERNEL_INITRAMFS_PREFIX)-factory.tar
   IMAGE/sysupgrade.tar := sysupgrade-tar | append-metadata
@@ -236,6 +249,7 @@ endef
 TARGET_DEVICES += ubnt-erx
 
 define Device/vr500
+  $(Device/uimage-lzma-loader)
   DTS := VR500
   IMAGE_SIZE := 66453504
   DEVICE_TITLE := Planex VR500
@@ -244,6 +258,7 @@ endef
 TARGET_DEVICES += vr500
 
 define Device/w2914nsv2
+  $(Device/uimage-lzma-loader)
   DTS := W2914NSV2
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := WeVO W2914NS v2
@@ -257,7 +272,11 @@ define Device/wf-2881
   PAGESIZE := 2048
   FILESYSTEMS := squashfs
   IMAGE_SIZE := 129280k
-  KERNEL := $(KERNEL_DTB) | pad-offset $$(BLOCKSIZE) 64 | uImage lzma
+# Same chain as the uimage-lzma-loader macro plus the NAND block alignment:
+# what has to be block aligned is the loader payload, not the lzma stream
+# inside it. Spelled out for the same reason as ubnt-erx: the macro would be
+# silently overridden by the KERNEL assignment below.
+  KERNEL := $(KERNEL_DTB) | loader-kernel | pad-offset $$(BLOCKSIZE) 64 | uImage none
   UBINIZE_OPTS := -E 5
   IMAGE/sysupgrade.bin := append-kernel | append-ubi | append-metadata | check-size $$$$(IMAGE_SIZE)
   DEVICE_TITLE := NETIS WF-2881
@@ -266,6 +285,7 @@ endef
 TARGET_DEVICES += wf-2881
 
 define Device/witi
+  $(Device/uimage-lzma-loader)
   DTS := WITI
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := MQmaker WiTi
@@ -274,6 +294,7 @@ endef
 TARGET_DEVICES += witi
 
 define Device/wndr3700v5
+  $(Device/uimage-lzma-loader)
   DTS := WNDR3700V5
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := Netgear WNDR3700v5
@@ -282,6 +303,7 @@ endef
 TARGET_DEVICES += wndr3700v5
 
 define Device/wsr-1166
+  $(Device/uimage-lzma-loader)
   DTS := WSR-1166
   IMAGE/sysupgrade.bin := trx | pad-rootfs | append-metadata
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
@@ -290,6 +312,7 @@ endef
 TARGET_DEVICES += wsr-1166
 
 define Device/wsr-600
+  $(Device/uimage-lzma-loader)
   DTS := WSR-600
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := Buffalo WSR-600
@@ -297,6 +320,7 @@ endef
 TARGET_DEVICES += wsr-600
 
 define Device/zbt-wg2626
+  $(Device/uimage-lzma-loader)
   DTS := ZBT-WG2626
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := ZBT WG2626
@@ -305,6 +329,7 @@ endef
 TARGET_DEVICES += zbt-wg2626
 
 define Device/zbt-wg3526
+  $(Device/uimage-lzma-loader)
   DTS := ZBT-WG3526
   IMAGE_SIZE := $(ralink_default_fw_size_16M)
   DEVICE_TITLE := ZBT WG3526
