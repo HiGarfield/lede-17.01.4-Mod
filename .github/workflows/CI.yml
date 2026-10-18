@@ -1,34 +1,52 @@
-# CI for the LEDE 17.01 source tree.
+# CI for the LEDE 17.01 firmware build.
+#
+# One workflow serves two repository layouts, and the layout is decided by
+# the tree the runner checks out:
+#
+#   * the source repository: the checkout root holds the version file and
+#     conf/, so every job builds inside the checkout;
+#   * a repository that carries .github only: there is no version file, so
+#     the composite actions clone the source tree from SOURCE_REPO into
+#     source/ first and every job builds inside that clone.
+#
+# From the moment the tree is resolved the two layouts run the very same
+# steps, which is what lets the whole .github directory be copied verbatim
+# into the bare repository. A push to the source repository builds here and
+# notifies the downstream repository; the repository_dispatch created by
+# that notification is what starts the same build there.
 #
 # Every device under conf/.config.<name> is built on its own runner. The
 # tools/ and toolchain/ stages are shared: they depend on a handful of
 # .config symbols only, so they are built once per toolchain group instead
 # of once per device and handed over through the Actions cache.
 #
+#   repository-dispatch  notifies the downstream repository (source repo only)
 #   generate-matrix      one entry per device plus one per toolchain group
-#   repository-dispatch  notifies the downstream repository of a push
 #   toolchain            builds tools/ + toolchain/ once per group, saves cache
 #   download-sources     fills dl/ once and publishes it
 #   build-firmware       restores the toolchain cache, builds one device
 #   create-release       publishes every artifact under the version tag
 #   cleanup              keeps only the newest release
 #
-# The cache contract lives in .github/actions/: enumerate-targets produces
-# the toolchain group ids and the tree digests, setup-build-env turns a
-# group id into a cache key. Both workflows share it, so a key can never
-# drift between the job that writes it and the job that reads it.
+# The layout resolution and the cache contract live in .github/actions/:
+# enumerate-targets produces the device matrix and the tree digests,
+# setup-build-env resolves the working directory and the toolchain cache
+# key. Both workflows share them, so a key can never drift between the job
+# that writes it and the job that reads it.
 
 name: CI
 
 on:
   push:
     branches: [master]
-    # A push that only touches these never changes a firmware image.
-    paths-ignore:
-      - '**.md'
-      - 'LICENSE'
-      - 'README'
-      - '.github/issue_template'
+  # Sent by the repository-dispatch job below, which only runs in the
+  # source repository. The event type is the version being built, read
+  # from the version file, so it changes with every release and no
+  # literal types filter can match it; the version is verified against
+  # the tree this run resolves in generate-matrix instead. The source
+  # repository never receives a dispatch itself, so the chain stays
+  # one-directional.
+  repository_dispatch:
   workflow_dispatch:
     inputs:
       targets:
@@ -48,40 +66,65 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+env:
+  # Cloned by the composite actions when the checkout carries .github only.
+  # Without this value the clone URL would be empty and every job would
+  # fail while resolving the tree.
+  SOURCE_REPO: HiGarfield/lede-17.01.4-Mod
+
 jobs:
+  # Only the source repository notifies the downstream one. The guard is
+  # what keeps the dispatch chain from looping: in the downstream
+  # repository the same workflow runs on a repository_dispatch event, and
+  # both conditions are false there.
   repository-dispatch:
     if: github.repository == 'HiGarfield/lede-17.01.4-Mod' && github.event_name == 'push'
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
     permissions: {}
     steps:
       - name: Check out the repository
         uses: actions/checkout@main
 
-      - name: Derive the dispatch event type
-        id: event-type
+      # The event type is the version being built. A repository_dispatch
+      # event_type accepts letters, digits and . _ - only and is limited
+      # to 100 characters; the version file holds a plain timestamp, so
+      # this only guards against a malformed file producing a dispatch
+      # the API would reject.
+      - name: Read the version to dispatch
+        id: version
         run: |
           set -euo pipefail
-          commit_title=$(git log -1 --pretty=format:%s)
-          # A repository_dispatch event_type accepts letters, digits and
-          # . _ - only. Everything else (spaces, newlines, multibyte
-          # characters, punctuation) becomes '-', then runs collapse, the
-          # string is trimmed and finally cut to 100 characters.
-          event_type=$(printf '%s' "${commit_title}" | tr -c 'A-Za-z0-9._-' '-' | tr -s '-' | sed 's/^-//;s/-$//' | cut -c1-100)
-          [ -n "${event_type}" ] || event_type=lede-build
-          echo "event_type=${event_type}" >> "${GITHUB_OUTPUT}"
+          version=$(cat version)
+          if [ -z "${version}" ]; then
+            echo "::error::the version file is empty"
+            exit 1
+          fi
+          case "${version}" in
+            *[!A-Za-z0-9._-]*)
+              echo "::error::version '${version}' contains characters the dispatch event_type cannot carry"
+              exit 1
+              ;;
+          esac
+          if [ "${#version}" -gt 100 ]; then
+            echo "::error::version exceeds the 100 character event_type limit"
+            exit 1
+          fi
+          echo "event_type=${version}" >> "${GITHUB_OUTPUT}"
 
       - name: Notify the downstream repository
         uses: HiGarfield/repository-dispatch@main
         with:
           token: ${{ secrets.MY_TOKEN }}
           repository: ${{ secrets.SECOND_REPO }}
-          event-type: ${{ steps.event-type.outputs.event_type }}
+          event-type: ${{ steps.version.outputs.event_type }}
+          # The webhook payload of a repository_dispatch does not carry the
+          # event type, so the version travels in the client payload as
+          # well: that is the only channel the downstream workflow can read
+          # it from, and it is what the version check there verifies.
+          client-payload: '{"version":"${{ steps.version.outputs.event_type }}"}'
 
   generate-matrix:
-    if: github.repository == 'HiGarfield/lede-17.01.4-Mod'
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
     outputs:
       targets: ${{ steps.targets.outputs.targets }}
       tc-groups: ${{ steps.targets.outputs.tc-groups }}
@@ -89,10 +132,10 @@ jobs:
       tools-hash: ${{ steps.targets.outputs.tools-hash }}
       dl-hash: ${{ steps.targets.outputs.dl-hash }}
     steps:
-      # Full history: the toolchain key carries the last commit that touched
-      # tools/ or toolchain/, and the dl key hashes the trees that decide
-      # which sources are downloaded. Every other job checks out a single
-      # commit and receives both values as job outputs.
+      # Full history: the toolchain key carries the last commit that
+      # touched tools/ or toolchain/, and the dl key hashes the trees that
+      # decide which sources are downloaded. Every other job checks out a
+      # single commit and receives both values as job outputs.
       - name: Check out the repository with full history
         uses: actions/checkout@main
         with:
@@ -105,11 +148,37 @@ jobs:
           source-repo: ${{ env.SOURCE_REPO }}
           requested: ${{ inputs.targets || 'all' }}
 
+      # The source repository sends the version it is building both as the
+      # dispatch event type and inside the client payload; the webhook
+      # payload of a repository_dispatch does not carry the event type, so
+      # the client payload is the channel that can be read here. Checking
+      # it against the version of the tree this run resolved rejects a
+      # dispatch carrying any other version, which is what limits a build
+      # here to a dispatch from the source repository. A push and a
+      # workflow_dispatch carry no payload and skip the check; both
+      # already require write access. When a newer commit lands between
+      # the dispatch and the clone the versions differ and the run fails;
+      # the dispatch of that newer commit builds it instead.
+      - name: Verify the dispatch carries the version being built
+        if: github.event_name == 'repository_dispatch'
+        env:
+          EVENT_TYPE: ${{ github.event.client_payload.version }}
+          EXPECTED_VERSION: ${{ steps.targets.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${EVENT_TYPE}" ]; then
+            echo "::error::repository_dispatch rejected: the dispatch carried no version payload"
+            exit 1
+          fi
+          if [ "${EVENT_TYPE}" != "${EXPECTED_VERSION}" ]; then
+            echo "::error::repository_dispatch rejected: event type '${EVENT_TYPE}' does not match version '${EXPECTED_VERSION}'"
+            exit 1
+          fi
+          echo "repository_dispatch verified: building version ${EXPECTED_VERSION}"
+
   toolchain:
     needs: [generate-matrix]
-    if: github.repository == 'HiGarfield/lede-17.01.4-Mod'
     runs-on: ubuntu-26.04
-    timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
@@ -164,9 +233,7 @@ jobs:
 
   download-sources:
     needs: [generate-matrix]
-    if: github.repository == 'HiGarfield/lede-17.01.4-Mod'
     runs-on: ubuntu-26.04
-    timeout-minutes: 240
     steps:
       - name: Check out the repository
         uses: actions/checkout@main
@@ -223,9 +290,7 @@ jobs:
 
   build-firmware:
     needs: [generate-matrix, toolchain]
-    if: github.repository == 'HiGarfield/lede-17.01.4-Mod'
     runs-on: ubuntu-26.04
-    timeout-minutes: 240
     strategy:
       fail-fast: false
       matrix:
@@ -254,10 +319,11 @@ jobs:
             ${{ steps.env.outputs.working-dir }}/staging_dir/tool*
           key: ${{ steps.env.outputs.cache-key }}
 
-      # The toolchain job owns this key and the group ids come from the same
-      # action, so a miss means something is wrong (a different compiler, a
-      # changed tools/ tree, an evicted entry). Rebuilding here would hide
-      # it, and the Makefile no longer asks for the toolchain anyway.
+      # The toolchain job owns this key and the group ids come from the
+      # same action, so a miss means something is wrong (a different
+      # compiler, a changed tools/ tree, an evicted entry). Rebuilding
+      # here would hide it, and the Makefile no longer asks for the
+      # toolchain anyway.
       - name: Verify the toolchain cache hit
         if: steps.toolchain.outputs.cache-hit != 'true'
         run: |
@@ -277,9 +343,7 @@ jobs:
           set -euo pipefail
           cp -f "conf/.config.${{ matrix.target }}" .config
           make defconfig
-          # Retry in parallel. A serial "make -j1 V=s" run would redo hours
-          # of work just to print the error the parallel run already hit.
-          make -j"$(nproc)" || make -j"$(nproc)" V=s
+          make -j"$(nproc)" || make -j1 V=s
 
       - name: Collect the firmware images
         working-directory: ${{ steps.env.outputs.working-dir }}
@@ -304,9 +368,7 @@ jobs:
 
   create-release:
     needs: [generate-matrix, download-sources, build-firmware]
-    if: github.repository == 'HiGarfield/lede-17.01.4-Mod'
     runs-on: ubuntu-26.04
-    timeout-minutes: 30
     permissions:
       contents: write
     steps:
@@ -329,9 +391,7 @@ jobs:
   # pile up one tag per push.
   cleanup:
     needs: [create-release]
-    if: github.repository == 'HiGarfield/lede-17.01.4-Mod'
     runs-on: ubuntu-26.04
-    timeout-minutes: 10
     permissions:
       contents: write
     steps:

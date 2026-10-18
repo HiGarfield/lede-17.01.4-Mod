@@ -1,17 +1,17 @@
 name: Enumerate build targets
 description: >
-  Lists the devices under conf/ and groups them by the toolchain they need,
-  then derives every value the CI workflows use as a cache key or a matrix
-  input.
+  Lists every device under conf/ and groups the devices by the toolchain
+  they need, then derives the values the CI workflows use as cache keys
+  and matrix inputs.
 
-# One toolchain is built per group instead of one per device.  The tools/
+# One toolchain is built per group instead of one per device. The tools/
 # and toolchain/ stages only read the symbols listed in toolchain_hash()
 # below, so devices whose symbols hash to the same value can share a
 # toolchain even when their package selection differs.
 
 inputs:
   source-repo:
-    description: 'owner/repo to clone when the workflow runs outside the source tree'
+    description: 'owner/repo cloned when the workflow runs outside the source tree'
     required: false
     default: HiGarfield/lede-17.01.4-Mod
   requested:
@@ -51,16 +51,34 @@ runs:
       run: |
         set -euo pipefail
 
-        # Two layouts have to work:
-        #   * the workflow runs in the source tree, where version and conf/
-        #     sit at the checkout root, or
-        #   * the workflow runs in a bare repository that only carries
-        #     .github, so the source tree is cloned into source/ first.
-        # Keep this in sync with ./.github/actions/setup-build-env.
+        # -----------------------------------------------------------------
+        # Resolve the source tree.
+        #
+        # The workflow runs in two repository layouts and the layout is
+        # decided by the tree the runner checked out:
+        #
+        #   * the source repository: the checkout root holds the version
+        #     file, so the build runs inside the checkout itself;
+        #   * a repository that carries .github only: there is no version
+        #     file, so the source tree is cloned from SOURCE_REPO into
+        #     source/ first and the build runs inside that clone.
+        #
+        # Everything below runs inside the resolved tree, never in the
+        # checkout root, so the two layouts behave identically from here
+        # on. Keep this block verbatim in sync with
+        # ./.github/actions/setup-build-env.
+        # -----------------------------------------------------------------
         if [ -f "${GITHUB_WORKSPACE}/version" ]; then
+          echo "Layout: the checkout is the source tree (${GITHUB_WORKSPACE})"
           working_dir="${GITHUB_WORKSPACE}"
         else
-          # Full clone: the toolchain key and the dl key both read history.
+          if [ -z "${SOURCE_REPO}" ]; then
+            echo "::error::SOURCE_REPO is empty, there is no clone URL"
+            exit 1
+          fi
+          # A full clone on purpose: the toolchain key and the dl key both
+          # read the commit history and the trees at HEAD.
+          echo "Layout: bare repository, cloning ${SOURCE_REPO} into ${GITHUB_WORKSPACE}/source"
           git clone "https://github.com/${SOURCE_REPO}.git" "${GITHUB_WORKSPACE}/source"
           working_dir="${GITHUB_WORKSPACE}/source"
         fi
@@ -70,11 +88,6 @@ runs:
         if [ ! -f version ]; then
           echo "::error::no version file in ${working_dir}"
           exit 1
-        fi
-
-        if ! command -v jq >/dev/null 2>&1; then
-          sudo apt-get update -qq -y
-          sudo apt-get install -y -qq jq
         fi
 
         # -----------------------------------------------------------------
@@ -99,11 +112,16 @@ runs:
             sha1sum | cut -c1-12
         }
 
+        if ! command -v jq >/dev/null 2>&1; then
+          sudo apt-get update -qq -y
+          sudo apt-get install -y -qq jq
+        fi
+
         declare -a names=()
         for f in conf/.config.*; do
           [ -f "$f" ] || continue
           name=${f#conf/.config.}
-          # Device names end up in JSON, in file names and in cache keys
+          # Device names end up in JSON, in file names and in cache keys.
           case "$name" in
             *[!A-Za-z0-9._-]*)
               echo "::error::unsupported characters in config name '${name}'"
@@ -150,7 +168,7 @@ runs:
           fi
           group="${arch}-$(toolchain_hash "${config}")"
           target_rows+=("{\"target\":\"${name}\",\"group\":\"${group}\"}")
-          # names is sorted, so the first device of a group is deterministic
+          # names is sorted, so the first device of a group is deterministic.
           if [ -z "${representative[${group}]:-}" ]; then
             representative[${group}]="${name}"
           fi
@@ -161,16 +179,25 @@ runs:
           group_rows+=("{\"group\":\"${group}\",\"representative\":\"${representative[${group}]}\"}")
         done
 
+        # The tree carries the full history: a shallow checkout would leave
+        # this empty and silently poison every toolchain cache key.
+        tools_hash=$(git log --pretty=tformat:%h -n1 tools toolchain)
+        if [ -z "${tools_hash}" ]; then
+          echo "::error::no commit found for tools/ or toolchain/, the tree has no usable history"
+          exit 1
+        fi
+        # The tarballs in dl/ are decided by these trees: package and
+        # feeds carry PKG_SOURCE, target/toolchain/tools add their own
+        # downloads and conf/ decides which of them a build asks for.
+        dl_hash=$(git rev-parse HEAD:package HEAD:feeds HEAD:target HEAD:toolchain HEAD:tools HEAD:conf | sha1sum | cut -c1-12)
+
         {
           echo "working-dir=${working_dir}"
           echo "targets=$(printf '%s\n' "${target_rows[@]}" | jq -sc .)"
           echo "tc-groups=$(printf '%s\n' "${group_rows[@]}" | sort | jq -sc .)"
           echo "version=$(cat version)"
-          echo "tools-hash=$(git log --pretty=tformat:%h -n1 tools toolchain)"
-          # The tarballs in dl/ are decided by these trees: package and
-          # feeds carry PKG_SOURCE, target/toolchain/tools add their own
-          # downloads and conf/ decides which of them a build asks for.
-          echo "dl-hash=$(git rev-parse HEAD:package HEAD:feeds HEAD:target HEAD:toolchain HEAD:tools HEAD:conf | sha1sum | cut -c1-12)"
+          echo "tools-hash=${tools_hash}"
+          echo "dl-hash=${dl_hash}"
         } >> "${GITHUB_OUTPUT}"
 
-        echo "Enumerated ${#names[@]} device(s) using ${#group_rows[@]} toolchain group(s) from ${working_dir}"
+        echo "Enumerated ${#names[@]} device(s) in ${#group_rows[@]} toolchain group(s) from ${working_dir}"

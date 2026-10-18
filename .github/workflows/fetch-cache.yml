@@ -4,12 +4,13 @@
 # workflow only reads the entries a push actually needs, so between two
 # releases they can expire and the next build pays for a full toolchain
 # rebuild. This workflow reads every entry on a schedule, which resets that
-# timer.
+# timer. It runs in either repository layout: wherever this file lives, the
+# composite actions resolve the tree exactly the way CI does.
 #
-# There is no save step on purpose: only the CI workflow publishes toolchain
-# entries, and reading one is enough to refresh it. The dl cache needs no
-# keep-alive either, it is content addressed and re-downloading it after an
-# eviction is cheaper than fetching it here on every run.
+# There is no save step on purpose: only the CI workflow publishes
+# toolchain entries, and reading one is enough to refresh it. The dl cache
+# needs no keep-alive either, it is content addressed and re-downloading it
+# after an eviction is cheaper than fetching it here on every run.
 
 name: Refresh toolchain cache
 
@@ -29,8 +30,8 @@ concurrency:
 
 env:
   # Same two layouts as CI.yml: the checkout is either already the source
-  # tree, or it is a bare repository carrying only .github and the source
-  # tree gets cloned from SOURCE_REPO into source/.
+  # tree, or it is a repository carrying .github only and the source tree
+  # gets cloned from SOURCE_REPO into source/.
   SOURCE_REPO: HiGarfield/lede-17.01.4-Mod
 
 jobs:
@@ -66,8 +67,9 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@main
 
-      # Installs build-essential as well: the cache key hashes the compiler
-      # version, so this job has to end up with the same gcc as a CI build.
+      # Installs build-essential as well: the cache key hashes the
+      # compiler version, so this job has to end up with the same gcc as
+      # a CI build.
       - name: Prepare the build environment
         id: env
         uses: ./.github/actions/setup-build-env
