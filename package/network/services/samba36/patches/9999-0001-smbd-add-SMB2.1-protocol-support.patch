@@ -1,0 +1,1201 @@
+From 7ce30bdffd3b3d51884b29145f3461f1bea37d87 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Wed, 21 Oct 2026 20:45:20 +0800
+Subject: [PATCH] smbd: add SMB2.1 protocol support
+
+Implement the SMB2.1 dialect (2.002 / 0x0210) on top of the existing
+SMB2.0.2 code path:
+
+* Negotiate: advertise SMB2.1 in the dialect table, report the
+  negotiated dialect and enable multi-credit (large MTU) when the
+  dialect is >= 0x0210.
+* Credit accounting: charge and grant credits across read, write,
+  create, getinfo, setinfo, find and notify.
+* IOCTL FSCTL_VALIDATE_NEGOTIATE_INFO validation of the client
+  negotiate request.
+* Session setup channel binding (BINDING vs dedicated) for
+  multi-channel capable clients.
+* Loadparm: add the SMB2_21 enum value, raise the server max protocol
+  defaults, and add the "smb2 durable handles" parameter.
+* Raise the default read/write/transact sizes to 1MB and update the
+  protocol enum and constants accordingly.
+
+All dialect-gated features are gated on a >= 0x0210 comparison so the
+SMB2.0.2 behaviour is preserved for older clients.
+---
+ libcli/smb/smb2_constants.h   |   5 +
+ source3/include/local.h       |  12 ++-
+ source3/include/proto.h       |   1 +
+ source3/include/smb.h         |  11 +-
+ source3/param/loadparm.c      |  19 +++-
+ source3/smbd/globals.h        |  55 +++++++++-
+ source3/smbd/negprot.c        |   3 +-
+ source3/smbd/process.c        |   2 +-
+ source3/smbd/smb2_create.c    |  31 +++++-
+ source3/smbd/smb2_find.c      |   9 ++
+ source3/smbd/smb2_getinfo.c   |   9 ++
+ source3/smbd/smb2_ioctl.c     | 137 ++++++++++++++++++++++++-
+ source3/smbd/smb2_negprot.c   | 184 ++++++++++++++++++++++++++++++++--
+ source3/smbd/smb2_notify.c    |   9 ++
+ source3/smbd/smb2_read.c      |   9 ++
+ source3/smbd/smb2_server.c    |  91 +++++++++++++++--
+ source3/smbd/smb2_sesssetup.c |  68 +++++++++++++
+ source3/smbd/smb2_setinfo.c   |   9 ++
+ source3/smbd/smb2_write.c     |   9 ++
+ 19 files changed, 640 insertions(+), 33 deletions(-)
+
+--- a/libcli/smb/smb2_constants.h
++++ b/libcli/smb/smb2_constants.h
+@@ -90,8 +90,13 @@
+ #define SMB2_CAP_ALL                     SMB2_CAP_DFS
+ 
+ /* SMB2 session flags */
++#define SMB2_SESSION_FLAG_BINDING        0x0001
+ #define SMB2_SESSION_FLAG_IS_GUEST       0x0001
+ #define SMB2_SESSION_FLAG_IS_NULL        0x0002
++#define SMB2_SESSION_FLAG_ENCRYPT_DATA   0x0004 /* in dialect >= 0x224 */
++
++/* SMB2 ioctl flags */
++#define SMB2_IOCTL_FLAG_IS_FSCTL         0x00000001
+ 
+ /* SMB2 sharetype flags */
+ #define SMB2_SHARE_TYPE_DISK		0x1
+--- a/source3/include/local.h
++++ b/source3/include/local.h
+@@ -261,9 +261,15 @@
+ #define CLIENT_NDR_PADDING_SIZE 8
+ #define SERVER_NDR_PADDING_SIZE 8
+ 
+-#define DEFAULT_SMB2_MAX_READ (64*1024)
+-#define DEFAULT_SMB2_MAX_WRITE (64*1024)
+-#define DEFAULT_SMB2_MAX_TRANSACT (64*1024)
++/*
++ * SMB2.1 (dialect 0x0210) allows a 1MB maximum message size
++ * when SMB2_CAP_LARGE_MTU is negotiated. Note that a 64KB
++ * limit is still enforced for SMB2.0 clients and for NBT
++ * (tcp port 139) connections, see smbd/smb2_negprot.c.
++ */
++#define DEFAULT_SMB2_MAX_READ (1024*1024)
++#define DEFAULT_SMB2_MAX_WRITE (1024*1024)
++#define DEFAULT_SMB2_MAX_TRANSACT (1024*1024)
+ #define DEFAULT_SMB2_MAX_CREDITS 8192
+ 
+ #endif
+--- a/source3/include/proto.h
++++ b/source3/include/proto.h
+@@ -1547,6 +1547,7 @@ int lp_smb2_max_read(void);
+ int lp_smb2_max_write(void);
+ int lp_smb2_max_trans(void);
+ int lp_smb2_max_credits(void);
++bool lp_smb2_durable_handles(void);
+ char *lp_preexec(int );
+ char *lp_postexec(int );
+ char *lp_rootpreexec(int );
+--- a/source3/include/smb.h
++++ b/source3/include/smb.h
+@@ -1322,7 +1322,16 @@ enum protocol_types {
+ 	PROTOCOL_LANMAN1,
+ 	PROTOCOL_LANMAN2,
+ 	PROTOCOL_NT1,
+-	PROTOCOL_SMB2
++	/*
++	 * PROTOCOL_SMB2 is the sentinel for the whole SMB2 family:
++	 * any comparison ">= PROTOCOL_SMB2" stays true for all
++	 * SMB2 dialects. The concrete dialect negotiated on a
++	 * connection is tracked by PROTOCOL_SMB2_02 (2.002) and
++	 * PROTOCOL_SMB2_10 (2.100).
++	 */
++	PROTOCOL_SMB2,
++	PROTOCOL_SMB2_02,
++	PROTOCOL_SMB2_10
+ };
+ 
+ /* security levels */
+--- a/source3/param/loadparm.c
++++ b/source3/param/loadparm.c
+@@ -247,6 +247,7 @@ struct global {
+ 	int maxprotocol;
+ 	int minprotocol;
+ 	int security;
++	bool ismb2_durable_handles;
+ 	char **AuthMethods;
+ 	bool paranoid_server_security;
+ 	int maxdisksize;
+@@ -729,7 +730,9 @@ static void add_to_file_list(const char
+ static bool lp_set_cmdline_helper(const char *pszParmName, const char *pszParmValue, bool store_values);
+ 
+ static const struct enum_list enum_protocol[] = {
+-	{PROTOCOL_SMB2, "SMB2"},
++	{PROTOCOL_SMB2_10, "SMB2"},
++	{PROTOCOL_SMB2_10, "SMB2_10"},
++	{PROTOCOL_SMB2_02, "SMB2_02"},
+ 	{PROTOCOL_NT1, "NT1"},
+ 	{PROTOCOL_LANMAN2, "LANMAN2"},
+ 	{PROTOCOL_LANMAN1, "LANMAN1"},
+@@ -2695,6 +2698,15 @@ static struct parm_struct parm_table[] =
+ 		.enum_list	= NULL,
+ 		.flags		= FLAG_ADVANCED,
+ 	},
++	{
++		.label		= "smb2 durable handles",
++		.type		= P_BOOL,
++		.p_class	= P_GLOBAL,
++		.ptr		= &Globals.ismb2_durable_handles,
++		.special	= NULL,
++		.enum_list	= NULL,
++		.flags		= FLAG_ADVANCED,
++	},
+ 
+ 	{N_("Printing Options"), P_SEP, P_SEPARATOR},
+ 
+@@ -5551,7 +5563,7 @@ static void init_globals(bool reinit_glo
+ 	Globals.ismb2_max_write = DEFAULT_SMB2_MAX_WRITE;
+ 	Globals.ismb2_max_trans = DEFAULT_SMB2_MAX_TRANSACT;
+ 	Globals.ismb2_max_credits = DEFAULT_SMB2_MAX_CREDITS;
+-
++	Globals.ismb2_durable_handles = false;
+ 	string_set(&Globals.ncalrpc_dir, get_dyn_NCALRPCDIR());
+ 
+ 	/* Now put back the settings that were set with lp_set_cmdline() */
+@@ -5917,7 +5929,7 @@ static FN_GLOBAL_INTEGER(_lp_maxprotocol
+ int lp_maxprotocol(void)
+ {
+ 	int ret = _lp_maxprotocol();
+-	if ((ret == PROTOCOL_SMB2) && (lp_security() == SEC_SHARE)) {
++	if ((ret >= PROTOCOL_SMB2) && (lp_security() == SEC_SHARE)) {
+ 		DEBUG(2,("WARNING!!: \"security = share\" is incompatible "
+ 			"with the SMB2 protocol. Resetting to SMB1.\n" ));
+ 			lp_do_parameter(-1, "max protocol", "NT1");
+@@ -5954,6 +5966,7 @@ int lp_smb2_max_credits(void)
+ 	}
+ 	return Globals.ismb2_max_credits;
+ }
++FN_GLOBAL_BOOL(lp_smb2_durable_handles, &Globals.ismb2_durable_handles)
+ FN_LOCAL_STRING(lp_preexec, szPreExec)
+ FN_LOCAL_STRING(lp_postexec, szPostExec)
+ FN_LOCAL_STRING(lp_rootpreexec, szRootPreExec)
+--- a/source3/smbd/globals.h
++++ b/source3/smbd/globals.h
+@@ -251,6 +251,7 @@ const char *smb2_opcode_name(uint16_t op
+ bool smbd_is_smb2_header(const uint8_t *inbuf, size_t size);
+ 
+ void reply_smb2002(struct smb_request *req, uint16_t choice);
++void reply_smb20ff(struct smb_request *req, uint16_t choice);
+ void smbd_smb2_first_negprot(struct smbd_server_connection *sconn,
+ 			     const uint8_t *inbuf, size_t size);
+ 
+@@ -284,6 +285,9 @@ void remove_smb2_chained_fsp(files_struc
+ NTSTATUS smbd_smb2_request_verify_sizes(struct smbd_smb2_request *req,
+ 					size_t expected_body_size);
+ 
++NTSTATUS smbd_smb2_request_verify_creditcharge(struct smbd_smb2_request *req,
++					       uint32_t data_length);
++
+ NTSTATUS smbd_smb2_request_process_negprot(struct smbd_smb2_request *req);
+ NTSTATUS smbd_smb2_request_process_sesssetup(struct smbd_smb2_request *req);
+ NTSTATUS smbd_smb2_request_process_logoff(struct smbd_smb2_request *req);
+@@ -646,11 +650,58 @@ struct smbd_server_connection {
+ 		 * a bitmap of size max_credits
+ 		 */
+ 		struct bitmap *credits_bitmap;
++		/*
++		 * This is set to true when the SMB2 negotiate resulted
++		 * in a dialect >= 0x0210 on a direct (non NBT) connection.
++		 * Only then the client is allowed to use multi credit
++		 * requests, see MS-SMB2 3.2.4.1.6.
++		 */
++		bool supports_multicredit;
++		/*
++		 * This is set to true when the client selected the
++		 * "SMB 2.???" dialect within the SMB1 negprot, meaning
++		 * it accepts the 0x02FF placeholder dialect in the
++		 * SMB2 negotiate response. See MS-SMB2 3.2.4.2.
++		 */
++		bool negprot_2ff;
++		/*
++		 * The protocol version selected by the SMB2 negotiate,
++		 * this is PROTOCOL_SMB2_02 or PROTOCOL_SMB2_10.
++		 */
++		enum protocol_types protocol;
++		/*
++		 * The parameters the client sent us within the SMB2
++		 * negotiate request. They are needed to answer the
++		 * FSCTL_VALIDATE_NEGOTIATE_INFO request, which
++		 * Windows 7 and later clients send to verify the
++		 * negotiate. See MS-SMB2 3.2.5.15.1.
++		 */
++		struct {
++			uint32_t capabilities;
++			struct GUID guid;
++			uint16_t security_mode;
++			uint16_t num_dialects;
++			uint16_t *dialects;
++		} client;
++		/*
++		 * The parameters we answered with within the SMB2
++		 * negotiate response. They are also used to answer
++		 * FSCTL_VALIDATE_NEGOTIATE_INFO.
++		 */
++		struct {
++			uint32_t capabilities;
++			struct GUID guid;
++			uint16_t security_mode;
++			uint16_t dialect;
++			uint32_t max_trans;
++			uint32_t max_read;
++			uint32_t max_write;
++		} server;
+ 		uint32_t max_trans;
+ 		uint32_t max_read;
+ 		uint32_t max_write;
+-	} smb2;
+-};
++		} smb2;
++		};
+ 
+ extern struct smbd_server_connection *smbd_server_conn;
+ 
+--- a/source3/smbd/negprot.c
++++ b/source3/smbd/negprot.c
+@@ -510,7 +510,8 @@ static const struct {
+ 	void (*proto_reply_fn)(struct smb_request *req, uint16 choice);
+ 	int protocol_level;
+ } supported_protocols[] = {
+-	{"SMB 2.002",               "SMB2",     reply_smb2002,  PROTOCOL_SMB2},
++	{"SMB 2.???",               "SMB2_FF",  reply_smb20ff,  PROTOCOL_SMB2_10},
++	{"SMB 2.002",               "SMB2",     reply_smb2002,  PROTOCOL_SMB2_02},
+ 	{"NT LANMAN 1.0",           "NT1",      reply_nt1,      PROTOCOL_NT1},
+ 	{"NT LM 0.12",              "NT1",      reply_nt1,      PROTOCOL_NT1},
+ 	{"POSIX 2",                 "NT1",      reply_nt1,      PROTOCOL_NT1},
+--- a/source3/smbd/process.c
++++ b/source3/smbd/process.c
+@@ -2873,7 +2873,7 @@ void smbd_process(struct smbd_server_con
+ 	const char *remaddr = NULL;
+ 	int ret;
+ 
+-	if (lp_maxprotocol() == PROTOCOL_SMB2) {
++	if (lp_maxprotocol() >= PROTOCOL_SMB2) {
+ 		/*
+ 		 * We're not making the decision here,
+ 		 * we're just allowing the client
+--- a/source3/smbd/smb2_create.c
++++ b/source3/smbd/smb2_create.c
+@@ -200,6 +200,17 @@ NTSTATUS smbd_smb2_request_process_creat
+ 	in_context_buffer.length = in_context_length;
+ 
+ 	/*
++	 * A create with more than 64K of payload (e.g. a large security
++	 * descriptor or extended attributes) requires more than one credit
++	 * when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(smb2req,
++			smb2req->in.vector[i+1].iov_len +
++			smb2req->in.vector[i+2].iov_len);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(smb2req, status);
++	}
++	/*
+ 	 * Now interpret the name and context buffers
+ 	 */
+ 
+@@ -606,9 +617,25 @@ static struct tevent_req *smbd_smb2_crea
+ 				return tevent_req_post(req, ev);
+ 			}
+ 			/*
+-			 * we don't support durable handles yet
+-			 * and have to ignore this
++			 * We don't support durable handles and have to
++			 * ignore this. Windows clients accept that and
++			 * simply don't get a durable handle.
++			 *
++			 * Note: real durable handle support would need a
++			 * persistent open table (like the smbXsrv_open.c
++			 * of Samba 4), because close_cnum() tears down the
++			 * connection_struct and all of its files as soon as
++			 * the session or tree connection goes away, and
++			 * because smbd runs one process per tcp connection.
+ 			 */
++			if (lp_smb2_durable_handles()) {
++				DEBUG(1, ("smbd_smb2_create_send: client requested "
++					  "a durable handle for [%s], but "
++					  "'smb2 durable handles = yes' is not "
++					  "supported in this build. The handle "
++					  "will not survive a reconnect.\n",
++					  in_name));
++			}
+ 		}
+ 
+ 		if (dhnc) {
+--- a/source3/smbd/smb2_find.c
++++ b/source3/smbd/smb2_find.c
+@@ -63,6 +63,15 @@ NTSTATUS smbd_smb2_request_process_find(
+ 	if (!NT_STATUS_IS_OK(status)) {
+ 		return smbd_smb2_request_error(req, status);
+ 	}
++	/*
++	 * A find with more than 64K of payload requires more than
++	 * one credit when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(req,
++			req->in.vector[i+1].iov_len + req->in.vector[i+2].iov_len);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
+ 	inbody = (const uint8_t *)req->in.vector[i+1].iov_base;
+ 
+ 	in_file_info_class		= CVAL(inbody, 0x02);
+--- a/source3/smbd/smb2_getinfo.c
++++ b/source3/smbd/smb2_getinfo.c
+@@ -64,6 +64,15 @@ NTSTATUS smbd_smb2_request_process_getin
+ 	if (!NT_STATUS_IS_OK(status)) {
+ 		return smbd_smb2_request_error(req, status);
+ 	}
++	/*
++	 * A getinfo with more than 64K of payload requires more than
++	 * one credit when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(req,
++			req->in.vector[i+1].iov_len + req->in.vector[i+2].iov_len);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
+ 	inbody = (const uint8_t *)req->in.vector[i+1].iov_base;
+ 
+ 	in_info_type			= CVAL(inbody, 0x02);
+--- a/source3/smbd/smb2_ioctl.c
++++ b/source3/smbd/smb2_ioctl.c
+@@ -23,6 +23,7 @@
+ #include "smbd/globals.h"
+ #include "../libcli/smb/smb_common.h"
+ #include "../lib/util/tevent_ntstatus.h"
++#include "../librpc/ndr/libndr.h"
+ #include "rpc_server/srv_pipe_hnd.h"
+ #include "include/ntioctl.h"
+ 
+@@ -36,7 +37,8 @@ static struct tevent_req *smbd_smb2_ioct
+ 					       uint32_t in_flags);
+ static NTSTATUS smbd_smb2_ioctl_recv(struct tevent_req *req,
+ 				     TALLOC_CTX *mem_ctx,
+-				     DATA_BLOB *out_output);
++				     DATA_BLOB *out_output,
++				     bool *disconnect);
+ 
+ static void smbd_smb2_request_ioctl_done(struct tevent_req *subreq);
+ NTSTATUS smbd_smb2_request_process_ioctl(struct smbd_smb2_request *req)
+@@ -86,6 +88,16 @@ NTSTATUS smbd_smb2_request_process_ioctl
+ 		return smbd_smb2_request_error(req, NT_STATUS_INVALID_PARAMETER);
+ 	}
+ 
++	/*
++	 * An ioctl with more than 64K of payload requires more than
++	 * one credit when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(req,
++			MAX(in_input_length + in_max_output_length, 0x18));
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
++
+ 	in_input_buffer.data = (uint8_t *)req->in.vector[i+2].iov_base;
+ 	in_input_buffer.length = in_input_length;
+ 
+@@ -151,8 +163,10 @@ static void smbd_smb2_request_ioctl_done
+ 	DATA_BLOB out_output_buffer = data_blob_null;
+ 	NTSTATUS status;
+ 	NTSTATUS error; /* transport error */
++	bool disconnect = false;
+ 
+-	status = smbd_smb2_ioctl_recv(subreq, req, &out_output_buffer);
++	status = smbd_smb2_ioctl_recv(subreq, req, &out_output_buffer,
++				      &disconnect);
+ 
+ 	DEBUG(10,("smbd_smb2_request_ioctl_done: smbd_smb2_ioctl_recv returned "
+ 		"%u status %s\n",
+@@ -169,6 +183,16 @@ static void smbd_smb2_request_ioctl_done
+ 							 nt_errstr(error));
+ 			return;
+ 		}
++		if (disconnect) {
++			/*
++			 * The client sent us a FSCTL_VALIDATE_NEGOTIATE_INFO
++			 * request with parameters that don't match the
++			 * negotiate we answered. The connection is not
++			 * trustworthy anymore, so we terminate it.
++			 */
++			smbd_server_connection_terminate(req->sconn,
++				"client error: FSCTL_VALIDATE_NEGOTIATE_INFO mismatch\n");
++		}
+ 		return;
+ 	}
+ 
+@@ -235,6 +259,7 @@ struct smbd_smb2_ioctl_state {
+ 	DATA_BLOB in_input;
+ 	uint32_t in_max_output;
+ 	DATA_BLOB out_output;
++	bool disconnect;
+ };
+ 
+ static void smbd_smb2_ioctl_pipe_write_done(struct tevent_req *subreq);
+@@ -265,6 +290,7 @@ static struct tevent_req *smbd_smb2_ioct
+ 	state->in_input = in_input;
+ 	state->in_max_output = in_max_output;
+ 	state->out_output = data_blob_null;
++	state->disconnect = false;
+ 
+ 	DEBUG(10, ("smbd_smb2_ioctl: ctl_code[0x%08x] %s fnum[%d]\n",
+ 		(unsigned)in_ctl_code,
+@@ -384,6 +410,108 @@ static struct tevent_req *smbd_smb2_ioct
+ 					req);
+ 		return req;
+ 
++	case FSCTL_VALIDATE_NEGOTIATE_INFO_224:
++	case FSCTL_VALIDATE_NEGOTIATE_INFO:
++	{
++		/*
++		 * Windows 7 and later clients send this ioctl right after
++		 * the session setup in order to verify that the negotiate
++		 * response they received really came from us. We have to
++		 * answer with the same values we used in the negotiate.
++		 * See MS-SMB2 3.2.5.15.1.
++		 */
++		uint32_t in_capabilities;
++		DATA_BLOB in_guid_blob;
++		struct GUID in_guid;
++		uint16_t in_security_mode;
++		uint16_t in_num_dialects;
++		uint16_t i;
++		DATA_BLOB out_guid_blob;
++		NTSTATUS status;
++
++		if (in_input.length < 0x18) {
++			tevent_req_nterror(req, NT_STATUS_INVALID_PARAMETER);
++			return tevent_req_post(req, ev);
++		}
++
++		in_capabilities = IVAL(in_input.data, 0x00);
++		in_guid_blob = data_blob_const(in_input.data + 0x04, 16);
++		in_security_mode = SVAL(in_input.data, 0x14);
++		in_num_dialects = SVAL(in_input.data, 0x16);
++
++		if (in_input.length < (0x18 + in_num_dialects*2)) {
++			tevent_req_nterror(req, NT_STATUS_INVALID_PARAMETER);
++			return tevent_req_post(req, ev);
++		}
++
++		if (in_max_output < 0x18) {
++			tevent_req_nterror(req, NT_STATUS_BUFFER_TOO_SMALL);
++			return tevent_req_post(req, ev);
++		}
++
++		status = GUID_from_ndr_blob(&in_guid_blob, &in_guid);
++		if (tevent_req_nterror(req, status)) {
++			return tevent_req_post(req, ev);
++		}
++
++		if (in_num_dialects != smb2req->sconn->smb2.client.num_dialects) {
++			state->disconnect = true;
++			tevent_req_nterror(req, NT_STATUS_ACCESS_DENIED);
++			return tevent_req_post(req, ev);
++		}
++
++		for (i=0; i < in_num_dialects; i++) {
++			uint16_t v = SVAL(in_input.data, 0x18 + i*2);
++
++			if (smb2req->sconn->smb2.client.dialects[i] != v) {
++				state->disconnect = true;
++				tevent_req_nterror(req, NT_STATUS_ACCESS_DENIED);
++				return tevent_req_post(req, ev);
++			}
++		}
++
++		if (GUID_compare(&in_guid,
++				 &smb2req->sconn->smb2.client.guid) != 0) {
++			state->disconnect = true;
++			tevent_req_nterror(req, NT_STATUS_ACCESS_DENIED);
++			return tevent_req_post(req, ev);
++		}
++
++		if (in_security_mode != smb2req->sconn->smb2.client.security_mode) {
++			state->disconnect = true;
++			tevent_req_nterror(req, NT_STATUS_ACCESS_DENIED);
++			return tevent_req_post(req, ev);
++		}
++
++		if (in_capabilities != smb2req->sconn->smb2.client.capabilities) {
++			state->disconnect = true;
++			tevent_req_nterror(req, NT_STATUS_ACCESS_DENIED);
++			return tevent_req_post(req, ev);
++		}
++
++		status = GUID_to_ndr_blob(&smb2req->sconn->smb2.server.guid,
++					  state, &out_guid_blob);
++		if (tevent_req_nterror(req, status)) {
++			return tevent_req_post(req, ev);
++		}
++
++		state->out_output = data_blob_talloc(state, NULL, 0x18);
++		if (tevent_req_nomem(state->out_output.data, req)) {
++			return tevent_req_post(req, ev);
++		}
++
++		SIVAL(state->out_output.data, 0x00,
++		      smb2req->sconn->smb2.server.capabilities);
++		memcpy(state->out_output.data+0x04, out_guid_blob.data, 16);
++		SSVAL(state->out_output.data, 0x14,
++		      smb2req->sconn->smb2.server.security_mode);
++		SSVAL(state->out_output.data, 0x16,
++		      smb2req->sconn->smb2.server.dialect);
++
++		tevent_req_done(req);
++		return tevent_req_post(req, ev);
++	}
++
+ 	default: {
+ 		uint8_t *out_data = NULL;
+ 		uint32_t out_data_len = 0;
+@@ -509,7 +637,8 @@ static void smbd_smb2_ioctl_pipe_read_do
+ 
+ static NTSTATUS smbd_smb2_ioctl_recv(struct tevent_req *req,
+ 				     TALLOC_CTX *mem_ctx,
+-				     DATA_BLOB *out_output)
++				     DATA_BLOB *out_output,
++				     bool *disconnect)
+ {
+ 	NTSTATUS status = NT_STATUS_OK;
+ 	struct smbd_smb2_ioctl_state *state = tevent_req_data(req,
+@@ -525,6 +654,8 @@ static NTSTATUS smbd_smb2_ioctl_recv(str
+ 	*out_output = state->out_output;
+ 	talloc_steal(mem_ctx, out_output->data);
+ 
++	*disconnect = state->disconnect;
++
+ 	tevent_req_received(req);
+ 	return status;
+ }
+--- a/source3/smbd/smb2_negprot.c
++++ b/source3/smbd/smb2_negprot.c
+@@ -22,12 +22,16 @@
+ #include "smbd/smbd.h"
+ #include "smbd/globals.h"
+ #include "../libcli/smb/smb_common.h"
++#include "../lib/tsocket/tsocket.h"
++#include "../librpc/ndr/libndr.h"
++
++extern fstring remote_proto;
+ 
+ /*
+  * this is the entry point if SMB2 is selected via
+  * the SMB negprot
+  */
+-void reply_smb2002(struct smb_request *req, uint16_t choice)
++static void reply_smb20xx(struct smb_request *req, uint16_t dialect)
+ {
+ 	uint8_t *smb2_inbuf;
+ 	uint8_t *smb2_hdr;
+@@ -51,7 +55,7 @@ void reply_smb2002(struct smb_request *r
+ 	SSVAL(smb2_body, 0x00, 0x0024);	/* struct size */
+ 	SSVAL(smb2_body, 0x02, 0x0001);	/* dialect count */
+ 
+-	SSVAL(smb2_dyn,  0x00, 0x0202);	/* dialect 2.002 */
++	SSVAL(smb2_dyn,  0x00, dialect);
+ 
+ 	req->outbuf = NULL;
+ 
+@@ -59,6 +63,29 @@ void reply_smb2002(struct smb_request *r
+ 	return;
+ }
+ 
++/*
++ * this is the entry point if SMB2 is selected via
++ * the SMB negprot and the "SMB 2.002" dialect.
++ */
++void reply_smb2002(struct smb_request *req, uint16_t choice)
++{
++	reply_smb20xx(req, SMB2_DIALECT_REVISION_202);
++}
++
++/*
++ * this is the entry point if SMB2 is selected via
++ * the SMB negprot and the "SMB 2.???" dialect.
++ *
++ * The client uses this to tell us that it's willing to
++ * use the highest dialect we support, even if it did not
++ * explicitly list it. See MS-SMB2 3.2.4.2.
++ */
++void reply_smb20ff(struct smb_request *req, uint16_t choice)
++{
++	req->sconn->smb2.negprot_2ff = true;
++	reply_smb20xx(req, SMB2_DIALECT_REVISION_2FF);
++}
++
+ NTSTATUS smbd_smb2_request_process_negprot(struct smbd_smb2_request *req)
+ {
+ 	NTSTATUS status;
+@@ -74,12 +101,22 @@ NTSTATUS smbd_smb2_request_process_negpr
+ 	size_t c;
+ 	uint16_t security_mode;
+ 	uint16_t dialect_count;
++	uint16_t in_security_mode;
++	uint32_t in_capabilities;
++	DATA_BLOB in_guid_blob;
++	struct GUID in_guid;
+ 	uint16_t dialect = 0;
+ 	uint32_t capabilities;
++	DATA_BLOB out_guid_blob;
++	struct GUID out_guid;
++	enum protocol_types protocol = PROTOCOL_NONE;
+ 	uint32_t max_limit;
+ 	uint32_t max_trans = lp_smb2_max_trans();
+ 	uint32_t max_read = lp_smb2_max_read();
+ 	uint32_t max_write = lp_smb2_max_write();
++	NTTIME now;
++
++	unix_to_nt_time_abs(&now, time(NULL));
+ 
+ 	status = smbd_smb2_request_verify_sizes(req, 0x24);
+ 	if (!NT_STATUS_IS_OK(status)) {
+@@ -88,33 +125,100 @@ NTSTATUS smbd_smb2_request_process_negpr
+ 	inbody = (const uint8_t *)req->in.vector[i+1].iov_base;
+ 
+ 	dialect_count = SVAL(inbody, 0x02);
++
++	in_security_mode = SVAL(inbody, 0x04);
++	in_capabilities = IVAL(inbody, 0x08);
++	in_guid_blob = data_blob_const(inbody + 0x0C, 16);
++
+ 	if (dialect_count == 0) {
+ 		return smbd_smb2_request_error(req, NT_STATUS_INVALID_PARAMETER);
+ 	}
+ 
++	status = GUID_from_ndr_blob(&in_guid_blob, &in_guid);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
++
+ 	expected_dyn_size = dialect_count * 2;
+ 	if (req->in.vector[i+2].iov_len < expected_dyn_size) {
+ 		return smbd_smb2_request_error(req, NT_STATUS_INVALID_PARAMETER);
+ 	}
+ 	indyn = (const uint8_t *)req->in.vector[i+2].iov_base;
+ 
+-	for (c=0; c < dialect_count; c++) {
++	/*
++	 * Here we expect the dialects to be sorted from the highest
++	 * to the lowest, but we do the selection in the same way as
++	 * the reference implementation does: try the highest dialect
++	 * we support first and only fall back if the client did not
++	 * offer it.
++	 */
++	for (c=0; protocol == PROTOCOL_NONE && c < dialect_count; c++) {
++		if (lp_maxprotocol() < PROTOCOL_SMB2_10) {
++			break;
++		}
++		if (lp_minprotocol() > PROTOCOL_SMB2_10) {
++			break;
++		}
++
++		dialect = SVAL(indyn, c*2);
++		if (dialect == SMB2_DIALECT_REVISION_210) {
++			protocol = PROTOCOL_SMB2_10;
++			break;
++		}
++	}
++
++	for (c=0; protocol == PROTOCOL_NONE && c < dialect_count; c++) {
++		if (lp_maxprotocol() < PROTOCOL_SMB2_02) {
++			break;
++		}
++		if (lp_minprotocol() > PROTOCOL_SMB2_02) {
++			break;
++		}
++
+ 		dialect = SVAL(indyn, c*2);
+ 		if (dialect == SMB2_DIALECT_REVISION_202) {
++			protocol = PROTOCOL_SMB2_02;
+ 			break;
+ 		}
+ 	}
+ 
+-	if (dialect != SMB2_DIALECT_REVISION_202) {
+-		return smbd_smb2_request_error(req, NT_STATUS_INVALID_PARAMETER);
++	for (c=0; protocol == PROTOCOL_NONE && c < dialect_count; c++) {
++		if (lp_maxprotocol() < PROTOCOL_SMB2_10) {
++			break;
++		}
++
++		dialect = SVAL(indyn, c*2);
++		if (dialect == SMB2_DIALECT_REVISION_2FF) {
++			/*
++			 * The client only offers the 0x02FF dialect if it
++			 * accepted the "SMB 2.???" dialect string within the
++			 * SMB1 negprot. In that case we're free to select
++			 * the highest dialect we support.
++			 */
++			if (req->sconn->smb2.negprot_2ff) {
++				req->sconn->smb2.negprot_2ff = false;
++				protocol = PROTOCOL_SMB2_10;
++				dialect = SMB2_DIALECT_REVISION_210;
++				break;
++			}
++		}
+ 	}
+ 
+-	set_Protocol(PROTOCOL_SMB2);
++	if (protocol == PROTOCOL_NONE) {
++		return smbd_smb2_request_error(req, NT_STATUS_NOT_SUPPORTED);
++	}
+ 
+ 	if (get_remote_arch() != RA_SAMBA) {
+ 		set_remote_arch(RA_VISTA);
+ 	}
+ 
++	set_Protocol(protocol);
++	fstr_sprintf(remote_proto, "SMB%X_%02X",
++		     (dialect >> 8) & 0xFF, dialect & 0xFF);
++
++	reload_services(req->sconn->msg_ctx, req->sconn->sock, true);
++	DEBUG(3,("Selected protocol %s\n", remote_proto));
++
+ 	/* negprot_spnego() returns a the server guid in the first 16 bytes */
+ 	negprot_spnego_blob = negprot_spnego(req, req->sconn);
+ 	if (negprot_spnego_blob.data == NULL) {
+@@ -141,6 +245,31 @@ NTSTATUS smbd_smb2_request_process_negpr
+ 	 */
+ 	max_limit = 0x10000;
+ 
++	if (protocol >= PROTOCOL_SMB2_10) {
++		int p = 0;
++
++		if (tsocket_address_is_inet(req->sconn->local_address, "ip")) {
++			p = tsocket_address_inet_port(req->sconn->local_address);
++		}
++
++		/* largeMTU is not supported over NBT (tcp port 139) */
++		if (p != SMB_PORT2) {
++			capabilities |= SMB2_CAP_LARGE_MTU;
++			req->sconn->smb2.supports_multicredit = true;
++
++			/* SMB >= 2.1 has 1 MB of allowed size */
++			max_limit = 0x100000; /* 1MB */
++		}
++	}
++
++	/*
++	 * the defaults are 1MB, but we'll limit this to max_limit based on
++	 * the dialect (64kb for SMB2.0, 1MB for SMB2.1 with LargeMTU)
++	 *
++	 * user configured values exceeding the limits will be overwritten,
++	 * only smaller values will be accepted
++	 */
++
+ 	max_trans = MIN(max_limit, max_trans);
+ 	max_read  = MIN(max_limit, max_read);
+ 	max_write = MIN(max_limit, max_write);
+@@ -156,6 +285,12 @@ NTSTATUS smbd_smb2_request_process_negpr
+ 	security_buffer = data_blob_const(NULL, 0);
+ #endif
+ 
++	out_guid_blob = data_blob_const(negprot_spnego_blob.data, 16);
++	status = GUID_from_ndr_blob(&out_guid_blob, &out_guid);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
++
+ 	outbody = data_blob_talloc(req->out.vector, NULL, 0x40);
+ 	if (outbody.data == NULL) {
+ 		return smbd_smb2_request_error(req, NT_STATUS_NO_MEMORY);
+@@ -167,13 +302,13 @@ NTSTATUS smbd_smb2_request_process_negpr
+ 	SSVAL(outbody.data, 0x04, dialect);	/* dialect revision */
+ 	SSVAL(outbody.data, 0x06, 0);		/* reserved */
+ 	memcpy(outbody.data + 0x08,
+-	       negprot_spnego_blob.data, 16);	/* server guid */
++	       out_guid_blob.data, 16);	/* server guid */
+ 	SIVAL(outbody.data, 0x18,
+ 	      capabilities);			/* capabilities */
+ 	SIVAL(outbody.data, 0x1C, max_trans);	/* max transact size */
+-	SIVAL(outbody.data, 0x20, max_trans);	/* max read size */
+-	SIVAL(outbody.data, 0x24, max_trans);	/* max write size */
+-	SBVAL(outbody.data, 0x28, 0);		/* system time */
++	SIVAL(outbody.data, 0x20, max_read);	/* max read size */
++	SIVAL(outbody.data, 0x24, max_write);	/* max write size */
++	SBVAL(outbody.data, 0x28, now);		/* system time */
+ 	SBVAL(outbody.data, 0x30, 0);		/* server start time */
+ 	SSVAL(outbody.data, 0x38,
+ 	      security_offset);			/* security buffer offset */
+@@ -188,5 +323,34 @@ NTSTATUS smbd_smb2_request_process_negpr
+ 	req->sconn->smb2.max_read  = max_read;
+ 	req->sconn->smb2.max_write = max_write;
+ 
++	/*
++	 * Remember the parameters we negotiated with, they are
++	 * needed to answer a FSCTL_VALIDATE_NEGOTIATE_INFO request.
++	 * See MS-SMB2 3.2.5.15.1.
++	 */
++	req->sconn->smb2.protocol = protocol;
++	req->sconn->smb2.client.capabilities = in_capabilities;
++	req->sconn->smb2.client.security_mode = in_security_mode;
++	req->sconn->smb2.client.guid = in_guid;
++	req->sconn->smb2.client.num_dialects = dialect_count;
++	TALLOC_FREE(req->sconn->smb2.client.dialects);
++	req->sconn->smb2.client.dialects = talloc_array(req->sconn,
++							uint16_t,
++							dialect_count);
++	if (req->sconn->smb2.client.dialects == NULL) {
++		return smbd_smb2_request_error(req, NT_STATUS_NO_MEMORY);
++	}
++	for (c=0; c < dialect_count; c++) {
++		req->sconn->smb2.client.dialects[c] = SVAL(indyn, c*2);
++	}
++
++	req->sconn->smb2.server.capabilities = capabilities;
++	req->sconn->smb2.server.security_mode = security_mode;
++	req->sconn->smb2.server.guid = out_guid;
++	req->sconn->smb2.server.dialect = dialect;
++	req->sconn->smb2.server.max_trans = max_trans;
++	req->sconn->smb2.server.max_read  = max_read;
++	req->sconn->smb2.server.max_write = max_write;
++
+ 	return smbd_smb2_request_done(req, outbody, &outdyn);
+ }
+--- a/source3/smbd/smb2_notify.c
++++ b/source3/smbd/smb2_notify.c
+@@ -62,6 +62,15 @@ NTSTATUS smbd_smb2_request_process_notif
+ 	if (!NT_STATUS_IS_OK(status)) {
+ 		return smbd_smb2_request_error(req, status);
+ 	}
++	/*
++	 * A notify with more than 64K of payload requires more than
++	 * one credit when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(req,
++			req->in.vector[i+1].iov_len + req->in.vector[i+2].iov_len);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
+ 	inbody = (const uint8_t *)req->in.vector[i+1].iov_base;
+ 
+ 	in_flags		= SVAL(inbody, 0x02);
+--- a/source3/smbd/smb2_read.c
++++ b/source3/smbd/smb2_read.c
+@@ -81,6 +81,15 @@ NTSTATUS smbd_smb2_request_process_read(
+ 		return smbd_smb2_request_error(req, NT_STATUS_INVALID_PARAMETER);
+ 	}
+ 
++	/*
++	 * A read of more than 64K requires more than one credit
++	 * when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(req, in_length);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
++
+ 	in_fsp = file_fsp_smb2(req, in_file_id_persistent, in_file_id_volatile);
+ 	if (in_fsp == NULL) {
+ 		return smbd_smb2_request_error(req, NT_STATUS_FILE_CLOSED);
+--- a/source3/smbd/smb2_server.c
++++ b/source3/smbd/smb2_server.c
+@@ -377,6 +377,8 @@ static bool smb2_validate_message_id(str
+ {
+ 	uint64_t message_id = BVAL(inhdr, SMB2_HDR_MESSAGE_ID);
+ 	uint16_t opcode = IVAL(inhdr, SMB2_HDR_OPCODE);
++	uint16_t credit_charge = 1;
++	uint16_t i;
+ 	bool ok;
+ 
+ 	if (opcode == SMB2_OP_CANCEL) {
+@@ -391,24 +393,44 @@ static bool smb2_validate_message_id(str
+ 		   (unsigned long long) sconn->smb2.seqnum_low,
+ 		   (unsigned long long) sconn->smb2.seqnum_range));
+ 
+-	if (sconn->smb2.credits_granted < 1) {
++	/*
++	 * SMB2.1 clients may use more than one credit per request,
++	 * but only when we negotiated a dialect >= 0x0210 on a
++	 * direct (non NBT) connection.
++	 */
++	if (sconn->smb2.supports_multicredit) {
++		credit_charge = SVAL(inhdr, SMB2_HDR_CREDIT_CHARGE);
++		credit_charge = MAX(credit_charge, 1);
++	}
++
++	if (sconn->smb2.credits_granted < credit_charge) {
+ 		DEBUG(0, ("smb2_validate_message_id: client used more "
+-			  "credits than granted, mid %llu, credits_granted %llu, "
++			  "credits than granted, mid %llu, charge %llu, "
++			  "credits_granted %llu, "
+ 			  "seqnum low/range: %llu/%llu\n",
+ 			  (unsigned long long) message_id,
++			  (unsigned long long) credit_charge,
+ 			  (unsigned long long) sconn->smb2.credits_granted,
+ 			  (unsigned long long) sconn->smb2.seqnum_low,
+ 			  (unsigned long long) sconn->smb2.seqnum_range));
+ 		return false;
+ 	}
+ 
+-	ok = smb2_validate_sequence_number(sconn, message_id, message_id);
+-	if (!ok) {
+-		return false;
++	/*
++	 * A request with a credit charge of N implicitly uses the
++	 * message ids message_id .. message_id + N - 1.
++	 */
++	for (i = 0; i <= (credit_charge-1); i++) {
++		ok = smb2_validate_sequence_number(sconn,
++						   message_id,
++						   message_id + i);
++		if (!ok) {
++			return false;
++		}
+ 	}
+ 
+ 	/* substract used credits */
+-	sconn->smb2.credits_granted -= 1;
++	sconn->smb2.credits_granted -= credit_charge;
+ 
+ 	return true;
+ }
+@@ -464,6 +486,7 @@ static void smb2_set_operation_credit(st
+ 	uint16_t credits_granted = 0;
+ 	uint64_t credits_possible;
+ 	uint16_t current_max_credits;
++	uint16_t credit_charge = 1;
+ 
+ 	/*
+ 	 * first we grant only 1/16th of the max range.
+@@ -487,8 +510,30 @@ static void smb2_set_operation_credit(st
+ 	out_flags = IVAL(outhdr, SMB2_HDR_FLAGS);
+ 	out_status = NT_STATUS(IVAL(outhdr, SMB2_HDR_STATUS));
+ 
++	/*
++	 * The credits we give back on the response need to at least
++	 * cover the credits the client used for this request, otherwise
++	 * it would run out of credits while we still process it.
++	 */
++	if (sconn->smb2.supports_multicredit) {
++		credit_charge = SVAL(inhdr, SMB2_HDR_CREDIT_CHARGE);
++		credit_charge = MAX(credit_charge, 1);
++	}
++
+ 	SMB_ASSERT(sconn->smb2.max_credits >= sconn->smb2.credits_granted);
+ 
++	if (sconn->smb2.max_credits < credit_charge) {
++		/*
++		 * A client that uses a credit charge higher than the
++		 * maximum number of credits we will ever grant is
++		 * broken. Terminating the connection is the only
++		 * way to make progress.
++		 */
++		smbd_server_connection_terminate(sconn,
++			"client error: credit charge > max credits\n");
++		return;
++	}
++
+ 	if (out_flags & SMB2_HDR_FLAG_ASYNC) {
+ 		/*
+ 		 * In case we already send an async interim
+@@ -499,6 +544,7 @@ static void smb2_set_operation_credit(st
+ 	} else if (credits_requested > 0) {
+ 		uint16_t additional_max = 0;
+ 		uint16_t additional_credits = credits_requested - 1;
++		uint16_t additional_possible = sconn->smb2.max_credits - credit_charge;
+ 
+ 		switch (cmd) {
+ 		case SMB2_OP_NEGPROT:
+@@ -522,9 +568,10 @@ static void smb2_set_operation_credit(st
+ 			break;
+ 		}
+ 
++		additional_max = MIN(additional_max, additional_possible);
+ 		additional_credits = MIN(additional_credits, additional_max);
+ 
+-		credits_granted = 1 + additional_credits;
++		credits_granted = credit_charge + additional_credits;
+ 	} else if (sconn->smb2.credits_granted == 0) {
+ 		/*
+ 		 * Make sure the client has always at least one credit
+@@ -599,6 +646,36 @@ static void smb2_calculate_credits(const
+ 	}
+ }
+ 
++NTSTATUS smbd_smb2_request_verify_creditcharge(struct smbd_smb2_request *req,
++					       uint32_t data_length)
++{
++	uint16_t needed_charge;
++	uint16_t credit_charge = 1;
++	const uint8_t *inhdr = (const uint8_t *)req->in.vector[req->current_idx].iov_base;
++
++	/*
++	 * Requests with more than 64K of payload need more than
++	 * one credit when multi credit is in use. See MS-SMB2
++	 * 3.1.4.3 and 3.2.4.1.6.
++	 */
++	if (req->sconn->smb2.supports_multicredit) {
++		credit_charge = SVAL(inhdr, SMB2_HDR_CREDIT_CHARGE);
++		credit_charge = MAX(credit_charge, 1);
++	}
++
++	needed_charge = (data_length - 1)/ 65536 + 1;
++
++	DEBUG(10, ("mid %llu, CreditCharge: %d, NeededCharge: %d\n",
++		   (unsigned long long) BVAL(inhdr, SMB2_HDR_MESSAGE_ID),
++		   credit_charge, needed_charge));
++
++	if (needed_charge > credit_charge) {
++		return NT_STATUS_INVALID_PARAMETER;
++	}
++
++	return NT_STATUS_OK;
++}
++
+ static NTSTATUS smbd_smb2_request_setup_out(struct smbd_smb2_request *req)
+ {
+ 	struct iovec *vector;
+--- a/source3/smbd/smb2_sesssetup.c
++++ b/source3/smbd/smb2_sesssetup.c
+@@ -39,6 +39,9 @@ static NTSTATUS smbd_smb2_session_setup(
+ 					DATA_BLOB *out_security_buffer,
+ 					uint64_t *out_session_id);
+ 
++static void smbd_smb2_session_close_previous(struct smbd_smb2_session *session,
++					     uint64_t previous_session_id);
++
+ NTSTATUS smbd_smb2_request_process_sesssetup(struct smbd_smb2_request *smb2req)
+ {
+ 	const uint8_t *inhdr;
+@@ -48,9 +51,11 @@ NTSTATUS smbd_smb2_request_process_sesss
+ 	DATA_BLOB outbody;
+ 	DATA_BLOB outdyn;
+ 	uint64_t in_session_id;
++	uint8_t in_flags;
+ 	uint8_t in_security_mode;
+ 	uint16_t in_security_offset;
+ 	uint16_t in_security_length;
++	uint64_t in_previous_session_id;
+ 	DATA_BLOB in_security_buffer;
+ 	uint16_t out_session_flags;
+ 	uint64_t out_session_id;
+@@ -77,10 +82,22 @@ NTSTATUS smbd_smb2_request_process_sesss
+ 	}
+ 
+ 	in_session_id = BVAL(inhdr, SMB2_HDR_SESSION_ID);
++	in_flags = CVAL(inbody, 0x02);
+ 	in_security_mode = CVAL(inbody, 0x03);
++	in_previous_session_id = BVAL(inbody, 0x10);
+ 	in_security_buffer.data = (uint8_t *)smb2req->in.vector[i+2].iov_base;
+ 	in_security_buffer.length = in_security_length;
+ 
++	/*
++	 * SMB2_SESSION_FLAG_BINDING asks us to bind the new session to
++	 * an existing one. As we don't support multi channel we always
++	 * reject this, see MS-SMB2 3.2.4.3.
++	 */
++	if (in_flags & SMB2_SESSION_FLAG_BINDING) {
++		return smbd_smb2_request_error(smb2req,
++					       NT_STATUS_REQUEST_NOT_ACCEPTED);
++	}
++
+ 	status = smbd_smb2_session_setup(smb2req,
+ 					 in_session_id,
+ 					 in_security_mode,
+@@ -94,6 +111,19 @@ NTSTATUS smbd_smb2_request_process_sesss
+ 		return smbd_smb2_request_error(smb2req, status);
+ 	}
+ 
++	if (NT_STATUS_IS_OK(status) &&
++	    (in_previous_session_id != 0) &&
++	    (out_session_id != in_previous_session_id))
++	{
++		/*
++		 * The client authenticated a new session and told us which
++		 * session it replaces. We only need to close the old one
++		 * if it still exists on this connection.
++		 */
++		smbd_smb2_session_close_previous(smb2req->session,
++						 in_previous_session_id);
++	}
++
+ 	out_security_offset = SMB2_HDR_BODY + 0x08;
+ 
+ 	outhdr = (uint8_t *)smb2req->out.vector[i].iov_base;
+@@ -141,6 +171,44 @@ static int smbd_smb2_session_destructor(
+ 	return 0;
+ }
+ 
++/*
++ * Close the session with the given vuid on the connection the
++ * given session belongs to. The session may already be gone,
++ * in that case this is a no-op.
++ *
++ * This is used to implement the "previous session id" handling of
++ * SMB2.1 session setup, see MS-SMB2 3.2.4.3.
++ */
++static void smbd_smb2_session_close_previous(struct smbd_smb2_session *session,
++					     uint64_t previous_session_id)
++{
++	struct smbd_smb2_session *old;
++	struct smbd_server_connection *sconn;
++
++	if (session == NULL || session->sconn == NULL) {
++		return;
++	}
++	sconn = session->sconn;
++
++	for (old = sconn->smb2.sessions.list; old; old = old->next) {
++		if (old->vuid != previous_session_id) {
++			continue;
++		}
++
++		DEBUG(5, ("smbd_smb2_session_close_previous: closing old "
++			  "session vuid[%llu]\n",
++			  (unsigned long long) previous_session_id));
++
++		/*
++		 * The new session keeps a reference on smb2req, so it is
++		 * safe to free the old one here. The destructor removes
++		 * it from the idtree and the session list.
++		 */
++		talloc_free(old);
++		return;
++	}
++}
++
+ static NTSTATUS setup_ntlmssp_session_info(struct smbd_smb2_session *session,
+ 				NTSTATUS status)
+ {
+--- a/source3/smbd/smb2_setinfo.c
++++ b/source3/smbd/smb2_setinfo.c
+@@ -57,6 +57,15 @@ NTSTATUS smbd_smb2_request_process_setin
+ 	if (!NT_STATUS_IS_OK(status)) {
+ 		return smbd_smb2_request_error(req, status);
+ 	}
++	/*
++	 * A setinfo with more than 64K of payload requires more than
++	 * one credit when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(req,
++			req->in.vector[i+1].iov_len + req->in.vector[i+2].iov_len);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
+ 	inbody = (const uint8_t *)req->in.vector[i+1].iov_base;
+ 
+ 	in_info_type			= CVAL(inbody, 0x02);
+--- a/source3/smbd/smb2_write.c
++++ b/source3/smbd/smb2_write.c
+@@ -86,6 +86,15 @@ NTSTATUS smbd_smb2_request_process_write
+ 		return smbd_smb2_request_error(req, NT_STATUS_INVALID_PARAMETER);
+ 	}
+ 
++	/*
++	 * A write of more than 64K requires more than one credit
++	 * when multi credit is in use, see MS-SMB2 3.2.4.1.6.
++	 */
++	status = smbd_smb2_request_verify_creditcharge(req, in_data_length);
++	if (!NT_STATUS_IS_OK(status)) {
++		return smbd_smb2_request_error(req, status);
++	}
++
+ 	in_data_buffer.data = (uint8_t *)req->in.vector[i+2].iov_base;
+ 	in_data_buffer.length = in_data_length;
+ 
