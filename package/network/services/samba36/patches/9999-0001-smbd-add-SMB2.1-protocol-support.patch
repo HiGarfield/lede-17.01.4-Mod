@@ -1,4 +1,4 @@
-From 7ce30bdffd3b3d51884b29145f3461f1bea37d87 Mon Sep 17 00:00:00 2001
+From 6f143d3c2f0fa8e79e00f16c72c6eb367903c137 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Wed, 21 Oct 2026 20:45:20 +0800
 Subject: [PATCH] smbd: add SMB2.1 protocol support
@@ -23,34 +23,38 @@ SMB2.0.2 code path:
 All dialect-gated features are gated on a >= 0x0210 comparison so the
 SMB2.0.2 behaviour is preserved for older clients.
 ---
- libcli/smb/smb2_constants.h   |   5 +
+ libcli/smb/smb2_constants.h   |   9 +-
  source3/include/local.h       |  12 ++-
  source3/include/proto.h       |   1 +
  source3/include/smb.h         |  11 +-
  source3/param/loadparm.c      |  19 +++-
- source3/smbd/globals.h        |  55 +++++++++-
+ source3/smbd/globals.h        |  50 +++++++++-
  source3/smbd/negprot.c        |   3 +-
  source3/smbd/process.c        |   2 +-
  source3/smbd/smb2_create.c    |  31 +++++-
  source3/smbd/smb2_find.c      |   9 ++
  source3/smbd/smb2_getinfo.c   |   9 ++
  source3/smbd/smb2_ioctl.c     | 137 ++++++++++++++++++++++++-
- source3/smbd/smb2_negprot.c   | 184 ++++++++++++++++++++++++++++++++--
+ source3/smbd/smb2_negprot.c   | 183 ++++++++++++++++++++++++++++++++--
  source3/smbd/smb2_notify.c    |   9 ++
  source3/smbd/smb2_read.c      |   9 ++
  source3/smbd/smb2_server.c    |  91 +++++++++++++++--
  source3/smbd/smb2_sesssetup.c |  68 +++++++++++++
  source3/smbd/smb2_setinfo.c   |   9 ++
  source3/smbd/smb2_write.c     |   9 ++
- 19 files changed, 640 insertions(+), 33 deletions(-)
+ 19 files changed, 637 insertions(+), 34 deletions(-)
 
 --- a/libcli/smb/smb2_constants.h
 +++ b/libcli/smb/smb2_constants.h
-@@ -90,8 +90,13 @@
+@@ -89,9 +89,16 @@
+ /* so we can spot new caps as added */
  #define SMB2_CAP_ALL                     SMB2_CAP_DFS
  
- /* SMB2 session flags */
-+#define SMB2_SESSION_FLAG_BINDING        0x0001
+-/* SMB2 session flags */
++/* SMB2 session (request) flags */
++#define SMB2_SESSION_FLAG_BINDING        0x01
++
++/* SMB2 session (response) flags */
  #define SMB2_SESSION_FLAG_IS_GUEST       0x0001
  #define SMB2_SESSION_FLAG_IS_NULL        0x0002
 +#define SMB2_SESSION_FLAG_ENCRYPT_DATA   0x0004 /* in dialect >= 0x224 */
@@ -194,7 +198,7 @@ SMB2.0.2 behaviour is preserved for older clients.
  NTSTATUS smbd_smb2_request_process_negprot(struct smbd_smb2_request *req);
  NTSTATUS smbd_smb2_request_process_sesssetup(struct smbd_smb2_request *req);
  NTSTATUS smbd_smb2_request_process_logoff(struct smbd_smb2_request *req);
-@@ -646,11 +650,58 @@ struct smbd_server_connection {
+@@ -646,11 +650,53 @@ struct smbd_server_connection {
  		 * a bitmap of size max_credits
  		 */
  		struct bitmap *credits_bitmap;
@@ -212,11 +216,6 @@ SMB2.0.2 behaviour is preserved for older clients.
 +		 * SMB2 negotiate response. See MS-SMB2 3.2.4.2.
 +		 */
 +		bool negprot_2ff;
-+		/*
-+		 * The protocol version selected by the SMB2 negotiate,
-+		 * this is PROTOCOL_SMB2_02 or PROTOCOL_SMB2_10.
-+		 */
-+		enum protocol_types protocol;
 +		/*
 +		 * The parameters the client sent us within the SMB2
 +		 * negotiate request. They are needed to answer the
@@ -822,7 +821,7 @@ SMB2.0.2 behaviour is preserved for older clients.
  	SBVAL(outbody.data, 0x30, 0);		/* server start time */
  	SSVAL(outbody.data, 0x38,
  	      security_offset);			/* security buffer offset */
-@@ -188,5 +323,34 @@ NTSTATUS smbd_smb2_request_process_negpr
+@@ -188,5 +323,33 @@ NTSTATUS smbd_smb2_request_process_negpr
  	req->sconn->smb2.max_read  = max_read;
  	req->sconn->smb2.max_write = max_write;
  
@@ -831,7 +830,6 @@ SMB2.0.2 behaviour is preserved for older clients.
 +	 * needed to answer a FSCTL_VALIDATE_NEGOTIATE_INFO request.
 +	 * See MS-SMB2 3.2.5.15.1.
 +	 */
-+	req->sconn->smb2.protocol = protocol;
 +	req->sconn->smb2.client.capabilities = in_capabilities;
 +	req->sconn->smb2.client.security_mode = in_security_mode;
 +	req->sconn->smb2.client.guid = in_guid;
