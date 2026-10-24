@@ -1,0 +1,240 @@
+From 38e8161d6e67ce86a29fa3e4472e0a14afdeb7c0 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 24 Oct 2026 18:16:12 +0800
+Subject: [PATCH] usb: xhci: retry a transient transaction error instead of
+ resetting the device
+
+Field logs from a WDC 2TB disk behind a USB3 hub on MT7621, taken under
+full read load, show what actually starts the reset storm:
+
+    usb 2-1.2: usb-storage: bulk in transfer on ep 0x1 failed -71
+    usb 2-1.2: reset SuperSpeed USB device number 3 using xhci-mtk
+
+-71 is -EPROTO, i.e. COMP_TX_ERR: a SuperSpeed transaction error.  Such
+an error halts the endpoint in the host controller, and on a merely
+loaded link it is transient - the device is not aware of the halt and
+is waiting for a retry (xHCI spec 4.6.8.1).
+
+This tree fails the URB on the first such error, and usb-storage does
+not retry transport errors at all: usb_stor_Bulk_transport() returns
+USB_STOR_TRANSPORT_ERROR and usb_stor_invoke_transport() jumps straight
+to Handle_Errors -> usb_stor_port_reset() -> a full USB device reset.
+Mainline usb-storage still behaves this way, so the retry has to happen
+below it.  Every reset re-enumerates the device, and under continued
+load the error recurs: the self-sustaining reset storm, with about 85ms
+from the failed URB to the reset.
+
+Upstream fixed this in the xhci driver (commit f8f80be501aa, present
+since v5.0): treat COMP_TX_ERR as a temporary error, soft reset the
+endpoint - a Reset Endpoint command with the Transfer State Preserve
+bit, which clears the host side halt but keeps the transfer state - and
+let the host controller retry the TD in flight.  The URB is not failed,
+so usb-storage never sees the error.  The spec's limits are honoured: no
+soft retry for isochronous endpoints (this code path only serves bulk
+and interrupt transfers), none for devices behind a transaction
+translator, and at most MAX_SOFT_RETRY unsuccessful attempts before the
+URB fails exactly as before.
+
+Backport that mechanism, adapted to this tree's structure:
+  - xhci.h: TRB_TSP, enum xhci_ep_reset_type, MAX_SOFT_RETRY and
+    xhci_ring::err_count;
+  - xhci_queue_reset_ep() and xhci_cleanup_halted_endpoint() take a
+    reset type; a soft reset skips xhci_cleanup_stalled_ring() so the TD
+    stays on the ring for the retry, while the existing hard-reset
+    callers behave exactly as before;
+  - process_bulk_intr_td() soft resets and retries on COMP_TX_ERR, and
+    resets err_count on COMP_SUCCESS;
+  - xhci_handle_cmd_reset_ep() rings the endpoint doorbell after a soft
+    reset so the retained TD is picked up again.
+
+The bulk data path is the one a full-speed read actually takes, so a
+single loaded-link hiccup now costs one endpoint reset instead of a full
+device re-enumeration.
+---
+ drivers/usb/host/xhci-ring.c | 67 +++++++++++++++++++++++++++++++++---
+ drivers/usb/host/xhci.h      | 23 ++++++++++++-
+ 2 files changed, 84 insertions(+), 6 deletions(-)
+
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -1149,6 +1149,16 @@ static void xhci_handle_cmd_reset_ep(str
+ 	} else {
+ 		/* Clear our internal halted state */
+ 		xhci->devs[slot_id]->eps[ep_index].ep_state &= ~EP_HALTED;
++
++		/*
++		 * If the reset endpoint command preserved the transfer state
++		 * (a soft reset), the TD was deliberately left on the ring
++		 * to be retried.  Ring the doorbell so the host controller
++		 * picks it up again.
++		 */
++		if (le32_to_cpu(trb->generic.field[3]) & TRB_TSP)
++			ring_doorbell_for_active_rings(xhci, slot_id,
++					ep_index);
+ 	}
+ }
+ 
+@@ -1785,7 +1795,8 @@ struct xhci_segment *trb_in_td(struct xh
+ static void xhci_cleanup_halted_endpoint(struct xhci_hcd *xhci,
+ 		unsigned int slot_id, unsigned int ep_index,
+ 		unsigned int stream_id,
+-		struct xhci_td *td, union xhci_trb *event_trb)
++		struct xhci_td *td, union xhci_trb *event_trb,
++		enum xhci_ep_reset_type reset_type)
+ {
+ 	struct xhci_virt_ep *ep = &xhci->devs[slot_id]->eps[ep_index];
+ 	struct xhci_command *command;
+@@ -1796,8 +1807,16 @@ static void xhci_cleanup_halted_endpoint
+ 	ep->ep_state |= EP_HALTED;
+ 	ep->stopped_stream = stream_id;
+ 
+-	xhci_queue_reset_ep(xhci, command, slot_id, ep_index);
+-	xhci_cleanup_stalled_ring(xhci, ep_index, td);
++	xhci_queue_reset_ep(xhci, command, slot_id, ep_index, reset_type);
++
++	/*
++	 * A hard reset drops the TD in flight: move the ring dequeue
++	 * pointer past it so the host controller does not resend it.  A
++	 * soft reset keeps the TD on the ring so that the controller
++	 * retries it once the endpoint runs again.
++	 */
++	if (reset_type == EP_HARD_RESET)
++		xhci_cleanup_stalled_ring(xhci, ep_index, td);
+ 
+ 	ep->stopped_stream = 0;
+ 
+@@ -1892,7 +1911,8 @@ static int finish_td(struct xhci_hcd *xh
+ 		 * The class driver clears the device side halt later.
+ 		 */
+ 		xhci_cleanup_halted_endpoint(xhci, slot_id, ep_index,
+-					ep_ring->stream_id, td, event_trb);
++					ep_ring->stream_id, td, event_trb,
++					EP_HARD_RESET);
+ 	} else {
+ 		/* Update ring dequeue pointer */
+ 		while (ep_ring->dequeue != td->last_trb)
+@@ -2190,6 +2210,8 @@ static int process_bulk_intr_td(struct x
+ 	struct xhci_ring *ep_ring;
+ 	union xhci_trb *cur_trb;
+ 	struct xhci_segment *cur_seg;
++	struct xhci_slot_ctx *slot_ctx;
++	unsigned int slot_id, ep_index;
+ 	u32 trb_comp_code;
+ 
+ 	ep_ring = xhci_dma_to_transfer_ring(ep, le64_to_cpu(event->buffer));
+@@ -2197,6 +2219,8 @@ static int process_bulk_intr_td(struct x
+ 
+ 	switch (trb_comp_code) {
+ 	case COMP_SUCCESS:
++		/* The endpoint is healthy again, restart the retry budget */
++		ep_ring->err_count = 0;
+ 		/* Double check that the HW transferred everything. */
+ 		if (event_trb != td->last_trb ||
+ 		    EVENT_TRB_LEN(le32_to_cpu(event->transfer_len)) != 0) {
+@@ -2219,6 +2243,35 @@ static int process_bulk_intr_td(struct x
+ 		else
+ 			*status = 0;
+ 		break;
++	case COMP_TX_ERR:
++		/*
++		 * A transaction error halts the endpoint in the host
++		 * controller.  Failing the URB straight away is what
++		 * causes the reset storm: usb-storage does not retry a
++		 * transport error, it escalates immediately to a full USB
++		 * device reset, and every reset re-enumerates the device.
++		 * On a SuperSpeed link that is merely loaded such an error
++		 * is transient, so treat it as one: soft reset the endpoint
++		 * - which clears the host side halt but preserves the
++		 * transfer state - and let the controller retry the TD.
++		 * Only give up after MAX_SOFT_RETRY consecutive errors, for
++		 * devices behind a transaction translator, where a soft
++		 * reset does not clear the TT state, or on hardware that
++		 * needs a configure endpoint command after a reset.
++		 */
++		slot_id = TRB_TO_SLOT_ID(le32_to_cpu(event->flags));
++		ep_index = TRB_TO_EP_ID(le32_to_cpu(event->flags)) - 1;
++		slot_ctx = xhci_get_slot_ctx(xhci,
++				xhci->devs[slot_id]->out_ctx);
++		if ((xhci->quirks & XHCI_RESET_EP_QUIRK) ||
++				(ep_ring->err_count++ > MAX_SOFT_RETRY) ||
++				(le32_to_cpu(slot_ctx->tt_info) & TT_SLOT))
++			break;
++		*status = 0;
++		xhci_cleanup_halted_endpoint(xhci, slot_id, ep_index,
++				ep_ring->stream_id, td, event_trb,
++				EP_SOFT_RESET);
++		return 0;
+ 	default:
+ 		/* Others already handled above */
+ 		break;
+@@ -4306,12 +4359,16 @@ void xhci_queue_new_dequeue_state(struct
+ }
+ 
+ int xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
+-			int slot_id, unsigned int ep_index)
++		int slot_id, unsigned int ep_index,
++		enum xhci_ep_reset_type reset_type)
+ {
+ 	u32 trb_slot_id = SLOT_ID_FOR_TRB(slot_id);
+ 	u32 trb_ep_index = EP_ID_FOR_TRB(ep_index);
+ 	u32 type = TRB_TYPE(TRB_RESET_EP);
+ 
++	if (reset_type == EP_SOFT_RESET)
++		type |= TRB_TSP;
++
+ 	return queue_command(xhci, cmd, 0, 0, 0,
+ 			trb_slot_id | trb_ep_index | type, false);
+ }
+--- a/drivers/usb/host/xhci.h
++++ b/drivers/usb/host/xhci.h
+@@ -1270,6 +1270,18 @@ union xhci_trb {
+ #define TRB_EVAL_CONTEXT	13
+ /* Reset Endpoint Command */
+ #define TRB_RESET_EP		14
++/* Transfer State Preserve bit of a Reset Endpoint Command */
++#define TRB_TSP			(1<<9)
++
++/*
++ * Kind of reset issued by a Reset Endpoint Command: a hard reset also
++ * drops the TD that was in flight, a soft reset preserves the transfer
++ * state so that the host controller retries the TD.
++ */
++enum xhci_ep_reset_type {
++	EP_HARD_RESET,
++	EP_SOFT_RESET,
++};
+ /* Stop Transfer Ring Command */
+ #define TRB_STOP_RING		15
+ /* Set Transfer Ring Dequeue Pointer Command */
+@@ -1380,6 +1392,13 @@ enum xhci_ring_type {
+ 	TYPE_EVENT,
+ };
+ 
++/*
++ * Maximum number of consecutive USB transaction errors accepted on an
++ * endpoint ring before the driver gives up retrying the TD in flight
++ * and fails the URB instead.
++ */
++#define MAX_SOFT_RETRY		3
++
+ struct xhci_ring {
+ 	struct xhci_segment	*first_seg;
+ 	struct xhci_segment	*last_seg;
+@@ -1402,6 +1421,7 @@ struct xhci_ring {
+ 	unsigned int		num_trbs_free_temp;
+ 	enum xhci_ring_type	type;
+ 	bool			last_td_was_short;
++	unsigned int		err_count;	/* xact errors since last success */
+ 	struct radix_tree_root	*trb_address_map;
+ };
+ 
+@@ -1905,7 +1925,8 @@ int xhci_queue_configure_endpoint(struct
+ int xhci_queue_evaluate_context(struct xhci_hcd *xhci, struct xhci_command *cmd,
+ 		dma_addr_t in_ctx_ptr, u32 slot_id, bool command_must_succeed);
+ int xhci_queue_reset_ep(struct xhci_hcd *xhci, struct xhci_command *cmd,
+-		int slot_id, unsigned int ep_index);
++		int slot_id, unsigned int ep_index,
++		enum xhci_ep_reset_type reset_type);
+ int xhci_queue_reset_device(struct xhci_hcd *xhci, struct xhci_command *cmd,
+ 		u32 slot_id);
+ void xhci_find_new_dequeue_state(struct xhci_hcd *xhci,

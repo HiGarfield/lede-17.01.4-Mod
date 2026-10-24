@@ -1,0 +1,206 @@
+From 82fea3901e07852372676f31b445cdb34fbcbf0d Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 24 Oct 2026 16:23:58 +0800
+Subject: [PATCH] usb: core: make device identity the only proof of a replaced
+ device
+
+Re-evaluation of the remaining MT7621 disk-drop log:
+
+    usb 2-1.2: reset SuperSpeed USB device number 3 using xhci-mtk
+    usb 2-1.2: device firmware changed
+    usb 2-1.2: USB disconnect, device number 3
+    ... blk_update_request I/O error ... Aborting journal on sda1-8.
+
+The disk is demonstrably the same one (it re-enumerates immediately with
+the same model string), so the descriptor verification that follows the
+reset is lying.  Only 20.6ms pass between the reset message and
+"device firmware changed", while the local
+descriptors_match_after_reread() retry loop needs at least 300ms:
+the build that produced this log never contained that retry, because the
+kernel used by the build is the vanilla 4.4.194 tarball plus the patches
+under target/linux/ramips/patches-4.4/, and the retry only ever lived in
+this repository's base commit - it was never exported as a patch.  With
+vanilla's single-check flow the timing matches exactly: msleep(10) plus
+about 10ms of descriptor re-reads.  So a single unreliable read over the
+just-reset link was enough to tear the disk down.
+
+An earlier attempt only guarded reads that fail outright (negative
+errno).  Every other disagreement still concluded "device firmware
+changed":
+
+  - a config descriptor read that comes back short (0 <= length <
+    old_length) still set changed, although the bytes that did arrive
+    cannot be compared with the full descriptor cached at enumeration;
+  - the BOS presence check fires when the BOS re-read merely failed -
+    "no BOS" and "BOS read failed" are indistinguishable here;
+  - a serial string read that comes back short or garbled still set
+    changed;
+  - and the full device descriptor memcmp flags any differing byte,
+    including one corrupted in transit.
+
+All of these are properties of the link, not of the device: the disk
+sits behind a USB3 hub and its descriptors are re-read through that hub
+right after a downstream port warm reset.
+
+Fix: only the device descriptor's identity fields - idVendor, idProduct
+and bcdDevice - decide that the device on the port was replaced.  A
+difference anywhere else in the device descriptor is a corrupted read:
+restore the descriptor that was read on the settled link and keep the
+device.  Once the identity matches, the BOS, config descriptor and
+serial string re-reads only report what they see (now at dev_info, so
+the disagreement is visible without dynamic debug); they never decide.
+A device that really did change firmware either changes its identity,
+or fails to have its old configuration restored and is re-enumerated by
+the caller anyway.
+
+The change is confined to descriptors_changed(), whose text is the same
+in vanilla 4.4.194 and in this tree, so the resulting patch applies
+directly on top of the vanilla 4.4.194 kernel; verified by dry-run
+against that exact base.
+---
+ drivers/usb/core/hub.c | 92 +++++++++++++++++++++++++++++++-----------
+ 1 file changed, 69 insertions(+), 23 deletions(-)
+
+--- a/drivers/usb/core/hub.c
++++ b/drivers/usb/core/hub.c
+@@ -4756,7 +4756,6 @@ static int descriptors_changed(struct us
+ 		struct usb_device_descriptor *old_device_descriptor,
+ 		struct usb_host_bos *old_bos)
+ {
+-	int		changed = 0;
+ 	unsigned	index;
+ 	unsigned	serial_len = 0;
+ 	unsigned	len;
+@@ -4765,17 +4764,48 @@ static int descriptors_changed(struct us
+ 	char		*buf;
+ 
+ 	if (memcmp(&udev->descriptor, old_device_descriptor,
+-			sizeof(*old_device_descriptor)) != 0)
+-		return 1;
++			sizeof(*old_device_descriptor)) != 0) {
++		/*
++		 * The device descriptor differs.  Only a difference in the
++		 * identity fields means a different device; anything else is
++		 * a corrupted read over the link that has just been reset.
++		 * Keep the device and restore the descriptor that was read
++		 * on the settled link.
++		 */
++		if (udev->descriptor.idVendor !=
++				old_device_descriptor->idVendor ||
++				udev->descriptor.idProduct !=
++				old_device_descriptor->idProduct ||
++				udev->descriptor.bcdDevice !=
++				old_device_descriptor->bcdDevice)
++			return 1;
++		dev_info(&udev->dev,
++				"device descriptor read mismatch after reset,"
++				" identity unchanged\n");
++		udev->descriptor = *old_device_descriptor;
++		return 0;
++	}
+ 
+-	if ((old_bos && !udev->bos) || (!old_bos && udev->bos))
+-		return 1;
+-	if (udev->bos) {
++	/*
++	 * The device descriptor is unchanged, so the device on the port is
++	 * still the same one.  Everything below re-reads data over a link
++	 * that has just been reset; a read that fails, comes back short or
++	 * disagrees with the cached copy is a property of the link, not of
++	 * the device, and must not be mistaken for a change.  Treating it
++	 * as one tears the device down - the disk drops, all in-flight I/O
++	 * fails and the filesystem journal aborts - so from here on the
++	 * checks only report what they see; they never decide.
++	 */
++	if (!old_bos && udev->bos)
++		dev_info(&udev->dev, "BOS descriptor appeared after reset\n");
++	else if (old_bos && !udev->bos)
++		dev_info(&udev->dev, "BOS descriptor read failed after reset\n");
++	else if (old_bos && udev->bos) {
+ 		len = le16_to_cpu(udev->bos->desc->wTotalLength);
+ 		if (len != le16_to_cpu(old_bos->desc->wTotalLength))
+-			return 1;
+-		if (memcmp(udev->bos->desc, old_bos->desc, len))
+-			return 1;
++			dev_info(&udev->dev, "BOS length changed after reset\n");
++		else if (memcmp(udev->bos->desc, old_bos->desc, len))
++			dev_info(&udev->dev, "BOS content changed after reset\n");
+ 	}
+ 
+ 	/* Since the idVendor, idProduct, and bcdDevice values in the
+@@ -4796,45 +4826,61 @@ static int descriptors_changed(struct us
+ 	buf = kmalloc(len, GFP_NOIO);
+ 	if (buf == NULL) {
+ 		dev_err(&udev->dev, "no mem to re-read configs after reset\n");
+-		/* assume the worst */
+-		return 1;
++		return 0;
+ 	}
+ 	for (index = 0; index < udev->descriptor.bNumConfigurations; index++) {
+ 		old_length = le16_to_cpu(udev->config[index].desc.wTotalLength);
+ 		length = usb_get_descriptor(udev, USB_DT_CONFIG, index, buf,
+ 				old_length);
+-		if (length != old_length) {
+-			dev_dbg(&udev->dev, "config index %d, error %d\n",
++		/*
++		 * A negative return means the control transfer itself
++		 * failed, and a short one that the bytes which did arrive
++		 * cannot be compared.  Both are properties of the link,
++		 * not of the device: on a SuperSpeed link that has just
++		 * been (re)trained - which is exactly the case here, we
++		 * are called right after a port reset - control reads are
++		 * unreliable for a while.  This is what a SuperSpeed disk
++		 * behind a USB3 hub on MT7621 shows under load.
++		 */
++		if (length < 0) {
++			dev_info(&udev->dev,
++					"config index %d read error %d\n",
+ 					index, length);
+-			changed = 1;
++			break;
++		}
++		if (length != old_length) {
++			dev_info(&udev->dev,
++					"config index %d read %d of %u bytes\n",
++					index, length, old_length);
+ 			break;
+ 		}
+ 		if (memcmp(buf, udev->rawdescriptors[index], old_length)
+ 				!= 0) {
+-			dev_dbg(&udev->dev, "config index %d changed (#%d)\n",
++			dev_info(&udev->dev, "config index %d changed (#%d)\n",
+ 				index,
+ 				((struct usb_config_descriptor *) buf)->
+ 					bConfigurationValue);
+-			changed = 1;
+ 			break;
+ 		}
+ 	}
+ 
+-	if (!changed && serial_len) {
++	if (serial_len) {
+ 		length = usb_string(udev, udev->descriptor.iSerialNumber,
+ 				buf, serial_len);
+-		if (length + 1 != serial_len) {
+-			dev_dbg(&udev->dev, "serial string error %d\n",
++		if (length < 0) {
++			dev_info(&udev->dev, "serial string read error %d\n",
+ 					length);
+-			changed = 1;
++		} else if (length + 1 != serial_len) {
++			dev_info(&udev->dev,
++					"serial string read %d of %u bytes\n",
++					length, serial_len - 1);
+ 		} else if (memcmp(buf, udev->serial, length) != 0) {
+-			dev_dbg(&udev->dev, "serial string changed\n");
+-			changed = 1;
++			dev_info(&udev->dev, "serial string changed\n");
+ 		}
+ 	}
+ 
+ 	kfree(buf);
+-	return changed;
++	return 0;
+ }
+ 
+ static void hub_port_connect(struct usb_hub *hub, int port1, u16 portstatus,

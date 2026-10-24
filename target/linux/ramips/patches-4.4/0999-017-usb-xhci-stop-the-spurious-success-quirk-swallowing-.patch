@@ -1,0 +1,43 @@
+From cb321437b0beb7a4e48dc300aa6ed069847a8714 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 24 Oct 2026 16:23:57 +0800
+Subject: [PATCH] usb: xhci: stop the spurious-success quirk swallowing real
+ error events
+
+XHCI_SPURIOUS_SUCCESS is forced on by xhci_mtk_quirks(), but the generic
+core only sets it for hci_version > 0x96.  MT7621 is 0x96, so
+last_td_was_short can stay armed while a genuine error event - e.g.
+COMP_STALL, COMP_TRB_ERROR or COMP_BABBLE - arrives.  Dropping such an
+event (ret = 0) leaves the endpoint ring desynchronized, every following
+bulk URB then fails, and usb-storage escalates to a full USB device
+reset.
+
+Fix: only swallow the event when trb_comp_code == COMP_SUCCESS.
+---
+ drivers/usb/host/xhci-ring.c | 13 +++++++++++++
+ 1 file changed, 13 insertions(+)
+
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2543,8 +2543,21 @@ static int handle_tx_event(struct xhci_h
+ 				/* Some host controllers give a spurious
+ 				 * successful event after a short transfer.
+ 				 * Ignore it.
++				 *
++				 * Only a *successful* event may be swallowed
++				 * here.  The MTK xHCI on MT7621 is a 0.96
++				 * controller and the generic core explicitly
++				 * does not enable this quirk for 0.96 (see
++				 * xhci_gen_setup()), so last_td_was_short can
++				 * stay armed while a genuine error event - e.g.
++				 * COMP_STALL, COMP_TRB_ERROR or COMP_BABBLE -
++				 * arrives.  Dropping such an event leaves the
++				 * endpoint ring desynchronized, every following
++				 * bulk URB then fails, and usb-storage escalates
++				 * to a full USB device reset.
+ 				 */
+ 				if ((xhci->quirks & XHCI_SPURIOUS_SUCCESS) &&
++						trb_comp_code == COMP_SUCCESS &&
+ 						ep_ring->last_td_was_short) {
+ 					ep_ring->last_td_was_short = false;
+ 					ret = 0;

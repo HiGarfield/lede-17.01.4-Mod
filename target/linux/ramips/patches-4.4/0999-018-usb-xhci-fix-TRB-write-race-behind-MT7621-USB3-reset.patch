@@ -1,0 +1,87 @@
+From 0ebd57ee8013b974450796fe61f77add400de054 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 24 Oct 2026 16:23:57 +0800
+Subject: [PATCH] usb: xhci: fix TRB write race behind MT7621 USB3 reset storm
+
+Fixing the downstream symptoms of the USB3 reset storm on MT7621 -
+descriptors_changed() misjudging a failed control read as a replaced
+device, and XHCI_SPURIOUS_SUCCESS swallowing genuine error events -
+leaves the root cause of the resets themselves in place: a missing
+write barrier in queue_trb().
+
+queue_trb() writes the 16-byte TRB in four 32-bit chunks, with the
+chunk holding the cycle bit (field[3]) written last, but without any
+barrier between the data fields and the cycle bit. On weakly ordered
+memory systems - such as the MIPS cores used by MT7621 - the stores
+are not guaranteed to complete in program order, so the xHC can fetch
+a TRB whose cycle bit is valid while the remaining fields still hold
+stale data.
+
+A half-written command TRB is the dangerous case. Set TR Dequeue
+Pointer, Stop/Reset Endpoint, Configure Endpoint and friends are
+queued back to back while the controller is still working through the
+previous command; error recovery, device reset and re-enumeration all
+do exactly that under load. The controller then executes a command
+built from garbage, which shows up as:
+
+    xhci-mtk 1e1c0000.xhci: Mismatch between completed Set TR Deq Ptr
+    command & xHCI internal state.
+
+can move an endpoint ring's dequeue pointer to a bogus address, and
+can even make the host controller DMA from wild memory (Host System
+Error). The endpoint ring is left desynchronized, every following
+bulk URB fails, and usb-storage escalates to a full USB device reset.
+Each reset re-enumerates the device and queues more commands, so the
+race fires again: the self-sustaining reset storm seen on MT7621 under
+heavy I/O, ending in blk_update_request I/O errors and an ext4
+journal abort. At low load the race window is never hit.
+
+Fix by adding a write barrier before writing the cycle bit, so the
+whole TRB is visible to the controller before it may be consumed.
+This is equivalent to upstream commit 576667bad341 ("xhci: make sure
+TRB is fully written before giving it to the controller"), which was
+backported to 4.4 stable as 5eaa0aa8, both long after this tree was
+cut. Bulk transfer rings were already protected by the wmb() in
+giveback_first_trb() plus the first-TRB cycle-bit gate; the command
+ring had no such protection. On x86 wmb() degrades to a compiler
+barrier (TSO already orders the stores), so there is no cost there.
+---
+ drivers/usb/host/xhci-ring.c | 27 +++++++++++++++++++++++++++
+ 1 file changed, 27 insertions(+)
+
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2885,6 +2885,33 @@ static void queue_trb(struct xhci_hcd *x
+ 	trb->field[0] = cpu_to_le32(field1);
+ 	trb->field[1] = cpu_to_le32(field2);
+ 	trb->field[2] = cpu_to_le32(field3);
++
++	/*
++	 * The controller starts parsing a TRB as soon as its cycle bit is
++	 * set, even if the driver has not finished writing it yet.  The
++	 * chunk holding the cycle bit (field[3]) is written last, but on
++	 * weakly ordered memory systems - such as the MIPS cores in MT7621
++	 * - the stores are not guaranteed to complete in program order, so
++	 * the xHC can fetch a TRB whose cycle bit is valid while the other
++	 * fields still contain stale data.
++	 *
++	 * A half-written command TRB is the dangerous case.  Set TR Dequeue
++	 * Pointer, Stop/Reset Endpoint, Configure Endpoint and friends are
++	 * queued back to back while the controller is still working through
++	 * the previous command; error recovery, device reset and
++	 * re-enumeration all do exactly that under load.  The controller
++	 * then executes a command built from garbage, which shows up as
++	 * "Mismatch between completed Set TR Deq Ptr command & xHCI internal
++	 * state", can move an endpoint ring's dequeue pointer to a bogus
++	 * address, and can even make the host controller DMA from wild
++	 * memory (Host System Error).  The endpoint ring is left
++	 * desynchronized, every following bulk URB fails, and usb-storage
++	 * escalates to a full USB device reset - the reset storm seen on
++	 * MT7621 under heavy I/O.  A write barrier before the cycle bit
++	 * guarantees the whole TRB is visible to the controller before it
++	 * may be consumed.
++	 */
++	wmb();
+ 	trb->field[3] = cpu_to_le32(field4);
+ 	inc_enq(xhci, ring, more_trbs_coming);
+ }
