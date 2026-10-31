@@ -40,6 +40,7 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	struct mt7620_gsw *gsw = container_of(work, struct mt7620_gsw,
 					      irq_work);
 	struct fe_priv *priv = gsw->priv;
+	unsigned long flags;
 	u32 reg, i;
 
 	/* MDIO transactions involve busy-waiting the PIAC and are far
@@ -62,25 +63,31 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	}
 	mt7530_mdio_w32(gsw, 0x700c, reg);
 
-	for (i = 0; i < 5; i++)
-		if (reg & BIT(i)) {
-			unsigned int link;
+	/* Keep link[] updates atomic with the PHY-side state machine, like
+	 * the MT7620 interrupt path does.
+	 */
+	if (priv->phy)
+		spin_lock_irqsave(&priv->phy->lock, flags);
+	for (i = 0; i < 5; i++) {
+		unsigned int link;
 
-			if (mt7530_mdio_r32(gsw, 0x3008 + (i * 0x100),
-					    &link))
-				continue;
-			link &= 0x1;
+		if (!(reg & BIT(i)))
+			continue;
+		if (mt7530_mdio_r32(gsw, 0x3008 + (i * 0x100), &link))
+			continue;
+		link &= 0x1;
 
-			if (link != priv->link[i]) {
-				priv->link[i] = link;
-				if (link)
-					netdev_info(priv->netdev,
-						    "port %d link up\n", i);
-				else
-					netdev_info(priv->netdev,
-						    "port %d link down\n", i);
-			}
-		}
+		if (link == priv->link[i])
+			continue;
+
+		priv->link[i] = link;
+		if (link)
+			netdev_info(priv->netdev, "port %d link up\n", i);
+		else
+			netdev_info(priv->netdev, "port %d link down\n", i);
+	}
+	if (priv->phy)
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
 
 	mt7620_handle_carrier(priv);
 
