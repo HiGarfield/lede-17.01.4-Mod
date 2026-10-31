@@ -334,6 +334,10 @@ int mtk_gsw_init(struct fe_priv *priv)
 
 		if (irqerr) {
 			dev_err(gsw->dev, "request_irq failed: %d\n", irqerr);
+			/* do not leave swpriv pointing at a switch the
+			 * caller now considers uninitialised
+			 */
+			priv->soc->swpriv = NULL;
 			return irqerr;
 		}
 		gsw->priv = priv;
@@ -376,6 +380,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 		free_irq(gsw->irq, gsw->priv);
 		gsw->priv = NULL;
 	}
+	priv->soc->swpriv = NULL;
 }
 
 static int mt7621_gsw_probe(struct platform_device *pdev)
