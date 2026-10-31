@@ -1,0 +1,76 @@
+From 56bcd7e673959facfdc6d15e99b890b610354f6a Mon Sep 17 00:00:00 2001
+From: HiGarfield <32226909+HiGarfield@users.noreply.github.com>
+Date: Sat, 31 Oct 2026 04:56:01 +0000
+Subject: [PATCH] usb: xhci-mtk: set EP_BPKTS for SS bulk and control endpoints
+
+The MTK controller's internal hardware scheduler requires a non-zero
+EP_BPKTS value in the endpoint context reserved fields for every
+SuperSpeed endpoint, not just periodic ones.
+
+When a SS hub is attached, its interrupt (status-change) endpoint goes
+through xhci_mtk_add_ep_quirk() and activates the port's bandwidth
+scheduler.  Once active, the scheduler enforces EP_BPKTS for *all* SS
+endpoints on the same root port.  Bulk and control endpoints skip the
+bandwidth scheduling path (need_bw_sch() returns false for them) and
+therefore leave EP_BPKTS at the zero-initialised default.  The hardware
+treats EP_BPKTS == 0 as "zero packets to transfer" and stops
+scheduling transfers for those endpoints, causing COMP_TX_ERR errors
+under high load (e.g. sustained reads from a USB3 hard drive behind a
+USB3 hub).  This surfaces as repeated "reset SuperSpeed USB device"
+messages and eventually as disk disconnects.
+
+A directly-attached disk has no periodic endpoints, so the scheduler
+never activates and the hardware falls back to its default bulk
+scheduling, which is why the same setup without a hub is stable.
+
+Fix this by setting EP_BPKTS = bMaxBurst + 1 and EP_BBM = 1 for all
+SS non-periodic endpoints whenever they are added.  No bandwidth
+reservation is needed for bulk/control, so the full check_sch_bw()
+path is still bypassed; only the hardware-mandatory scheduling fields
+are written.
+
+Co-authored-by: Copilot <223556219+Copilot@users.noreply.github.com>
+---
+ drivers/usb/host/xhci-mtk-sch.c | 25 ++++++++++++++++++++++++-
+ 1 file changed, 24 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-mtk-sch.c b/drivers/usb/host/xhci-mtk-sch.c
+index d6f6f33c..3544a92f 100644
+--- a/drivers/usb/host/xhci-mtk-sch.c
++++ b/drivers/usb/host/xhci-mtk-sch.c
+@@ -361,8 +361,31 @@ int xhci_mtk_add_ep_quirk(struct usb_hcd *hcd, struct usb_device *udev,
+ 		GET_MAX_PACKET(usb_endpoint_maxp(&ep->desc)),
+ 		usb_endpoint_dir_in(&ep->desc), ep);
+ 
+-	if (!need_bw_sch(ep, udev->speed, slot_ctx->tt_info & TT_SLOT))
++	if (!need_bw_sch(ep, udev->speed, slot_ctx->tt_info & TT_SLOT)) {
++		/*
++		 * On SS, the MTK controller's internal scheduler requires
++		 * a non-zero EP_BPKTS value for every endpoint, including
++		 * bulk and control.  When a periodic endpoint (e.g. a SS
++		 * hub's status interrupt endpoint) is present on the same
++		 * root port, the scheduler becomes active for that port and
++		 * treats EP_BPKTS == 0 as "zero packets to transfer",
++		 * effectively blocking the endpoint.  Under high load this
++		 * manifests as COMP_TX_ERR on the bulk endpoint of a hard
++		 * drive attached behind a SS hub, leading to frequent device
++		 * resets.  Set the minimum required scheduling fields so the
++		 * controller can always schedule these endpoints correctly.
++		 */
++		if (udev->speed == USB_SPEED_SUPER &&
++		    !usb_endpoint_xfer_isoc(&ep->desc) &&
++		    !usb_endpoint_xfer_int(&ep->desc)) {
++			u32 max_burst =
++				CTX_TO_MAX_BURST(le32_to_cpu(ep_ctx->ep_info2));
++			ep_ctx->reserved[0] = cpu_to_le32(
++				EP_BPKTS(max_burst + 1) | EP_BBM(1));
++			ep_ctx->reserved[1] = 0;
++		}
+ 		return 0;
++	}
+ 
+ 	bw_index = get_bw_index(xhci, udev, ep);
+ 	sch_bw = &sch_array[bw_index];
+-- 
+2.43.0
+
