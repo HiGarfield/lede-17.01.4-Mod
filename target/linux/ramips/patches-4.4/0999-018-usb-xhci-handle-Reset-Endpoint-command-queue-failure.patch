@@ -1,0 +1,146 @@
+From 3ed661419f77bdd97e62b9346fdb310746aa418e Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 31 Oct 2026 23:40:35 +0800
+Subject: [PATCH] usb: xhci: handle Reset Endpoint command queue failures
+
+Return an error when a Reset Endpoint command cannot be allocated or queued. Free the unused command and restore the software halted state so a failed recovery does not leave the endpoint blocked.
+
+Remove the unused event_trb parameters from the halted-endpoint cleanup path.
+---
+ drivers/usb/host/xhci-ring.c | 42 +++++++++++++++++++++++-------------
+ 1 file changed, 27 insertions(+), 15 deletions(-)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index e3c1669f..b56e2167 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -1782,26 +1782,38 @@ struct xhci_segment *trb_in_td(struct xhci_hcd *xhci,
+ 	return NULL;
+ }
+ 
+-static void xhci_cleanup_halted_endpoint(struct xhci_hcd *xhci,
++static int xhci_cleanup_halted_endpoint(struct xhci_hcd *xhci,
+ 		unsigned int slot_id, unsigned int ep_index,
+-		unsigned int stream_id,
+-		struct xhci_td *td, union xhci_trb *event_trb)
++		unsigned int stream_id, struct xhci_td *td)
+ {
+ 	struct xhci_virt_ep *ep = &xhci->devs[slot_id]->eps[ep_index];
+ 	struct xhci_command *command;
++	bool was_halted;
++	int ret;
++
+ 	command = xhci_alloc_command(xhci, false, false, GFP_ATOMIC);
+ 	if (!command)
+-		return;
++		return -ENOMEM;
+ 
++	was_halted = !!(ep->ep_state & EP_HALTED);
+ 	ep->ep_state |= EP_HALTED;
+ 	ep->stopped_stream = stream_id;
+ 
+-	xhci_queue_reset_ep(xhci, command, slot_id, ep_index);
++	ret = xhci_queue_reset_ep(xhci, command, slot_id, ep_index);
++	if (ret < 0) {
++		if (!was_halted)
++			ep->ep_state &= ~EP_HALTED;
++		ep->stopped_stream = 0;
++		xhci_free_command(xhci, command);
++		return ret;
++	}
++
+ 	xhci_cleanup_stalled_ring(xhci, ep_index, td);
+ 
+ 	ep->stopped_stream = 0;
+ 
+ 	xhci_ring_cmd_db(xhci);
++	return 0;
+ }
+ 
+ /* Check if an error has halted the endpoint ring.  The class driver will
+@@ -1850,8 +1862,8 @@ int xhci_is_vendor_info_code(struct xhci_hcd *xhci, unsigned int trb_comp_code)
+  * Return 1 if the urb can be given back.
+  */
+ static int finish_td(struct xhci_hcd *xhci, struct xhci_td *td,
+-	union xhci_trb *event_trb, struct xhci_transfer_event *event,
+-	struct xhci_virt_ep *ep, int *status, bool skip)
++	struct xhci_transfer_event *event, struct xhci_virt_ep *ep,
++	int *status, bool skip)
+ {
+ 	struct xhci_virt_device *xdev;
+ 	struct xhci_ring *ep_ring;
+@@ -1892,7 +1904,7 @@ static int finish_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 		 * The class driver clears the device side halt later.
+ 		 */
+ 		xhci_cleanup_halted_endpoint(xhci, slot_id, ep_index,
+-					ep_ring->stream_id, td, event_trb);
++					ep_ring->stream_id, td);
+ 	} else {
+ 		/* Update ring dequeue pointer */
+ 		while (ep_ring->dequeue != td->last_trb)
+@@ -1989,7 +2001,7 @@ static int process_ctrl_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 			td->urb->actual_length =
+ 				EVENT_TRB_LEN(le32_to_cpu(event->transfer_len));
+ 
+-		return finish_td(xhci, td, event_trb, event, ep, status, false);
++		return finish_td(xhci, td, event, ep, status, false);
+ 	case COMP_STOP:
+ 		/* Did we stop at data stage? */
+ 		if (event_trb != ep_ring->dequeue && event_trb != td->last_trb)
+@@ -1998,7 +2010,7 @@ static int process_ctrl_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 				EVENT_TRB_LEN(le32_to_cpu(event->transfer_len));
+ 		/* fall through */
+ 	case COMP_STOP_INVAL:
+-		return finish_td(xhci, td, event_trb, event, ep, status, false);
++		return finish_td(xhci, td, event, ep, status, false);
+ 	default:
+ 		if (!xhci_requires_manual_halt_cleanup(xhci,
+ 					ep_ctx, trb_comp_code))
+@@ -2017,7 +2029,7 @@ static int process_ctrl_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 		else if (!td->urb_length_set)
+ 			td->urb->actual_length = 0;
+ 
+-		return finish_td(xhci, td, event_trb, event, ep, status, false);
++		return finish_td(xhci, td, event, ep, status, false);
+ 	}
+ 	/*
+ 	 * Did we transfer any data, despite the errors that might have
+@@ -2056,7 +2068,7 @@ static int process_ctrl_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 		}
+ 	}
+ 
+-	return finish_td(xhci, td, event_trb, event, ep, status, false);
++	return finish_td(xhci, td, event, ep, status, false);
+ }
+ 
+ /*
+@@ -2149,7 +2161,7 @@ static int process_isoc_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 		}
+ 	}
+ 
+-	return finish_td(xhci, td, event_trb, event, ep, status, false);
++	return finish_td(xhci, td, event, ep, status, false);
+ }
+ 
+ static int skip_isoc_td(struct xhci_hcd *xhci, struct xhci_td *td,
+@@ -2177,7 +2189,7 @@ static int skip_isoc_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 		inc_deq(xhci, ep_ring);
+ 	inc_deq(xhci, ep_ring);
+ 
+-	return finish_td(xhci, td, NULL, event, ep, status, true);
++	return finish_td(xhci, td, event, ep, status, true);
+ }
+ 
+ /*
+@@ -2296,7 +2308,7 @@ static int process_bulk_intr_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 				EVENT_TRB_LEN(le32_to_cpu(event->transfer_len));
+ 	}
+ 
+-	return finish_td(xhci, td, event_trb, event, ep, status, false);
++	return finish_td(xhci, td, event, ep, status, false);
+ }
+ 
+ /*
+-- 
+2.43.0
+

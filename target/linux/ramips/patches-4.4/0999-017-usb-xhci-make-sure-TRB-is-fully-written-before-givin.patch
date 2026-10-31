@@ -1,0 +1,29 @@
+From bc540a4a6f19bbbf48eac974abb7e0ff3a21e6c8 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 31 Oct 2026 23:38:34 +0800
+Subject: [PATCH] usb: xhci: make sure TRB is fully written before giving it to
+ the controller
+
+The xHC can fetch a TRB while the driver is still writing it. Add a write barrier before the cycle bit so the controller cannot observe a partially written TRB.
+
+Upstream commit 576667bad341516edc4e18eb85acb0a2b4c9c9d9. Backported from 4.4 stable commit 5eaa0aa86cc280105d99c391c26aac5f2b549ed9.
+---
+ drivers/usb/host/xhci-ring.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 38fb732e..e3c1669f 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2872,6 +2872,8 @@ static void queue_trb(struct xhci_hcd *xhci, struct xhci_ring *ring,
+ 	trb->field[0] = cpu_to_le32(field1);
+ 	trb->field[1] = cpu_to_le32(field2);
+ 	trb->field[2] = cpu_to_le32(field3);
++	/* make sure TRB is fully written before giving it to the controller */
++	wmb();
+ 	trb->field[3] = cpu_to_le32(field4);
+ 	inc_enq(xhci, ring, more_trbs_coming);
+ }
+-- 
+2.43.0
+
