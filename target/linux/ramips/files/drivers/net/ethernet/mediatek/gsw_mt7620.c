@@ -302,6 +302,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 		free_irq(gsw->irq, gsw->priv);
 		gsw->priv = NULL;
 	}
+	priv->soc->swpriv = NULL;
 }
 
 static int mt7620_gsw_probe(struct platform_device *pdev)
