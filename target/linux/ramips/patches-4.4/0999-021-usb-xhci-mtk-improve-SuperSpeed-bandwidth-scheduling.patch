@@ -1,0 +1,94 @@
+From c3f71143c16e280e4c3527e95c0e16faff5df830 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 31 Oct 2026 23:47:20 +0800
+Subject: [PATCH] usb: xhci-mtk: improve SuperSpeed bandwidth scheduling
+
+Derive the packet count from Max ESIT Payload when available, enable burst mode for SuperSpeed endpoints, and handle isochronous endpoints with a single-microframe ESIT correctly.
+
+Clamp ESIT before using it in the calculations and remove the duplicate clamp in check_sch_bw().
+
+Backports the SuperSpeed scheduling parts of upstream commit 95b516c18621d1626662bc161cbbf6281fd8d767.
+---
+ drivers/usb/host/xhci-mtk-sch.c | 24 +++++++++++++++++++-----
+ drivers/usb/host/xhci.h         |  1 +
+ 2 files changed, 20 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/usb/host/xhci-mtk-sch.c b/drivers/usb/host/xhci-mtk-sch.c
+index f121f515..22914dd3 100644
+--- a/drivers/usb/host/xhci-mtk-sch.c
++++ b/drivers/usb/host/xhci-mtk-sch.c
+@@ -82,14 +82,21 @@ static void setup_sch_info(struct usb_device *udev,
+ 	u32 max_burst;
+ 	u32 mult;
+ 	u32 esit_pkts;
++	u32 max_esit_payload;
+ 
+ 	ep_type = CTX_TO_EP_TYPE(le32_to_cpu(ep_ctx->ep_info2));
+ 	ep_interval = CTX_TO_EP_INTERVAL(le32_to_cpu(ep_ctx->ep_info));
+ 	max_packet_size = MAX_PACKET_DECODED(le32_to_cpu(ep_ctx->ep_info2));
+ 	max_burst = CTX_TO_MAX_BURST(le32_to_cpu(ep_ctx->ep_info2));
+ 	mult = CTX_TO_EP_MULT(le32_to_cpu(ep_ctx->ep_info));
++	max_esit_payload =
++		(CTX_TO_MAX_ESIT_PAYLOAD_HI(
++			le32_to_cpu(ep_ctx->ep_info)) << 16) |
++		 CTX_TO_MAX_ESIT_PAYLOAD(le32_to_cpu(ep_ctx->tx_info));
+ 
+ 	sch_ep->esit = 1 << ep_interval;
++	if (sch_ep->esit > XHCI_MTK_MAX_ESIT)
++		sch_ep->esit = XHCI_MTK_MAX_ESIT;
+ 	sch_ep->offset = 0;
+ 	sch_ep->burst_mode = 0;
+ 
+@@ -114,7 +121,15 @@ static void setup_sch_info(struct usb_device *udev,
+ 	} else if (udev->speed == USB_SPEED_SUPER) {
+ 		/* usb3_r1 spec section4.4.7 & 4.4.8 */
+ 		sch_ep->cs_count = 0;
+-		esit_pkts = (mult + 1) * (max_burst + 1);
++		sch_ep->burst_mode = 1;
++		/*
++		 * Some devices report zero bytes per interval. Fall back to
++		 * mult and burst when max_esit_payload is not available.
++		 */
++		esit_pkts = DIV_ROUND_UP(max_esit_payload, max_packet_size);
++		if (esit_pkts == 0)
++			esit_pkts = (mult + 1) * (max_burst + 1);
++
+ 		if (ep_type == INT_IN_EP || ep_type == INT_OUT_EP) {
+ 			sch_ep->pkts = esit_pkts;
+ 			sch_ep->num_budget_microframes = 1;
+@@ -122,7 +137,9 @@ static void setup_sch_info(struct usb_device *udev,
+ 		}
+ 
+ 		if (ep_type == ISOC_IN_EP || ep_type == ISOC_OUT_EP) {
+-			if (esit_pkts <= sch_ep->esit)
++			if (sch_ep->esit == 1)
++				sch_ep->pkts = esit_pkts;
++			else if (esit_pkts <= sch_ep->esit)
+ 				sch_ep->pkts = 1;
+ 			else
+ 				sch_ep->pkts = roundup_pow_of_two(esit_pkts)
+@@ -220,9 +237,6 @@ static int check_sch_bw(struct usb_device *udev,
+ 	u32 worst_bw;
+ 	u32 bw_boundary;
+ 
+-	if (sch_ep->esit > XHCI_MTK_MAX_ESIT)
+-		sch_ep->esit = XHCI_MTK_MAX_ESIT;
+-
+ 	esit = sch_ep->esit;
+ 	num_budget_microframes = sch_ep->num_budget_microframes;
+ 
+diff --git a/drivers/usb/host/xhci.h b/drivers/usb/host/xhci.h
+index b111f4ac..16ae1ef4 100644
+--- a/drivers/usb/host/xhci.h
++++ b/drivers/usb/host/xhci.h
+@@ -758,6 +758,7 @@ struct xhci_ep_ctx {
+ #define AVG_TRB_LENGTH_FOR_EP(p)	((p) & 0xffff)
+ #define MAX_ESIT_PAYLOAD_FOR_EP(p)	(((p) & 0xffff) << 16)
+ #define CTX_TO_MAX_ESIT_PAYLOAD(p)	(((p) >> 16) & 0xffff)
++#define CTX_TO_MAX_ESIT_PAYLOAD_HI(p)	(((p) >> 24) & 0xff)
+ 
+ /* deq bitmasks */
+ #define EP_CTX_CYCLE_MASK		(1 << 0)
+-- 
+2.43.0
+

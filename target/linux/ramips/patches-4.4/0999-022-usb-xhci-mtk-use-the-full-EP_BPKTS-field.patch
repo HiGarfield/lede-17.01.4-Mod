@@ -1,0 +1,28 @@
+From 669c6d742114a122d80ea32ef4c22d5e42b2e903 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 31 Oct 2026 23:48:02 +0800
+Subject: [PATCH] usb: xhci-mtk: use the full EP_BPKTS field
+
+EP_BPKTS is seven bits wide. Do not discard bit 6 when programming the endpoint scheduling parameters.
+
+Extracted from upstream commit e995dccadaf99e216cf5410463941d978c455c58.
+---
+ drivers/usb/host/xhci-mtk-sch.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-mtk-sch.c b/drivers/usb/host/xhci-mtk-sch.c
+index 22914dd3..bd21b66d 100644
+--- a/drivers/usb/host/xhci-mtk-sch.c
++++ b/drivers/usb/host/xhci-mtk-sch.c
+@@ -29,7 +29,7 @@
+ #define FS_PAYLOAD_MAX 188
+ 
+ /* mtk scheduler bitmasks */
+-#define EP_BPKTS(p)	((p) & 0x3f)
++#define EP_BPKTS(p)	((p) & 0x7f)
+ #define EP_BCSCOUNT(p)	(((p) & 0x7) << 8)
+ #define EP_BBM(p)	((p) << 11)
+ #define EP_BOFFSET(p)	((p) & 0x3fff)
+-- 
+2.43.0
+

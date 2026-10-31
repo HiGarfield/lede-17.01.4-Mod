@@ -1,0 +1,31 @@
+From af9f0e5099cf9251d44edd2f2aaebb35b791d299 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sat, 31 Oct 2026 23:45:25 +0800
+Subject: [PATCH] usb: xhci: reset soft retry error count after short transfers
+
+A short transfer completed successfully, so restart the soft retry budget. Otherwise endpoints that always complete short would exhaust their retry budget over their lifetime. Cancelled short transfers do not reset the count.
+
+Adapted from upstream commit e765ab012f73717238c95ab9c34bfc3c767fa48c.
+---
+ drivers/usb/host/xhci-ring.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/usb/host/xhci-ring.c b/drivers/usb/host/xhci-ring.c
+index 339940cf..80ed0568 100644
+--- a/drivers/usb/host/xhci-ring.c
++++ b/drivers/usb/host/xhci-ring.c
+@@ -2235,8 +2235,10 @@ static int process_bulk_intr_td(struct xhci_hcd *xhci, struct xhci_td *td,
+ 			*status = 0;
+ 		}
+ 		break;
+-	case COMP_STOP_SHORT:
+ 	case COMP_SHORT_TX:
++		ep_ring->err_count = 0;
++		/* fall through */
++	case COMP_STOP_SHORT:
+ 		if (td->urb->transfer_flags & URB_SHORT_NOT_OK)
+ 			*status = -EREMOTEIO;
+ 		else
+-- 
+2.43.0
+
