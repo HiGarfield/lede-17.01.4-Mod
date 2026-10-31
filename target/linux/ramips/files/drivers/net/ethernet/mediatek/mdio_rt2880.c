@@ -24,7 +24,7 @@
 
 #define FE_MDIO_RETRY	1000
 
-static unsigned char *rt2880_speed_str(struct fe_priv *priv)
+static const char *rt2880_speed_str(struct fe_priv *priv)
 {
 	switch (priv->phy->speed[0]) {
 	case SPEED_1000:
@@ -204,8 +204,13 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 		/* this was printing priv->phy->speed[0] (uninitialised or
 		 * garbage here) as the port number
 		 */
-		if (!priv->phy->phy_fixed[0])
+		if (!priv->phy->phy_fixed[0]) {
 			dev_err(priv->dev, "port 0 - invalid phy mode\n");
+			return;
+		}
+		/* fixed-link does not use this setting for PHY attach */
+		dev_warn(priv->dev,
+			 "port 0 - invalid phy mode, using rgmii for fixed link\n");
 		break;
 	}
 
