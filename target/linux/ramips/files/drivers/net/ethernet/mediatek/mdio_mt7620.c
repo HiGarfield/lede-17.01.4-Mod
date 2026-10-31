@@ -155,6 +155,9 @@ int mt7620_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 	struct fe_priv *priv = bus->priv;
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 
+	if (!gsw)
+		return -ENODEV;
+
 	return _mt7620_mii_write(gsw, phy_addr, phy_reg, val);
 }
 
@@ -162,8 +165,17 @@ int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 {
 	struct fe_priv *priv = bus->priv;
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	u16 val;
+	int ret;
 
-	return _mt7620_mii_read(gsw, phy_addr, phy_reg);
+	if (!gsw)
+		return -ENODEV;
+
+	ret = mt7620_mii_read_reg(gsw, phy_addr, phy_reg, &val);
+	if (ret)
+		return ret;
+
+	return val;
 }
 
 int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
