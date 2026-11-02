@@ -78,7 +78,7 @@ for rawmount, val in pairs(mounts) do
 				string.match(val.mountpoint, '^/tmp/.+$') == nil and
 				val.mountpoint ~= "/dev" and
 				string.match(val.mountpoint, '^/dev/.+$') == nil or
-				string.match(val.mountpoint, '^/tmp/mnt/.+$') ~= nil
+				string.match(val.mountpoint, '^/mnt/.+$') ~= nil
 		non_system_mounts[rawmount] = val
 	end
 end
