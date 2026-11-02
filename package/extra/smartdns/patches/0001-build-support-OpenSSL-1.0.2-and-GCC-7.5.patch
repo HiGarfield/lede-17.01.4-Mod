@@ -1,0 +1,536 @@
+From ed9289f77bbc6c3e708c194f0ccdea260d79a26c Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 2 Nov 2026 23:45:08 +0800
+Subject: [PATCH] build: support OpenSSL 1.0.2 and GCC 7.5
+
+Add a single OpenSSL compatibility header and pin the C standard so the
+daemon builds on older targets (GCC 7.5, OpenSSL 1.0.2).
+
+- openssl_compat.h: derive macros from OPENSSL_VERSION_NUMBER; provide
+  aliases (dns_unconst, dns_TLS_*_method, dns_SSL_write, ...).
+- Fix -Wdiscarded-qualifiers on OpenSSL 1.0/1.1: drop const only below 3.0.
+- Replace OPENSSL_API_COMPAT guards with SMARTDNS_NEED_LEGACY_INIT;
+  no-op thread setup on 1.1.0+.
+- Pin -std=gnu11; fix feature probes (void main -> int main(void)).
+
+Verified against OpenSSL 1.0.2u/1.1.1w/3.0.13 and gcc-11..16 + clang-17/18.
+---
+ plugin/demo/Makefile                      |   4 +
+ src/Makefile                              |  10 +-
+ src/dns_client/client_http3.c             |   5 +-
+ src/dns_client/client_tls.c               |  50 +++------
+ src/dns_server/server_tls.c               |   9 +-
+ src/include/smartdns/lib/openssl_compat.h | 126 ++++++++++++++++++++++
+ src/smartdns.c                            |  10 +-
+ src/utils/ssl.c                           |  56 +++++++---
+ 8 files changed, 203 insertions(+), 67 deletions(-)
+ create mode 100644 src/include/smartdns/lib/openssl_compat.h
+
+--- a/plugin/demo/Makefile
++++ b/plugin/demo/Makefile
+@@ -28,6 +28,10 @@ ifndef CFLAGS
+  CFLAGS +=-fPIC -Wall -Wstrict-prototypes -fno-omit-frame-pointer -Wstrict-aliasing -funwind-tables -Wmissing-prototypes -Wshadow -Wextra -Wno-unused-parameter -Wno-implicit-fallthrough
+ endif
+ 
++# Keep in sync with src/Makefile: pin the language standard so the plugin builds
++# identically on GCC 7.5 and on compilers that default to a newer standard.
++override CFLAGS += -std=gnu11
++
+ override CFLAGS +=-Iinclude -I../../src/include -I../../src
+ override CFLAGS += -DBASE_FILE_NAME='"$(notdir $<)"'
+ override CFLAGS += $(EXTRA_CFLAGS)
+--- a/src/Makefile
++++ b/src/Makefile
+@@ -37,8 +37,14 @@ ifndef CFLAGS
+  CFLAGS +=-Wall -Wstrict-prototypes -fno-omit-frame-pointer -Wstrict-aliasing -funwind-tables -Wmissing-prototypes -Wshadow -Wextra -Wno-unused-parameter -Wno-implicit-fallthrough
+ endif
+ 
++# Pin the language standard. GCC 7.5 defaults to gnu11, but GCC 11+ defaults to
++# gnu17 and GCC 15 to gnu23, where typeof/bool/true/false become keywords. The
++# tree relies on the GNU extensions available in gnu11, so fixing the standard
++# keeps the build identical across the supported compiler range.
++override CFLAGS += -std=gnu11
++
+ HASH := \#
+-HAS_UNWIND := $(shell printf '$(HASH)include <unwind.h>\nvoid main() { _Unwind_Backtrace(0, 0);}' | $(CC) -x c - -o /dev/null >/dev/null 2>&1 && echo -n 1 || echo -n 0)
++HAS_UNWIND := $(shell printf '$(HASH)include <unwind.h>\nint main(void) { _Unwind_Backtrace(0, 0); return 0; }' | $(CC) -x c - -o /dev/null >/dev/null 2>&1 && echo -n 1 || echo -n 0)
+ ifeq ($(HAS_UNWIND), 1)
+ override CFLAGS += -DHAVE_UNWIND_BACKTRACE
+ endif
+@@ -94,7 +100,7 @@ else
+  override LDFLAGS += -lssl -lcrypto -lpthread -ldl -lm -rdynamic
+ endif
+ 
+-USE_ATOMIC := $(shell printf '$(HASH)include <stdint.h>\nvoid main() { uint64_t value=0;__atomic_add_fetch(&value, 1, __ATOMIC_SEQ_CST);__atomic_load_n(&value,__ATOMIC_SEQ_CST);}' | $(CC) -x c - -o /dev/null >/dev/null 2>&1 && echo -n 1 || echo -n 0)
++USE_ATOMIC := $(shell printf '$(HASH)include <stdint.h>\nint main(void) { uint64_t value=0;__atomic_add_fetch(&value, 1, __ATOMIC_SEQ_CST);__atomic_load_n(&value,__ATOMIC_SEQ_CST); return 0; }' | $(CC) -x c - -o /dev/null >/dev/null 2>&1 && echo -n 1 || echo -n 0)
+ ifeq ($(USE_ATOMIC), 0)
+  override CFLAGS += -DUSE_ATOMIC
+  override LDFLAGS += -latomic 
+--- a/src/dns_client/client_http3.c
++++ b/src/dns_client/client_http3.c
+@@ -24,7 +24,10 @@
+ 
+ #include "smartdns/http_parse.h"
+ 
+-static int _dns_client_http3_has_content_length(struct http_head *http_head)
++/* Only referenced from the QUIC enabled paths below; when the linked OpenSSL
++ * has no QUIC support the whole file compiles down to stubs and this would be
++ * reported as unused. */
++static __attribute__((unused)) int _dns_client_http3_has_content_length(struct http_head *http_head)
+ {
+ 	const char *content_len = http_head_get_fields_value(http_head, "content-length");
+ 	return content_len != NULL && content_len[0] != '\0';
+--- a/src/dns_client/client_tls.c
++++ b/src/dns_client/client_tls.c
+@@ -29,13 +29,11 @@
+ #include "smartdns/lib/stringutil.h"
+ #include "smartdns/util.h"
+ 
++#include "smartdns/lib/openssl_compat.h"
++
+ #include <net/if.h>
+ #include <netinet/ip.h>
+ #include <netinet/tcp.h>
+-#include <openssl/err.h>
+-#include <openssl/rand.h>
+-#include <openssl/ssl.h>
+-#include <openssl/x509v3.h>
+ #include <sys/epoll.h>
+ #include <sys/ioctl.h>
+ 
+@@ -62,21 +60,10 @@ static ssize_t _ssl_write_ext2(struct dn
+ 		return SSL_ERROR_SYSCALL;
+ 	}
+ 
+-#if defined(OSSL_QUIC1_VERSION) && !defined(OPENSSL_NO_QUIC)
+-	ret = SSL_write_ex2(ssl, buff, num, flags, &written);
+-#elif OPENSSL_VERSION_NUMBER >= 0x10101000L
+-	ret = SSL_write_ex(ssl, buff, num, &written);
+-#else
+-	ret = SSL_write(ssl, buff, num);
+-	written = ret;
+-#endif
++	ret = dns_SSL_write(ssl, buff, num, flags, &written);
+ 	pthread_mutex_unlock(&server->lock);
+ 
+-	if (ret <= 0) {
+-		return ret;
+-	}
+-
+-	return written;
++	return ret;
+ }
+ 
+ int _ssl_shutdown(struct dns_server_info *server)
+@@ -326,25 +313,18 @@ SSL_CTX *_ssl_ctx_get(int is_quic)
+ 		return *ssl_ctx;
+ 	}
+ 
+-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+-#if (OPENSSL_VERSION_NUMBER >= 0x30200000L)
+ 	if (is_quic) {
++#if defined(OSSL_QUIC1_VERSION) && !defined(OPENSSL_NO_QUIC)
+ 		*ssl_ctx = SSL_CTX_new(OSSL_QUIC_client_method());
+-	} else {
+-		*ssl_ctx = SSL_CTX_new(TLS_client_method());
+-	}
+ #else
+-	if (is_quic) {
+-		/* QUIC is not available in this OpenSSL build; go through the
++		/* QUIC requires OpenSSL 3.2+, so it is unavailable here. Go through the
+ 		 * unified error path so server_list_lock is released and NULL is
+-		 * returned consistently. */
++		 * returned consistently, instead of allocating an unused TLS context. */
+ 		goto errout;
+-	}
+-	*ssl_ctx = SSL_CTX_new(TLS_client_method());
+-#endif
+-#else
+-	*ssl_ctx = SSL_CTX_new(SSLv23_client_method());
+ #endif
++	} else {
++		*ssl_ctx = SSL_CTX_new(dns_TLS_client_method());
++	}
+ 
+ 	if (*ssl_ctx == NULL) {
+ 		tlog(TLOG_ERROR, "init ssl failed.");
+@@ -775,19 +755,19 @@ static int _dns_client_tls_get_cert_CN(X
+ 		goto errout;
+ 	}
+ 
+-	cert_index = X509_NAME_get_index_by_NID(cert_name, NID_commonName, -1);
++	cert_index = X509_NAME_get_index_by_NID(dns_unconst(X509_NAME *, cert_name), NID_commonName, -1);
+ 	if (cert_index < 0) {
+ 		tlog(TLOG_ERROR, "cannot found x509 name");
+ 		goto errout;
+ 	}
+ 
+-	cert_entry = X509_NAME_get_entry(cert_name, cert_index);
++	cert_entry = X509_NAME_get_entry(dns_unconst(X509_NAME *, cert_name), cert_index);
+ 	if (cert_entry == NULL) {
+ 		tlog(TLOG_ERROR, "get x509 name entry failed.");
+ 		goto errout;
+ 	}
+ 
+-	cert_data = X509_NAME_ENTRY_get_data(cert_entry);
++	cert_data = X509_NAME_ENTRY_get_data(dns_unconst(X509_NAME_ENTRY *, cert_entry));
+ 	if (cert_data == NULL) {
+ 		tlog(TLOG_ERROR, "get x509 name data failed.");
+ 		goto errout;
+@@ -997,7 +977,7 @@ static int _dns_client_tls_verify(struct
+ 	}
+ 
+ 	/* get spki pin */
+-	key_len = i2d_X509_PUBKEY(pubkey, NULL);
++	key_len = i2d_X509_PUBKEY(dns_unconst(X509_PUBKEY *, pubkey), NULL);
+ 	if (key_len <= 0) {
+ 		tlog(TLOG_ERROR, "get x509 public key failed.");
+ 		goto errout;
+@@ -1010,7 +990,7 @@ static int _dns_client_tls_verify(struct
+ 		goto errout;
+ 	}
+ 
+-	i2d_X509_PUBKEY(pubkey, &key_data_tmp);
++	i2d_X509_PUBKEY(dns_unconst(X509_PUBKEY *, pubkey), &key_data_tmp);
+ 
+ 	/* Get the SHA256 value of SPKI */
+ 	key_sha256 = SSL_SHA256(key_data, key_len, NULL);
+--- a/src/dns_server/server_tls.c
++++ b/src/dns_server/server_tls.c
+@@ -29,8 +29,7 @@
+ 
+ #include <errno.h>
+ #include <netinet/tcp.h>
+-#include <openssl/err.h>
+-#include <openssl/ssl.h>
++#include "smartdns/lib/openssl_compat.h"
+ #include <pthread.h>
+ #include <string.h>
+ #include <sys/epoll.h>
+@@ -492,14 +491,10 @@ int _dns_server_socket_tls(struct dns_bi
+ 
+ 	setsockopt(fd, SOL_TCP, TCP_FASTOPEN, &on, sizeof(on));
+ 
+-#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+-	method = TLS_server_method();
++	method = dns_TLS_server_method();
+ 	if (method == NULL) {
+ 		goto errout;
+ 	}
+-#else
+-	method = SSLv23_server_method();
+-#endif
+ 
+ 	ssl_ctx = SSL_CTX_new(method);
+ 	if (ssl_ctx == NULL) {
+--- /dev/null
++++ b/src/include/smartdns/lib/openssl_compat.h
+@@ -0,0 +1,126 @@
++/*************************************************************************
++ *
++ * Copyright (C) 2018-2025 Ruilin Peng (Nick) <pymumu@gmail.com>.
++ *
++ * smartdns is free software: you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation, either version 3 of the License, or
++ * (at your option) any later version.
++ *
++ * smartdns is distributed in the hope that it will be useful,
++ * but WITHOUT ANY WARRANTY; without even the implied warranty of
++ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ * GNU General Public License for more details.
++ *
++ * You should have received a copy of the GNU General Public License
++ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
++ */
++
++#ifndef _SMARTDNS_OPENSSL_COMPAT_H_
++#define _SMARTDNS_OPENSSL_COMPAT_H_
++
++/*
++ * Single point of truth for OpenSSL version handling.
++ *
++ * smartdns must build with OpenSSL 1.0.2 (OpenWrt 19.07 class) through the
++ * current release. Every version check must go through the macros below rather
++ * than comparing OPENSSL_VERSION_NUMBER or OPENSSL_API_COMPAT inline.
++ *
++ * OPENSSL_API_COMPAT in particular is the wrong thing to test: it describes the
++ * API level the *caller* asked to hide and can be overridden on the command
++ * line, so keying library initialisation on it can skip SSL_library_init() on a
++ * real 1.0.x build, leaving OpenSSL uninitialised and non-thread-safe.
++ */
++
++#include <openssl/opensslv.h>
++
++#include <openssl/asn1.h>
++#include <openssl/bio.h>
++#include <openssl/crypto.h>
++#include <openssl/err.h>
++#include <openssl/evp.h>
++#include <openssl/pem.h>
++#include <openssl/rand.h>
++#include <openssl/sha.h>
++#include <openssl/ssl.h>
++#include <openssl/x509.h>
++#include <openssl/x509v3.h>
++
++#include <stdint.h>
++#include <sys/types.h>
++
++#define SMARTDNS_OPENSSL_V_1_0_0 0x10000000L
++#define SMARTDNS_OPENSSL_V_1_0_2 0x10002000L
++#define SMARTDNS_OPENSSL_V_1_1_0 0x10100000L
++#define SMARTDNS_OPENSSL_V_1_1_1 0x10101000L
++#define SMARTDNS_OPENSSL_V_3_0_0 0x30000000L
++
++#define SMARTDNS_OPENSSL_AT_LEAST(v) (OPENSSL_VERSION_NUMBER >= (v))
++#define SMARTDNS_OPENSSL_BEFORE(v)   (OPENSSL_VERSION_NUMBER <  (v))
++
++/*
++ * OpenSSL before 1.1.0 requires explicit library initialisation and per-lock
++ * callbacks; 1.1.0 removed both entry points and became thread safe by itself.
++ */
++#define SMARTDNS_NEED_LEGACY_INIT SMARTDNS_OPENSSL_BEFORE(SMARTDNS_OPENSSL_V_1_1_0)
++
++/*
++ * const-qualifier adapter.
++ *
++ * X509_NAME_get_index_by_NID(), X509_NAME_get_entry(),
++ * X509_NAME_ENTRY_get_data(), i2d_X509_PUBKEY(), X509_set_issuer_name() and
++ * X509V3_EXT_conf_nid() only gained const parameters in OpenSSL 3.0 -- both
++ * 1.0.x and 1.1.x declare them without. Passing a const pointer to them raises
++ * -Wdiscarded-qualifiers there, so the qualifier is dropped exactly where the
++ * library lacks it and kept everywhere else.
++ */
++#if SMARTDNS_OPENSSL_BEFORE(SMARTDNS_OPENSSL_V_3_0_0)
++# define dns_unconst(type, p) ((type)(uintptr_t)(const void *)(p))
++#else
++# define dns_unconst(type, p) (p)
++#endif
++
++/*
++ * TLS_*_method() (protocol flexible) replaced SSLv23_*_method() in 1.1.0.
++ */
++#if SMARTDNS_OPENSSL_AT_LEAST(SMARTDNS_OPENSSL_V_1_1_0)
++# define dns_TLS_client_method() TLS_client_method()
++# define dns_TLS_server_method() TLS_server_method()
++#else
++# define dns_TLS_client_method() SSLv23_client_method()
++# define dns_TLS_server_method() SSLv23_server_method()
++#endif
++
++/*
++ * Unified SSL write.
++ *
++ * QUIC needs SSL_write_ex2() to carry stream flags, 1.1.1+ reports partial
++ * writes through SSL_write_ex(), and older releases only have SSL_write().
++ * All three end up returning the number of bytes consumed, or <= 0 on error,
++ * so call sites no longer need their own version ladder.
++ */
++static inline ssize_t dns_SSL_write(SSL *ssl, const void *buff, int num, uint64_t flags, size_t *written)
++{
++	int ret = 0;
++
++	*written = 0;
++
++#if defined(OSSL_QUIC1_VERSION) && !defined(OPENSSL_NO_QUIC)
++	ret = SSL_write_ex2(ssl, buff, (size_t)num, flags, written);
++#elif SMARTDNS_OPENSSL_AT_LEAST(SMARTDNS_OPENSSL_V_1_1_1)
++	ret = SSL_write_ex(ssl, buff, (size_t)num, written);
++#else
++	ret = (int)SSL_write(ssl, buff, num);
++	if (ret > 0) {
++		*written = (size_t)ret;
++	}
++#endif
++
++	if (ret <= 0) {
++		return ret;
++	}
++
++	return (ssize_t)*written;
++}
++
++#endif /* _SMARTDNS_OPENSSL_COMPAT_H_ */
+--- a/src/smartdns.c
++++ b/src/smartdns.c
+@@ -32,8 +32,7 @@
+ #include <fcntl.h>
+ #include <getopt.h>
+ #include <libgen.h>
+-#include <openssl/err.h>
+-#include <openssl/ssl.h>
++#include "smartdns/lib/openssl_compat.h"
+ #include <signal.h>
+ #include <stdio.h>
+ #include <stdlib.h>
+@@ -492,19 +491,20 @@ int smartdns_get_cert(char *key, char *c
+ 
+ static int _smartdns_init_ssl(void)
+ {
+-#if OPENSSL_API_COMPAT < 0x10100000L
++	/* No-op on OpenSSL 1.1.0+, which is thread safe and self initialising. */
++	SSL_CRYPTO_thread_setup();
++#if SMARTDNS_NEED_LEGACY_INIT
+ 	SSL_load_error_strings();
+ 	SSL_library_init();
+ 	OpenSSL_add_all_algorithms();
+-	SSL_CRYPTO_thread_setup();
+ #endif
+ 	return 0;
+ }
+ 
+ static int _smartdns_destroy_ssl(void)
+ {
+-#if OPENSSL_API_COMPAT < 0x10100000L
+ 	SSL_CRYPTO_thread_cleanup();
++#if SMARTDNS_NEED_LEGACY_INIT
+ 	ERR_free_strings();
+ 	EVP_cleanup();
+ #endif
+--- a/src/utils/ssl.c
++++ b/src/utils/ssl.c
+@@ -20,11 +20,10 @@
+ #include "smartdns/tlog.h"
+ #include "smartdns/util.h"
+ 
++#include "smartdns/lib/openssl_compat.h"
++
+ #include <ifaddrs.h>
+ #include <linux/limits.h>
+-#include <openssl/crypto.h>
+-#include <openssl/ssl.h>
+-#include <openssl/x509v3.h>
+ #include <pthread.h>
+ #include <sys/stat.h>
+ #include <time.h>
+@@ -394,10 +393,10 @@ static X509 *_generate_smartdns_cert(EVP
+ 		}
+ 	}
+ 	X509_set_subject_name(cert, name);
+-	X509_set_issuer_name(cert, issuer_name);
++	X509_set_issuer_name(cert, dns_unconst(X509_NAME *, issuer_name));
+ 
+ 	if (san != NULL && san[0] != '\0') {
+-		cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, san);
++		cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_subject_alt_name, dns_unconst(char *, san));
+ 		if (cert_ext == NULL) {
+ 			goto errout;
+ 		}
+@@ -407,7 +406,7 @@ static X509 *_generate_smartdns_cert(EVP
+ 	}
+ 
+ 	const char *basic_constraints = is_ca ? "critical,CA:TRUE" : "CA:FALSE";
+-	cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, basic_constraints);
++	cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_basic_constraints, dns_unconst(char *, basic_constraints));
+ 	if (cert_ext == NULL) {
+ 		tlog(TLOG_ERROR, "Failed to create basicConstraints extension");
+ 		goto errout;
+@@ -417,7 +416,7 @@ static X509 *_generate_smartdns_cert(EVP
+ 	cert_ext = NULL;
+ 
+ 	const char *key_usage = is_ca ? "critical,keyCertSign,cRLSign" : "digitalSignature,keyEncipherment";
+-	cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, key_usage);
++	cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_key_usage, dns_unconst(char *, key_usage));
+ 	if (cert_ext == NULL) {
+ 		tlog(TLOG_ERROR, "Failed to create keyUsage extension");
+ 		goto errout;
+@@ -427,7 +426,7 @@ static X509 *_generate_smartdns_cert(EVP
+ 	cert_ext = NULL;
+ 
+ 	if (!is_ca) {
+-		cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_ext_key_usage, "serverAuth");
++		cert_ext = X509V3_EXT_conf_nid(NULL, NULL, NID_ext_key_usage, dns_unconst(char *, "serverAuth"));
+ 		if (cert_ext == NULL) {
+ 			tlog(TLOG_ERROR, "Failed to create extKeyUsage extension");
+ 			goto errout;
+@@ -439,7 +438,7 @@ static X509 *_generate_smartdns_cert(EVP
+ 
+ 	X509V3_CTX ext_ctx;
+ 	X509V3_set_ctx(&ext_ctx, issuer_cert ? issuer_cert : cert, cert, NULL, NULL, 0);
+-	cert_ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, NID_subject_key_identifier, "hash");
++	cert_ext = X509V3_EXT_conf_nid(NULL, &ext_ctx, NID_subject_key_identifier, dns_unconst(char *, "hash"));
+ 	if (cert_ext != NULL) {
+ 		X509_add_ext(cert, cert_ext, -1);
+ 		X509_EXTENSION_free(cert_ext);
+@@ -605,7 +604,12 @@ errout:
+ 	return -1;
+ }
+ 
+-#if OPENSSL_API_COMPAT < 0x10100000
++/*
++ * Keyed on the library version, not on OPENSSL_API_COMPAT: the latter describes
++ * the API level the caller asked to hide and is overridable from the command
++ * line, so using it here could skip initialisation on a real 1.0.x build.
++ */
++#if SMARTDNS_NEED_LEGACY_INIT
+ #define THREAD_STACK_SIZE (16 * 1024)
+ static pthread_mutex_t *lock_cs;
+ static long *lock_count;
+@@ -628,7 +632,7 @@ static __attribute__((unused)) unsigned
+ 	return (ret);
+ }
+ 
+-#if OPENSSL_API_COMPAT >= 0x10000000
++#if SMARTDNS_OPENSSL_AT_LEAST(SMARTDNS_OPENSSL_V_1_0_0)
+ static __attribute__((unused)) void _pthreads_thread_id_cb(CRYPTO_THREADID *id)
+ {
+ 	CRYPTO_THREADID_set_numeric(id, _pthreads_thread_id());
+@@ -660,7 +664,7 @@ void SSL_CRYPTO_thread_setup(void)
+ 		pthread_mutex_init(&(lock_cs[i]), NULL);
+ 	}
+ 
+-#if OPENSSL_API_COMPAT < 0x10000000
++#if SMARTDNS_OPENSSL_BEFORE(SMARTDNS_OPENSSL_V_1_0_0)
+ 	CRYPTO_set_id_callback(_pthreads_thread_id);
+ #else
+ 	CRYPTO_THREADID_set_callback(_pthreads_thread_id_cb);
+@@ -685,11 +689,25 @@ void SSL_CRYPTO_thread_cleanup(void)
+ 	lock_cs = NULL;
+ 	lock_count = NULL;
+ }
++#else
++/*
++ * OpenSSL 1.1.0+ is thread safe by construction and removed the locking
++ * callbacks. Both entry points stay defined because util.h declares them
++ * unconditionally and smartdns.c calls them on every build.
++ */
++void SSL_CRYPTO_thread_setup(void)
++{
++}
++
++void SSL_CRYPTO_thread_cleanup(void)
++{
++}
+ #endif
+ 
+ unsigned char *SSL_SHA256(const unsigned char *d, size_t n, unsigned char *md)
+ {
+ 	static unsigned char m[SHA256_DIGEST_LENGTH];
++	unsigned int digest_len = 0;
+ 
+ 	if (md == NULL) {
+ 		md = m;
+@@ -700,13 +718,17 @@ unsigned char *SSL_SHA256(const unsigned
+ 		return NULL;
+ 	}
+ 
+-	EVP_MD_CTX_init(ctx);
+-	EVP_DigestInit_ex(ctx, EVP_sha256(), NULL);
+-	EVP_DigestUpdate(ctx, d, n);
+-	EVP_DigestFinal_ex(ctx, m, NULL);
++	/* EVP_MD_CTX_create() already initialises the context, so the extra
++	 * EVP_MD_CTX_init() this used to call was a no-op. The digest must also be
++	 * written to the caller's buffer, not unconditionally to the static one. */
++	if (EVP_DigestInit_ex(ctx, EVP_sha256(), NULL) != 1 || EVP_DigestUpdate(ctx, d, n) != 1 ||
++		EVP_DigestFinal_ex(ctx, md, &digest_len) != 1) {
++		EVP_MD_CTX_destroy(ctx);
++		return NULL;
++	}
+ 	EVP_MD_CTX_destroy(ctx);
+ 
+-	return (md);
++	return md;
+ }
+ 
+ int SSL_base64_decode_ext(const char *in, unsigned char *out, int max_outlen, int url_safe, int auto_padding)
