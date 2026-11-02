@@ -21,22 +21,26 @@ msgstr "Broadcast em todas as interfaces"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Escolha ao host a acordar ou escreva um MAC personalizado a ser usado"
 
-msgid "Host to wake up"
-msgstr "Host a acordar"
+msgid "Hostname"
+msgstr "Nome do host"
 
-msgid "Network interface to use"
-msgstr "Interface de rede a usar"
+msgid "Hosts saved in the configuration."
+msgstr "Hosts guardados na configuração."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr "Às vezes só uma das ferramentas funciona. Se uma falhar, tente a outra"
+msgid "Interface"
+msgstr "Interface"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Especifica a interface pela qual é enviado o pacota WoL"
+msgid "MAC address"
+msgstr "Endereço MAC"
+
+msgid "Saved hosts"
+msgstr "Hosts guardados"
 
 msgid "Starting WoL utility:"
 msgstr "A iniciar a ferramenta WoL"
+
+msgid "Temporary host"
+msgstr "Host temporário"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -50,5 +54,26 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Acordar host"
 
-msgid "WoL program"
-msgstr "Programa de WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Host a acordar"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Interface de rede a usar"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Às vezes só uma das ferramentas funciona. Se uma falhar, tente a outra"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Especifica a interface pela qual é enviado o pacota WoL"
+
+#~ msgid "WoL program"
+#~ msgstr "Programa de WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Selecione um host"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Selecione um host da lista para o acordar sem o guardar."

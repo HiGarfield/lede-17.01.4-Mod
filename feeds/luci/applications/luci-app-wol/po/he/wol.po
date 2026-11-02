@@ -14,36 +14,48 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "Broadcast on all interfaces"
-msgstr ""
+msgstr "שידור לכל הממשקים"
 
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
+"בחר מארח להעיר או הזן כתובת MAC מותאמת אישית"
 
-msgid "Host to wake up"
-msgstr ""
+msgid "Hostname"
+msgstr "שם מארח"
 
-msgid "Network interface to use"
-msgstr ""
+msgid "Hosts saved in the configuration."
+msgstr "מארחים השמורים בתצורה."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
+msgid "Interface"
+msgstr "ממשק"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
+msgid "MAC address"
+msgstr "כתובת MAC"
+
+msgid "Saved hosts"
+msgstr "מארחים שמורים"
 
 msgid "Starting WoL utility:"
-msgstr ""
+msgstr "מפעיל את כלי ה-WoL:"
+
+msgid "Temporary host"
+msgstr "מארח זמני"
 
 msgid "Wake on LAN"
-msgstr ""
+msgstr "Wake on LAN"
 
 msgid ""
 "Wake on LAN is a mechanism to remotely boot computers in the local network."
-msgstr ""
+msgstr "Wake on LAN הוא מנגנון להפעלה מרחוק של מחשבים ברשת המקומית."
 
 msgid "Wake up host"
-msgstr ""
+msgstr "הפעל מארח"
 
-msgid "WoL program"
-msgstr ""
+#~ msgid "Host to wake up"
+#~ msgstr "מארח להפעלה"
+
+#~ msgid "Select a host"
+#~ msgstr "בחר מארח"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "בחר מארח מהרשימה כדי להפעילו מבלי לשמור אותו."

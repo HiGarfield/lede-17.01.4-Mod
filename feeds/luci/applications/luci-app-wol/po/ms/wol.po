@@ -13,36 +13,51 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 
 msgid "Broadcast on all interfaces"
-msgstr ""
+msgstr "Siar ke semua antara muka"
 
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
+"Pilih hos untuk dibangunkan atau masukkan alamat MAC tersuai"
 
-msgid "Host to wake up"
-msgstr ""
+msgid "Hostname"
+msgstr "Nama hos"
 
-msgid "Network interface to use"
-msgstr ""
+msgid "Hosts saved in the configuration."
+msgstr "Hos yang disimpan dalam konfigurasi."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
+msgid "Interface"
+msgstr "Antara muka"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
+msgid "MAC address"
+msgstr "Alamat MAC"
+
+msgid "Saved hosts"
+msgstr "Hos tersimpan"
 
 msgid "Starting WoL utility:"
-msgstr ""
+msgstr "Memulakan utiliti WoL:"
+
+msgid "Temporary host"
+msgstr "Hos sementara"
 
 msgid "Wake on LAN"
-msgstr ""
+msgstr "Wake on LAN"
 
 msgid ""
 "Wake on LAN is a mechanism to remotely boot computers in the local network."
 msgstr ""
+"Wake on LAN ialah mekanisme untuk menghidupkan komputer dalam rangkaian "
+"tempatan dari jauh."
 
 msgid "Wake up host"
-msgstr ""
+msgstr "Bangunkan hos"
 
-msgid "WoL program"
-msgstr ""
+#~ msgid "Host to wake up"
+#~ msgstr "Hos untuk dibangunkan"
+
+#~ msgid "Select a host"
+#~ msgstr "Pilih hos"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr ""
+#~ "Pilih hos daripada senarai untuk membangunkannya tanpa menyimpannya."

@@ -21,24 +21,26 @@ msgstr "Broadcast su tutte le interfaccie"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Scegli l'host da \"svegliare\" o inserisci il MAC address da usare"
 
-msgid "Host to wake up"
-msgstr "Host da \"svegliare\""
+msgid "Hostname"
+msgstr "Nome host"
 
-msgid "Network interface to use"
-msgstr "Interfacci di rete da usare"
+msgid "Hosts saved in the configuration."
+msgstr "Host salvati nella configurazione."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Avvolte solo uno dei due tools funziona. Se uno fallisce, tenta di usare il "
-"secondo"
+msgid "Interface"
+msgstr "Interfaccia"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Secifica l'interfaccia su cui il pacchetto \"magico\" WoL è inviato"
+msgid "MAC address"
+msgstr "Indirizzo MAC"
+
+msgid "Saved hosts"
+msgstr "Host salvati"
 
 msgid "Starting WoL utility:"
 msgstr "Avvia l'utility WoL:"
+
+msgid "Temporary host"
+msgstr "Host temporaneo"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -52,5 +54,27 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Sveglia Host"
 
-msgid "WoL program"
-msgstr "Programma WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Host da \"svegliare\""
+
+#~ msgid "Network interface to use"
+#~ msgstr "Interfacci di rete da usare"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Avvolte solo uno dei due tools funziona. Se uno fallisce, tenta di usare "
+#~ "il secondo"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Secifica l'interfaccia su cui il pacchetto \"magico\" WoL è inviato"
+
+#~ msgid "WoL program"
+#~ msgstr "Programma WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Seleziona un host"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Seleziona un host dall'elenco per svegliarlo senza salvarlo."

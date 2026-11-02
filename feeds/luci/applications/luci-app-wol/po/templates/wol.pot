@@ -7,31 +7,32 @@ msgstr ""
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
 
-msgid "Host to wake up"
+msgid "Hostname"
 msgstr ""
 
-msgid "Network interface to use"
+msgid "Hosts saved in the configuration."
 msgstr ""
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
+msgid "Interface"
 msgstr ""
 
-msgid "Specifies the interface the WoL packet is sent on"
+msgid "MAC address"
+msgstr ""
+
+msgid "Saved hosts"
 msgstr ""
 
 msgid "Starting WoL utility:"
 msgstr ""
 
+msgid "Temporary host"
+msgstr ""
+
 msgid "Wake on LAN"
 msgstr ""
 
-msgid ""
-"Wake on LAN is a mechanism to remotely boot computers in the local network."
+msgid "Wake on LAN is a mechanism to remotely boot computers in the local network."
 msgstr ""
 
 msgid "Wake up host"
-msgstr ""
-
-msgid "WoL program"
 msgstr ""

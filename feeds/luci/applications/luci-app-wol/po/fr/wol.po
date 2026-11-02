@@ -21,25 +21,26 @@ msgstr "Émettre sur toutes les interfaces"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Choisir l'hôte à réveiller ou entrer une adresse MAC à utiliser"
 
-msgid "Host to wake up"
-msgstr "Hôte à réveiller"
+msgid "Hostname"
+msgstr "Nom d'hôte"
 
-msgid "Network interface to use"
-msgstr "Interface réseau à utiliser"
+msgid "Hosts saved in the configuration."
+msgstr "Hôtes enregistrés dans la configuration."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Parfois seul un des deux outils fonctionne. Si l'un échoue, essayez l'autre"
+msgid "Interface"
+msgstr "Interface"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
-"Spécifie l'interface sur laquelle le paquet <abbr title=\"Wake on LAN\">WoL</"
-"abbr> est envoyé"
+msgid "MAC address"
+msgstr "Adresse MAC"
+
+msgid "Saved hosts"
+msgstr "Hôtes enregistrés"
 
 msgid "Starting WoL utility:"
 msgstr "Démarrer l'utilitaire <abbr title=\"Wake on LAN\">WoL</abbr> :"
+
+msgid "Temporary host"
+msgstr "Hôte temporaire"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -53,5 +54,30 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Réveiller l'hôte"
 
-msgid "WoL program"
-msgstr "Programme <abbr title=\"Wake on LAN\">WoL</abbr>"
+#~ msgid "Host to wake up"
+#~ msgstr "Hôte à réveiller"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Interface réseau à utiliser"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Parfois seul un des deux outils fonctionne. Si l'un échoue, essayez "
+#~ "l'autre"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr ""
+#~ "Spécifie l'interface sur laquelle le paquet <abbr title=\"Wake on "
+#~ "LAN\">WoL</abbr> est envoyé"
+
+#~ msgid "WoL program"
+#~ msgstr "Programme <abbr title=\"Wake on LAN\">WoL</abbr>"
+
+#~ msgid "Select a host"
+#~ msgstr "Sélectionner un hôte"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr ""
+#~ "Sélectionnez un hôte dans la liste pour le réveiller sans l'enregistrer."

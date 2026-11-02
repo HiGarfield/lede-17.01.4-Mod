@@ -19,22 +19,26 @@ msgstr "向所有接口广播"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "选择要唤醒的主机或者输入自定义mac地址"
 
-msgid "Host to wake up"
-msgstr "选择要唤醒的主机"
+msgid "Hostname"
+msgstr "主机名"
 
-msgid "Network interface to use"
-msgstr "选择使用的网络接口"
+msgid "Hosts saved in the configuration."
+msgstr "已保存在配置中的主机。"
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr "有时只有一个工具生效。如果其中一个失效，请尝试另一个"
+msgid "Interface"
+msgstr "接口"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "限定网络唤醒数据包将被发送到的接口"
+msgid "MAC address"
+msgstr "MAC地址"
+
+msgid "Saved hosts"
+msgstr "已保存主机"
 
 msgid "Starting WoL utility:"
 msgstr "正在启动网络唤醒工具"
+
+msgid "Temporary host"
+msgstr "临时主机"
 
 msgid "Wake on LAN"
 msgstr "网络唤醒"
@@ -46,15 +50,28 @@ msgstr "网络唤醒提供了从远程启动本地网络内计算机的机制。
 msgid "Wake up host"
 msgstr "唤醒主机"
 
-msgid "WoL program"
-msgstr "网络唤醒程序"
+#~ msgid "Host to wake up"
+#~ msgstr "选择要唤醒的主机"
 
-msgid "Hosts"
-msgstr "主机"
+#~ msgid "Network interface to use"
+#~ msgstr "选择使用的网络接口"
 
-msgid "MAC address"
-msgstr "MAC地址"
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr "有时只有一个工具生效。如果其中一个失效，请尝试另一个"
 
-msgid "Hostname"
-msgstr "主机名"
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "限定网络唤醒数据包将被发送到的接口"
 
+#~ msgid "WoL program"
+#~ msgstr "网络唤醒程序"
+
+#~ msgid "Hosts"
+#~ msgstr "主机"
+
+#~ msgid "Select a host"
+#~ msgstr "选择主机"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "从列表中选择一台主机进行唤醒，无需保存。"

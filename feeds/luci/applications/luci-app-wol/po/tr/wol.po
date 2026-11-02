@@ -14,36 +14,49 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid "Broadcast on all interfaces"
-msgstr ""
+msgstr "Tüm arayüzlerde yayınla"
 
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
+"Uyandırılacak makineyi seçin veya özel bir MAC adresi girin"
 
-msgid "Host to wake up"
-msgstr ""
+msgid "Hostname"
+msgstr "Makine adı"
 
-msgid "Network interface to use"
-msgstr ""
+msgid "Hosts saved in the configuration."
+msgstr "Yapılandırmada kayıtlı makineler."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
+msgid "Interface"
+msgstr "Arayüz"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
+msgid "MAC address"
+msgstr "MAC adresi"
+
+msgid "Saved hosts"
+msgstr "Kayıtlı makineler"
 
 msgid "Starting WoL utility:"
-msgstr ""
+msgstr "WoL yardımcı programı başlatılıyor:"
+
+msgid "Temporary host"
+msgstr "Geçici makine"
 
 msgid "Wake on LAN"
-msgstr ""
+msgstr "Wake on LAN"
 
 msgid ""
 "Wake on LAN is a mechanism to remotely boot computers in the local network."
 msgstr ""
+"Wake on LAN, yerel ağdaki bilgisayarları uzaktan başlatma mekanizmasıdır."
 
 msgid "Wake up host"
-msgstr ""
+msgstr "Makineyi uyandır"
 
-msgid "WoL program"
-msgstr ""
+#~ msgid "Host to wake up"
+#~ msgstr "Uyandırılacak makine"
+
+#~ msgid "Select a host"
+#~ msgstr "Bir makine seçin"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Listeden bir makine seçip kaydetmeden uyandırın."

@@ -12,24 +12,26 @@ msgstr ""
 "Velg hvilken vert som skal startes opp, eller angi en MAC adresse som skal "
 "brukes"
 
-msgid "Host to wake up"
-msgstr "Vert som skal startes opp"
+msgid "Hostname"
+msgstr "Vertsnavn"
 
-msgid "Network interface to use"
-msgstr "Nettverksgrensesnitt"
+msgid "Hosts saved in the configuration."
+msgstr "Verter lagret i konfigurasjonen."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Noen ganger virker bare ett av disse verktøyene. Hvis ett av de ikke lykkes "
-"med å starte opp verten kan du prøve det andre."
+msgid "Interface"
+msgstr "Grensesnitt"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Angir grensesnittet som WoL pakken blir sendt ut på"
+msgid "MAC address"
+msgstr "MAC-adresse"
+
+msgid "Saved hosts"
+msgstr "Lagrede verter"
 
 msgid "Starting WoL utility:"
 msgstr "Starter WoL:"
+
+msgid "Temporary host"
+msgstr "Midlertidig vert"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -43,5 +45,27 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Start vert"
 
-msgid "WoL program"
-msgstr "WoL programm"
+#~ msgid "Host to wake up"
+#~ msgstr "Vert som skal startes opp"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Nettverksgrensesnitt"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Noen ganger virker bare ett av disse verktøyene. Hvis ett av de ikke "
+#~ "lykkes med å starte opp verten kan du prøve det andre."
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Angir grensesnittet som WoL pakken blir sendt ut på"
+
+#~ msgid "WoL program"
+#~ msgstr "WoL programm"
+
+#~ msgid "Select a host"
+#~ msgstr "Velg en vert"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Velg en vert fra listen for å starte den opp uten å lagre den."

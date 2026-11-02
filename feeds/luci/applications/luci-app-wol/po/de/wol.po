@@ -22,25 +22,26 @@ msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
 "Zu startenden Rechner selektieren oder benutzerdefinierte MAC-Adresse angeben"
 
-msgid "Host to wake up"
-msgstr "Anzuschaltender Rechner"
+msgid "Hostname"
+msgstr "Hostname"
 
-msgid "Network interface to use"
-msgstr "Verwendete Schnittstelle"
+msgid "Hosts saved in the configuration."
+msgstr "In der Konfiguration gespeicherte Rechner."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Manchmal funktioniert nur eines der beiden Programme. Wenn eines "
-"fehlschlägt, versuchen Sie das Andere."
+msgid "Interface"
+msgstr "Schnittstelle"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
-"Selektiert die Netzwerkschnittstelle auf der das WoL-Paket versendet wird"
+msgid "MAC address"
+msgstr "MAC-Adresse"
+
+msgid "Saved hosts"
+msgstr "Gespeicherte Rechner"
 
 msgid "Starting WoL utility:"
 msgstr "Starte WoL-Programm:"
+
+msgid "Temporary host"
+msgstr "Temporärer Rechner"
 
 msgid "Wake on LAN"
 msgstr "Wake-on-LAN"
@@ -54,5 +55,30 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Rechner anschalten"
 
-msgid "WoL program"
-msgstr "WoL-Programm"
+#~ msgid "Host to wake up"
+#~ msgstr "Anzuschaltender Rechner"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Verwendete Schnittstelle"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Manchmal funktioniert nur eines der beiden Programme. Wenn eines "
+#~ "fehlschlägt, versuchen Sie das Andere."
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr ""
+#~ "Selektiert die Netzwerkschnittstelle auf der das WoL-Paket versendet wird"
+
+#~ msgid "WoL program"
+#~ msgstr "WoL-Programm"
+
+#~ msgid "Select a host"
+#~ msgstr "Rechner auswählen"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr ""
+#~ "Wählen Sie einen Rechner aus der Liste aus, um ihn ohne Speichern "
+#~ "anzuschalten."

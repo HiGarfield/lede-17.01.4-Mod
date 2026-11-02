@@ -22,24 +22,26 @@ msgstr "Broadcast pe toate interfetele"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Alege statie pentru \"trezire\" sau introdu o adresa MAC de folosit"
 
-msgid "Host to wake up"
-msgstr "Statie pentru \"trezire\""
+msgid "Hostname"
+msgstr "Nume statie"
 
-msgid "Network interface to use"
-msgstr "Interfata de retea pentru utilizare"
+msgid "Hosts saved in the configuration."
+msgstr "Statii salvate in configuratie."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Uneori doar una dintre metode functioneaza. Daca se intampla, incearc-o pe "
-"cealalta"
+msgid "Interface"
+msgstr "Interfata"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Specifica interfata prin care pachetele WoL sunt trimise"
+msgid "MAC address"
+msgstr "Adresa MAC"
+
+msgid "Saved hosts"
+msgstr "Statii salvate"
 
 msgid "Starting WoL utility:"
 msgstr "Pornire utilitar WoL:"
+
+msgid "Temporary host"
+msgstr "Statie temporara"
 
 msgid "Wake on LAN"
 msgstr "Activarea pe LAN"
@@ -53,5 +55,27 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Statie de \"trezire\""
 
-msgid "WoL program"
-msgstr "Program WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Statie pentru \"trezire\""
+
+#~ msgid "Network interface to use"
+#~ msgstr "Interfata de retea pentru utilizare"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Uneori doar una dintre metode functioneaza. Daca se intampla, incearc-o "
+#~ "pe cealalta"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Specifica interfata prin care pachetele WoL sunt trimise"
+
+#~ msgid "WoL program"
+#~ msgstr "Program WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Selectati o statie"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Selectati o statie din lista pentru a o porni fara a o salva."

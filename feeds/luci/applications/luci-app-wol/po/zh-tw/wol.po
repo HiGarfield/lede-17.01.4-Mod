@@ -17,22 +17,26 @@ msgstr "廣播到所有介面"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "叫醒訂選的主機或者打入特定的MAC位址以便使用"
 
-msgid "Host to wake up"
-msgstr "要喚醒主機清單"
+msgid "Hostname"
+msgstr "主機名稱"
 
-msgid "Network interface to use"
-msgstr "使用的網路介面"
+msgid "Hosts saved in the configuration."
+msgstr "已儲存在設定中的主機。"
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr "某些時候全部工具裡面只有一個發生作用,試試另外一個"
+msgid "Interface"
+msgstr "介面"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "指定WoL喚醒封包將傳到哪個介面"
+msgid "MAC address"
+msgstr "MAC 位址"
+
+msgid "Saved hosts"
+msgstr "已儲存主機"
 
 msgid "Starting WoL utility:"
 msgstr "啟用喚醒工具:"
+
+msgid "Temporary host"
+msgstr "臨時主機"
 
 msgid "Wake on LAN"
 msgstr "LAN區網喚醒"
@@ -44,5 +48,25 @@ msgstr "Wol就是在本地網路中針對遠端開機電腦喚醒的機制"
 msgid "Wake up host"
 msgstr "喚醒主機"
 
-msgid "WoL program"
-msgstr "Wol喚醒程式"
+#~ msgid "Host to wake up"
+#~ msgstr "要喚醒主機清單"
+
+#~ msgid "Network interface to use"
+#~ msgstr "使用的網路介面"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr "某些時候全部工具裡面只有一個發生作用,試試另外一個"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "指定WoL喚醒封包將傳到哪個介面"
+
+#~ msgid "WoL program"
+#~ msgstr "Wol喚醒程式"
+
+#~ msgid "Select a host"
+#~ msgstr "選擇主機"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "從清單中選擇一台主機進行喚醒，無需儲存。"

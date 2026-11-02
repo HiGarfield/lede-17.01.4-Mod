@@ -17,23 +17,26 @@ msgstr ""
 "Välj värden som ska väckas upp eller fyll i en anpassad MAC-adress att "
 "använda"
 
-msgid "Host to wake up"
-msgstr "Värd som ska väckas upp"
+msgid "Hostname"
+msgstr "Värdnamn"
 
-msgid "Network interface to use"
-msgstr "Nätverksgränssnitt som ska användas"
+msgid "Hosts saved in the configuration."
+msgstr "Värdar sparade i konfigurationen."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Ibland så fungerar bara en av de två verktygen. Prova med den andra om den "
-"första misslyckades"
+msgid "Interface"
+msgstr "Gränssnitt"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Anger gränssnittet som fjärrstartspaketet skickas med"
+msgid "MAC address"
+msgstr "MAC-adress"
+
+msgid "Saved hosts"
+msgstr "Sparade värdar"
 
 msgid "Starting WoL utility:"
 msgstr "Startar hjälpprogrammet för fjärrstyrning av uppstart:"
+
+msgid "Temporary host"
+msgstr "Tillfällig värd"
 
 msgid "Wake on LAN"
 msgstr "Fjärrstyrning av uppstart"
@@ -47,5 +50,26 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Väck upp värden"
 
-msgid "WoL program"
-msgstr "Program för fjärrstart"
+#~ msgid "Host to wake up"
+#~ msgstr "Värd som ska väckas upp"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Nätverksgränssnitt som ska användas"
+
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Ibland så fungerar bara en av de två verktygen. Prova med den andra om "
+#~ "den första misslyckades"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Anger gränssnittet som fjärrstartspaketet skickas med"
+
+#~ msgid "WoL program"
+#~ msgstr "Program för fjärrstart"
+
+#~ msgid "Select a host"
+#~ msgstr "Välj en värd"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Välj en värd från listan för att väcka upp den utan att spara den."

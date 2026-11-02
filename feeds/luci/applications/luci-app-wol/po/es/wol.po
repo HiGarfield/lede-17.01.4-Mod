@@ -21,24 +21,26 @@ msgstr "Propagar en todas las interfaces"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Elija la máquina a despertar o introduzca su dirección MAC"
 
-msgid "Host to wake up"
-msgstr "Máquina a despertar"
+msgid "Hostname"
+msgstr "Nombre de host"
 
-msgid "Network interface to use"
-msgstr "Interfaz de red a utilizar"
+msgid "Hosts saved in the configuration."
+msgstr "Máquinas guardadas en la configuración."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"A veces, sólo se inicia una de las dos herramientas. Si una falla, intente "
-"con la otra"
+msgid "Interface"
+msgstr "Interfaz"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Especifica la interfaz donde se envían los paquetes WoL"
+msgid "MAC address"
+msgstr "Dirección MAC"
+
+msgid "Saved hosts"
+msgstr "Máquinas guardadas"
 
 msgid "Starting WoL utility:"
 msgstr "Iniciando utilidad WoL:"
+
+msgid "Temporary host"
+msgstr "Máquina temporal"
 
 # Wake on LAN es un término habitualmente utilizado en el español para referirse a esa misma función de encendido remoto a través de la red
 msgid "Wake on LAN"
@@ -53,5 +55,27 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Despertar máquina"
 
-msgid "WoL program"
-msgstr "Programa WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Máquina a despertar"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Interfaz de red a utilizar"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "A veces, sólo se inicia una de las dos herramientas. Si una falla, "
+#~ "intente con la otra"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Especifica la interfaz donde se envían los paquetes WoL"
+
+#~ msgid "WoL program"
+#~ msgstr "Programa WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Seleccione una máquina"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Seleccione una máquina de la lista para despertarla sin guardarla."

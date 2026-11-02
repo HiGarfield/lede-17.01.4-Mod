@@ -9,36 +9,49 @@ msgstr ""
 "Plural-Forms: nplurals=3; plural=(n==1) ? 0 : (n>=2 && n<=4) ? 1 : 2;\n"
 
 msgid "Broadcast on all interfaces"
-msgstr ""
+msgstr "Vysielať na všetky rozhrania"
 
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
+"Vyberte zariadenie na prebudenie alebo zadajte vlastnú MAC adresu"
 
-msgid "Host to wake up"
-msgstr ""
+msgid "Hostname"
+msgstr "Názov zariadenia"
 
-msgid "Network interface to use"
-msgstr ""
+msgid "Hosts saved in the configuration."
+msgstr "Zariadenia uložené v konfigurácii."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
+msgid "Interface"
+msgstr "Rozhranie"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
+msgid "MAC address"
+msgstr "MAC adresa"
+
+msgid "Saved hosts"
+msgstr "Uložené zariadenia"
 
 msgid "Starting WoL utility:"
-msgstr ""
+msgstr "Spúšťam nástroj WoL:"
+
+msgid "Temporary host"
+msgstr "Dočasné zariadenie"
 
 msgid "Wake on LAN"
-msgstr ""
+msgstr "Wake on LAN"
 
 msgid ""
 "Wake on LAN is a mechanism to remotely boot computers in the local network."
 msgstr ""
+"Wake on LAN je mechanizmus na vzdialené spustenie počítačov v miestnej sieti."
 
 msgid "Wake up host"
-msgstr ""
+msgstr "Prebudiť zariadenie"
 
-msgid "WoL program"
-msgstr ""
+#~ msgid "Host to wake up"
+#~ msgstr "Zariadenie na prebudenie"
+
+#~ msgid "Select a host"
+#~ msgstr "Vyberte zariadenie"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Vyberte zariadenie zo zoznamu a prebuďte ho bez uloženia."

@@ -14,36 +14,52 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
 msgid "Broadcast on all interfaces"
-msgstr ""
+msgstr "Μετάδοση σε όλες τις διεπαφές"
 
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
+"Επιλέξτε υπολογιστή προς αφύπνιση ή εισαγάγετε προσαρμοσμένη διεύθυνση MAC"
 
-msgid "Host to wake up"
-msgstr ""
+msgid "Hostname"
+msgstr "Όνομα υπολογιστή"
 
-msgid "Network interface to use"
-msgstr ""
+msgid "Hosts saved in the configuration."
+msgstr "Υπολογιστές που είναι αποθηκευμένοι στη διαμόρφωση."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
+msgid "Interface"
+msgstr "Διεπαφή"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
+msgid "MAC address"
+msgstr "Διεύθυνση MAC"
+
+msgid "Saved hosts"
+msgstr "Αποθηκευμένοι υπολογιστές"
 
 msgid "Starting WoL utility:"
-msgstr ""
+msgstr "Εκκίνηση βοηθήματος WoL:"
+
+msgid "Temporary host"
+msgstr "Προσωρινός υπολογιστής"
 
 msgid "Wake on LAN"
-msgstr ""
+msgstr "Αφύπνιση μέσω LAN"
 
 msgid ""
 "Wake on LAN is a mechanism to remotely boot computers in the local network."
 msgstr ""
+"Το Wake on LAN είναι ένας μηχανισμός για την απομακρυσμένη εκκίνηση "
+"υπολογιστών στο τοπικό δίκτυο."
 
 msgid "Wake up host"
-msgstr ""
+msgstr "Αφύπνιση υπολογιστή"
 
-msgid "WoL program"
-msgstr ""
+#~ msgid "Host to wake up"
+#~ msgstr "Υπολογιστής προς αφύπνιση"
+
+#~ msgid "Select a host"
+#~ msgstr "Επιλέξτε υπολογιστή"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr ""
+#~ "Επιλέξτε έναν υπολογιστή από τη λίστα για να τον αφυπνίσετε χωρίς "
+#~ "αποθήκευση."

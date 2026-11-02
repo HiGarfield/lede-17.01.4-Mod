@@ -21,24 +21,26 @@ msgstr "Vysílat broadcastem na všech rozhraních"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Vyberte zařízení, které má být probuzeno, nebo zadejte jeho MAC adresu"
 
-msgid "Host to wake up"
-msgstr "Adresa zařízení, které má být probuzeno"
+msgid "Hostname"
+msgstr "Název hostitele"
 
-msgid "Network interface to use"
-msgstr "Použité síťové rozhraní"
+msgid "Hosts saved in the configuration."
+msgstr "Zařízení uložená v konfiguraci."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Může se stát, že pro dané cílové zařízení bude fungovat pouze jeden z "
-"programů. Pokud první selže, vyzkoušejte další."
+msgid "Interface"
+msgstr "Rozhraní"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Zde se nastaví síťové rozhraní, přes které budou zasílány WoL packety."
+msgid "MAC address"
+msgstr "MAC adresa"
+
+msgid "Saved hosts"
+msgstr "Uložená zařízení"
 
 msgid "Starting WoL utility:"
 msgstr "Spouštím nástroj WoL:"
+
+msgid "Temporary host"
+msgstr "Dočasné zařízení"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -51,5 +53,29 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Probudit zařízení"
 
-msgid "WoL program"
-msgstr "Program provádějící WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Adresa zařízení, které má být probuzeno"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Použité síťové rozhraní"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Může se stát, že pro dané cílové zařízení bude fungovat pouze jeden z "
+#~ "programů. Pokud první selže, vyzkoušejte další."
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr ""
+#~ "Zde se nastaví síťové rozhraní, přes které budou zasílány WoL packety."
+
+#~ msgid "WoL program"
+#~ msgstr "Program provádějící WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Vyberte zařízení"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr ""
+#~ "Vyberte zařízení ze seznamu a probudte jej bez uložení do konfigurace."

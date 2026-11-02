@@ -23,24 +23,26 @@ msgstr ""
 "Trieu el host per a despertar o introduïu una adreça MAC personalitzada per "
 "a utilitzar"
 
-msgid "Host to wake up"
-msgstr "Host per a despertar"
+msgid "Hostname"
+msgstr "Nom de l'host"
 
-msgid "Network interface to use"
-msgstr "Interfície de xarxa per a utilitzar"
+msgid "Hosts saved in the configuration."
+msgstr "Hosts desats a la configuració."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"A vegades, només una de les dues eines funciona. Si un dels falla, prova la "
-"altra."
+msgid "Interface"
+msgstr "Interfície"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Especifica la interfície en que s'envia el paquet WoL"
+msgid "MAC address"
+msgstr "Adreça MAC"
+
+msgid "Saved hosts"
+msgstr "Hosts desats"
 
 msgid "Starting WoL utility:"
 msgstr "Iniciant la utilitat WoL:"
+
+msgid "Temporary host"
+msgstr "Host temporal"
 
 msgid "Wake on LAN"
 msgstr "Despert en LAN"
@@ -54,5 +56,27 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Desperta al host"
 
-msgid "WoL program"
-msgstr "Programa WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Host per a despertar"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Interfície de xarxa per a utilitzar"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "A vegades, només una de les dues eines funciona. Si un dels falla, prova "
+#~ "la altra."
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Especifica la interfície en que s'envia el paquet WoL"
+
+#~ msgid "WoL program"
+#~ msgstr "Programa WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Seleccioneu un host"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Seleccioneu un host de la llista per a despertar-lo sense desar-lo."

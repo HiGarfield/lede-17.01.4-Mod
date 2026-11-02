@@ -14,36 +14,48 @@ msgstr ""
 "Plural-Forms: nplurals=1; plural=0;\n"
 
 msgid "Broadcast on all interfaces"
-msgstr ""
+msgstr "Phát sóng trên tất cả giao diện"
 
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr ""
+"Chọn máy cần đánh thức hoặc nhập địa chỉ MAC tùy chỉnh"
 
-msgid "Host to wake up"
-msgstr ""
+msgid "Hostname"
+msgstr "Tên máy"
 
-msgid "Network interface to use"
-msgstr ""
+msgid "Hosts saved in the configuration."
+msgstr "Các máy được lưu trong cấu hình."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
+msgid "Interface"
+msgstr "Giao diện"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
+msgid "MAC address"
+msgstr "Địa chỉ MAC"
+
+msgid "Saved hosts"
+msgstr "Máy đã lưu"
 
 msgid "Starting WoL utility:"
-msgstr ""
+msgstr "Khởi chạy tiện ích WoL:"
+
+msgid "Temporary host"
+msgstr "Máy tạm thời"
 
 msgid "Wake on LAN"
-msgstr ""
+msgstr "Wake on LAN"
 
 msgid ""
 "Wake on LAN is a mechanism to remotely boot computers in the local network."
-msgstr ""
+msgstr "Wake on LAN là cơ chế khởi động máy tính trong mạng cục bộ từ xa."
 
 msgid "Wake up host"
-msgstr ""
+msgstr "Đánh thức máy"
 
-msgid "WoL program"
-msgstr ""
+#~ msgid "Host to wake up"
+#~ msgstr "Máy cần đánh thức"
+
+#~ msgid "Select a host"
+#~ msgstr "Chọn một máy"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Chọn một máy từ danh sách để đánh thức mà không cần lưu lại."

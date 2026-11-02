@@ -23,25 +23,26 @@ msgstr ""
 "Válassza ki a felélesztendő gépet, vagy adja meg a haszálandó egyedi MAC "
 "címet"
 
-msgid "Host to wake up"
-msgstr "Felélesztendő gép"
+msgid "Hostname"
+msgstr "Gépnév"
 
-msgid "Network interface to use"
-msgstr "Használandó interfész"
+msgid "Hosts saved in the configuration."
+msgstr "A konfigurációban mentett gépek."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Néha csak az egyik eszköz működik. Ha valamelyik nem működik, próbálja ki a "
-"másikat."
+msgid "Interface"
+msgstr "Interfész"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr ""
-"Megadja azt az interfészt amelyiken keresztül a WoL csomag kiküldésre kerül"
+msgid "MAC address"
+msgstr "MAC-cím"
+
+msgid "Saved hosts"
+msgstr "Mentett gépek"
 
 msgid "Starting WoL utility:"
 msgstr "WoL segédprogram elindítása:"
+
+msgid "Temporary host"
+msgstr "Ideiglenes gép"
 
 msgid "Wake on LAN"
 msgstr "Felélesztés hálózaton keresztül"
@@ -55,5 +56,29 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Gép felélesztése"
 
-msgid "WoL program"
-msgstr "WoL program"
+#~ msgid "Host to wake up"
+#~ msgstr "Felélesztendő gép"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Használandó interfész"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Néha csak az egyik eszköz működik. Ha valamelyik nem működik, próbálja ki "
+#~ "a másikat."
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr ""
+#~ "Megadja azt az interfészt amelyiken keresztül a WoL csomag kiküldésre "
+#~ "kerül"
+
+#~ msgid "WoL program"
+#~ msgstr "WoL program"
+
+#~ msgid "Select a host"
+#~ msgstr "Válasszon egy gépet"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Válasszon ki egy gépet a listából az elindításához mentés nélkül."

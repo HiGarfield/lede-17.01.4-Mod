@@ -24,24 +24,26 @@ msgstr ""
 "Виберіть комп'ютер, який необхідно розбудити або введіть користувацьку MAC-"
 "адресу"
 
-msgid "Host to wake up"
-msgstr "Комп'ютер, який необхідно розбудити"
+msgid "Hostname"
+msgstr "Ім'я хоста"
 
-msgid "Network interface to use"
-msgstr "Використовувати мережевий інтерфейс"
+msgid "Hosts saved in the configuration."
+msgstr "Хости, збережені в конфігурації."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Іноді працює тільки одна з цих двох утиліт. Якщо одна з них не працює, "
-"спробуйте іншу."
+msgid "Interface"
+msgstr "Інтерфейс"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Визначає інтерфейс, яким буде надіслано пакет WoL"
+msgid "MAC address"
+msgstr "MAC-адреса"
+
+msgid "Saved hosts"
+msgstr "Збережені хости"
 
 msgid "Starting WoL utility:"
 msgstr "Запуск утиліти WoL:"
+
+msgid "Temporary host"
+msgstr "Тимчасовий хост"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -55,5 +57,27 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Розбудити комп'ютер"
 
-msgid "WoL program"
-msgstr "Программа WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Комп'ютер, який необхідно розбудити"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Використовувати мережевий інтерфейс"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Іноді працює тільки одна з цих двох утиліт. Якщо одна з них не працює, "
+#~ "спробуйте іншу."
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Визначає інтерфейс, яким буде надіслано пакет WoL"
+
+#~ msgid "WoL program"
+#~ msgstr "Программа WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Виберіть хост"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Виберіть хост зі списку, щоб розбудити його без збереження."

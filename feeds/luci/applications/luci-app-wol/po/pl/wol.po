@@ -22,24 +22,26 @@ msgstr "Rozgłaszaj na wszystkie interfejsy"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Wybierz hosta z listy lub podaj adres MAC maszyny do wybudzenia"
 
-msgid "Host to wake up"
-msgstr "Host do wybudzenia"
+msgid "Hostname"
+msgstr "Nazwa hosta"
 
-msgid "Network interface to use"
-msgstr "Użyty interfejs sieciowy"
+msgid "Hosts saved in the configuration."
+msgstr "Hosty zapisane w konfiguracji."
 
-#, fuzzy
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Czasem działa tylko jedno z narzędzi. Jeżeli jedno z nich nie zadziała, "
-"proszę użyć drugiego."
+msgid "Interface"
+msgstr "Interfejs"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Definiuje interfejs, na który będzie wysłany pakiet WoL"
+msgid "MAC address"
+msgstr "Adres MAC"
+
+msgid "Saved hosts"
+msgstr "Zapisane hosty"
 
 msgid "Starting WoL utility:"
 msgstr "Uruchamianie narzędzia WoL:"
+
+msgid "Temporary host"
+msgstr "Host tymczasowy"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -53,5 +55,27 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Wybudź hosta"
 
-msgid "WoL program"
-msgstr "Narzędzie WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Host do wybudzenia"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Użyty interfejs sieciowy"
+
+#, fuzzy
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Czasem działa tylko jedno z narzędzi. Jeżeli jedno z nich nie zadziała, "
+#~ "proszę użyć drugiego."
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Definiuje interfejs, na który będzie wysłany pakiet WoL"
+
+#~ msgid "WoL program"
+#~ msgstr "Narzędzie WoL"
+
+#~ msgid "Select a host"
+#~ msgstr "Wybierz hosta"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Wybierz hosta z listy, aby go wybudzić bez zapisywania."

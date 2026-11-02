@@ -21,23 +21,26 @@ msgstr "Broadcast em todas as interfaces"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "Escolha o computador para acordar ou entre com um endereço MAC"
 
-msgid "Host to wake up"
-msgstr "Computador para acordar"
+msgid "Hostname"
+msgstr "Nome do computador"
 
-msgid "Network interface to use"
-msgstr "Interfaces de rede para usar"
+msgid "Hosts saved in the configuration."
+msgstr "Computadores salvos na configuração."
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"Algumas vezes, somente uma das duas ferramentas funciona. Se uma delas "
-"falhar, tente a outra"
+msgid "Interface"
+msgstr "Interface"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "Especifica a interface para onde os pacotes de WoL serão enviados"
+msgid "MAC address"
+msgstr "Endereço MAC"
+
+msgid "Saved hosts"
+msgstr "Computadores salvos"
 
 msgid "Starting WoL utility:"
 msgstr "Iniciando utilitário WoL:"
+
+msgid "Temporary host"
+msgstr "Computador temporário"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -51,8 +54,29 @@ msgstr ""
 msgid "Wake up host"
 msgstr "Acorda um computador"
 
-msgid "WoL program"
-msgstr "Programa WoL"
+#~ msgid "Host to wake up"
+#~ msgstr "Computador para acordar"
+
+#~ msgid "Network interface to use"
+#~ msgstr "Interfaces de rede para usar"
+
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "Algumas vezes, somente uma das duas ferramentas funciona. Se uma delas "
+#~ "falhar, tente a outra"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "Especifica a interface para onde os pacotes de WoL serão enviados"
+
+#~ msgid "WoL program"
+#~ msgstr "Programa WoL"
 
 #~ msgid "Send to broadcast address"
 #~ msgstr "Enviar para o endereço de broadcast"
+
+#~ msgid "Select a host"
+#~ msgstr "Selecione um computador"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "Selecione um computador da lista para acordá-lo sem salvá-lo."

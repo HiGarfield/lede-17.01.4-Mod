@@ -21,23 +21,26 @@ msgstr "全てのインターフェースへブロードキャスト"
 msgid "Choose the host to wake up or enter a custom MAC address to use"
 msgstr "起動するホストのMACアドレスを選択または入力してください"
 
-msgid "Host to wake up"
-msgstr "起動するホストを指定"
+msgid "Hostname"
+msgstr "ホスト名"
 
-msgid "Network interface to use"
-msgstr "使用するネットワークインターフェース"
+msgid "Hosts saved in the configuration."
+msgstr "設定に保存されているホストです。"
 
-msgid ""
-"Sometimes only one of the two tools works. If one fails, try the other one"
-msgstr ""
-"片方のツールのみが動作する場合があるため、片方が失敗する場合は別のツールを試"
-"してみてください。"
+msgid "Interface"
+msgstr "インターフェース"
 
-msgid "Specifies the interface the WoL packet is sent on"
-msgstr "WoLパケットを送信するインタフェースを指定"
+msgid "MAC address"
+msgstr "MACアドレス"
+
+msgid "Saved hosts"
+msgstr "保存済みホスト"
 
 msgid "Starting WoL utility:"
 msgstr "WoLユーティリティを起動:"
+
+msgid "Temporary host"
+msgstr "一時ホスト"
 
 msgid "Wake on LAN"
 msgstr "Wake on LAN"
@@ -51,8 +54,29 @@ msgstr ""
 msgid "Wake up host"
 msgstr "ホストを起動"
 
-msgid "WoL program"
-msgstr "WoLプログラム"
+#~ msgid "Host to wake up"
+#~ msgstr "起動するホストを指定"
+
+#~ msgid "Network interface to use"
+#~ msgstr "使用するネットワークインターフェース"
+
+#~ msgid ""
+#~ "Sometimes only one of the two tools works. If one fails, try the other one"
+#~ msgstr ""
+#~ "片方のツールのみが動作する場合があるため、片方が失敗する場合は別のツールを"
+#~ "試してみてください。"
+
+#~ msgid "Specifies the interface the WoL packet is sent on"
+#~ msgstr "WoLパケットを送信するインタフェースを指定"
+
+#~ msgid "WoL program"
+#~ msgstr "WoLプログラム"
 
 #~ msgid "Send to broadcast address"
 #~ msgstr "ブロードキャスト アドレスに送信する"
+
+#~ msgid "Select a host"
+#~ msgstr "ホストを選択"
+
+#~ msgid "Select a host from the list to wake it up without saving it."
+#~ msgstr "リストからホストを選択して、保存せずに起動します。"
