@@ -414,8 +414,16 @@ nand_upgrade_stage1() {
 		[ "$SAVE_CONFIG" != 1 -a -f "$CONF_TAR" ] &&
 			rm $CONF_TAR
 
-		ubus call system nandupgrade "{\"path\": \"$path\" }"
-		exit 0
+		if ubus call system nandupgrade "{\"path\": \"$path\" }" >/dev/null 2>&1; then
+			exit 0
+		fi
+
+		# Fallback for transient/missing ubus nandupgrade handling in procd:
+		# keep upgrading in the current ramfs context instead of returning a
+		# false success that leaves the old firmware in place.
+		echo "nandupgrade ubus call failed, falling back to direct stage2"
+		nand_upgrade_stage2 nand "$path"
+		exit $?
 	}
 }
 
