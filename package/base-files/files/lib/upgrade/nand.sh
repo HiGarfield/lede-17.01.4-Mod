@@ -414,6 +414,13 @@ nand_upgrade_stage1() {
 		[ "$SAVE_CONFIG" != 1 -a -f "$CONF_TAR" ] &&
 			rm $CONF_TAR
 
+		# NAND upgrades short-circuit the normal sysupgrade flow by returning from
+		# platform_pre_upgrade() before the generic "ubus call system upgrade" is
+		# reached.  Set the legacy upgrade guard here so procd suppresses respawns
+		# while the handoff is in progress.  This is required for boards such as
+		# EA8100, otherwise services restart and the box reboots into the old image.
+		ubus call system upgrade >/dev/null 2>&1 || :
+
 		if ubus call system nandupgrade "{\"path\": \"$path\" }" >/dev/null 2>&1; then
 			exit 0
 		fi
