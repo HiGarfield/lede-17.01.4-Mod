@@ -112,6 +112,68 @@ nand_restore_config() {
 	rmdir /tmp/new_root
 }
 
+nand_remove_ubiblock() {
+	local ubivol="$1"
+	local ubiblk="ubiblock${ubivol:3}"
+
+	[ -e "/dev/$ubiblk" ] || return 0
+
+	echo "removing $ubiblk"
+
+	# A mount of the block device survives a lazy umount and keeps the
+	# volume busy, so detach it explicitly before removing the ubiblock.
+	umount "/dev/$ubiblk" 2>/dev/null || :
+
+	if ! ubiblock -r "/dev/$ubivol"; then
+		echo "cannot remove $ubiblk"
+		return 1
+	fi
+
+	return 0
+}
+
+# Unmount every volume of the given ubi device and remove their ubiblocks.
+# Must be called before the first write, otherwise a still mounted volume
+# makes ubiblock -r / ubirmvol fail with EBUSY halfway through the upgrade.
+nand_release_ubi_volumes() { # [ <ubi partition> ]
+	local ubipart="${1:-$CI_UBIPART}"
+	local ubidev="$( nand_find_ubi "$ubipart" )"
+	local ubinode ubivol
+
+	[ -n "$ubidev" ] || return 0
+
+	for ubinode in /dev/"${ubidev}"_*; do
+		[ -e "$ubinode" ] || continue
+		ubivol="${ubinode##*/}"
+		nand_remove_ubiblock "$ubivol" || return 1
+		umount "/dev/$ubivol" 2>/dev/null || :
+	done
+
+	return 0
+}
+
+nand_detach_ubi() { # <ubi partition>
+	local ubipart="$1"
+	local mtdnum="$( find_mtd_index "$ubipart" )"
+	local ubidev
+
+	if [ ! "$mtdnum" ]; then
+		echo "cannot find ubi mtd partition $ubipart"
+		return 1
+	fi
+
+	ubidev="$( nand_find_ubi "$ubipart" )"
+	if [ -n "$ubidev" ]; then
+		nand_release_ubi_volumes "$ubipart" || return 1
+		if ! ubidetach -m "$mtdnum"; then
+			echo "cannot detach ubi mtd partition $ubipart"
+			return 1
+		fi
+	fi
+
+	return 0
+}
+
 nand_upgrade_prepare_ubi() {
 	local rootfs_length="$1"
 	local rootfs_type="$2"
@@ -219,7 +281,11 @@ nand_upgrade_ubinized() {
 	fi
 
 	local mtddev="/dev/mtd${mtdnum}"
-	ubidetach -p "${mtddev}" || true
+
+	# Unmount the volumes of the target ubi device before detaching it,
+	# otherwise ubidetach fails while they are still mounted.
+	nand_detach_ubi "$CI_UBIPART" || return 1
+
 	sync
 	ubiformat "${mtddev}" -y -f "${ubi_file}"
 	ubiattach -p "${mtddev}"
@@ -230,7 +296,7 @@ nand_upgrade_ubinized() {
 nand_upgrade_ubifs() {
 	local rootfs_length=`(cat $1 | wc -c) 2> /dev/null`
 
-	nand_upgrade_prepare_ubi "$rootfs_length" "ubifs" "0" "0"
+	nand_upgrade_prepare_ubi "$rootfs_length" "ubifs" "0" "0" || return 1
 	
 	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
 	local root_ubivol="$(nand_find_volume $ubidev rootfs)"
@@ -266,7 +332,9 @@ nand_upgrade_tar() {
 	}
 	[ "$kernel_length" = 0 -o ! -z "$kernel_mtd" ] && has_kernel=0
 
-	nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env"
+	# Abort instead of writing into volumes which were only partially
+	# prepared.
+	nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env" || return 1
 
 	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
 	[ "$has_kernel" = "1" ] && {
@@ -291,6 +359,14 @@ nand_do_upgrade_stage2() {
 	fi
 
 	[ ! "$(find_mtd_index "$CI_UBIPART")" ] && CI_UBIPART="rootfs"
+
+	# Release every mount of the target ubi device before the first write.
+	# A volume which is still in use makes ubiblock -r / ubirmvol fail and
+	# would abort the upgrade after the kernel has already been written.
+	if ! nand_release_ubi_volumes; then
+		echo "cannot release ubi volumes, aborting upgrade"
+		return 1
+	fi
 
 	case "$file_type" in
 		"ubi")		nand_upgrade_ubinized $1;;

@@ -46,6 +46,29 @@ supivot() { # <new_root> <old_root>
 	return 0
 }
 
+# Unmount all filesystems mounted at or below the given directories.
+# /mnt is reused as the mount point for the old root by supivot(), so any
+# mount left below it (e.g. auto-mounted USB disks) would survive the
+# switch to the ramfs, hide behind the old root and keep its backing
+# devices busy while the firmware is written.
+umount_mounts() { # <dir> [ <dir> ... ]
+	local dir mountpoint
+
+	for dir in "$@"; do
+		sync
+		awk -v dir="$dir" '
+			$2 == dir || index($2, dir "/") == 1 { print $2 }
+		' /proc/mounts 2>/dev/null | sort -r | while read -r mountpoint; do
+			v "Unmounting $mountpoint ..."
+			umount "$mountpoint" 2>/dev/null && continue
+			sync
+			umount "$mountpoint" 2>/dev/null && continue
+			umount -l "$mountpoint" 2>/dev/null && continue
+			echo "Failed to unmount $mountpoint"
+		done
+	done
+}
+
 run_ramfs() { # <command> [...]
 	install_bin /bin/busybox /bin/ash /bin/sh /bin/mount /bin/umount	\
 		/sbin/pivot_root /sbin/reboot /bin/sync /bin/dd	/bin/grep       \
@@ -78,6 +101,11 @@ run_ramfs() { # <command> [...]
 	install_file /etc/resolv.conf /lib/*.sh /lib/functions/*.sh /lib/upgrade/*.sh $RAMFS_COPY_DATA
 
 	[ -L "/lib64" ] && ln -s /lib $RAM_ROOT/lib64
+
+	# Release filesystems mounted below the directories reused by supivot,
+	# otherwise the old root cannot be torn down completely and the NAND
+	# upgrade cannot remove the ubiblock / ubi volumes of the old rootfs.
+	umount_mounts /mnt /tmp/mnt
 
 	supivot $RAM_ROOT /mnt || {
 		echo "Failed to switch over to ramfs. Please reboot."
