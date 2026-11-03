@@ -380,6 +380,11 @@ nand_upgrade_stage2() {
 		[ -f "$2" ] && {
 			touch /tmp/sysupgrade
 
+			# Tell procd we are in an upgrade so daemon respawns are suppressed;
+			# otherwise services restart while the UBI rootfs is still mounted and
+			# the NAND write aborts with the old firmware left in place.
+			ubus call system upgrade >/dev/null 2>&1 || :
+
 			killall -9 telnetd
 			killall -9 dropbear
 			killall -9 ash
