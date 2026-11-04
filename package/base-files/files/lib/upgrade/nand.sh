@@ -148,18 +148,41 @@ nand_upgrade_prepare_ubi() {
 
 	# remove ubiblock device of rootfs
 	local root_ubiblk="ubiblock${root_ubivol:3}"
+	local try removed=0 name vol
 	if [ "$root_ubivol" -a -e "/dev/$root_ubiblk" ]; then
 		echo "removing $root_ubiblk"
-		if ! ubiblock -r /dev/$root_ubivol; then
+		# The last reference to the old root is dropped asynchronously,
+		# so keep trying while the kernel releases it.  Do not hide the
+		# error from ubiblock: a busy device is the only clue that a
+		# process is still holding the old root.
+		for try in 1 2 3 4 5 6 7 8 9 10; do
+			umount "/dev/$root_ubiblk" 2>/dev/null
+			if ubiblock -r "/dev/$root_ubivol"; then
+				removed=1
+				break
+			fi
+			[ "$try" -lt 10 ] && sleep 1
+		done
+		[ "$removed" = 1 ] || {
 			echo "cannot remove $root_ubiblk"
-			return 1;
-		fi
+			return 1
+		}
 	fi
 
-	# kill volumes
-	[ "$kern_ubivol" ] && ubirmvol /dev/$ubidev -N kernel || true
-	[ "$root_ubivol" ] && ubirmvol /dev/$ubidev -N rootfs || true
-	[ "$data_ubivol" ] && ubirmvol /dev/$ubidev -N rootfs_data || true
+	# kill volumes: a busy volume must abort the upgrade here, before any
+	# image data is written, instead of being silently ignored.
+	for name in kernel rootfs rootfs_data; do
+		case "$name" in
+			kernel) vol="$kern_ubivol" ;;
+			rootfs) vol="$root_ubivol" ;;
+			rootfs_data) vol="$data_ubivol" ;;
+		esac
+		[ -n "$vol" ] || continue
+		ubirmvol /dev/$ubidev -N "$name" || {
+			echo "cannot remove $name volume"
+			return 1
+		}
+	done
 
 	# update kernel
 	if [ "$has_kernel" = "1" ]; then
@@ -221,8 +244,14 @@ nand_upgrade_ubinized() {
 	local mtddev="/dev/mtd${mtdnum}"
 	ubidetach -p "${mtddev}" || true
 	sync
-	ubiformat "${mtddev}" -y -f "${ubi_file}"
-	ubiattach -p "${mtddev}"
+	ubiformat "${mtddev}" -y -f "${ubi_file}" || {
+		echo "cannot write ubi image, upgrade aborted"
+		return 1
+	}
+	ubiattach -p "${mtddev}" || {
+		echo "cannot reattach ubi device"
+		return 1
+	}
 	nand_do_upgrade_success
 }
 
@@ -230,11 +259,17 @@ nand_upgrade_ubinized() {
 nand_upgrade_ubifs() {
 	local rootfs_length=`(cat $1 | wc -c) 2> /dev/null`
 
-	nand_upgrade_prepare_ubi "$rootfs_length" "ubifs" "0" "0"
-	
+	if ! nand_upgrade_prepare_ubi "$rootfs_length" "ubifs" "0" "0"; then
+		echo "cannot prepare ubi volumes, aborting upgrade"
+		return 1
+	fi
+
 	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
 	local root_ubivol="$(nand_find_volume $ubidev rootfs)"
-	ubiupdatevol /dev/$root_ubivol -s $rootfs_length $1
+	ubiupdatevol /dev/$root_ubivol -s $rootfs_length $1 || {
+		echo "cannot write rootfs volume, upgrade aborted"
+		return 1
+	}
 
 	nand_do_upgrade_success
 }
@@ -261,23 +296,39 @@ nand_upgrade_tar() {
 	local has_kernel=1
 	local has_env=0
 
-	[ "$kernel_length" != 0 -a -n "$kernel_mtd" ] && {
-		tar xf $tar_file sysupgrade-$board_name/kernel -O | mtd write - $CI_KERNPART
-	}
 	[ "$kernel_length" = 0 -o ! -z "$kernel_mtd" ] && has_kernel=0
 
-	nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env"
+	# Release the ubi volumes and create the new ones before anything is
+	# written: when the volumes are still busy this aborts here, instead
+	# of leaving the box with a new kernel and the old rootfs.
+	if ! nand_upgrade_prepare_ubi "$rootfs_length" "$rootfs_type" "$has_kernel" "$has_env"; then
+		echo "cannot prepare ubi volumes, aborting upgrade"
+		return 1
+	fi
+
+	[ "$kernel_length" != 0 -a -n "$kernel_mtd" ] && {
+		tar xf $tar_file sysupgrade-$board_name/kernel -O | mtd write - $CI_KERNPART || {
+			echo "cannot write kernel partition"
+			return 1
+		}
+	}
 
 	local ubidev="$( nand_find_ubi "$CI_UBIPART" )"
 	[ "$has_kernel" = "1" ] && {
 		local kern_ubivol="$(nand_find_volume $ubidev kernel)"
 	 	tar xf $tar_file sysupgrade-$board_name/kernel -O | \
-			ubiupdatevol /dev/$kern_ubivol -s $kernel_length -
+			ubiupdatevol /dev/$kern_ubivol -s $kernel_length - || {
+			echo "cannot write kernel volume"
+			return 1
+		}
 	}
 
 	local root_ubivol="$(nand_find_volume $ubidev rootfs)"
 	tar xf $tar_file sysupgrade-$board_name/root -O | \
-		ubiupdatevol /dev/$root_ubivol -s $rootfs_length -
+		ubiupdatevol /dev/$root_ubivol -s $rootfs_length - || {
+		echo "cannot write rootfs volume, upgrade aborted"
+		return 1
+	}
 
 	nand_do_upgrade_success
 }
@@ -293,10 +344,62 @@ nand_do_upgrade_stage2() {
 	[ ! "$(find_mtd_index "$CI_UBIPART")" ] && CI_UBIPART="rootfs"
 
 	case "$file_type" in
-		"ubi")		nand_upgrade_ubinized $1;;
-		"ubifs")	nand_upgrade_ubifs $1;;
-		*)		nand_upgrade_tar $1;;
+		"ubi")		nand_upgrade_ubinized "$1" || return 1;;
+		"ubifs")	nand_upgrade_ubifs "$1" || return 1;;
+		*)		nand_upgrade_tar "$1" || return 1;;
 	esac
+}
+
+# Number of user space processes which are still alive, excluding this shell
+# and PID 1 (the upgraded binary).
+nand_processes_left() {
+	local pid n=0
+
+	for pid in /proc/[0-9]*; do
+		pid="${pid#/proc/}"
+		[ "$pid" = "$$" ] && continue
+		[ "$pid" = "1" ] && continue
+		[ -n "$(readlink /proc/$pid/exe 2>/dev/null)" ] || continue
+		n=$((n + 1))
+	done
+
+	echo $n
+}
+
+# Ask the remaining processes to exit and give them time to finish their I/O
+# before escalating to SIGKILL.  A daemon which is writing to the USB disks or
+# to the overlay and is killed mid-flight can end up in uninterruptible I/O:
+# it survives SIGKILL, keeps its files open and therefore keeps the old root -
+# and with it ubiblock0_0 and the ubi volumes - busy.  That is exactly the
+# "cannot remove block device (Resource busy)" failure.
+nand_stop_processes() {
+	local i
+
+	kill_remaining TERM
+
+	i=0
+	while [ "$i" -lt 15 ]; do
+		[ "$(nand_processes_left)" -eq 0 ] && break
+		sleep 1
+		i=$((i + 1))
+	done
+
+	[ "$(nand_processes_left)" -gt 0 ] && {
+		echo "processes still running, sending SIGKILL"
+		kill_remaining KILL
+
+		i=0
+		while [ "$i" -lt 5 ]; do
+			[ "$(nand_processes_left)" -eq 0 ] && break
+			sleep 1
+			i=$((i + 1))
+		done
+	}
+
+	[ "$(nand_processes_left)" -gt 0 ] &&
+		echo "warning: $(nand_processes_left) processes did not exit"
+
+	sync
 }
 
 nand_upgrade_stage2() {
@@ -304,21 +407,19 @@ nand_upgrade_stage2() {
 		[ -f "$2" ] && {
 			touch /tmp/sysupgrade
 
-			killall -9 telnetd
-			killall -9 dropbear
-			killall -9 ash
-
-			kill_remaining TERM
-			sleep 3
-			kill_remaining KILL
-
-			sleep 1
+			nand_stop_processes
 
 			if [ -n "$(rootfs_type)" ]; then
 				v "Switching to ramdisk..."
-				run_ramfs ". /lib/functions.sh; include /lib/upgrade; nand_do_upgrade_stage2 $2"
+				# run_ramfs() ends in exec and never returns.  Failures of
+				# nand_do_upgrade_stage2() are reported by the ramfs shell;
+				# its exit status makes upgraded reboot the box.
+				run_ramfs --release-old-root ". /lib/functions.sh; include /lib/upgrade; nand_do_upgrade_stage2 $2"
 			else
-				nand_do_upgrade_stage2 $2
+				nand_do_upgrade_stage2 "$2" || {
+					echo "Nand upgrade failed"
+					exit 1
+				}
 			fi
 			return 0
 		}

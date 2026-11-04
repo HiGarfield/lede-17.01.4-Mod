@@ -278,7 +278,22 @@ platform_pre_upgrade() {
 		ea7500-v2|\
 		ea8100-v1|\
     	ubnt-erx)
+		# Stop the services while procd and ubus are still available.
+		# The NAND stage replaces procd with /tmp/upgraded, after which
+		# only signals can be sent - and a daemon blocked in I/O keeps
+		# the old root (ubiblock0_0) busy even when it is killed.
+		v "Stopping services before the NAND upgrade ..."
+		stop_services
+
 		nand_do_upgrade "$ARGV"
+
+		# nand_upgrade_stage1() exits right after the ubus call, so any
+		# return means the NAND stage was never started.  Never fall
+		# through to the regular flash path here: writing a NAND image
+		# to the firmware partition would brick the device.
+		echo "Upgrade could not be started, restoring services"
+		start_services
+		exit 1
 		;;
 	esac
 }
