@@ -36,14 +36,14 @@ ifneq ($(CONFIG_DEFAULT_WITHOUT_NAS_PACKAGES),1)
 DEFAULT_PACKAGES += block-mount automount fdisk lsblk \
 luci-app-usb-printer luci-app-vsftpd \
 luci-app-hd-idle luci-app-aria2 ariang \
-luci-app-transmission luci-app-samba
+luci-app-transmission transmission-web-jianxcao luci-app-samba
 endif
 
 # For nas targets
 DEFAULT_PACKAGES.nas:=block-mount automount fdisk lsblk \
 mdadm luci-app-usb-printer luci-app-vsftpd \
 luci-app-hd-idle luci-app-aria2 ariang \
-luci-app-transmission luci-app-samba
+luci-app-transmission transmission-web-jianxcao luci-app-samba
 
 # For router targets
 DEFAULT_PACKAGES.router:=-wpad-mini -wpad wpad-mesh-openssl dnsmasq-full odhcpd-ipv6only iptables \
