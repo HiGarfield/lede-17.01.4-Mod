@@ -442,6 +442,7 @@ CONFIG_DEFAULT_opkg=y
 CONFIG_DEFAULT_ppp=y
 CONFIG_DEFAULT_ppp-mod-pppoe=y
 CONFIG_DEFAULT_swconfig=y
+CONFIG_DEFAULT_transmission-web-jianxcao=y
 CONFIG_DEFAULT_uboot-envtools=y
 CONFIG_DEFAULT_uci=y
 CONFIG_DEFAULT_uclient-fetch=y
@@ -3839,7 +3840,8 @@ CONFIG_POSTFIX_CDB=y
 CONFIG_PACKAGE_transmission-daemon=y
 # CONFIG_PACKAGE_transmission-remote is not set
 # CONFIG_PACKAGE_transmission-web is not set
-CONFIG_PACKAGE_transmission-web-control=y
+# CONFIG_PACKAGE_transmission-web-control is not set
+CONFIG_PACKAGE_transmission-web-jianxcao=y
 
 #
 # Captive Portals
