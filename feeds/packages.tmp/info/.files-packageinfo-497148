@@ -562,6 +562,7 @@ net/tinyproxy
 net/tor
 net/transmission
 net/transmission-web-control
+net/transmission-web-jianxcao
 net/travelmate
 net/u2pnpd
 net/uanytun
