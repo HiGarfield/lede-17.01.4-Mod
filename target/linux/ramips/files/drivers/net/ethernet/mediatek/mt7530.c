@@ -990,9 +990,19 @@ static int mt7530_set_port_link(struct switch_dev *sw_dev, int port,
 			break;
 		}
 
-		sw_dev->ops->phy_write16(sw_dev, port, MII_ADVERTISE, adv);
-		if (ercap)
-			sw_dev->ops->phy_write16(sw_dev, port, MII_CTRL1000, gctrl);
+		/* A failed MDIO write leaves the old advertisement in the
+		 * PHY; restarting autoneg with it would silently negotiate
+		 * the wrong speed or duplex.
+		 */
+		if (sw_dev->ops->phy_write16(sw_dev, port, MII_ADVERTISE, adv)) {
+			mutex_unlock(&priv->reg_mutex);
+			return -EIO;
+		}
+		if (ercap &&
+		    sw_dev->ops->phy_write16(sw_dev, port, MII_CTRL1000, gctrl)) {
+			mutex_unlock(&priv->reg_mutex);
+			return -EIO;
+		}
 		/* Autoneg restart will be triggered in switch_generic_set_link */
 	}
 	/* Let switch_generic_set_link handle not autoneg case */
