@@ -585,23 +585,16 @@ mt7530_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
 		struct switch_val *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
-	u32 vid;
-	int vlan;
 
-	vlan = val->port_vlan;
-	if (vlan < 0 || vlan >= MT7530_NUM_VLANS)
+	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_VLANS)
 		return -EINVAL;
 
-	mutex_lock(&priv->reg_mutex);
-
-	vid = mt7530_r32(priv, REG_ESW_VLAN_VTIM(vlan));
-	if (vlan & 1)
-		vid = vid >> 12;
-	vid &= 0xfff;
-
-	val->value.i = vid;
-
-	mutex_unlock(&priv->reg_mutex);
+	/* mt7530_set_vid() only updates vlan_entries[]; the VTIM register
+	 * is written later by apply_config(). Report the configured VID,
+	 * as mt7621_get_vid() already does, so a pending or failed apply
+	 * cannot make "get vid" disagree with "set vid".
+	 */
+	val->value.i = priv->vlan_entries[val->port_vlan].vid;
 
 	return 0;
 }
