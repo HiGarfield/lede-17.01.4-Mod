@@ -532,13 +532,17 @@ mt7530_set_vid(struct switch_dev *dev, const struct switch_attr *attr,
 	u16 vid;
 
 	vlan = val->port_vlan;
-	vid = (u16)val->value.i;
 
 	if (vlan < 0 || vlan >= MT7530_NUM_VLANS)
 		return -EINVAL;
 
-	if (vid < MT7530_MIN_VID || vid > MT7530_MAX_VID)
+	/* val->value.i is u32 and swconfig does not enforce attr->max.
+	 * Narrowing it to u16 before the range check let values such as
+	 * 0x10001 pass as VID 1. Validate the original value first.
+	 */
+	if (val->value.i > (u32)MT7530_MAX_VID)
 		return -EINVAL;
+	vid = val->value.i;
 
 #ifdef CONFIG_SOC_MT7621
 	/* On MT7621 the VLAN table is indexed by VID directly:
