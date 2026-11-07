@@ -1359,7 +1359,16 @@ static irqreturn_t fe_handle_irq(int irq, void *dev)
 			fe_reg_w32(status & int_mask, FE_REG_FE_INT_STATUS);
 		}
 	} else {
-		fe_reg_w32(status, FE_REG_FE_INT_STATUS);
+		/* The counter-full sources are clear-on-write, but their
+		 * 32-bit hardware counters are only folded into hw_stats by
+		 * fe_poll(), which acknowledges those bits *after* the
+		 * update. ACK-ing the whole snapshot here would throw the
+		 * increments away (e.g. on a shared line or when netpoll
+		 * calls this handler directly). Leave them pending for the
+		 * next NAPI poll.
+		 */
+		fe_reg_w32(status & ~priv->soc->status_int,
+			   FE_REG_FE_INT_STATUS);
 	}
 
 	return IRQ_HANDLED;
