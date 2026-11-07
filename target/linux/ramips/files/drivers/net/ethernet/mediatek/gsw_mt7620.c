@@ -100,7 +100,6 @@ static int mt7620_mdio_mode(struct device_node *eth_node)
 static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
 {
 	u32 i;
-	u32 val;
 	u32 is_BGA = (rt_sysc_r32(0x0c) >> 16) & 1;
 
 	rt_sysc_w32(rt_sysc_r32(SYSC_REG_CFG1) | BIT(8), SYSC_REG_CFG1);
