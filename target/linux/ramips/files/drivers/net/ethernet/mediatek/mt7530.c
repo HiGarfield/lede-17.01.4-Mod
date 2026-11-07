@@ -387,16 +387,19 @@ mt7530_read_reg(struct mt7530_priv *priv, u32 reg, u32 *val)
 		 * access. A failed transfer used to be truncated into a
 		 * u16 and concatenated into a plausible looking register
 		 * value, which every read-modify-write caller then wrote
-		 * back into the switch.
+		 * back into the switch. Stop at the first error, like
+		 * mt7530_w32() does: otherwise the high-word read is
+		 * issued against a bus/page that already failed.
 		 */
 		mutex_lock(&priv->bus->mdio_lock);
 		ret = __mdiobus_write(priv->bus, 0x1f, 0x1f,
 				      (reg >> 6) & 0x3ff);
-		if (!ret)
+		if (!ret) {
 			low = __mdiobus_read(priv->bus, 0x1f,
 					     (reg >> 2) & 0xf);
-		if (!ret)
-			high = __mdiobus_read(priv->bus, 0x1f, 0x10);
+			if (low >= 0)
+				high = __mdiobus_read(priv->bus, 0x1f, 0x10);
+		}
 		mutex_unlock(&priv->bus->mdio_lock);
 
 		if (ret)
