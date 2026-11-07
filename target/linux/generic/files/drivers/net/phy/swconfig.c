@@ -968,7 +968,7 @@ swconfig_send_switch(struct sk_buff *msg, u32 pid, u32 seq, int flags,
 	for (i = 0; i < dev->ports; i++) {
 		p = nla_nest_start(msg, SWITCH_ATTR_PORTS);
 		if (!p)
-			continue;
+			goto nla_put_failure;
 		if (dev->portmap[i].s) {
 			if (nla_put_string(msg, SWITCH_PORTMAP_SEGMENT,
 						dev->portmap[i].s))
