@@ -544,7 +544,14 @@ static struct rtnl_link_stats64 *fe_get_stats64(struct net_device *dev,
 			hwstats->rx_long_errors;
 		storage->rx_over_errors = hwstats->rx_overflow;
 		storage->rx_crc_errors = hwstats->rx_fcs_errors;
-		storage->rx_errors = hwstats->rx_checksum_errors;
+		/* rx_errors is the total receive error count, not just one
+		 * of its components. Reporting only the checksum failures
+		 * made /proc/net/dev and 'ip -s' show zero errors on links
+		 * with FCS, overflow or length errors.
+		 */
+		storage->rx_errors = hwstats->rx_checksum_errors +
+			hwstats->rx_overflow + hwstats->rx_fcs_errors +
+			hwstats->rx_short_errors + hwstats->rx_long_errors;
 		storage->tx_aborted_errors = hwstats->tx_skip;
 	} while (u64_stats_fetch_retry_irq(&hwstats->syncp, start));
 
