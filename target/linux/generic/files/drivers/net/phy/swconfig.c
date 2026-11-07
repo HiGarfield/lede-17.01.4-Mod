@@ -287,7 +287,7 @@ static const struct nla_policy port_policy[SWITCH_PORT_ATTR_MAX+1] = {
 	[SWITCH_PORT_FLAG_TAGGED] = { .type = NLA_FLAG },
 };
 
-static struct nla_policy link_policy[SWITCH_LINK_ATTR_MAX] = {
+static struct nla_policy link_policy[SWITCH_LINK_ATTR_MAX + 1] = {
 	[SWITCH_LINK_FLAG_DUPLEX] = { .type = NLA_FLAG },
 	[SWITCH_LINK_FLAG_ANEG] = { .type = NLA_FLAG },
 	[SWITCH_LINK_SPEED] = { .type = NLA_U32 },
