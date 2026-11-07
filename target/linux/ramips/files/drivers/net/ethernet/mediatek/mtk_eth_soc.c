@@ -1745,7 +1745,12 @@ static void fe_uninit(struct net_device *dev)
 	 * phy disconnect and MDIO teardown can take long enough for the
 	 * irq handler to run against half-torn-down state
 	 */
-	fe_reg_w32(0, FE_REG_FE_INT_ENABLE);
+	/* Use the locked helper: fe_poll()/fe_open() can still re-enable
+	 * rx/tx sources through fe_int_enable() while this teardown runs,
+	 * and a plain unlocked write of 0 is a read-modify-write race that
+	 * would leave the interrupt firing against the rings freed below.
+	 */
+	fe_int_disable(priv, ~0);
 	free_irq(dev->irq, dev);
 
 	/* release the switch irq requested with this fe_priv as dev_id
