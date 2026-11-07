@@ -1205,32 +1205,50 @@ static u64 get_mib_counter(struct mt7530_priv *priv, int i, int port)
 	return lo;
 }
 
+/* scnprintf() returns the length it would have written, not the
+ * length actually written. Adding that to an int len lets len grow
+ * past the buffer size, and the next "sizeof(buf) - len" then wraps
+ * to a huge size_t. vscnprintf() returns the bytes really written,
+ * so len stays strictly below size on every call.
+ */
+static void mt7530_mib_append(char *buf, size_t size, size_t *len,
+			      const char *fmt, ...)
+{
+	va_list args;
+
+	if (*len >= size)
+		return;
+
+	va_start(args, fmt);
+	*len += vscnprintf(buf + *len, size - *len, fmt, args);
+	va_end(args);
+}
+
 static int mt7621_sw_get_port_mib(struct switch_dev *dev,
 				  const struct switch_attr *attr,
 				  struct switch_val *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 	char *buf = priv->mib_buf;
-	int i, len = 0;
+	size_t len = 0;
+	int i;
 
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
 
-	len += scnprintf(buf + len, sizeof(priv->mib_buf) - len,
-			"Port %d MIB counters\n", val->port_vlan);
+	mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+			  "Port %d MIB counters\n", val->port_vlan);
 
 	for (i = 0; i < ARRAY_SIZE(mt7621_mibs); ++i) {
 		u64 counter;
 
-		if (len >= sizeof(priv->mib_buf))
-			break;
-		len += scnprintf(buf + len, sizeof(priv->mib_buf) - len,
-				"%-11s: ", mt7621_mibs[i].name);
+		mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+				  "%-11s: ", mt7621_mibs[i].name);
 		counter = get_mib_counter(priv, i, val->port_vlan);
-		len += scnprintf(buf + len, sizeof(priv->mib_buf) - len, "%llu\n",
-				counter);
+		mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+				  "%llu\n", counter);
 	}
 
 	val->value.s = buf;
@@ -1260,19 +1278,22 @@ static int mt7530_sw_get_mib(struct switch_dev *dev,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 	char *buf = priv->mib_buf;
-	int i, len = 0;
+	size_t len = 0;
+	int i;
 
 	mutex_lock(&priv->reg_mutex);
 
-	len += scnprintf(buf + len, sizeof(priv->mib_buf) - len, "Switch MIB counters\n");
+	mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+			  "Switch MIB counters\n");
 
 	for (i = 0; i < ARRAY_SIZE(mt7620_mibs); ++i) {
 		u64 counter;
-		len += scnprintf(buf + len, sizeof(priv->mib_buf) - len,
-				"%-11s: ", mt7620_mibs[i].name);
+
+		mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+				  "%-11s: ", mt7620_mibs[i].name);
 		counter = get_mib_counter_7620(priv, i);
-		len += scnprintf(buf + len, sizeof(priv->mib_buf) - len, "%llu\n",
-				counter);
+		mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+				  "%llu\n", counter);
 	}
 
 	val->value.s = buf;
@@ -1289,23 +1310,25 @@ static int mt7530_sw_get_port_mib(struct switch_dev *dev,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 	char *buf = priv->mib_buf;
-	int i, len = 0;
+	size_t len = 0;
+	int i;
 
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
 
-	len += scnprintf(buf + len, sizeof(priv->mib_buf) - len,
-			"Port %d MIB counters\n", val->port_vlan);
+	mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+			  "Port %d MIB counters\n", val->port_vlan);
 
 	for (i = 0; i < ARRAY_SIZE(mt7620_port_mibs); ++i) {
 		u64 counter;
-		len += scnprintf(buf + len, sizeof(priv->mib_buf) - len,
-				"%-11s: ", mt7620_port_mibs[i].name);
+
+		mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+				  "%-11s: ", mt7620_port_mibs[i].name);
 		counter = get_mib_counter_port_7620(priv, i, val->port_vlan);
-		len += scnprintf(buf + len, sizeof(priv->mib_buf) - len, "%llu\n",
-				counter);
+		mt7530_mib_append(buf, sizeof(priv->mib_buf), &len,
+				  "%llu\n", counter);
 	}
 
 	val->value.s = buf;
