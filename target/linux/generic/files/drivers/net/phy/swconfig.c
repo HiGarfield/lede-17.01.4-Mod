@@ -616,6 +616,9 @@ swconfig_parse_link(struct sk_buff *msg, struct nlattr *nla,
 	if (nla_parse_nested(tb, SWITCH_LINK_ATTR_MAX, nla, link_policy))
 		return -EINVAL;
 
+	if (!tb[SWITCH_LINK_SPEED])
+		return -EINVAL;
+
 	link->duplex = !!tb[SWITCH_LINK_FLAG_DUPLEX];
 	link->aneg = !!tb[SWITCH_LINK_FLAG_ANEG];
 	link->speed = nla_get_u32(tb[SWITCH_LINK_SPEED]);
