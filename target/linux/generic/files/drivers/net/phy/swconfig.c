@@ -1206,6 +1206,7 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 
 	if (i == max_switches) {
 		swconfig_unlock();
+		switch_free_portmap(dev);
 		return -ENFILE;
 	}
 
