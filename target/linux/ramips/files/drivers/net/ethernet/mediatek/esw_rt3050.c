@@ -19,6 +19,7 @@
 #include <linux/platform_device.h>
 #include <asm/mach-ralink/ralink_regs.h>
 #include <linux/of_irq.h>
+#include <linux/of.h>
 
 #include <linux/switch.h>
 
@@ -1510,9 +1511,9 @@ static int esw_probe(struct platform_device *pdev)
 {
 	struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 	struct device_node *np = pdev->dev.of_node;
-	const __be32 *port_map, *port_disable, *reg_init;
 	struct switch_dev *swdev;
 	struct rt305x_esw *esw;
+	u32 v;
 	int ret;
 
 	esw = devm_kzalloc(&pdev->dev, sizeof(*esw), GFP_KERNEL);
@@ -1528,38 +1529,45 @@ static int esw_probe(struct platform_device *pdev)
 		return PTR_ERR(esw->base);
 	}
 
-	port_map = of_get_property(np, "mediatek,portmap", NULL);
-	if (port_map) {
-		u32 v = be32_to_cpu(*port_map);
-
-		/* the field is u8: flag out-of-range DT values instead of
-		 * silently truncating the high bits
+	/* of_get_property(..., NULL) discarded the property length and
+	 * unconditionally dereferenced four bytes: an empty or short DT
+	 * property was an out-of-bounds read into the DT blob. Use the
+	 * length-checked accessor for every cell value.
+	 */
+	if (!of_property_read_u32(np, "mediatek,portmap", &v)) {
+		/* SGC2 LAN_PMAP is a 6-bit field. The old WARN_ON(v > 0xff)
+		 * still clamped to 8 bits and truncated silently, so a
+		 * value of 0x40..0xff programmed unrelated SGC2 bits.
+		 * Reject values the hardware field cannot represent.
 		 */
-		if (WARN_ON(v > 0xff))
-			v &= 0xff;
+		if (v > RT305X_ESW_SGC2_LAN_PMAP_M) {
+			dev_err(&pdev->dev, "invalid mediatek,portmap 0x%x\n", v);
+			if (esw->irq > 0)
+				irq_dispose_mapping(esw->irq);
+			return -EINVAL;
+		}
 		esw->port_map = v;
 	}
 
-	port_disable = of_get_property(np, "mediatek,portdisable", NULL);
-	if (port_disable) {
-		u32 v = be32_to_cpu(*port_disable);
-
-		if (WARN_ON(v > 0xff))
-			v &= 0xff;
+	if (!of_property_read_u32(np, "mediatek,portdisable", &v)) {
+		if (v > RT305X_ESW_POC0_DIS_PORT_M) {
+			dev_err(&pdev->dev,
+				"invalid mediatek,portdisable 0x%x\n", v);
+			if (esw->irq > 0)
+				irq_dispose_mapping(esw->irq);
+			return -EINVAL;
+		}
 		esw->port_disable = v;
 	}
 
-	reg_init = of_get_property(np, "ralink,fct2", NULL);
-	if (reg_init)
-		esw->reg_initval_fct2 = be32_to_cpu(*reg_init);
+	if (!of_property_read_u32(np, "ralink,fct2", &v))
+		esw->reg_initval_fct2 = v;
 
-	reg_init = of_get_property(np, "ralink,fpa2", NULL);
-	if (reg_init)
-		esw->reg_initval_fpa2 = be32_to_cpu(*reg_init);
+	if (!of_property_read_u32(np, "ralink,fpa2", &v))
+		esw->reg_initval_fpa2 = v;
 
-	reg_init = of_get_property(np, "mediatek,led_polarity", NULL);
-	if (reg_init)
-		esw->reg_led_polarity = be32_to_cpu(*reg_init);
+	if (!of_property_read_u32(np, "mediatek,led_polarity", &v))
+		esw->reg_led_polarity = v;
 
 	swdev = &esw->swdev;
 	swdev->of_node = pdev->dev.of_node;
@@ -1600,8 +1608,7 @@ static int esw_probe(struct platform_device *pdev)
 	 * bailing out before its hardware setup would leave the ports
 	 * dead.
 	 */
-	reg_init = of_get_property(np, "ralink,rgmii", NULL);
-	if (reg_init && be32_to_cpu(*reg_init) == 1) {
+	if (!of_property_read_u32(np, "ralink,rgmii", &v) && v == 1) {
 		dev_err(&pdev->dev, "RGMII mode, not exporting switch device.\n");
 		if (esw->irq > 0)
 			irq_dispose_mapping(esw->irq);
