@@ -358,24 +358,55 @@ mt7530_set_vlan_enable(struct switch_dev *dev,
 	return 0;
 }
 
+static int
+mt7530_read_reg(struct mt7530_priv *priv, u32 reg, u32 *val)
+{
+	if (priv->bus) {
+		int high = 0, low = 0, ret;
+
+		/* The page select and both data reads are one indirect
+		 * access. A failed transfer used to be truncated into a
+		 * u16 and concatenated into a plausible looking register
+		 * value, which every read-modify-write caller then wrote
+		 * back into the switch.
+		 */
+		mutex_lock(&priv->bus->mdio_lock);
+		ret = __mdiobus_write(priv->bus, 0x1f, 0x1f,
+				      (reg >> 6) & 0x3ff);
+		if (!ret)
+			low = __mdiobus_read(priv->bus, 0x1f,
+					     (reg >> 2) & 0xf);
+		if (!ret)
+			high = __mdiobus_read(priv->bus, 0x1f, 0x10);
+		mutex_unlock(&priv->bus->mdio_lock);
+
+		if (ret)
+			return ret;
+		if (low < 0)
+			return low;
+		if (high < 0)
+			return high;
+
+		*val = ((u32)high << 16) | (low & 0xffff);
+		return 0;
+	}
+
+	*val = ioread32(priv->base + reg);
+	pr_debug("MT7530 MDIO Read [%04x]=%08x\n", reg, *val);
+
+	return 0;
+}
+
+/* The MIB getters only report numbers: show zero instead of a bogus
+ * counter when the bus read failed.
+ */
 static u32
 mt7530_r32(struct mt7530_priv *priv, u32 reg)
 {
 	u32 val;
-	if (priv->bus) {
-		u16 high, low;
 
-		mutex_lock(&priv->bus->mdio_lock);
-		__mdiobus_write(priv->bus, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
-		low = __mdiobus_read(priv->bus, 0x1f, (reg >> 2) & 0xf);
-		high = __mdiobus_read(priv->bus, 0x1f, 0x10);
-		mutex_unlock(&priv->bus->mdio_lock);
-
-		return (high << 16) | (low & 0xffff);
-	}
-
-	val = ioread32(priv->base + reg);
-	pr_debug("MT7530 MDIO Read [%04x]=%08x\n", reg, val);
+	if (mt7530_read_reg(priv, reg, &val))
+		return 0;
 
 	return val;
 }
@@ -424,9 +455,12 @@ mt7530_vtcr(struct mt7530_priv *priv, u32 cmd, u32 val)
 		return ret;
 
 	for (i = 0; i < 20; i++) {
-		u32 val = mt7530_r32(priv, REG_ESW_VLAN_VTCR);
+		u32 vtcr;
 
-		if ((val & BIT(31)) == 0)
+		ret = mt7530_read_reg(priv, REG_ESW_VLAN_VTCR, &vtcr);
+		if (ret)
+			return ret;
+		if ((vtcr & BIT(31)) == 0)
 			break;
 
 		udelay(1000);
@@ -443,16 +477,19 @@ static int
 mt7530_get_port_pvid(struct switch_dev *dev, int port, int *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+	u32 ppbv1;
+	int ret;
 
 	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
-
-	*val = mt7530_r32(priv, REG_ESW_PORT_PPBV1(port));
-	*val &= 0xfff;
-
+	ret = mt7530_read_reg(priv, REG_ESW_PORT_PPBV1(port), &ppbv1);
 	mutex_unlock(&priv->reg_mutex);
+	if (ret)
+		return ret;
+
+	*val = ppbv1 & 0xfff;
 
 	return 0;
 }
@@ -714,7 +751,9 @@ mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
 
 #ifndef CONFIG_SOC_MT7621
 	/* vid of vlan */
-	val = mt7530_r32(priv, REG_ESW_VLAN_VTIM(vlan));
+	ret = mt7530_read_reg(priv, REG_ESW_VLAN_VTIM(vlan), &val);
+	if (ret)
+		return ret;
 	if (vlan % 2 == 0) {
 		val &= 0xfff000;
 		val |= vid;
@@ -786,7 +825,9 @@ mt7530_apply_config(struct switch_dev *dev)
 		 * keeps mirroring active in hardware while the software
 		 * state reports no monitor and no source ports.
 		 */
-		mfc = mt7530_r32(priv, REG_ESW_WT_MAC_MFC);
+		err = mt7530_read_reg(priv, REG_ESW_WT_MAC_MFC, &mfc);
+		if (err)
+			goto out_unlock;
 		mfc &= ~REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
 		mt7530_w32(priv, REG_ESW_WT_MAC_MFC, mfc);
 
@@ -879,7 +920,9 @@ mt7530_apply_config(struct switch_dev *dev)
 		    priv->vlan_entries[idx].member)
 			pvid = priv->vlan_entries[idx].vid;
 
-		val = mt7530_r32(priv, REG_ESW_PORT_PPBV1(i));
+		err = mt7530_read_reg(priv, REG_ESW_PORT_PPBV1(i), &val);
+		if (err)
+			goto out_unlock;
 		val &= ~0xfff;
 		val |= pvid;
 		mt7530_w32(priv, REG_ESW_PORT_PPBV1(i), val);
@@ -887,7 +930,11 @@ mt7530_apply_config(struct switch_dev *dev)
 
 	/* set mirroring source port */
 	for (i = 0; i < MT7530_NUM_PORTS; i++)	{
-		u32 val = mt7530_r32(priv, REG_ESW_PORT_PCR(i));
+		u32 val;
+
+		err = mt7530_read_reg(priv, REG_ESW_PORT_PCR(i), &val);
+		if (err)
+			goto out_unlock;
 		if (priv->port_entries[i].mirror_rx) {
 			val |= REG_ESW_PORT_PCR_MIRROR_SRC_RX_BIT;
 			is_mirror = true;
@@ -903,8 +950,11 @@ mt7530_apply_config(struct switch_dev *dev)
 
 	/* set mirroring monitor port */
 	{
-		u32 val = mt7530_r32(priv, REG_ESW_WT_MAC_MFC);
+		u32 val;
 
+		err = mt7530_read_reg(priv, REG_ESW_WT_MAC_MFC, &val);
+		if (err)
+			goto out_unlock;
 		if (is_mirror) {
 			val |= REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
 			val &= ~REG_ESW_WT_MAC_MFC_MIRROR_DEST_MASK;
@@ -939,13 +989,16 @@ mt7530_get_port_link(struct switch_dev *dev,  int port,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 	u32 speed, pmsr;
+	int ret;
 
 	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
-
-	pmsr = mt7530_r32(priv, 0x3008 + (0x100 * port));
+	ret = mt7530_read_reg(priv, 0x3008 + (0x100 * port), &pmsr);
+	mutex_unlock(&priv->reg_mutex);
+	if (ret)
+		return ret;
 
 	link->link = pmsr & 1;
 	link->duplex = (pmsr >> 1) & 1;
@@ -966,8 +1019,6 @@ mt7530_get_port_link(struct switch_dev *dev,  int port,
 		link->speed = SWITCH_PORT_SPEED_UNKNOWN;
 		break;
 	}
-
-	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -1475,13 +1526,19 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 		return ERR_PTR(ret);
 	}
 
-	mutex_lock(&mt7530->reg_mutex);
 	/* magic vodoo */
-	if (!IS_ENABLED(CONFIG_SOC_MT7621) && bus && mt7530_r32(mt7530, REG_HWTRAP) !=  0x1117edf) {
-		dev_info(dev, "fixing up MHWTRAP register - bootloader probably played with it\n");
-		mt7530_w32(mt7530, REG_HWTRAP, 0x1117edf);
+	if (!IS_ENABLED(CONFIG_SOC_MT7621) && bus) {
+		u32 hwtrap;
+
+		mutex_lock(&mt7530->reg_mutex);
+		ret = mt7530_read_reg(mt7530, REG_HWTRAP, &hwtrap);
+		if (!ret && hwtrap != 0x1117edf) {
+			dev_info(dev,
+				 "fixing up MHWTRAP register - bootloader probably played with it\n");
+			mt7530_w32(mt7530, REG_HWTRAP, 0x1117edf);
+		}
+		mutex_unlock(&mt7530->reg_mutex);
 	}
-	mutex_unlock(&mt7530->reg_mutex);
 
 	/*
 	 * Program the switch before publishing it.  register_switch()
