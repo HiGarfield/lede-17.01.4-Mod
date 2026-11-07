@@ -511,6 +511,10 @@ struct fe_priv {
 	DECLARE_BITMAP(active_vids, VLAN_N_VID);
 	/* set while a hash collision forces TX VLAN offload off */
 	bool				vlan_offload_conflict;
+	/* user's wanted_features TX VLAN offload bit before we turned it
+	 * off for a collision, so restoring does not override ethtool
+	 */
+	bool				vlan_tx_offload_wanted;
 	struct work_struct		pending_work;
 	DECLARE_BITMAP(pending_flags, FE_FLAG_MAX);
 };

@@ -588,7 +588,14 @@ static int fe_vlan_rx_add_vid(struct net_device *dev,
 
 	set_bit(vid, priv->active_vids);
 
-	if (!(dev->features & NETIF_F_HW_VLAN_CTAG_TX))
+	/* A collision leaves the colliding VID active but without a
+	 * hardware slot. Do not program any new slot until every VID is
+	 * gone, even if the offload feature was turned back on meanwhile:
+	 * the hardware would resolve that VID through somebody else's
+	 * slot and tag its frames with the wrong VLAN.
+	 */
+	if (priv->vlan_offload_conflict ||
+	    !(dev->features & NETIF_F_HW_VLAN_CTAG_TX))
 		return 0;
 
 	if (test_bit(idx, &priv->vlan_map)) {
@@ -605,7 +612,16 @@ static int fe_vlan_rx_add_vid(struct net_device *dev,
 		netdev_warn(dev,
 			    "TX VLAN offload disabled: VID %u collides with VID %u in slot %u\n",
 			    vid, priv->vlan_vid[idx], idx);
-		priv->vlan_offload_conflict = true;
+		if (!priv->vlan_offload_conflict) {
+			/* Record what the user wanted before we force the
+			 * feature off, so restoring it does not override an
+			 * explicit 'ethtool -K tx-vlan-offload off'.
+			 */
+			priv->vlan_tx_offload_wanted =
+				!!(dev->wanted_features &
+				   NETIF_F_HW_VLAN_CTAG_TX);
+			priv->vlan_offload_conflict = true;
+		}
 		dev->wanted_features &= ~NETIF_F_HW_VLAN_CTAG_TX;
 		netdev_update_features(dev);
 		return 0;
@@ -645,7 +661,8 @@ static int fe_vlan_rx_kill_vid(struct net_device *dev,
 	if (priv->vlan_offload_conflict &&
 	    bitmap_empty(priv->active_vids, VLAN_N_VID)) {
 		priv->vlan_offload_conflict = false;
-		dev->wanted_features |= NETIF_F_HW_VLAN_CTAG_TX;
+		if (priv->vlan_tx_offload_wanted)
+			dev->wanted_features |= NETIF_F_HW_VLAN_CTAG_TX;
 		netdev_update_features(dev);
 	}
 
