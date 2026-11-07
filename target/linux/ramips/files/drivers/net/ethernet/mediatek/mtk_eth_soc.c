@@ -1965,8 +1965,13 @@ static int fe_probe(struct platform_device *pdev)
 
 	netdev->irq = platform_get_irq(pdev, 0);
 	if (netdev->irq < 0) {
-		dev_err(&pdev->dev, "no IRQ resource found\n");
-		err = -ENXIO;
+		/* platform_get_irq() reports -EPROBE_DEFER while the irq
+		 * controller is not ready yet. Collapsing every failure
+		 * into -ENXIO turned that into a permanent probe failure.
+		 */
+		dev_err(&pdev->dev, "no IRQ resource found: %d\n",
+			netdev->irq);
+		err = netdev->irq;
 		goto err_free_dev;
 	}
 
