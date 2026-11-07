@@ -1869,6 +1869,17 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 			priv->rx_ring.frag_size = old_frag;
 			priv->rx_ring.rx_buf_size = old_buf;
 			set_bit(__FE_DOWN, &priv->state);
+			/* fe_stop() at the top of this function already
+			 * stopped the queue, disabled NAPI/IRQ and the DMA
+			 * engine. __FE_DOWN is only a private flag: without
+			 * closing the device, netif_running() stays true and
+			 * the interface is reported up while permanently
+			 * dead (no rings, no way to trigger fe_tx_timeout's
+			 * recovery). ndo_change_mtu callers hold RTNL, which
+			 * is what dev_close() requires.
+			 */
+			if (was_running)
+				dev_close(priv->netdev);
 			return err;
 		}
 	}
