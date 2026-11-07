@@ -166,7 +166,13 @@
 		(RT305X_ESW_PORTS_NOCPU | RT305X_ESW_PORTS_CPU)
 
 #define RT305X_ESW_NUM_VLANS		16
-#define RT305X_ESW_NUM_VIDS		4096
+/* 0xfff is RT305X_ESW_VLAN_NONE, the reserved "no VLAN" marker written
+ * into every empty slot by esw_apply_config(). Only VIDs 0..4094 are
+ * usable. swconfig takes this value as swdev->vlans and rejects any
+ * port_vlan >= it, so defining it as the sentinel keeps the VLAN table,
+ * set_vlan_ports(), get_vlan_ports() and the pvid check in sync.
+ */
+#define RT305X_ESW_NUM_VIDS		RT305X_ESW_VLAN_NONE
 #define RT305X_ESW_NUM_PORTS		7
 #define RT305X_ESW_NUM_LANWAN		6
 #define RT305X_ESW_NUM_LEDS		5
