@@ -135,6 +135,9 @@ static int
 swconfig_set_link(struct switch_dev *dev, const struct switch_attr *attr,
 			struct switch_val *val)
 {
+	if (val->port_vlan >= dev->ports)
+		return -EINVAL;
+
 	if (!dev->ops->set_port_link)
 		return -EOPNOTSUPP;
 
