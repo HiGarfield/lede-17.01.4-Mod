@@ -1393,7 +1393,16 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 		mt7530_apply_mapping(mt7530, map);
 	/* the very first apply must program the whole table */
 	bitmap_fill(mt7530->vlan_dirty, MT7530_NUM_VLANS);
-	mt7530_apply_config(swdev);
+	ret = mt7530_apply_config(swdev);
+	if (ret) {
+		/* a VTCR timeout leaves hardware and software VLAN
+		 * tables diverged; do not publish such a switch
+		 */
+		dev_err(dev, "failed to apply initial switch config: %d\n",
+			ret);
+		mutex_destroy(&mt7530->reg_mutex);
+		return ERR_PTR(ret);
+	}
 
 	mutex_lock(&mt7530->reg_mutex);
 	/* magic vodoo */
