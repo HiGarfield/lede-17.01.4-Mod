@@ -1175,11 +1175,6 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 	}
 	BUG_ON(!dev->alias);
 
-	/* Make sure swdev_id doesn't overflow */
-	if (swdev_id == INT_MAX) {
-		return -ENOMEM;
-	}
-
 	if (dev->ports > 0) {
 		dev->portbuf = kzalloc(sizeof(struct switch_port) *
 				dev->ports, GFP_KERNEL);
@@ -1195,6 +1190,11 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 	swconfig_defaults_init(dev);
 	mutex_init(&dev->sw_mutex);
 	swconfig_lock();
+	if (swdev_id >= INT_MAX) {
+		swconfig_unlock();
+		switch_free_portmap(dev);
+		return -ENOMEM;
+	}
 	dev->id = ++swdev_id;
 
 	list_for_each_entry(sdev, &swdevs, dev_list) {
