@@ -1034,36 +1034,47 @@ static int esw_get_port_bool(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 	int idx = val->port_vlan;
-	u32 x, reg, shift;
 
 	if (idx < 0 || idx >= RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
+	/* esw_set_port_bool() only changes ports[] under update_lock and
+	 * the registers are programmed later by esw_apply_config().
+	 * Reading the hardware here returned the old value for a pending
+	 * change and the stale value after a failed apply, contradicting
+	 * esw_get_port_pvid()/esw_get_vlan_ports(), which already report
+	 * the software state. Use the same source and the same lock.
+	 */
+	mutex_lock(&esw->update_lock);
 	switch (attr->id) {
 	case RT305X_ESW_ATTR_PORT_DISABLE:
-		reg = RT305X_ESW_REG_POC0;
-		shift = RT305X_ESW_POC0_DIS_PORT_S;
+		val->value.i = esw->ports[idx].disable;
 		break;
 	case RT305X_ESW_ATTR_PORT_DOUBLETAG:
-		reg = RT305X_ESW_REG_SGC2;
-		shift = RT305X_ESW_SGC2_DOUBLE_TAG_S;
+		val->value.i = esw->ports[idx].doubletag;
 		break;
 	case RT305X_ESW_ATTR_PORT_UNTAG:
-		reg = RT305X_ESW_REG_POC2;
-		shift = RT305X_ESW_POC2_UNTAG_EN_S;
+		val->value.i = esw->ports[idx].untag;
 		break;
-	case RT305X_ESW_ATTR_PORT_LAN:
-		reg = RT305X_ESW_REG_SGC2;
-		shift = RT305X_ESW_SGC2_LAN_PMAP_S;
-		if (idx >= RT305X_ESW_NUM_LANWAN)
+	case RT305X_ESW_ATTR_PORT_LAN: {
+		unsigned char port_map = esw->port_map ?
+			esw->port_map : RT305X_ESW_PMAP_LLLLLL;
+
+		if (idx >= RT305X_ESW_NUM_LANWAN) {
+			mutex_unlock(&esw->update_lock);
 			return -EINVAL;
+		}
+		/* read-only attribute: esw_hw_init() programs this value
+		 * into SGC2 LAN_PMAP, so it is the authoritative source
+		 */
+		val->value.i = (port_map >> idx) & 1;
 		break;
+	}
 	default:
+		mutex_unlock(&esw->update_lock);
 		return -EINVAL;
 	}
-
-	x = esw_r32(esw, reg);
-	val->value.i = (x >> (idx + shift)) & 1;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -1173,7 +1184,13 @@ static int esw_get_port_led(struct switch_dev *dev,
 	    idx >= RT305X_ESW_NUM_LEDS)
 		return -EINVAL;
 
-	val->value.i = esw_r32(esw, RT305X_ESW_REG_P0LED + 4*idx);
+	/* The setter only writes ports[].led; the LED register is updated
+	 * by esw_apply_config(). Report the requested state under the
+	 * same lock instead of the stale hardware value.
+	 */
+	mutex_lock(&esw->update_lock);
+	val->value.i = esw->ports[idx].led;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
