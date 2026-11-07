@@ -1505,7 +1505,11 @@ static void fe_unregister_switches(struct fe_priv *priv)
 	priv->soc->gsw_dev_num = 0;
 }
 
-static int __init fe_init(struct net_device *dev)
+/* ndo_init is reached through the persistent fe_netdev_ops table, so it
+ * can run long after module init (deferred probe, unbind/rebind). It must
+ * not be placed in .init.text, which is freed after boot.
+ */
+static int fe_init(struct net_device *dev)
 {
 	struct fe_priv *priv = netdev_priv(dev);
 	struct device_node *port;
