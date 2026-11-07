@@ -893,9 +893,16 @@ static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
 
 	ret = 0;
 	if (unlikely(skb->len < VLAN_ETH_ZLEN)) {
-		/* FE_FLAG_PADDING_64B: the hardware pads short frames to
-		 * 64 bytes itself, so software only has to act when
-		 * FE_FLAG_PADDING_BUG says that mechanism is broken.
+		/* FE_FLAG_PADDING_64B means the hardware pads short frames
+		 * to 64 bytes by itself. With a working implementation
+		 * (no FE_FLAG_PADDING_BUG) there is nothing to do here.
+		 *
+		 * The SoCs that set FE_FLAG_PADDING_BUG also set
+		 * PADDING_64B. For them this function only corrects VLAN
+		 * tagged frames; the final else deliberately leaves plain
+		 * untagged short frames to the hardware. Software padding
+		 * of those frames is NOT performed, so do not assume the
+		 * PADDING_BUG flag means every short frame is grown here.
 		 *
 		 * Tag handling: a present (hwaccel) tag is not part of
 		 * the wire length the MAC sees, so pad to ETH_ZLEN; an
