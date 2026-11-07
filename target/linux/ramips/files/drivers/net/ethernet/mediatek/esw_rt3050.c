@@ -1579,7 +1579,13 @@ static int esw_probe(struct platform_device *pdev)
 	}
 
 	if (!of_property_read_u32(np, "mediatek,portdisable", &v)) {
-		if (v > RT305X_ESW_POC0_DIS_PORT_M) {
+		/* esw_hw_init() only seeds ports[0..5] from this mask and
+		 * the CPU port (bit 6) must never be disabled. Accepting
+		 * up to the 7-bit hardware field silently ignored bit 6,
+		 * leaving validate/apply/initialise disagreeing about the
+		 * same value.
+		 */
+		if (v > RT305X_ESW_PORTS_NOCPU) {
 			dev_err(&pdev->dev,
 				"invalid mediatek,portdisable 0x%x\n", v);
 			if (esw->irq > 0)
