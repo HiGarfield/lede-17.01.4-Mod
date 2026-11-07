@@ -811,13 +811,24 @@ mt7530_apply_config(struct switch_dev *dev)
 	if (!priv->global_vlan_enable) {
 		u32 mfc;
 
-		for (i = 0; i < MT7530_NUM_PORTS; i++)
-			mt7530_w32(priv, REG_ESW_PORT_PCR(i), 0x00400000);
+		for (i = 0; i < MT7530_NUM_PORTS; i++) {
+			err = mt7530_w32(priv, REG_ESW_PORT_PCR(i),
+					 0x00400000);
+			if (err)
+				goto out_unlock;
+		}
 
-		mt7530_w32(priv, REG_ESW_PORT_PCR(MT7530_CPU_PORT), 0x00ff0000);
+		err = mt7530_w32(priv, REG_ESW_PORT_PCR(MT7530_CPU_PORT),
+				 0x00ff0000);
+		if (err)
+			goto out_unlock;
 
-		for (i = 0; i < MT7530_NUM_PORTS; i++)
-			mt7530_w32(priv, REG_ESW_PORT_PVC(i), 0x810000c0);
+		for (i = 0; i < MT7530_NUM_PORTS; i++) {
+			err = mt7530_w32(priv, REG_ESW_PORT_PVC(i),
+					 0x810000c0);
+			if (err)
+				goto out_unlock;
+		}
 
 		/* The mirror setup at the end of this function is skipped
 		 * in VLAN-disabled mode, but MIRROR_ENABLE is a global bit.
@@ -829,7 +840,9 @@ mt7530_apply_config(struct switch_dev *dev)
 		if (err)
 			goto out_unlock;
 		mfc &= ~REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
-		mt7530_w32(priv, REG_ESW_WT_MAC_MFC, mfc);
+		err = mt7530_w32(priv, REG_ESW_WT_MAC_MFC, mfc);
+		if (err)
+			goto out_unlock;
 
 		mutex_unlock(&priv->reg_mutex);
 
@@ -837,8 +850,11 @@ mt7530_apply_config(struct switch_dev *dev)
 	}
 
 	/* set all ports as security mode */
-	for (i = 0; i < MT7530_NUM_PORTS; i++)
-		mt7530_w32(priv, REG_ESW_PORT_PCR(i), 0x00ff0003);
+	for (i = 0; i < MT7530_NUM_PORTS; i++) {
+		err = mt7530_w32(priv, REG_ESW_PORT_PCR(i), 0x00ff0003);
+		if (err)
+			goto out_unlock;
+	}
 
 	/* check if a port is used in tag/untag vlan egress mode */
 	tag_ports = 0;
@@ -869,7 +885,9 @@ mt7530_apply_config(struct switch_dev *dev)
 		if (untag_ports & BIT(i) && !(tag_ports & BIT(i)))
 			pvc_mode = 0x810000c0;
 
-		mt7530_w32(priv, REG_ESW_PORT_PVC(i), pvc_mode);
+		err = mt7530_w32(priv, REG_ESW_PORT_PVC(i), pvc_mode);
+		if (err)
+			goto out_unlock;
 	}
 
 	/* Rewrite only the entries that changed since the last apply:
@@ -925,7 +943,9 @@ mt7530_apply_config(struct switch_dev *dev)
 			goto out_unlock;
 		val &= ~0xfff;
 		val |= pvid;
-		mt7530_w32(priv, REG_ESW_PORT_PPBV1(i), val);
+		err = mt7530_w32(priv, REG_ESW_PORT_PPBV1(i), val);
+		if (err)
+			goto out_unlock;
 	}
 
 	/* set mirroring source port */
@@ -945,7 +965,9 @@ mt7530_apply_config(struct switch_dev *dev)
 			is_mirror = true;
 		}
 
-		mt7530_w32(priv, REG_ESW_PORT_PCR(i), val);
+		err = mt7530_w32(priv, REG_ESW_PORT_PCR(i), val);
+		if (err)
+			goto out_unlock;
 	}
 
 	/* set mirroring monitor port */
@@ -967,7 +989,9 @@ mt7530_apply_config(struct switch_dev *dev)
 			 */
 			val &= ~REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
 		}
-		mt7530_w32(priv, REG_ESW_WT_MAC_MFC, val);
+		err = mt7530_w32(priv, REG_ESW_WT_MAC_MFC, val);
+		if (err)
+			goto out_unlock;
 	}
 
 	mutex_unlock(&priv->reg_mutex);
@@ -975,8 +999,9 @@ mt7530_apply_config(struct switch_dev *dev)
 	return 0;
 
 out_unlock:
-	/* propagate the vtcr timeout: pretending the apply succeeded
-	 * would leave the software and hardware VLAN tables diverged
+	/* Propagate MDIO and vtcr failures: pretending the apply
+	 * succeeded would leave the software and hardware switch state
+	 * diverged with no way for the caller to retry.
 	 */
 	mutex_unlock(&priv->reg_mutex);
 
@@ -1535,9 +1560,13 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 		if (!ret && hwtrap != 0x1117edf) {
 			dev_info(dev,
 				 "fixing up MHWTRAP register - bootloader probably played with it\n");
-			mt7530_w32(mt7530, REG_HWTRAP, 0x1117edf);
+			ret = mt7530_w32(mt7530, REG_HWTRAP, 0x1117edf);
 		}
 		mutex_unlock(&mt7530->reg_mutex);
+		if (ret) {
+			mutex_destroy(&mt7530->reg_mutex);
+			return ERR_PTR(ret);
+		}
 	}
 
 	/*
