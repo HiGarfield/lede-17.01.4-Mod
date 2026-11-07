@@ -778,7 +778,7 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 	struct sk_buff *head = skb;
 	struct fe_tx_buf *tx_buf;
 	unsigned int nr_frags;
-	int i, j;
+	int i, j, err = -EIO;
 
 	/* init tx descriptor */
 	if (priv->soc->tx_dma)
@@ -808,6 +808,7 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 		if (skb_cow_head(skb, 0)) {
 			netif_warn(priv, tx_err, dev,
 				   "GSO expand head fail.\n");
+			err = -ENOMEM;
 			goto err_out;
 		}
 		if (skb_shinfo(skb)->gso_type &
@@ -818,8 +819,11 @@ static int fe_tx_map_dma(struct sk_buff *skb, struct net_device *dev,
 	}
 
 next_frag:
-	if (skb_headlen(skb) && fe_tx_dma_map_skb(ring, &st, skb))
-		goto err_dma;
+	if (skb_headlen(skb)) {
+		err = fe_tx_dma_map_skb(ring, &st, skb);
+		if (err)
+			goto err_dma;
+	}
 
 	/* TX SG offload */
 	nr_frags = skb_shinfo(skb)->nr_frags;
@@ -827,8 +831,10 @@ next_frag:
 		struct skb_frag_struct *frag;
 
 		frag = &skb_shinfo(skb)->frags[i];
-		if (fe_tx_dma_map_page(ring, &st, skb_frag_page(frag),
-				       frag->page_offset, skb_frag_size(frag)))
+		err = fe_tx_dma_map_page(ring, &st, skb_frag_page(frag),
+					 frag->page_offset,
+					 skb_frag_size(frag));
+		if (err)
 			goto err_dma;
 	}
 
@@ -883,7 +889,7 @@ err_dma:
 	wmb();
 
 err_out:
-	return -1;
+	return err;
 }
 
 static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
