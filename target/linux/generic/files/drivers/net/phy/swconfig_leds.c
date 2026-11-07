@@ -237,6 +237,7 @@ swconfig_trig_deactivate(struct led_classdev *led_cdev)
 	if (trig_data) {
 		device_remove_file(led_cdev->dev, &dev_attr_port_mask);
 		device_remove_file(led_cdev->dev, &dev_attr_speed_mask);
+		led_cdev->trigger_data = NULL;
 		kfree(trig_data);
 	}
 }
