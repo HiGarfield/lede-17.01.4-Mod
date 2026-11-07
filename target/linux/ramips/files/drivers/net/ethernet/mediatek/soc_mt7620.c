@@ -184,23 +184,25 @@ static void mt7620_auto_poll(struct mt7620_gsw *gsw)
 static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
-	const __be32 *_id = of_get_property(np, "reg", NULL);
 	struct device_node *phy_np;
+	u32 port_reg = 0;
 	int phy_mode, size, id;
 	int shift = 12;
 	u32 mask = 0;
 	int min = (gsw->port4 == PORT4_EPHY) ? (5) : (4);
 
-	if (!_id || (be32_to_cpu(*_id) < min) || (be32_to_cpu(*_id) > 5)) {
-		if (_id)
-			pr_err("%s: invalid port id %d\n", np->name,
-			       be32_to_cpu(*_id));
-		else
-			pr_err("%s: invalid port id\n", np->name);
+	/* of_get_property(..., NULL) returns no length, but the old code
+	 * unconditionally dereferenced four bytes of the "reg" property.
+	 * A short/empty property was an out-of-bounds DT read that could
+	 * yield a random port id.
+	 */
+	if (of_property_read_u32(np, "reg", &port_reg) ||
+	    port_reg < (u32)min || port_reg > 5) {
+		pr_err("%s: invalid port id %u\n", np->name, port_reg);
 		return;
 	}
 
-	id = be32_to_cpu(*_id);
+	id = (int)port_reg;
 
 	if (id == 4)
 		shift = 14;

@@ -167,20 +167,23 @@ int rt2880_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 
 void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 {
-	const __be32 *id = of_get_property(np, "reg", NULL);
 	struct device_node *phy_np;
+	u32 port_reg = 0;
 	const __be32 *link;
 	int size;
 	int phy_mode;
 
-	if (!id || (be32_to_cpu(*id) != 0)) {
+	/* A short "reg" property must not be dereferenced as a full
+	 * __be32; of_property_read_u32() validates the length.
+	 */
+	if (of_property_read_u32(np, "reg", &port_reg) || port_reg != 0) {
 		/* only port 0 is wired up on these SoCs; a DT describing
 		 * additional ports (e.g. rt3883's second GMAC) used to be
 		 * dropped silently
 		 */
 		dev_warn(priv->dev,
-			 "%s: port id %d not supported by this driver\n",
-			 np->name, id ? be32_to_cpu(*id) : -1);
+			 "%s: port id %u not supported by this driver\n",
+			 np->name, port_reg);
 		return;
 	}
 

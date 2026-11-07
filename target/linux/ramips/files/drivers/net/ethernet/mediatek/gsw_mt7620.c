@@ -83,7 +83,7 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 static int mt7620_mdio_mode(struct device_node *eth_node)
 {
 	struct device_node *phy_node, *mdiobus_node;
-	const __be32 *id;
+	u32 reg;
 	int ret = 0;
 
 	mdiobus_node = of_get_child_by_name(eth_node, "mdio-bus");
@@ -92,9 +92,13 @@ static int mt7620_mdio_mode(struct device_node *eth_node)
 		if (of_property_read_bool(mdiobus_node, "mediatek,mdio-mode"))
 			ret = 1;
 
+		/* of_get_property(..., NULL) gives no length, yet the old
+		 * code always dereferenced four bytes; a short "reg"
+		 * property was an out-of-bounds DT read.
+		 */
 		for_each_child_of_node(mdiobus_node, phy_node) {
-			id = of_get_property(phy_node, "reg", NULL);
-			if (id && (be32_to_cpu(*id) == 0x1f))
+			if (!of_property_read_u32(phy_node, "reg", &reg) &&
+			    reg == 0x1f)
 				ret = 1;
 		}
 
