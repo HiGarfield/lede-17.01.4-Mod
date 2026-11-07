@@ -285,7 +285,15 @@ mt7530_apply_mapping(struct mt7530_priv *mt7530, struct mt7530_mapping *map)
 	for (i = 0; i < MT7530_NUM_VLANS; i++) {
 		mt7530->vlan_entries[i].member = map->members[i];
 		mt7530->vlan_entries[i].etags = map->etags[i];
-		mt7530->vlan_entries[i].vid = map->vids[i];
+		/* On MT7621 the table is addressed by VID and
+		 * mt7530_set_vid() only allows vid == index. A mapping
+		 * defines just the first three VIDs; copying the
+		 * zero-filled tail would turn the remaining 4092 slots
+		 * into VID 0, make every VTCR write target that VID and
+		 * desynchronise mt7621_get_vid(). Keep the seeded VIDs.
+		 */
+		if (!IS_ENABLED(CONFIG_SOC_MT7621))
+			mt7530->vlan_entries[i].vid = map->vids[i];
 	}
 }
 
