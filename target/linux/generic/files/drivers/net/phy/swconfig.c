@@ -763,6 +763,7 @@ nla_put_failure:
 		nla_nest_cancel(cb->msg, p);
 error:
 	nla_nest_cancel(cb->msg, cb->nest[0]);
+	cb->nest[0] = NULL;
 	return -1;
 }
 
@@ -786,13 +787,13 @@ swconfig_send_ports(struct sk_buff **msg, struct genl_info *info, int attr,
 
 	cb.nest[0] = nla_nest_start(cb.msg, cb.cmd);
 	for (i = 0; i < val->len; i++) {
-		err = swconfig_send_multipart(&cb, &val->value.ports[i]);
-		if (err)
+		if (swconfig_send_port(&cb, &val->value.ports[i]) < 0) {
+			err = -1;
 			goto done;
+		}
 	}
 	err = val->len;
 	swconfig_close_portlist(&cb, NULL);
-	*msg = cb.msg;
 
 done:
 	return err;
