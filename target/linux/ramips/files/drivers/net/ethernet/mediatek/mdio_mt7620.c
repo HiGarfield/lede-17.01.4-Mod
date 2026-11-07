@@ -128,11 +128,19 @@ int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 {
 	unsigned long flags;
 	u16 d;
+	int ret;
 
 	spin_lock_irqsave(&gsw->mdio_lock, flags);
-	if (__mt7620_mii_read(gsw, phy_addr, phy_reg, &d))
-		d = 0xffff;
+	ret = __mt7620_mii_read(gsw, phy_addr, phy_reg, &d);
 	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+
+	/* A PIAC timeout is not register value 0xffff. Returning a fake
+	 * positive value lets a read-modify-write caller program 0xffff
+	 * into the PHY, the exact failure mt7620_mii_read_reg() was
+	 * introduced to avoid.
+	 */
+	if (ret)
+		return ret;
 
 	return d;
 }
