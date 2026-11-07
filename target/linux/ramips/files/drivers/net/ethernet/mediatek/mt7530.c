@@ -845,34 +845,26 @@ mt7530_apply_config(struct switch_dev *dev)
 	/* Port Default PVID */
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
 		unsigned int idx = priv->port_entries[i].pvid;
-		u16 pvid = 0;
+		/* Both writers are bounded: mt7530_set_port_pvid() checks
+		 * against MT7530_MAX_VID and swconfig bounds the VLAN index
+		 * by swdev->vlans, so the stored value always fits a VID.
+		 */
+		u16 pvid = (u16)idx;
 		u32 val;
 
-		/* swconfig passes a VLAN table index here:
-		 * swconfig_set_vlan_ports() calls set_port_pvid(dev, port,
-		 * val->port_vlan) for every untagged member. PPBV1 holds a
-		 * VID, so the index must be resolved through vlan_entries[].
-		 * Looking the value up by VID alone is wrong on MT7620,
-		 * where set_vid() allows vid != index: an entry remapped to
-		 * VID 100 then fails to resolve and the port is silently
-		 * programmed with VID 0.
-		 *
-		 * The port's pvid attribute may also carry a VID directly,
-		 * including values outside the 16-slot MT7620 table. Keep
-		 * that form working as a fallback when the index does not
-		 * name a populated entry.
+		/* swconfig_set_vlan_ports() passes a VLAN table index for
+		 * every untagged member, while the pvid attribute passes a
+		 * VID directly. The same field therefore holds either one
+		 * and PPBV1 needs a VID. Translate an index through the
+		 * populated VLAN entry; otherwise the value is already a
+		 * VID (possibly outside the 16-slot MT7620 table) and must
+		 * be kept, not replaced by 0. The previous fallback only
+		 * looked for an entry carrying that VID and left pvid at 0
+		 * when none existed, silently discarding "set pvid 200".
 		 */
-		if (idx < MT7530_NUM_VLANS && priv->vlan_entries[idx].member) {
+		if (idx < MT7530_NUM_VLANS &&
+		    priv->vlan_entries[idx].member)
 			pvid = priv->vlan_entries[idx].vid;
-		} else {
-			for (j = 0; j < MT7530_NUM_VLANS; j++) {
-				if (priv->vlan_entries[j].member &&
-				    priv->vlan_entries[j].vid == idx) {
-					pvid = priv->vlan_entries[j].vid;
-					break;
-				}
-			}
-		}
 
 		val = mt7530_r32(priv, REG_ESW_PORT_PPBV1(i));
 		val &= ~0xfff;
