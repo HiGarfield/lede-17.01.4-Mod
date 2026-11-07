@@ -618,6 +618,14 @@ mt7530_set_mirror_monitor_port(struct switch_dev *dev, const struct switch_attr 
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	/* swconfig does not enforce attr->max. A value outside the port
+	 * range used to be truncated into the u8 field and then written
+	 * unmasked into WT_MAC_MFC, clobbering bits outside the 3-bit
+	 * mirror destination field.
+	 */
+	if (val->value.i >= MT7530_NUM_PORTS)
+		return -EINVAL;
+
 	priv->mirror_dest_port = val->value.i;
 
 	return 0;
@@ -852,7 +860,8 @@ mt7530_apply_config(struct switch_dev *dev)
 		if (is_mirror) {
 			val |= REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
 			val &= ~REG_ESW_WT_MAC_MFC_MIRROR_DEST_MASK;
-			val |= priv->mirror_dest_port;
+			val |= priv->mirror_dest_port &
+			       REG_ESW_WT_MAC_MFC_MIRROR_DEST_MASK;
 		} else {
 			/* mirroring must also be turned off again: the
 			 * enable bit used to stay set forever once any
