@@ -1657,6 +1657,17 @@ static void fe_uninit(struct net_device *dev)
 	if (priv->soc->switch_cleanup)
 		priv->soc->switch_cleanup(priv);
 
+	/* ndo_uninit() is not only reached from fe_remove(), which already
+	 * unregisters the switches. register_netdevice() also calls it on
+	 * any failure that happens after ndo_init() succeeded, and a
+	 * namespace move can unregister the device as well. In those
+	 * paths the switch_dev objects were still in the global swconfig
+	 * list while fe_mdio_cleanup() freed the mii_bus they reference,
+	 * and the probe unwind released their devm state (UAF). The
+	 * helper is idempotent, so calling it again here is harmless.
+	 */
+	fe_unregister_switches(priv);
+
 	fe_free_dma(priv);
 
 	if (priv->phy)
