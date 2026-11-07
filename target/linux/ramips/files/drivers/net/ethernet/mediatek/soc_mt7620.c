@@ -302,12 +302,13 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 
 		/* The old check keyed on phy_map[id], requiring the MDIO
 		 * address to equal the port id; a PHY described by a node
-		 * connects by node regardless of its bus address. Only
-		 * program PMCR/autopoll once the connect succeeded --
-		 * fe_connect_phy_node() already dropped the node on
-		 * failure.
+		 * connects by node regardless of its bus address. Pass the
+		 * eth-port id explicitly so phy[] and phy_node[] use the
+		 * same index. Only program PMCR/autopoll once the connect
+		 * succeeded -- fe_connect_phy_node() already dropped the
+		 * node on failure.
 		 */
-		if (fe_connect_phy_node(priv, priv->phy->phy_node[id]))
+		if (fe_connect_phy_node(priv, priv->phy->phy_node[id], id))
 			return;
 
 		mtk_switch_w32(gsw, val, GSW_REG_PORT_PMCR(id));

@@ -78,13 +78,11 @@ static void fe_phy_link_adjust(struct net_device *dev)
 /*
  * Drop the phy_node[] slot that refers to phy_node, and release it.
  *
- * The port number is not known on every failure path of
- * fe_connect_phy_node(), so look the node up by identity instead of
- * by index.  Leaving a stale phy_node[] entry behind is not harmless:
- * callers use that array as the "this port has a PHY" flag, so a
- * non-NULL phy_node[i] with a NULL phy[i] later gets dereferenced by
- * fe_phy_link_adjust() and handed to phy_ethtool_sset() in
- * fe_set_settings().
+ * Look the node up by identity: a failed connect must not leave a
+ * stale phy_node[] entry behind. Callers use that array as the
+ * "this port has a PHY" flag, so a non-NULL phy_node[i] with a NULL
+ * phy[i] later gets skipped by fe_phy_link_adjust() and handed to
+ * phy_ethtool_sset() in fe_set_settings().
  */
 static void fe_phy_forget_node(struct fe_priv *priv,
 			       struct device_node *phy_node)
@@ -101,30 +99,25 @@ static void fe_phy_forget_node(struct fe_priv *priv,
 	}
 }
 
-int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node)
+int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node,
+			int port)
 {
-	const __be32 *_port = NULL;
 	struct phy_device *phydev;
-	int phy_mode, port;
+	int phy_mode;
 
-	_port = of_get_property(phy_node, "reg", NULL);
-
-	/*
-	 * "reg" is the MDIO address, so 0..0x1f is what the bus can
-	 * address.  struct fe_phy only has 8 entries per port though,
-	 * and every index below (phy[], link[]) is used to subscript
-	 * those arrays, so the real limit is the array size.  Bound
-	 * against the array instead of the bus width, otherwise a
-	 * device tree with reg = 8..31 writes past the end of
-	 * priv->phy->phy[] / priv->link[].
+	/* phy_node[] is indexed by the eth-port id, not by the MDIO
+	 * address held in the PHY node's "reg" property. Using that
+	 * address to index phy[] made the two arrays disagree whenever
+	 * a PHY sat at an address other than its port id: link adjust,
+	 * connect and the ethtool paths all walk them with one index.
+	 * of_phy_connect() resolves the address from the node itself.
 	 */
-	if (!_port ||
-	    (be32_to_cpu(*_port) >= ARRAY_SIZE(priv->phy->phy))) {
-		pr_err("%s: invalid port id\n", phy_node->name);
+	if (port < 0 || port >= ARRAY_SIZE(priv->phy->phy)) {
+		dev_err(priv->dev, "invalid port id %d\n", port);
 		fe_phy_forget_node(priv, phy_node);
 		return -EINVAL;
 	}
-	port = be32_to_cpu(*_port);
+
 	phy_mode = of_get_phy_mode(phy_node);
 	if (phy_mode < 0) {
 		dev_err(priv->dev, "incorrect phy-mode %d\n", phy_mode);

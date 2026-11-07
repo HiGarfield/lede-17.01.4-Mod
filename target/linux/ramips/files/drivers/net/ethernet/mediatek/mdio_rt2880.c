@@ -258,5 +258,5 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	 * fe_connect_phy_node() drops the node itself on failure.
 	 */
 	if (priv->phy->phy_node[0])
-		fe_connect_phy_node(priv, priv->phy->phy_node[0]);
+		fe_connect_phy_node(priv, priv->phy->phy_node[0], 0);
 }
