@@ -902,6 +902,8 @@ swconfig_get_attr(struct sk_buff *skb, struct genl_info *info)
 			goto nla_put_failure;
 		break;
 	case SWITCH_TYPE_STRING:
+		if (!val.value.s)
+			goto nla_put_failure;
 		if (nla_put_string(msg, SWITCH_ATTR_OP_VALUE_STR, val.value.s))
 			goto nla_put_failure;
 		break;
