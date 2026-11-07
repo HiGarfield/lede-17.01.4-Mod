@@ -600,6 +600,9 @@ swconfig_parse_ports(struct sk_buff *msg, struct nlattr *head,
 			return -EINVAL;
 
 		port->id = nla_get_u32(tb[SWITCH_PORT_ID]);
+		if (port->id >= max)
+			return -EINVAL;
+
 		if (tb[SWITCH_PORT_FLAG_TAGGED])
 			port->flags |= (1 << SWITCH_PORT_FLAG_TAGGED);
 		val->len++;
