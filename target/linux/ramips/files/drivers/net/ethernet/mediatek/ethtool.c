@@ -151,8 +151,10 @@ out_get_link:
 static int fe_set_ringparam(struct net_device *dev,
 			    struct ethtool_ringparam *ring)
 {
-	/* 该 SoC 驱动的 DMA 描述符环在 probe 时固定分配，运行时重建涉及
-	 * NAPI/中断/SKB 生命周期，暂不支持。 */
+	/* The DMA descriptor rings are allocated once at probe time.
+	 * Rebuilding them while the device is up would race with NAPI,
+	 * interrupts and skb lifetimes, so this is not supported.
+	 */
 	return -EOPNOTSUPP;
 }
 
