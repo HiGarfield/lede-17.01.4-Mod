@@ -595,14 +595,16 @@ static int fe_vlan_rx_add_vid(struct net_device *dev,
 
 	set_bit(vid, priv->active_vids);
 
-	/* A collision leaves the colliding VID active but without a
-	 * hardware slot. Do not program any new slot until every VID is
-	 * gone, even if the offload feature was turned back on meanwhile:
-	 * the hardware would resolve that VID through somebody else's
-	 * slot and tag its frames with the wrong VLAN.
+	/* Keep the hardware VID table in sync with active_vids even while
+	 * TX VLAN offload is switched off. There is no ndo_set_features
+	 * hook that could program these slots later, so VIDs registered
+	 * while the feature was off used to stay unprogrammed forever;
+	 * when ethtool re-enabled the offload, fe_tx_map_dma() resolved
+	 * VIDX through a stale table and frames got the wrong VLAN tag.
+	 * A hash collision is the only case where a VID must stay without
+	 * a slot; fe_fix_features() blocks the offload until it is gone.
 	 */
-	if (priv->vlan_offload_conflict ||
-	    !(dev->features & NETIF_F_HW_VLAN_CTAG_TX))
+	if (priv->vlan_offload_conflict)
 		return 0;
 
 	if (test_bit(idx, &priv->vlan_map)) {
@@ -1956,6 +1958,23 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	return 0;
 }
 
+static netdev_features_t fe_fix_features(struct net_device *dev,
+					 netdev_features_t features)
+{
+	struct fe_priv *priv = netdev_priv(dev);
+
+	/* The hardware resolves the VIDX field of txd4 through its 16 VID
+	 * slots. When two active VIDs collide on one slot, the colliding
+	 * VID has no slot of its own and offloading it would tag those
+	 * frames with the other VLAN's VID. Refuse to turn the feature on
+	 * until fe_vlan_rx_kill_vid() has removed every active VID.
+	 */
+	if (priv->vlan_offload_conflict)
+		features &= ~NETIF_F_HW_VLAN_CTAG_TX;
+
+	return features;
+}
+
 static const struct net_device_ops fe_netdev_ops = {
 	.ndo_init		= fe_init,
 	.ndo_uninit		= fe_uninit,
@@ -1965,6 +1984,7 @@ static const struct net_device_ops fe_netdev_ops = {
 	.ndo_set_mac_address	= fe_set_mac_address,
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_do_ioctl		= fe_do_ioctl,
+	.ndo_fix_features	= fe_fix_features,
 	.ndo_change_mtu		= fe_change_mtu,
 	.ndo_tx_timeout		= fe_tx_timeout,
 	.ndo_get_stats64        = fe_get_stats64,
