@@ -1185,7 +1185,17 @@ static int fe_poll(struct napi_struct *napi, int budget)
 	 */
 
 	if (unlikely(fe_status & status_intr)) {
-		if (hwstat && spin_trylock(&hwstat->stats_lock)) {
+		if (hwstat) {
+			/* Take the lock unconditionally, like the two process
+			 * context readers: fe_stats_update() folds
+			 * clear-on-read 32-bit counters, so a failed trylock
+			 * loses their increments once they wrap. The ACK
+			 * below is in this branch as well, so skipping the
+			 * update also left the counter-full source pending.
+			 * NAPI runs in softirq, so spin_lock() suffices and
+			 * cannot deadlock with the _bh variants.
+			 */
+			spin_lock(&hwstat->stats_lock);
 			fe_stats_update(priv);
 			spin_unlock(&hwstat->stats_lock);
 			/* only acknowledge the counter-full event once the
