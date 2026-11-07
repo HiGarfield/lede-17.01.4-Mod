@@ -765,7 +765,13 @@ static irqreturn_t esw_interrupt(int irq, void *_esw)
 		link &= RT305X_ESW_POA_LINK_MASK;
 		dev_info(esw->dev, "link changed 0x%02X\n", link);
 	}
-	esw_w32(esw, status, RT305X_ESW_REG_ISR);
+	/* The ISR is write-one-to-clear and only the port-change source is
+	 * unmasked by esw_probe(). Writing back the whole snapshot also
+	 * clears any status bit that became set while this handler was
+	 * running, losing that event. Acknowledge only the bit this
+	 * handler observed, as gsw_interrupt_mt7620() already does.
+	 */
+	esw_w32(esw, status & RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_ISR);
 
 	return IRQ_HANDLED;
 }
