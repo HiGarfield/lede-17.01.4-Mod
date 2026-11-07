@@ -324,6 +324,10 @@ int mtk_gsw_init(struct fe_priv *priv)
 		return -EPROBE_DEFER;
 
 	priv->soc->swpriv = gsw;
+	/* Keep the back-pointer even when no interrupt is configured: the
+	 * remove path needs it to make the FE side forget this devm object.
+	 */
+	gsw->priv = priv;
 
 	if (gsw->irq) {
 		int irqerr;
@@ -338,9 +342,9 @@ int mtk_gsw_init(struct fe_priv *priv)
 			 * caller now considers uninitialised
 			 */
 			priv->soc->swpriv = NULL;
+			gsw->priv = NULL;
 			return irqerr;
 		}
-		gsw->priv = priv;
 		disable_irq(gsw->irq);
 	}
 
@@ -425,6 +429,15 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
+		/* The FE driver caches this devm object in soc->swpriv.
+		 * Clearing it only in mtk_gsw_cleanup() (FE teardown)
+		 * leaves a dangling pointer when this platform device is
+		 * unbound or the module unloaded while mtk-eth-soc stays
+		 * loaded. fe_open(), the reset work and the later
+		 * mtk_gsw_cleanup() all dereference swpriv.
+		 */
+		if (gsw->priv)
+			gsw->priv->soc->swpriv = NULL;
 		if (gsw->irq)
 			mt7530_mdio_w32(gsw, 0x7008, 0);
 		if (gsw->irq && gsw->priv) {

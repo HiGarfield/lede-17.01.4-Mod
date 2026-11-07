@@ -263,6 +263,10 @@ int mtk_gsw_init(struct fe_priv *priv)
 		return -EPROBE_DEFER;
 
 	priv->soc->swpriv = gsw;
+	/* Keep the back-pointer even when no interrupt is configured: the
+	 * remove path needs it to make the FE side forget this devm object.
+	 */
+	gsw->priv = priv;
 
 	mt7620_hw_init(gsw, mt7620_mdio_mode(priv->dev->of_node));
 
@@ -276,9 +280,9 @@ int mtk_gsw_init(struct fe_priv *priv)
 			 * caller now considers uninitialised
 			 */
 			priv->soc->swpriv = NULL;
+			gsw->priv = NULL;
 			return irqerr;
 		}
-		gsw->priv = priv;
 		mtk_switch_w32(gsw, ~PORT_IRQ_ST_CHG, GSW_REG_IMR);
 	}
 
@@ -356,6 +360,15 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
+		/* The FE driver caches this devm object in soc->swpriv.
+		 * Clearing it only in mtk_gsw_cleanup() (FE teardown)
+		 * leaves a dangling pointer when this platform device is
+		 * unbound or the module unloaded while mtk-eth-soc stays
+		 * loaded. fe_open(), the reset work and the later
+		 * mtk_gsw_cleanup() all dereference swpriv.
+		 */
+		if (gsw->priv)
+			gsw->priv->soc->swpriv = NULL;
 		if (gsw->irq)
 			mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
 		if (gsw->irq && gsw->priv) {
