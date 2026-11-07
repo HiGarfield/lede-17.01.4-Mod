@@ -293,6 +293,13 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	if (!gsw)
 		return;
 
+	/* mask the port-change source before the handler goes away: the
+	 * IMR was opened in mtk_gsw_init(), and an asserted level line
+	 * with no action registered fires spurious interrupts
+	 */
+	if (gsw->irq)
+		mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
+
 	/* the irq was requested with the fe_priv as dev_id; release it
 	 * on the fe side too, otherwise the handler may run after the
 	 * netdev/fe_priv is gone (UAF), and a retried fe_init would
@@ -350,6 +357,8 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
+		if (gsw->irq)
+			mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
 		if (gsw->irq && gsw->priv) {
 			free_irq(gsw->irq, gsw->priv);
 			/* both this remove and mtk_gsw_cleanup() release the

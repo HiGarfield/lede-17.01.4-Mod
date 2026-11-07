@@ -364,6 +364,13 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	if (!gsw)
 		return;
 
+	/* mask the port-change source before the handler goes away: the
+	 * IMR was opened in mtk_gsw_init(), and the MT7530 keeps a level
+	 * line asserted while (ISR & IMR) != 0
+	 */
+	if (gsw->irq)
+		mt7530_mdio_w32(gsw, 0x7008, 0);
+
 	/* the irq was requested with the fe_priv as dev_id; release it
 	 * on the fe side too, otherwise the handler may run after the
 	 * netdev/fe_priv is gone (UAF), and a retried fe_init would
@@ -418,6 +425,8 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
+		if (gsw->irq)
+			mt7530_mdio_w32(gsw, 0x7008, 0);
 		if (gsw->irq && gsw->priv) {
 			/* gsw is devm allocated: returning from remove
 			 * frees it, so the queued link work must be gone
