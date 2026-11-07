@@ -772,6 +772,14 @@ mt7530_set_port_mirror_rx(struct switch_dev *dev, const struct switch_attr *attr
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
+	/* swconfig does not enforce attr->max. Assigning an arbitrary u32
+	 * to the bool field truncates it: 2 enables mirroring while 256
+	 * silently disables it. Reject anything outside the advertised
+	 * 0..1 range, like the other validated setters in this driver.
+	 */
+	if (val->value.i > 1)
+		return -EINVAL;
+
 	mutex_lock(&priv->reg_mutex);
 	priv->port_entries[val->port_vlan].mirror_rx = val->value.i;
 	mutex_unlock(&priv->reg_mutex);
@@ -802,6 +810,10 @@ mt7530_set_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+		return -EINVAL;
+
+	/* swconfig does not enforce attr->max; see the mirror_rx setter. */
+	if (val->value.i > 1)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
