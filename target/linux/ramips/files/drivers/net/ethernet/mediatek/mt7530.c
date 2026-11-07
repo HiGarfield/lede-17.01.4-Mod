@@ -835,20 +835,33 @@ mt7530_apply_config(struct switch_dev *dev)
 
 	/* Port Default PVID */
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
+		unsigned int idx = priv->port_entries[i].pvid;
 		u16 pvid = 0;
 		u32 val;
 
-		/* port_entries[].pvid is a VID, not an array index:
-		 * locate the configured entry carrying this VID. Using
-		 * it as a subscript made a pvid > 15 silently fall back
-		 * to 0 on MT7620 (NUM_VLANS=16).
+		/* swconfig passes a VLAN table index here:
+		 * swconfig_set_vlan_ports() calls set_port_pvid(dev, port,
+		 * val->port_vlan) for every untagged member. PPBV1 holds a
+		 * VID, so the index must be resolved through vlan_entries[].
+		 * Looking the value up by VID alone is wrong on MT7620,
+		 * where set_vid() allows vid != index: an entry remapped to
+		 * VID 100 then fails to resolve and the port is silently
+		 * programmed with VID 0.
+		 *
+		 * The port's pvid attribute may also carry a VID directly,
+		 * including values outside the 16-slot MT7620 table. Keep
+		 * that form working as a fallback when the index does not
+		 * name a populated entry.
 		 */
-		for (j = 0; j < MT7530_NUM_VLANS; j++) {
-			if (priv->vlan_entries[j].member &&
-			    priv->vlan_entries[j].vid ==
-						priv->port_entries[i].pvid) {
-				pvid = priv->vlan_entries[j].vid;
-				break;
+		if (idx < MT7530_NUM_VLANS && priv->vlan_entries[idx].member) {
+			pvid = priv->vlan_entries[idx].vid;
+		} else {
+			for (j = 0; j < MT7530_NUM_VLANS; j++) {
+				if (priv->vlan_entries[j].member &&
+				    priv->vlan_entries[j].vid == idx) {
+					pvid = priv->vlan_entries[j].vid;
+					break;
+				}
 			}
 		}
 
