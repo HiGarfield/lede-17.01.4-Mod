@@ -554,37 +554,56 @@ static struct rtnl_link_stats64 *fe_get_stats64(struct net_device *dev,
 	return storage;
 }
 
-static int fe_vlan_rx_add_vid(struct net_device *dev,
-			      __be16 proto, u16 vid)
+static void fe_vlan_write_slot(struct fe_priv *priv, u32 idx, u16 vid)
 {
-	struct fe_priv *priv = netdev_priv(dev);
-	u32 idx = (vid & 0xf);
-	u32 vlan_cfg;
+	u32 reg = fe_reg_table[FE_REG_FE_DMA_VID_BASE] + ((idx >> 1) << 2);
+	u32 vlan_cfg = fe_r32(reg);
 
-	if (!((fe_reg_table[FE_REG_FE_DMA_VID_BASE]) &&
-	      (dev->features & NETIF_F_HW_VLAN_CTAG_TX)))
-		return 0;
-
-	if (test_bit(idx, &priv->vlan_map) && priv->vlan_vid[idx] == vid)
-		return 0;
-
-	/* The slot is either free or occupied by a colliding VID. The
-	 * old code disabled TX VLAN offload for the whole device on a
-	 * collision and never recovered nor updated the register, which
-	 * both broke offload permanently and left a stale VID behind.
-	 * Replace the slot contents instead.
-	 */
-	vlan_cfg = fe_r32(fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
-			((idx >> 1) << 2));
 	if (idx & 0x1) {
 		vlan_cfg &= 0xffff;
-		vlan_cfg |= (vid << 16);
+		vlan_cfg |= (u32)vid << 16;
 	} else {
 		vlan_cfg &= 0xffff0000;
 		vlan_cfg |= vid;
 	}
-	fe_w32(vlan_cfg, fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
-			((idx >> 1) << 2));
+	fe_w32(vlan_cfg, reg);
+}
+
+static int fe_vlan_rx_add_vid(struct net_device *dev,
+			      __be16 proto, u16 vid)
+{
+	struct fe_priv *priv = netdev_priv(dev);
+	u32 idx = vid & 0xf;
+
+	if (!fe_reg_table[FE_REG_FE_DMA_VID_BASE])
+		return 0;
+
+	set_bit(vid, priv->active_vids);
+
+	if (!(dev->features & NETIF_F_HW_VLAN_CTAG_TX))
+		return 0;
+
+	if (test_bit(idx, &priv->vlan_map)) {
+		if (priv->vlan_vid[idx] == vid)
+			return 0;
+
+		/* The hardware resolves the VIDX field of txd4 through
+		 * this slot, so two VIDs with the same hash cannot both
+		 * be offloaded. Overwriting the slot would tag frames
+		 * of one VLAN with the other VLAN's VID. Let the stack
+		 * insert the tags in software until the collision is
+		 * gone instead.
+		 */
+		netdev_warn(dev,
+			    "TX VLAN offload disabled: VID %u collides with VID %u in slot %u\n",
+			    vid, priv->vlan_vid[idx], idx);
+		priv->vlan_offload_conflict = true;
+		dev->wanted_features &= ~NETIF_F_HW_VLAN_CTAG_TX;
+		netdev_update_features(dev);
+		return 0;
+	}
+
+	fe_vlan_write_slot(priv, idx, vid);
 	priv->vlan_vid[idx] = vid;
 	set_bit(idx, &priv->vlan_map);
 
@@ -595,27 +614,31 @@ static int fe_vlan_rx_kill_vid(struct net_device *dev,
 			       __be16 proto, u16 vid)
 {
 	struct fe_priv *priv = netdev_priv(dev);
-	u32 idx = (vid & 0xf);
+	u32 idx = vid & 0xf;
 
-	if (!((fe_reg_table[FE_REG_FE_DMA_VID_BASE]) &&
-	      (dev->features & NETIF_F_HW_VLAN_CTAG_TX)))
+	if (!fe_reg_table[FE_REG_FE_DMA_VID_BASE])
 		return 0;
 
-	/* clear the register slot as well, not just the bookkeeping
-	 * bit, so a removed VID does not keep matching in hardware
+	clear_bit(vid, priv->active_vids);
+
+	/* Clear the register slot as well as the bookkeeping bit, so a
+	 * removed VID does not keep matching in hardware.
 	 */
 	if (test_bit(idx, &priv->vlan_map) && priv->vlan_vid[idx] == vid) {
-		u32 vlan_cfg;
-
-		vlan_cfg = fe_r32(fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
-				((idx >> 1) << 2));
-		if (idx & 0x1)
-			vlan_cfg &= 0xffff;
-		else
-			vlan_cfg &= 0xffff0000;
-		fe_w32(vlan_cfg, fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
-				((idx >> 1) << 2));
+		fe_vlan_write_slot(priv, idx, 0);
 		clear_bit(idx, &priv->vlan_map);
+	}
+
+	/* VIDs registered while the feature was off were never
+	 * programmed into a slot, so offload may only come back once
+	 * every registered VID is gone; otherwise those frames would
+	 * be mistagged by the stale table.
+	 */
+	if (priv->vlan_offload_conflict &&
+	    bitmap_empty(priv->active_vids, VLAN_N_VID)) {
+		priv->vlan_offload_conflict = false;
+		dev->wanted_features |= NETIF_F_HW_VLAN_CTAG_TX;
+		netdev_update_features(dev);
 	}
 
 	return 0;

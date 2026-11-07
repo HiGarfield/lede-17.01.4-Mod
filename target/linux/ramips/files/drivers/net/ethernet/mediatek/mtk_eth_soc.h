@@ -22,6 +22,7 @@
 #include <linux/phy.h>
 #include <linux/ethtool.h>
 #include <linux/version.h>
+#include <linux/if_vlan.h>
 
 enum fe_reg {
 	FE_REG_PDMA_GLO_CFG = 0,
@@ -506,6 +507,10 @@ struct fe_priv {
 	unsigned long			vlan_map;
 	/* VID currently programmed in each of the 16 hash slots */
 	u16				vlan_vid[16];
+	/* every VID registered through ndo_vlan_rx_add_vid() */
+	DECLARE_BITMAP(active_vids, VLAN_N_VID);
+	/* set while a hash collision forces TX VLAN offload off */
+	bool				vlan_offload_conflict;
 	struct work_struct		pending_work;
 	DECLARE_BITMAP(pending_flags, FE_FLAG_MAX);
 };
