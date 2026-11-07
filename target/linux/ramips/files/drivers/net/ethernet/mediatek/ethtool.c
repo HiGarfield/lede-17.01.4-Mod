@@ -49,11 +49,17 @@ static int fe_set_settings(struct net_device *dev,
 			   struct ethtool_cmd *cmd)
 {
 	struct fe_priv *priv = netdev_priv(dev);
+	struct phy_device *new_phy = NULL;
+	unsigned long flags;
+	int i;
 
-	if (cmd->phy_address >= 8)
+	/* ethtool's phy_address is an MDIO bus address, so bound it
+	 * against the bus width, not against the 8 port slots.
+	 */
+	if (cmd->phy_address >= PHY_MAX_ADDR)
 		return -EINVAL;
 
-	if (!priv->phy_dev)
+	if (!priv->phy_dev || !priv->phy)
 		goto out_sset;
 
 	if (cmd->phy_address != priv->phy_dev->addr) {
@@ -61,24 +67,42 @@ static int fe_set_settings(struct net_device *dev,
 		 * callbacks and the other ethtool paths; serialise the
 		 * switch against them
 		 */
-		spin_lock_irq(&priv->phy->lock);
-		if (priv->phy->phy_node[cmd->phy_address] &&
-		    priv->phy->phy[cmd->phy_address]) {
-			/* phy_node[] marks a described PHY; phy[] is only
-			 * filled once the connect actually succeeded
-			 */
-			priv->phy_dev = priv->phy->phy[cmd->phy_address];
-			priv->phy_flags = FE_PHY_FLAG_PORT;
-		} else if (priv->mii_bus &&
-			   priv->mii_bus->phy_map[cmd->phy_address]) {
-			priv->phy_dev =
-				priv->mii_bus->phy_map[cmd->phy_address];
+		spin_lock_irqsave(&priv->phy->lock, flags);
+
+		/* phy[] and phy_node[] are indexed by eth-port id, while
+		 * cmd->phy_address is an MDIO address. Since phy[] was
+		 * changed to be port-indexed the two are no longer
+		 * interchangeable: locate the described PHY by its real
+		 * bus address instead of subscripting those arrays.
+		 */
+		for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
+			if (priv->phy->phy[i] &&
+			    priv->phy->phy[i]->addr == cmd->phy_address) {
+				new_phy = priv->phy->phy[i];
+				priv->phy_flags = FE_PHY_FLAG_PORT;
+				break;
+			}
+		}
+
+		/* Fall back to a bus-scanned PHY only when this driver
+		 * actually attached it: phy_ethtool_sset() ends up in
+		 * phydev->drv and must not run on an unattached phydev.
+		 */
+		if (!new_phy &&
+		    cmd->phy_address < ARRAY_SIZE(priv->phy->phy) &&
+		    priv->mii_bus &&
+		    priv->mii_bus->phy_map[cmd->phy_address] &&
+		    test_bit(cmd->phy_address, &priv->phy->phy_attached)) {
+			new_phy = priv->mii_bus->phy_map[cmd->phy_address];
 			priv->phy_flags = FE_PHY_FLAG_ATTACH;
-		} else {
-			spin_unlock_irq(&priv->phy->lock);
+		}
+
+		if (!new_phy) {
+			spin_unlock_irqrestore(&priv->phy->lock, flags);
 			goto out_sset;
 		}
-		spin_unlock_irq(&priv->phy->lock);
+		priv->phy_dev = new_phy;
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
 	}
 
 	return phy_ethtool_sset(priv->phy_dev, cmd);
