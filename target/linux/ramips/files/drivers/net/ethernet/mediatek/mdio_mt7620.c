@@ -23,17 +23,24 @@
 void mt7620_mdio_reset(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	unsigned long flags;
 
 	if (!gsw)
 		return;
 
-	/* clear the busy/start bit so a wedged engine accepts new
-	 * commands again
+	/* mii_bus->reset is invoked directly by mdiobus_register(), outside
+	 * bus->mdio_lock, while the MT7621 link work already performs
+	 * mt7530_mdio_* transactions. The PIAC is one command/status
+	 * register, so this read-modify-write must take the same lock as
+	 * every other user or it can clear START/BUSY in the middle of
+	 * somebody else's transaction.
 	 */
+	spin_lock_irqsave(&gsw->mdio_lock, flags);
 	mtk_switch_w32(gsw,
 		       mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) &
 		       ~GSW_MDIO_ACCESS,
 		       MT7620A_GSW_REG_PIAC);
+	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
 	udelay(10);
 }
 
