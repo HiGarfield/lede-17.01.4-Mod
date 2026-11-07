@@ -1959,7 +1959,11 @@ static int fe_probe(struct platform_device *pdev)
 
 	fe_base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(fe_base)) {
-		err = -EADDRNOTAVAIL;
+		/* -EPROBE_DEFER must reach the driver core: collapsing it
+		 * into -EADDRNOTAVAIL turns a temporary deferral into a
+		 * permanent probe failure and hides the real cause
+		 */
+		err = PTR_ERR(fe_base);
 		fe_base = NULL;
 		goto err_out;
 	}
