@@ -95,14 +95,18 @@ static int mt7621_gsw_config(struct fe_priv *priv)
 		return -ENODEV;
 	}
 
+	/* check the tracking array before probing: mt7530_probe()
+	 * allocates devm state on this device, registers a switch_dev
+	 * and rewrites the hardware VLAN table, none of which an
+	 * overflow path could fully undo
+	 */
+	if (priv->soc->gsw_dev_num >= ARRAY_SIZE(priv->soc->gsw_dev))
+		return -ENOSPC;
+
 	swdev = mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
 	if (IS_ERR(swdev))
 		return PTR_ERR(swdev);
 
-	if (priv->soc->gsw_dev_num >= ARRAY_SIZE(priv->soc->gsw_dev)) {
-		unregister_switch(swdev);
-		return -ENOSPC;
-	}
 	priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
 
 	return 0;
