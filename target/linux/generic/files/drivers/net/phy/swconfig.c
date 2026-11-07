@@ -1000,8 +1000,10 @@ static int swconfig_dump_switches(struct sk_buff *skb,
 			continue;
 		if (swconfig_send_switch(skb, NETLINK_CB(cb->skb).portid,
 				cb->nlh->nlmsg_seq, NLM_F_MULTI,
-				dev) < 0)
+				dev) < 0) {
+			idx--;
 			break;
+		}
 	}
 	swconfig_unlock();
 	cb->args[0] = idx;
