@@ -210,19 +210,24 @@ static int fe_phy_connect(struct fe_priv *priv)
 		}
 	}
 
-	/* fe_init() has a rollback path for a failed connect, but this
-	 * callback used to return 0 unconditionally: every attach error
-	 * was swallowed and the netdev came up with no PHY and no log.
-	 * A usable PHY or a fixed link is enough to keep going; only
-	 * report an error when no link source is left at all.
+	/* fe_init() has a rollback path for a failed connect. A usable PHY
+	 * or a fixed link is enough to keep going; switch-only SoCs get
+	 * their carrier from soc->has_carrier() and legitimately have
+	 * neither. Everything else has no link source at all: registering
+	 * the netdev would leave it permanently carrier-off with ethtool
+	 * and MII ioctls always failing with -ENODEV. In particular, a DT
+	 * whose mdio-bus has no enabled PHY produced no phy_init() error,
+	 * so ret was still 0 here.
 	 */
 	if (priv->phy_dev)
 		return 0;
 	for (i = 0; i < ARRAY_SIZE(priv->phy->phy_fixed); i++)
 		if (priv->phy->phy_fixed[i])
 			return 0;
+	if (priv->soc->has_carrier)
+		return 0;
 
-	return ret;
+	return ret ? ret : -ENODEV;
 }
 
 static void fe_phy_disconnect(struct fe_priv *priv)
