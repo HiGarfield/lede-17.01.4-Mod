@@ -1238,11 +1238,14 @@ static u64 get_mib_counter(struct mt7530_priv *priv, int i, int port)
 	return lo;
 }
 
-/* scnprintf() returns the length it would have written, not the
- * length actually written. Adding that to an int len lets len grow
- * past the buffer size, and the next "sizeof(buf) - len" then wraps
- * to a huge size_t. vscnprintf() returns the bytes really written,
- * so len stays strictly below size on every call.
+/* snprintf() returns the length it would have written, not the length
+ * actually written; accumulating that into len let it grow past the
+ * buffer size and made "sizeof(buf) - len" wrap to a huge size_t.
+ * 1dae27ef already replaced snprintf() with scnprintf(), which does
+ * return the bytes really written. This helper uses the equivalent
+ * vscnprintf() and an explicit size check so len stays strictly below
+ * size and buf stays NUL-terminated, including on the second append
+ * of an iteration (the guard d8fdcc46 added to just one loop).
  */
 static void mt7530_mib_append(char *buf, size_t size, size_t *len,
 			      const char *fmt, ...)
