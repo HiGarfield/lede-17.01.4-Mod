@@ -352,7 +352,13 @@ static int mt7620_fwd_config(struct fe_priv *priv)
 
 	fe_w32(fe_r32(MT7620A_GDMA1_FWD_CFG) & ~7, MT7620A_GDMA1_FWD_CFG);
 
-	mt7620_txcsum_config((dev->features & NETIF_F_IP_CSUM));
+	/* MT7620 advertises NETIF_F_IPV6_CSUM as well on newer ECO
+	 * revisions. Honour both TX offload flags, like the generic
+	 * fe_csum_config() does, or enabling only IPv6 checksum offload
+	 * leaves the hardware CDMA checksum generator disabled.
+	 */
+	mt7620_txcsum_config((dev->features &
+			      (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM)) != 0);
 	mt7620_rxcsum_config((dev->features & NETIF_F_RXCSUM));
 
 	return 0;
