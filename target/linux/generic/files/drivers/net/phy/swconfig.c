@@ -279,6 +279,7 @@ static const struct nla_policy switch_policy[SWITCH_ATTR_MAX+1] = {
 	[SWITCH_ATTR_OP_VALUE_INT] = { .type = NLA_U32 },
 	[SWITCH_ATTR_OP_VALUE_STR] = { .type = NLA_NUL_STRING },
 	[SWITCH_ATTR_OP_VALUE_PORTS] = { .type = NLA_NESTED },
+	[SWITCH_ATTR_OP_VALUE_LINK] = { .type = NLA_NESTED },
 	[SWITCH_ATTR_TYPE] = { .type = NLA_U32 },
 };
 
