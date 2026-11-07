@@ -273,6 +273,13 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 	 */
 	for (i = 0; i < ARRAY_SIZE(priv->phy->phy_fixed); i++)
 		priv->phy->phy_fixed[i] = NULL;
+
+	/* The loop above only clears an attached bit when the mii_bus and
+	 * its phy_map[] entry are still present. A bus that was already
+	 * torn down leaves the bit set in the module-wide singleton; the
+	 * next probe would then detach a PHY it never attached.
+	 */
+	priv->phy->phy_attached = 0;
 }
 
 static void fe_phy_start(struct fe_priv *priv)
