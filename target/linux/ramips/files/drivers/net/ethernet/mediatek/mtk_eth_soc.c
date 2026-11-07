@@ -1930,7 +1930,13 @@ static int fe_probe(struct platform_device *pdev)
 	struct clk *sysclk;
 	int err, napi_weight;
 
-	device_reset(&pdev->dev);
+	err = device_reset(&pdev->dev);
+	/* -EPROBE_DEFER means the reset controller has not probed yet;
+	 * -ENOENT is the normal result when the ethernet node has no
+	 * "resets" property and must not abort the probe.
+	 */
+	if (err == -EPROBE_DEFER)
+		return err;
 
 	match = of_match_device(of_fe_match, &pdev->dev);
 	if (!match)
