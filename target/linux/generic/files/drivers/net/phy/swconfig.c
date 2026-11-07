@@ -112,6 +112,9 @@ swconfig_set_pvid(struct switch_dev *dev, const struct switch_attr *attr,
 	if (!dev->ops->set_port_pvid)
 		return -EOPNOTSUPP;
 
+	if (val->value.i >= dev->vlans)
+		return -EINVAL;
+
 	return dev->ops->set_port_pvid(dev, val->port_vlan, val->value.i);
 }
 
