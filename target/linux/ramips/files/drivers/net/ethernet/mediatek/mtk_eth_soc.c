@@ -1198,11 +1198,15 @@ static int fe_poll(struct napi_struct *napi, int budget)
 			spin_lock(&hwstat->stats_lock);
 			fe_stats_update(priv);
 			spin_unlock(&hwstat->stats_lock);
-			/* only acknowledge the counter-full event once the
-			 * counters have actually been folded in; otherwise
-			 * this increment is lost forever
+			/* Acknowledge only the counter-full bits present in
+			 * this snapshot, and only after the counters have
+			 * been folded in. Writing the whole SoC mask also
+			 * clears events that arrived while fe_stats_update()
+			 * was running, so those increments would never be
+			 * read (the same stale-snapshot problem already
+			 * fixed for the rx/tx bits above).
 			 */
-			fe_reg_w32(status_intr, status_reg);
+			fe_reg_w32(fe_status & status_intr, status_reg);
 		}
 	}
 
