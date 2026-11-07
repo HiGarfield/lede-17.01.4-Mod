@@ -752,9 +752,12 @@ static int esw_hw_init(struct rt305x_esw *esw)
 	/* Apply the empty config. */
 	ret = esw_apply_config(&esw->swdev);
 
-	/* Only unmask the port change interrupt */
-	esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
-
+	/* Do not touch the IMR here: esw_reset_switch() calls this
+	 * function with the handler already installed, and esw_probe()
+	 * deliberately keeps every source masked until devm_request_irq()
+	 * has registered the action. Unmasking here would leave an
+	 * asserted port-change line with no handler during probe.
+	 */
 	return ret;
 }
 
@@ -1616,6 +1619,14 @@ static int esw_probe(struct platform_device *pdev)
 	spin_lock_init(&esw->reg_rw_lock);
 	mutex_init(&esw->mii_lock);
 	mutex_init(&esw->update_lock);
+
+	/* Programming the switch can raise port-change status. Keep all
+	 * sources masked until the handler is actually registered below;
+	 * register_switch() runs before devm_request_irq(), so an
+	 * unmasked line would fire with no action installed and let the
+	 * generic irq layer treat it as a spurious interrupt.
+	 */
+	esw_w32(esw, ~0, RT305X_ESW_REG_IMR);
 
 	/*
 	 * Program the hardware and apply the (still empty) software
