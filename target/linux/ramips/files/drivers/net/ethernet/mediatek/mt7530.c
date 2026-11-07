@@ -709,7 +709,7 @@ static int
 mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
 	                    u8 ports, u8 etags)
 {
-	int port;
+	int port, ret;
 	u32 val;
 
 #ifndef CONFIG_SOC_MT7621
@@ -722,16 +722,21 @@ mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
 		val &= 0xfff;
 		val |= (vid << 12);
 	}
-	mt7530_w32(priv, REG_ESW_VLAN_VTIM(vlan), val);
+	ret = mt7530_w32(priv, REG_ESW_VLAN_VTIM(vlan), val);
+	if (ret)
+		return ret;
 #endif
 
 	/* vlan port membership */
 	if (ports)
-		mt7530_w32(priv, REG_ESW_VLAN_VAWD1, REG_ESW_VLAN_VAWD1_IVL_MAC |
+		ret = mt7530_w32(priv, REG_ESW_VLAN_VAWD1,
+			REG_ESW_VLAN_VAWD1_IVL_MAC |
 			REG_ESW_VLAN_VAWD1_VTAG_EN | (ports << 16) |
 			REG_ESW_VLAN_VAWD1_VALID);
 	else
-		mt7530_w32(priv, REG_ESW_VLAN_VAWD1, 0);
+		ret = mt7530_w32(priv, REG_ESW_VLAN_VAWD1, 0);
+	if (ret)
+		return ret;
 
 	/* egress mode */
 	val = 0;
@@ -741,7 +746,9 @@ mt7530_write_vlan_entry(struct mt7530_priv *priv, int vlan, u16 vid,
 		else
 			val |= ETAG_CTRL_UNTAG << (port * 2);
 	}
-	mt7530_w32(priv, REG_ESW_VLAN_VAWD2, val);
+	ret = mt7530_w32(priv, REG_ESW_VLAN_VAWD2, val);
+	if (ret)
+		return ret;
 
 	/* write to vlan table */
 #ifdef CONFIG_SOC_MT7621
@@ -839,8 +846,14 @@ mt7530_apply_config(struct switch_dev *dev)
 		err = mt7530_write_vlan_entry(priv, i, vid, member, etags);
 		if (err)
 			goto out_unlock;
+		/* Only forget an entry once it is known to match the
+		 * hardware. Clearing the whole bitmap unconditionally made
+		 * a failed MDIO write permanent: apply_config() reported
+		 * the error once and the next apply skipped the entry,
+		 * leaving the software and hardware VLAN tables diverged.
+		 */
+		clear_bit(i, priv->vlan_dirty);
 	}
-	bitmap_zero(priv->vlan_dirty, MT7530_NUM_VLANS);
 
 	/* Port Default PVID */
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
