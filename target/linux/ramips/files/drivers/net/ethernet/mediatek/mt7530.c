@@ -309,6 +309,8 @@ mt7530_reset_switch(struct switch_dev *dev)
 	 * would also keep being reported through swconfig. Reset both
 	 * globals with the arrays, like esw_reset_switch() does.
 	 */
+	/* apply_config() reads all of this under reg_mutex */
+	mutex_lock(&priv->reg_mutex);
 	priv->global_vlan_enable = false;
 	priv->mirror_dest_port = 0;
 
@@ -330,6 +332,7 @@ mt7530_reset_switch(struct switch_dev *dev)
 	 * hardware and software permanently diverged.
 	 */
 	bitmap_fill(priv->vlan_dirty, MT7530_NUM_VLANS);
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -341,7 +344,9 @@ mt7530_get_vlan_enable(struct switch_dev *dev,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	mutex_lock(&priv->reg_mutex);
 	val->value.i = priv->global_vlan_enable;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -353,7 +358,9 @@ mt7530_set_vlan_enable(struct switch_dev *dev,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	mutex_lock(&priv->reg_mutex);
 	priv->global_vlan_enable = val->value.i != 0;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -508,7 +515,9 @@ mt7530_set_port_pvid(struct switch_dev *dev, int port, int pvid)
 	if (pvid < MT7530_MIN_VID || pvid >= MT7530_MAX_VID)
 		return -EINVAL;
 
+	mutex_lock(&priv->reg_mutex);
 	priv->port_entries[port].pvid = pvid;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -536,8 +545,10 @@ mt7530_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	 * performs that expansion. Assign p->flags instead of OR-ing
 	 * into memory swconfig did not initialise.
 	 */
+	mutex_lock(&priv->reg_mutex);
 	member = priv->vlan_entries[val->port_vlan].member;
 	etags = priv->vlan_entries[val->port_vlan].etags;
+	mutex_unlock(&priv->reg_mutex);
 
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
 		struct switch_port *p;
@@ -577,9 +588,11 @@ mt7530_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 		if (p->flags & BIT(SWITCH_PORT_FLAG_TAGGED))
 			etags |= BIT(p->id);
 	}
+	mutex_lock(&priv->reg_mutex);
 	priv->vlan_entries[val->port_vlan].member = member;
 	priv->vlan_entries[val->port_vlan].etags = etags;
 	set_bit(val->port_vlan, priv->vlan_dirty);
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -616,8 +629,10 @@ mt7530_set_vid(struct switch_dev *dev, const struct switch_attr *attr,
 		return -EINVAL;
 #endif
 
+	mutex_lock(&priv->reg_mutex);
 	priv->vlan_entries[vlan].vid = vid;
 	set_bit(vlan, priv->vlan_dirty);
+	mutex_unlock(&priv->reg_mutex);
 	return 0;
 }
 
@@ -633,7 +648,9 @@ mt7621_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
 	/* pair with mt7530_set_vid(): report the configured VID, not
 	 * the array index
 	 */
+	mutex_lock(&priv->reg_mutex);
 	val->value.i = priv->vlan_entries[val->port_vlan].vid;
+	mutex_unlock(&priv->reg_mutex);
 	return 0;
 }
 
@@ -651,7 +668,9 @@ mt7530_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
 	 * as mt7621_get_vid() already does, so a pending or failed apply
 	 * cannot make "get vid" disagree with "set vid".
 	 */
+	mutex_lock(&priv->reg_mutex);
 	val->value.i = priv->vlan_entries[val->port_vlan].vid;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -662,7 +681,9 @@ mt7530_get_mirror_monitor_port(struct switch_dev *dev, const struct switch_attr 
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	mutex_lock(&priv->reg_mutex);
 	val->value.i = priv->mirror_dest_port;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -681,7 +702,9 @@ mt7530_set_mirror_monitor_port(struct switch_dev *dev, const struct switch_attr 
 	if (val->value.i >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
+	mutex_lock(&priv->reg_mutex);
 	priv->mirror_dest_port = val->value.i;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -695,7 +718,9 @@ mt7530_get_port_mirror_rx(struct switch_dev *dev, const struct switch_attr *attr
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
+	mutex_lock(&priv->reg_mutex);
 	val->value.i =  priv->port_entries[val->port_vlan].mirror_rx;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -709,7 +734,9 @@ mt7530_set_port_mirror_rx(struct switch_dev *dev, const struct switch_attr *attr
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
+	mutex_lock(&priv->reg_mutex);
 	priv->port_entries[val->port_vlan].mirror_rx = val->value.i;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -723,7 +750,9 @@ mt7530_get_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
+	mutex_lock(&priv->reg_mutex);
 	val->value.i =  priv->port_entries[val->port_vlan].mirror_tx;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
@@ -737,7 +766,9 @@ mt7530_set_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
+	mutex_lock(&priv->reg_mutex);
 	priv->port_entries[val->port_vlan].mirror_tx = val->value.i;
+	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
