@@ -460,8 +460,7 @@ static int
 mt7530_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
-	u32 member;
-	u32 etags;
+	u8 member, etags;
 	int i;
 
 	val->len = 0;
@@ -469,46 +468,31 @@ mt7530_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_VLANS)
 		return -EINVAL;
 
-	mutex_lock(&priv->reg_mutex);
-
-	if (mt7530_vtcr(priv, 0, val->port_vlan)) {
-		mutex_unlock(&priv->reg_mutex);
-		return -ETIMEDOUT;
-	}
-
-	member = mt7530_r32(priv, REG_ESW_VLAN_VAWD1);
-	/* an invalid entry holds stale/garbage data, not an empty but
-	 * valid member list -- report it as empty
+	/* Pair with mt7530_set_vlan_ports(), which only updates the
+	 * software table: the VAWD1/VAWD2 registers are programmed later
+	 * by apply_config(). Reading the hardware reported the previous
+	 * configuration for a pending change and stale data after a
+	 * failed apply or a reset_switch().
+	 *
+	 * Software etags is a one-bit-per-port bitmap, while hardware
+	 * VAWD2 uses a two-bit field per port; mt7530_write_vlan_entry()
+	 * performs that expansion. Assign p->flags instead of OR-ing
+	 * into memory swconfig did not initialise.
 	 */
-	if (!(member & REG_ESW_VLAN_VAWD1_VALID)) {
-		mutex_unlock(&priv->reg_mutex);
-		return 0;
-	}
-	member >>= 16;
-	member &= 0xff;
-
-	etags = mt7530_r32(priv, REG_ESW_VLAN_VAWD2);
+	member = priv->vlan_entries[val->port_vlan].member;
+	etags = priv->vlan_entries[val->port_vlan].etags;
 
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
 		struct switch_port *p;
-		int etag;
 
 		if (!(member & BIT(i)))
 			continue;
 
 		p = &val->value.ports[val->len++];
 		p->id = i;
-
-		etag = (etags >> (i * 2)) & 0x3;
-
-		if (etag == ETAG_CTRL_TAG)
-			p->flags |= BIT(SWITCH_PORT_FLAG_TAGGED);
-		else if (etag != ETAG_CTRL_UNTAG)
-			printk("vlan %d port %d egress tag control neither untag nor tag: %d.\n",
-					val->port_vlan, i, etag);
+		p->flags = (etags & BIT(i)) ?
+			   BIT(SWITCH_PORT_FLAG_TAGGED) : 0;
 	}
-
-	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
 }
