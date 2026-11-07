@@ -996,13 +996,16 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 		if (!(trxd.rxd2 & RX_DMA_DONE))
 			break;
 
-		/* Never trust the hardware-reported length blindly: a
-		 * corrupted descriptor could make skb_put() run past the
-		 * end of the frag. Drop the packet and recycle the old,
-		 * still-mapped buffer instead.
+		/* Never trust the hardware-reported length blindly: an
+		 * oversized length could make skb_put() run past the end
+		 * of the frag, and a length below ETH_HLEN would hand
+		 * eth_type_trans()/napi_gro_receive() an skb too short to
+		 * even hold an Ethernet header. Drop either case and
+		 * recycle the old, still-mapped buffer instead.
 		 */
 		pktlen = RX_DMA_GET_PLEN0(trxd.rxd2);
-		if (unlikely(pktlen > ring->rx_buf_size)) {
+		if (unlikely(pktlen < ETH_HLEN ||
+			     pktlen > ring->rx_buf_size)) {
 			stats->rx_dropped++;
 			goto release_desc;
 		}
