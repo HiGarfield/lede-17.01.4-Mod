@@ -295,6 +295,15 @@ mt7530_reset_switch(struct switch_dev *dev)
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 	int i;
 
+	/* Clearing the VLAN table while VLAN mode stays enabled makes the
+	 * next apply_config() program every port in security mode with no
+	 * VLAN membership, isolating the whole switch. The mirror target
+	 * would also keep being reported through swconfig. Reset both
+	 * globals with the arrays, like esw_reset_switch() does.
+	 */
+	priv->global_vlan_enable = false;
+	priv->mirror_dest_port = 0;
+
 	memset(priv->port_entries, 0, sizeof(priv->port_entries));
 	memset(priv->vlan_entries, 0, sizeof(priv->vlan_entries));
 
