@@ -168,6 +168,7 @@ int rt2880_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 {
 	const __be32 *id = of_get_property(np, "reg", NULL);
+	struct device_node *phy_np;
 	const __be32 *link;
 	int size;
 	int phy_mode;
@@ -214,7 +215,13 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 		break;
 	}
 
-	priv->phy->phy_node[0] = of_parse_phandle(np, "phy-handle", 0);
+	/* phy_ralink is a module-wide singleton: a repeated ndo_init must
+	 * not overwrite a slot that still owns an of_parse_phandle()
+	 * reference.
+	 */
+	phy_np = of_parse_phandle(np, "phy-handle", 0);
+	of_node_put(priv->phy->phy_node[0]);
+	priv->phy->phy_node[0] = phy_np;
 	if (!priv->phy->phy_node[0] && !priv->phy->phy_fixed[0])
 		return;
 

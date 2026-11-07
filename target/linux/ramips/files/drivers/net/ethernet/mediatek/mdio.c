@@ -76,26 +76,36 @@ static void fe_phy_link_adjust(struct net_device *dev)
 }
 
 /*
- * Drop the phy_node[] slot that refers to phy_node, and release it.
+ * Drop the phy_node[] slot used for this connect, and release it.
  *
- * Look the node up by identity: a failed connect must not leave a
- * stale phy_node[] entry behind. Callers use that array as the
- * "this port has a PHY" flag, so a non-NULL phy_node[i] with a NULL
- * phy[i] later gets skipped by fe_phy_link_adjust() and handed to
- * phy_ethtool_sset() in fe_set_settings().
+ * Callers use that array as the "this port has a PHY" flag, so a
+ * non-NULL phy_node[i] with a NULL phy[i] is later skipped by
+ * fe_phy_link_adjust() and handed to phy_ethtool_sset(). Every filled
+ * slot owns its own of_parse_phandle() reference, so clearing "the
+ * first slot whose pointer matches" is wrong when two ports reference
+ * the same PHY node: the failing connect belongs to `port`, not to the
+ * first match, and the wrong slot would be left behind (or have its
+ * reference dropped while still in use).
  */
 static void fe_phy_forget_node(struct fe_priv *priv,
-			       struct device_node *phy_node)
+			       struct device_node *phy_node, int port)
 {
+	int valid_port = port >= 0 &&
+			 port < ARRAY_SIZE(priv->phy->phy_node);
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(priv->phy->phy_node); i++) {
+		/* A valid port identifies exactly the slot being connected.
+		 * Only when the port is out of range is there no slot to
+		 * identify, so release every matching slot.
+		 */
+		if (valid_port && i != port)
+			continue;
 		if (priv->phy->phy_node[i] != phy_node)
 			continue;
 
 		priv->phy->phy_node[i] = NULL;
 		of_node_put(phy_node);
-		break;
 	}
 }
 
@@ -114,14 +124,14 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node,
 	 */
 	if (port < 0 || port >= ARRAY_SIZE(priv->phy->phy)) {
 		dev_err(priv->dev, "invalid port id %d\n", port);
-		fe_phy_forget_node(priv, phy_node);
+		fe_phy_forget_node(priv, phy_node, port);
 		return -EINVAL;
 	}
 
 	phy_mode = of_get_phy_mode(phy_node);
 	if (phy_mode < 0) {
 		dev_err(priv->dev, "incorrect phy-mode %d\n", phy_mode);
-		fe_phy_forget_node(priv, phy_node);
+		fe_phy_forget_node(priv, phy_node, port);
 		return -EINVAL;
 	}
 
@@ -129,7 +139,7 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node,
 				0, phy_mode);
 	if (!phydev) {
 		dev_err(priv->dev, "could not connect to PHY\n");
-		fe_phy_forget_node(priv, phy_node);
+		fe_phy_forget_node(priv, phy_node, port);
 		return -ENODEV;
 	}
 

@@ -185,6 +185,7 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	const __be32 *_id = of_get_property(np, "reg", NULL);
+	struct device_node *phy_np;
 	int phy_mode, size, id;
 	int shift = 12;
 	u32 mask = 0;
@@ -240,7 +241,15 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		break;
 	}
 
-	priv->phy->phy_node[id] = of_parse_phandle(np, "phy-handle", 0);
+	/* phy_ralink is a module-wide singleton and ndo_init can run more
+	 * than once for a netdev. Drop a reference held by a previous
+	 * parse before overwriting the slot, otherwise it leaks (and the
+	 * slot keeps pointing at the old node while phy[] describes a
+	 * different PHY).
+	 */
+	phy_np = of_parse_phandle(np, "phy-handle", 0);
+	of_node_put(priv->phy->phy_node[id]);
+	priv->phy->phy_node[id] = phy_np;
 	if (!priv->phy->phy_node[id] && !priv->phy->phy_fixed[id])
 		return;
 
