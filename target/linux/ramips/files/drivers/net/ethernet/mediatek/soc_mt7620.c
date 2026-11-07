@@ -115,22 +115,31 @@ static int mt7620_mt7530_probe(struct fe_priv *priv, void __iomem *base,
 static int mt7620_gsw_config(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *) priv->soc->swpriv;
-	int err;
+	int err, start;
 
 	/* is the mt7530 internal or external */
 	if (priv->mii_bus && priv->mii_bus->phy_map[0x1f]) {
+		start = priv->soc->gsw_dev_num;
 		err = mt7620_mt7530_probe(priv, gsw->base, NULL, 0);
 		if (err)
 			return err;
 
 		err = mt7620_mt7530_probe(priv, NULL, priv->mii_bus, 1);
 		if (err) {
-			/* undo the first registration instead of leaving
-			 * a registered switch behind for a failed probe
+			/* Undo exactly the switches this call registered.
+			 * gsw_dev_num is a static SoC-global and can already
+			 * be non-zero on a re-probe, so the first probe may
+			 * have landed in slot 1: unregistering the hardcoded
+			 * slot 0 then passes NULL (or a foreign switch) to
+			 * unregister_switch(), resets the counter to 0 and
+			 * leaves the real switch registered forever.
 			 */
-			unregister_switch(priv->soc->gsw_dev[0]);
-			priv->soc->gsw_dev[0] = NULL;
-			priv->soc->gsw_dev_num = 0;
+			while (priv->soc->gsw_dev_num > start) {
+				int idx = --priv->soc->gsw_dev_num;
+
+				unregister_switch(priv->soc->gsw_dev[idx]);
+				priv->soc->gsw_dev[idx] = NULL;
+			}
 			return err;
 		}
 	} else {
