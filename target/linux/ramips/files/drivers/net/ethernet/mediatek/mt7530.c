@@ -1160,11 +1160,21 @@ static int mt7530_phy_read16(struct switch_dev *dev, int addr,
 					u8 reg, u16 *value)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+	int ret;
 
 	if (!priv->bus)
 		return -EOPNOTSUPP;
 
-	*value = mdiobus_read(priv->bus, addr, reg);
+	ret = mdiobus_read(priv->bus, addr, reg);
+	/* mdiobus_read() returns a negative errno on failure. Storing
+	 * that directly into *value used to hand callers a truncated
+	 * 0xffxx "register value" while reporting success, which also
+	 * made the BMSR check in mt7530_set_port_link() ineffective.
+	 */
+	if (ret < 0)
+		return ret;
+
+	*value = ret;
 
 	return 0;
 }
