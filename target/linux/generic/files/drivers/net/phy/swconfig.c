@@ -1244,11 +1244,14 @@ void
 unregister_switch(struct switch_dev *dev)
 {
 	swconfig_destroy_led_trigger(dev);
-	mutex_lock(&dev->sw_mutex);
 	swconfig_lock();
 	list_del(&dev->dev_list);
 	swconfig_unlock();
+
+	/* Let callers already holding sw_mutex finish first. */
+	mutex_lock(&dev->sw_mutex);
 	mutex_unlock(&dev->sw_mutex);
+
 	switch_free_portmap(dev);
 }
 EXPORT_SYMBOL_GPL(unregister_switch);
