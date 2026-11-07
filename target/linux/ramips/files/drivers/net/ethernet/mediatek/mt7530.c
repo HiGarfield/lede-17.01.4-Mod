@@ -194,6 +194,9 @@ enum {
 
 struct mt7530_port_entry {
 	u16	pvid;
+	/* swconfig_set_vlan_ports() stores a VLAN table index here,
+	 * while the pvid attribute stores a VID directly. */
+	bool	pvid_is_index;
 	bool	mirror_rx;
 	bool	mirror_tx;
 };
@@ -517,6 +520,7 @@ mt7530_set_port_pvid(struct switch_dev *dev, int port, int pvid)
 
 	mutex_lock(&priv->reg_mutex);
 	priv->port_entries[port].pvid = pvid;
+	priv->port_entries[port].pvid_is_index = false;
 	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
@@ -592,6 +596,22 @@ mt7530_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	priv->vlan_entries[val->port_vlan].member = member;
 	priv->vlan_entries[val->port_vlan].etags = etags;
 	set_bit(val->port_vlan, priv->vlan_dirty);
+
+	/* swconfig_set_vlan_ports() calls set_port_pvid() with the VLAN
+	 * table index for every untagged member before reaching this
+	 * callback. Mark those entries as indices so apply_config() can
+	 * resolve them to the entry's VID; an explicit "set pvid" writes
+	 * a real VID and clears the flag.
+	 */
+	for (i = 0; i < val->len; i++) {
+		struct switch_port *p = &val->value.ports[i];
+
+		if (p->flags & BIT(SWITCH_PORT_FLAG_TAGGED))
+			continue;
+
+		priv->port_entries[p->id].pvid = val->port_vlan;
+		priv->port_entries[p->id].pvid_is_index = true;
+	}
 	mutex_unlock(&priv->reg_mutex);
 
 	return 0;
@@ -955,18 +975,16 @@ mt7530_apply_config(struct switch_dev *dev)
 		u16 pvid = (u16)idx;
 		u32 val;
 
-		/* swconfig_set_vlan_ports() passes a VLAN table index for
-		 * every untagged member, while the pvid attribute passes a
-		 * VID directly. The same field therefore holds either one
-		 * and PPBV1 needs a VID. Translate an index through the
-		 * populated VLAN entry; otherwise the value is already a
-		 * VID (possibly outside the 16-slot MT7620 table) and must
-		 * be kept, not replaced by 0. The previous fallback only
-		 * looked for an entry carrying that VID and left pvid at 0
-		 * when none existed, silently discarding "set pvid 200".
+		/* PPBV1 holds a VID. Only a value written by
+		 * swconfig_set_vlan_ports() is a VLAN table index and has
+		 * to be resolved through vlan_entries[]; a value from the
+		 * pvid attribute is already a VID and must be used as is,
+		 * even when it happens to name a populated table slot.
+		 * Guessing from the value alone made "set pvid 2" program
+		 * the VID of VLAN entry 2 instead of VID 2.
 		 */
-		if (idx < MT7530_NUM_VLANS &&
-		    priv->vlan_entries[idx].member)
+		if (priv->port_entries[i].pvid_is_index &&
+		    idx < MT7530_NUM_VLANS)
 			pvid = priv->vlan_entries[idx].vid;
 
 		err = mt7530_read_reg(priv, REG_ESW_PORT_PPBV1(i), &val);
