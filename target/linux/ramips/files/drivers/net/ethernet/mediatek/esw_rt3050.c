@@ -1154,6 +1154,13 @@ static int esw_set_port_led(struct switch_dev *dev,
 	if (idx < 0 || idx >= RT305X_ESW_NUM_LEDS)
 		return -EINVAL;
 
+	/* swconfig does not enforce attr->max: a value above 15 would be
+	 * truncated into the u8 led field and program a different LED
+	 * mode than the one the user asked for.
+	 */
+	if (val->value.i > (u32)attr->max)
+		return -EINVAL;
+
 	esw->ports[idx].led = val->value.i;
 
 	return 0;
