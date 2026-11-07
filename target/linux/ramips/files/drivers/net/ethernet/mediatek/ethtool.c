@@ -210,14 +210,15 @@ static void fe_get_ethtool_stats(struct net_device *dev,
 		     sizeof(struct fe_hw_stats));
 
 	if (netif_running(dev) && netif_device_present(dev)) {
-		/* _bh like fe_get_stats64(): without it a softirq on the
-		 * same CPU (fe_poll's own trylock) makes this read lose
-		 * the update
+		/* Take the lock unconditionally, like fe_get_stats64():
+		 * a failed trylock skips the clear-on-read hardware
+		 * counters, and 32-bit increments can wrap away before
+		 * the next successful update. The critical section is
+		 * short and this callback runs in process context.
 		 */
-		if (spin_trylock_bh(&hwstats->stats_lock)) {
-			fe_stats_update(priv);
-			spin_unlock_bh(&hwstats->stats_lock);
-		}
+		spin_lock_bh(&hwstats->stats_lock);
+		fe_stats_update(priv);
+		spin_unlock_bh(&hwstats->stats_lock);
 	}
 
 	do {
