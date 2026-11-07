@@ -1581,7 +1581,6 @@ static int __init fe_init(struct net_device *dev)
 err_phy_disconnect:
 	if (priv->phy)
 		priv->phy->disconnect(priv);
-	fe_mdio_cleanup(priv);
 err_switch_cleanup:
 	/* switch_init() may already have registered switch devices
 	 * (gsw_dev[]): leaving them registered while this probe fails
@@ -1590,7 +1589,12 @@ err_switch_cleanup:
 	 */
 	if (priv->soc->switch_cleanup)
 		priv->soc->switch_cleanup(priv);
+	/* unregister_switch() waits for in-flight swconfig calls. The
+	 * MDIO-attached switch still references priv->mii_bus, so it has
+	 * to be removed before fe_mdio_cleanup() frees that bus.
+	 */
 	fe_unregister_switches(priv);
+	fe_mdio_cleanup(priv);
 
 	return err;
 }
