@@ -112,6 +112,10 @@ swconfig_trig_port_mask_store(struct device *dev, struct device_attribute *attr,
 	if (ret)
 		return ret;
 
+	/* Bits beyond the switch port count are never valid. */
+	if (trig_data->swdev->ports < SWCONFIG_LED_NUM_PORTS)
+		port_mask &= (1UL << trig_data->swdev->ports) - 1;
+
 	write_lock(&trig_data->lock);
 
 	changed = (trig_data->port_mask != port_mask);
@@ -329,7 +333,7 @@ swconfig_led_work_func(struct work_struct *work)
 	swdev = sw_trig->swdev;
 
 	link = 0;
-	for (i = 0; i < SWCONFIG_LED_NUM_PORTS; i++) {
+	for (i = 0; i < SWCONFIG_LED_NUM_PORTS && i < swdev->ports; i++) {
 		u32 port_bit;
 
 		sw_trig->link_speed[i] = 0;
