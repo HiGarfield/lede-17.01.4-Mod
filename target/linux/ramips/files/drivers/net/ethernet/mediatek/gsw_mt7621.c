@@ -45,23 +45,25 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 
 	/* MDIO transactions involve busy-waiting the PIAC and are far
 	 * too slow for hardirq context; they run here in process
-	 * context instead
-	 */
-	if (!priv)
-		goto out_reenable;
-
-	/* The switch interrupt is IRQ_TYPE_LEVEL_HIGH and the MT7530
+	 * context instead.
+	 *
+	 * The switch interrupt is IRQ_TYPE_LEVEL_HIGH and the MT7530
 	 * keeps the line asserted while (ISR & IMR) != 0, so the status
-	 * register has to be cleared on *every* exit path. Skipping the
-	 * write-back when the read failed leaves the source active and
-	 * enable_irq() below re-enters the handler immediately, which
-	 * spins the interrupt/work pair forever.
+	 * register has to be cleared on *every* exit path. In particular
+	 * this must happen before the !priv early return used during
+	 * teardown: skipping the write-back leaves the source active and
+	 * enable_irq() below re-enters the handler immediately, spinning
+	 * the interrupt/work pair forever. Skipping it when the read
+	 * failed has the same effect.
 	 */
 	if (mt7530_mdio_r32(gsw, 0x700c, &reg)) {
 		mt7530_mdio_w32(gsw, 0x700c, 0xffffffff);
 		goto out_reenable;
 	}
 	mt7530_mdio_w32(gsw, 0x700c, reg);
+
+	if (!priv)
+		goto out_reenable;
 
 	/* Keep link[] updates atomic with the PHY-side state machine, like
 	 * the MT7620 interrupt path does.
