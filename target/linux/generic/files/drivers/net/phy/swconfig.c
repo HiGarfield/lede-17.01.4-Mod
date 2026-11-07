@@ -1223,9 +1223,17 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 
 	err = swconfig_create_led_trigger(dev);
 	if (err)
-		return err;
+		goto unlink;
 
 	return 0;
+
+unlink:
+	swconfig_lock();
+	list_del(&dev->dev_list);
+	swconfig_unlock();
+	switch_free_portmap(dev);
+
+	return err;
 }
 EXPORT_SYMBOL_GPL(register_switch);
 
