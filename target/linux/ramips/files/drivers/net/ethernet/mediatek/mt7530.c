@@ -743,6 +743,8 @@ mt7530_apply_config(struct switch_dev *dev)
 	mutex_lock(&priv->reg_mutex);
 
 	if (!priv->global_vlan_enable) {
+		u32 mfc;
+
 		for (i = 0; i < MT7530_NUM_PORTS; i++)
 			mt7530_w32(priv, REG_ESW_PORT_PCR(i), 0x00400000);
 
@@ -750,6 +752,16 @@ mt7530_apply_config(struct switch_dev *dev)
 
 		for (i = 0; i < MT7530_NUM_PORTS; i++)
 			mt7530_w32(priv, REG_ESW_PORT_PVC(i), 0x810000c0);
+
+		/* The mirror setup at the end of this function is skipped
+		 * in VLAN-disabled mode, but MIRROR_ENABLE is a global bit.
+		 * Leaving it set after reset_switch() or "enable_vlan 0"
+		 * keeps mirroring active in hardware while the software
+		 * state reports no monitor and no source ports.
+		 */
+		mfc = mt7530_r32(priv, REG_ESW_WT_MAC_MFC);
+		mfc &= ~REG_ESW_WT_MAC_MFC_MIRROR_ENABLE;
+		mt7530_w32(priv, REG_ESW_WT_MAC_MFC, mfc);
 
 		mutex_unlock(&priv->reg_mutex);
 
