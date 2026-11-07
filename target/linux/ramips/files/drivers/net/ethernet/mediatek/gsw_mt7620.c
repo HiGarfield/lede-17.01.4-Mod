@@ -40,8 +40,15 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	unsigned long flags;
 	u32 status;
-	int i, max = (gsw->port4 == PORT4_EPHY) ? (4) : (3);
+	int i, max;
 
+	/* swpriv can already be gone while this action is still
+	 * registered during teardown; every access below dereferences it
+	 */
+	if (!gsw)
+		return IRQ_HANDLED;
+
+	max = (gsw->port4 == PORT4_EPHY) ? (4) : (3);
 	status = mtk_switch_r32(gsw, GSW_REG_ISR);
 	if (status & PORT_IRQ_ST_CHG) {
 		/* priv->link[] is shared with the process-context phy
@@ -365,25 +372,26 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
-		/* The FE driver caches this devm object in soc->swpriv.
-		 * Clearing it only in mtk_gsw_cleanup() (FE teardown)
-		 * leaves a dangling pointer when this platform device is
-		 * unbound or the module unloaded while mtk-eth-soc stays
-		 * loaded. fe_open(), the reset work and the later
-		 * mtk_gsw_cleanup() all dereference swpriv.
+		struct fe_priv *fe = gsw->priv;
+
+		/* The FE driver caches this devm object in soc->swpriv, and
+		 * gsw_interrupt_mt7620() resolves it through that pointer.
+		 * Mask the source and unregister the action BEFORE dropping
+		 * swpriv, otherwise an interrupt arriving in that window
+		 * dereferences NULL. This mirrors mtk_gsw_cleanup().
 		 */
-		if (gsw->priv)
-			gsw->priv->soc->swpriv = NULL;
 		if (gsw->irq)
 			mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
-		if (gsw->irq && gsw->priv) {
-			free_irq(gsw->irq, gsw->priv);
-			/* both this remove and mtk_gsw_cleanup() release the
-			 * same irq; drop the dev_id pointer so whoever runs
-			 * second sees nothing left to free
-			 */
-			gsw->priv = NULL;
-		}
+		if (gsw->irq && fe)
+			free_irq(gsw->irq, fe);
+
+		if (fe)
+			fe->soc->swpriv = NULL;
+		/* Clear the back-pointer unconditionally: when there is no
+		 * irq, mtk_gsw_cleanup() early-returns on the now-NULL
+		 * swpriv and cannot do it for us.
+		 */
+		gsw->priv = NULL;
 		platform_set_drvdata(pdev, NULL);
 	}
 
