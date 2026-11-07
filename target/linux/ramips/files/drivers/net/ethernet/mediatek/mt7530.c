@@ -428,7 +428,10 @@ mt7530_set_port_pvid(struct switch_dev *dev, int port, int pvid)
 	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
-	if (pvid < MT7530_MIN_VID || pvid > MT7530_MAX_VID)
+	/* 4095 (MT7530_MAX_VID) is the reserved 802.1Q VID and has no
+	 * slot in the MT7621 VLAN table; the attribute advertises 0..4094
+	 */
+	if (pvid < MT7530_MIN_VID || pvid >= MT7530_MAX_VID)
 		return -EINVAL;
 
 	priv->port_entries[port].pvid = pvid;
@@ -538,9 +541,10 @@ mt7530_set_vid(struct switch_dev *dev, const struct switch_attr *attr,
 
 	/* val->value.i is u32 and swconfig does not enforce attr->max.
 	 * Narrowing it to u16 before the range check let values such as
-	 * 0x10001 pass as VID 1. Validate the original value first.
+	 * 0x10001 pass as VID 1. Validate the original value first; VID
+	 * 4095 is reserved by 802.1Q and has no MT7621 table slot.
 	 */
-	if (val->value.i > (u32)MT7530_MAX_VID)
+	if (val->value.i >= (u32)MT7530_MAX_VID)
 		return -EINVAL;
 	vid = val->value.i;
 
