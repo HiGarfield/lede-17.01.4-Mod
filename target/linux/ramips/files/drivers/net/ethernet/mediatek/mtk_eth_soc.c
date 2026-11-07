@@ -1543,8 +1543,19 @@ static int __init fe_init(struct net_device *dev)
 	if (err)
 		goto err_phy_disconnect;
 
-	if ((priv->flags & FE_FLAG_HAS_SWITCH) && priv->soc->switch_config)
-		priv->soc->switch_config(priv);
+	if ((priv->flags & FE_FLAG_HAS_SWITCH) && priv->soc->switch_config) {
+		err = priv->soc->switch_config(priv);
+		if (err) {
+			netdev_err(dev, "failed to configure switch core: %d\n",
+				   err);
+			/* ndo_uninit() is not called when ndo_init() fails,
+			 * so release the irq installed by fe_hw_init()
+			 * before the common error path unwinds.
+			 */
+			free_irq(dev->irq, dev);
+			goto err_phy_disconnect;
+		}
+	}
 
 	set_bit(__FE_DOWN, &priv->state);
 	err = fe_init_dma(priv);
