@@ -308,10 +308,15 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 * netdev/fe_priv is gone (UAF), and a retried fe_init would
 	 * request the same irq twice
 	 */
-	if (gsw->irq && gsw->priv) {
+	if (gsw->irq && gsw->priv)
 		free_irq(gsw->irq, gsw->priv);
-		gsw->priv = NULL;
-	}
+
+	/* The FE netdev and its fe_priv are freed shortly after
+	 * ndo_uninit(). Clear the back-pointer unconditionally, also on
+	 * boards without a switch irq, or a later gsw remove() would
+	 * dereference freed fe_priv to clear soc->swpriv.
+	 */
+	gsw->priv = NULL;
 	priv->soc->swpriv = NULL;
 }
 

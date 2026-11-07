@@ -408,6 +408,13 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 * request the same irq twice
 	 */
 	mt7621_gsw_stop_irq(gsw);
+
+	/* The FE netdev and its fe_priv are freed shortly after
+	 * ndo_uninit(). Clear the back-pointer unconditionally, also when
+	 * mt7621_gsw_stop_irq() returned early because there is no irq,
+	 * or a later gsw remove() would dereference freed fe_priv.
+	 */
+	gsw->priv = NULL;
 	priv->soc->swpriv = NULL;
 }
 
