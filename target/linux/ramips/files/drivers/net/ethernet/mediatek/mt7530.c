@@ -380,28 +380,48 @@ mt7530_r32(struct mt7530_priv *priv, u32 reg)
 	return val;
 }
 
-static void
+static int
 mt7530_w32(struct mt7530_priv *priv, u32 reg, u32 val)
 {
 	if (priv->bus) {
+		int ret;
+
+		/* The page select and the two data writes are one indirect
+		 * access. A failed page select leaves the old page active,
+		 * so continuing would write the data into the wrong
+		 * register. Stop at the first error and let callers that
+		 * care (mt7530_vtcr) propagate it.
+		 */
 		mutex_lock(&priv->bus->mdio_lock);
-		__mdiobus_write(priv->bus, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
-		__mdiobus_write(priv->bus, 0x1f, (reg >> 2) & 0xf,  val & 0xffff);
-		__mdiobus_write(priv->bus, 0x1f, 0x10, val >> 16);
+		ret = __mdiobus_write(priv->bus, 0x1f, 0x1f,
+				      (reg >> 6) & 0x3ff);
+		if (!ret)
+			ret = __mdiobus_write(priv->bus, 0x1f,
+					      (reg >> 2) & 0xf,
+					      val & 0xffff);
+		if (!ret)
+			ret = __mdiobus_write(priv->bus, 0x1f, 0x10,
+					      val >> 16);
 		mutex_unlock(&priv->bus->mdio_lock);
-		return;
+
+		return ret;
 	}
 
 	pr_debug("MT7530 MDIO Write[%04x]=%08x\n", reg, val);
 	iowrite32(val, priv->base + reg);
+
+	return 0;
 }
 
 static int
 mt7530_vtcr(struct mt7530_priv *priv, u32 cmd, u32 val)
 {
-	int i;
+	int i, ret;
 
-	mt7530_w32(priv, REG_ESW_VLAN_VTCR, BIT(31) | (cmd << 12) | val);
+	ret = mt7530_w32(priv, REG_ESW_VLAN_VTCR,
+			 BIT(31) | (cmd << 12) | val);
+	if (ret)
+		return ret;
 
 	for (i = 0; i < 20; i++) {
 		u32 val = mt7530_r32(priv, REG_ESW_VLAN_VTCR);
