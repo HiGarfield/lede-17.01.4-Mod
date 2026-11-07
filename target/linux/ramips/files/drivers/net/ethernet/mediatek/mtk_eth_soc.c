@@ -1324,6 +1324,12 @@ int fe_set_clock_cycle(struct fe_priv *priv)
 	unsigned long sysclk = priv->sysclk;
 
 	sysclk /= FE_US_CYC_CNT_DIVISOR;
+	/* FE_US_CYC_CNT is an 8-bit field at FE_US_CYC_CNT_SHIFT. Only the
+	 * masked low byte is cleared below, so a clock above 255 MHz (the
+	 * usual case on RT305x/RT3883) would OR bits 16 and above into
+	 * unrelated FE_FE_GLO_CFG configuration bits.
+	 */
+	sysclk &= FE_US_CYC_CNT_MASK;
 	sysclk <<= FE_US_CYC_CNT_SHIFT;
 
 	fe_w32((fe_r32(FE_FE_GLO_CFG) &
