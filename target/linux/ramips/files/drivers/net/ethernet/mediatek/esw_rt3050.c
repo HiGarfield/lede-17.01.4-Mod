@@ -497,6 +497,7 @@ static int esw_apply_config(struct switch_dev *dev);
 static int esw_hw_init(struct rt305x_esw *esw)
 {
 	int i, ret;
+	u32 poc0;
 	u8 port_disable = 0;
 	u8 port_map = RT305X_ESW_PMAP_LLLLLL;
 
@@ -508,10 +509,15 @@ static int esw_hw_init(struct rt305x_esw *esw)
 		     (RT305X_ESW_PORTS_ALL << RT305X_ESW_PFC1_EN_VLAN_S),
 		RT305X_ESW_REG_PFC1);
 
-	/* Enable all ports, Back Pressure and Flow Control */
-	esw_w32(esw, ((RT305X_ESW_PORTS_ALL << RT305X_ESW_POC0_EN_BP_S) |
-		      (RT305X_ESW_PORTS_ALL << RT305X_ESW_POC0_EN_FC_S)),
-		RT305X_ESW_REG_POC0);
+	/* Enable Back Pressure and Flow Control on all ports. A full
+	 * 32-bit write also clears the DIS_PORT field (bits 23..29),
+	 * which esw_get_port_disable() below is supposed to read back as
+	 * the pre-existing port configuration; with the full write that
+	 * read was always zero. Only touch the two BP/FC fields.
+	 */
+	poc0 = (RT305X_ESW_PORTS_ALL << RT305X_ESW_POC0_EN_BP_S) |
+	       (RT305X_ESW_PORTS_ALL << RT305X_ESW_POC0_EN_FC_S);
+	esw_rmw(esw, RT305X_ESW_REG_POC0, poc0, poc0);
 
 	/* Enable Aging, and VLAN TAG removal */
 	esw_w32(esw, ((RT305X_ESW_PORTS_ALL << RT305X_ESW_POC2_ENAGING_S) |
