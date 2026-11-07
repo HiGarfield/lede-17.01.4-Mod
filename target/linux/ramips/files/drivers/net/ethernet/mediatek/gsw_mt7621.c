@@ -102,6 +102,12 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
 	struct fe_priv *priv = (struct fe_priv *)_priv;
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 
+	/* swpriv is the only way this handler reaches the work item; it
+	 * can be cleared while the action is still live during teardown
+	 */
+	if (!gsw)
+		return IRQ_HANDLED;
+
 	disable_irq_nosync(irq);
 	schedule_work(&gsw->irq_work);
 
@@ -455,15 +461,15 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
-		/* The FE driver caches this devm object in soc->swpriv.
-		 * Clearing it only in mtk_gsw_cleanup() (FE teardown)
-		 * leaves a dangling pointer when this platform device is
-		 * unbound or the module unloaded while mtk-eth-soc stays
-		 * loaded. fe_open(), the reset work and the later
-		 * mtk_gsw_cleanup() all dereference swpriv.
+		struct fe_priv *fe = gsw->priv;
+
+		/* The FE driver caches this devm object in soc->swpriv, and
+		 * gsw_interrupt_mt7621() resolves it through that pointer
+		 * before queueing &gsw->irq_work. Mask the source and drain
+		 * both the action and the work BEFORE dropping swpriv,
+		 * otherwise an interrupt in that window queues a work item
+		 * from a NULL gsw.
 		 */
-		if (gsw->priv)
-			gsw->priv->soc->swpriv = NULL;
 		if (gsw->irq)
 			mt7530_mdio_w32(gsw, 0x7008, 0);
 		/* gsw is devm allocated: drain the deferred link work
@@ -471,6 +477,10 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		 * balanced (see mt7621_gsw_stop_irq()).
 		 */
 		mt7621_gsw_stop_irq(gsw);
+
+		if (fe)
+			fe->soc->swpriv = NULL;
+		gsw->priv = NULL;
 		platform_set_drvdata(pdev, NULL);
 	}
 
