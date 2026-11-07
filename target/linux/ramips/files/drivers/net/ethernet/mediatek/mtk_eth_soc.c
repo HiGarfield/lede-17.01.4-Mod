@@ -1306,6 +1306,15 @@ static irqreturn_t fe_handle_irq(int irq, void *dev)
 		if (likely(napi_schedule_prep(&priv->rx_napi))) {
 			fe_int_disable(priv, int_mask);
 			__napi_schedule(&priv->rx_napi);
+		} else {
+			/* NAPI is already scheduled, so this interrupt will
+			 * not start a new poll that acknowledges the status
+			 * bits on entry. Leaving a level-triggered source
+			 * asserted re-enters the handler immediately -- in
+			 * particular fe_poll_controller() re-enables the
+			 * line unconditionally after calling us.
+			 */
+			fe_reg_w32(status & int_mask, FE_REG_FE_INT_STATUS);
 		}
 	} else {
 		fe_reg_w32(status, FE_REG_FE_INT_STATUS);
