@@ -487,19 +487,28 @@ static int
 mt7530_get_port_pvid(struct switch_dev *dev, int port, int *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
-	u32 ppbv1;
-	int ret;
+	u16 pvid;
 
 	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
+	/* Pair with mt7530_set_port_pvid() and mt7530_set_vlan_ports():
+	 * both only update the software state, PPBV1 is programmed later
+	 * by mt7530_apply_config(). Reading the hardware reported the old
+	 * configuration for a pending change and stale data after a
+	 * failed apply or a reset_switch(), just like the vid and VLAN
+	 * member getters that were already converted to software state.
+	 * Resolve a VLAN table index to that entry's VID so the result
+	 * matches the VID written to PPBV1 by apply_config().
+	 */
 	mutex_lock(&priv->reg_mutex);
-	ret = mt7530_read_reg(priv, REG_ESW_PORT_PPBV1(port), &ppbv1);
+	pvid = priv->port_entries[port].pvid;
+	if (priv->port_entries[port].pvid_is_index &&
+	    pvid < MT7530_NUM_VLANS)
+		pvid = priv->vlan_entries[pvid].vid;
 	mutex_unlock(&priv->reg_mutex);
-	if (ret)
-		return ret;
 
-	*val = ppbv1 & 0xfff;
+	*val = pvid;
 
 	return 0;
 }
