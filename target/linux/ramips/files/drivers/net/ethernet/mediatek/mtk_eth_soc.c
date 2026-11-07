@@ -586,6 +586,13 @@ static int fe_vlan_rx_add_vid(struct net_device *dev,
 	if (!fe_reg_table[FE_REG_FE_DMA_VID_BASE])
 		return 0;
 
+	/* active_vids is a VLAN_N_VID bitmap; vid is a u16 and is not
+	 * guaranteed to be bounded by every ndo_vlan_rx_add_vid() caller.
+	 * Reject it before set_bit() writes past the bitmap.
+	 */
+	if (vid >= VLAN_N_VID)
+		return -EINVAL;
+
 	set_bit(vid, priv->active_vids);
 
 	/* A collision leaves the colliding VID active but without a
@@ -642,6 +649,9 @@ static int fe_vlan_rx_kill_vid(struct net_device *dev,
 
 	if (!fe_reg_table[FE_REG_FE_DMA_VID_BASE])
 		return 0;
+
+	if (vid >= VLAN_N_VID)
+		return -EINVAL;
 
 	clear_bit(vid, priv->active_vids);
 
