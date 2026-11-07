@@ -1138,6 +1138,23 @@ of_switch_load_portmap(struct switch_dev *dev)
 }
 #endif
 
+static void
+switch_free_portmap(struct switch_dev *dev)
+{
+	int i;
+
+	if (dev->portmap) {
+		for (i = 0; i < dev->ports; i++)
+			kfree(dev->portmap[i].s);
+
+		kfree(dev->portmap);
+		dev->portmap = NULL;
+	}
+
+	kfree(dev->portbuf);
+	dev->portbuf = NULL;
+}
+
 int
 register_switch(struct switch_dev *dev, struct net_device *netdev)
 {
@@ -1215,12 +1232,12 @@ void
 unregister_switch(struct switch_dev *dev)
 {
 	swconfig_destroy_led_trigger(dev);
-	kfree(dev->portbuf);
 	mutex_lock(&dev->sw_mutex);
 	swconfig_lock();
 	list_del(&dev->dev_list);
 	swconfig_unlock();
 	mutex_unlock(&dev->sw_mutex);
+	switch_free_portmap(dev);
 }
 EXPORT_SYMBOL_GPL(unregister_switch);
 
