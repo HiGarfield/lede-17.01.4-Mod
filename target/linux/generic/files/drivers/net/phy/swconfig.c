@@ -425,8 +425,10 @@ swconfig_send_multipart(struct swconfig_callback *cb, void *arg)
 	return 0;
 
 error:
-	if (cb->msg)
+	if (cb->msg) {
 		nlmsg_free(cb->msg);
+		cb->msg = NULL;
+	}
 	return -1;
 }
 
