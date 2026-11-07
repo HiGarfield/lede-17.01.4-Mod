@@ -361,6 +361,33 @@ int mtk_gsw_init(struct fe_priv *priv)
 	return 0;
 }
 
+/* Both the FE teardown and this driver's remove() may be the first to
+ * release the interrupt, so make this helper idempotent. The hardirq
+ * handler calls disable_irq_nosync() and queues irq_work, whose last
+ * step performs the matching enable_irq(). Teardown must not add an
+ * extra disable_irq() of its own: that call can never be balanced when
+ * cancel_work_sync() drops a still pending work, which leaves the IRQ
+ * permanently disabled (and makes a later re-probe unable to receive
+ * link changes).
+ */
+static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw)
+{
+	struct fe_priv *fe = gsw->priv;
+
+	if (!gsw->irq || !fe)
+		return;
+
+	/* With the action gone no new work can be queued. Clearing the
+	 * back-pointer makes a queued work take its no-op path, which
+	 * still re-enables the line; flush_work() (unlike
+	 * cancel_work_sync()) waits for that to happen and guarantees
+	 * nothing references this devm object after remove() returns.
+	 */
+	free_irq(gsw->irq, fe);
+	gsw->priv = NULL;
+	flush_work(&gsw->irq_work);
+}
+
 void mtk_gsw_cleanup(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
@@ -380,17 +407,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 * netdev/fe_priv is gone (UAF), and a retried fe_init would
 	 * request the same irq twice
 	 */
-	if (gsw->irq && gsw->priv) {
-		/* Stop the source first and drain the deferred link work
-		 * *before* dropping the handler: the work re-enables the
-		 * irq on exit, which would resurrect an interrupt that
-		 * has already been freed ("Unbalanced enable for IRQ").
-		 */
-		disable_irq(gsw->irq);
-		cancel_work_sync(&gsw->irq_work);
-		free_irq(gsw->irq, gsw->priv);
-		gsw->priv = NULL;
-	}
+	mt7621_gsw_stop_irq(gsw);
 	priv->soc->swpriv = NULL;
 }
 
@@ -440,20 +457,11 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 			gsw->priv->soc->swpriv = NULL;
 		if (gsw->irq)
 			mt7530_mdio_w32(gsw, 0x7008, 0);
-		if (gsw->irq && gsw->priv) {
-			/* gsw is devm allocated: returning from remove
-			 * frees it, so the queued link work must be gone
-			 * first or it dereferences freed memory.
-			 */
-			disable_irq(gsw->irq);
-			cancel_work_sync(&gsw->irq_work);
-			free_irq(gsw->irq, gsw->priv);
-			/* both this remove and mtk_gsw_cleanup() release the
-			 * same irq; drop the dev_id pointer so whoever runs
-			 * second sees nothing left to free
-			 */
-			gsw->priv = NULL;
-		}
+		/* gsw is devm allocated: drain the deferred link work
+		 * before returning, and keep the irq disable depth
+		 * balanced (see mt7621_gsw_stop_irq()).
+		 */
+		mt7621_gsw_stop_irq(gsw);
 		platform_set_drvdata(pdev, NULL);
 	}
 
