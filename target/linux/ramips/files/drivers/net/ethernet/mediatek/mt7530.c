@@ -309,6 +309,8 @@ mt7530_apply_mapping(struct mt7530_priv *mt7530, struct mt7530_mapping *map)
 	}
 }
 
+static int mt7530_apply_config(struct switch_dev *dev);
+
 static int
 mt7530_reset_switch(struct switch_dev *dev)
 {
@@ -346,7 +348,14 @@ mt7530_reset_switch(struct switch_dev *dev)
 	bitmap_fill(priv->vlan_dirty, MT7530_NUM_VLANS);
 	mutex_unlock(&priv->reg_mutex);
 
-	return 0;
+	/* swconfig's reset command only calls reset_switch(), never
+	 * apply_config(). Clearing the software state without pushing it
+	 * to the hardware leaves the switch still running the previous
+	 * VLAN/mirror configuration while the API reports the defaults,
+	 * i.e. software and hardware stay diverged until the user happens
+	 * to issue an apply. esw_reset_switch() already reapplies.
+	 */
+	return mt7530_apply_config(dev);
 }
 
 static int
