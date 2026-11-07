@@ -184,7 +184,7 @@ static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 
 static int fe_phy_connect(struct fe_priv *priv)
 {
-	int i;
+	int i, err, ret = 0;
 
 	for (i = 0; i < 8; i++) {
 		if (priv->phy->phy_node[i]) {
@@ -193,8 +193,15 @@ static int fe_phy_connect(struct fe_priv *priv)
 				priv->phy_flags = FE_PHY_FLAG_PORT;
 			}
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i]) {
-			if (phy_init(priv, priv->mii_bus->phy_map[i]))
+			err = phy_init(priv, priv->mii_bus->phy_map[i]);
+			if (err) {
+				dev_err(priv->dev,
+					"failed to attach PHY at MDIO address %d: %d\n",
+					i, err);
+				if (!ret)
+					ret = err;
 				continue;
+			}
 			set_bit(i, &priv->phy->phy_attached);
 			if (!priv->phy_dev) {
 				priv->phy_dev = priv->mii_bus->phy_map[i];
@@ -203,7 +210,19 @@ static int fe_phy_connect(struct fe_priv *priv)
 		}
 	}
 
-	return 0;
+	/* fe_init() has a rollback path for a failed connect, but this
+	 * callback used to return 0 unconditionally: every attach error
+	 * was swallowed and the netdev came up with no PHY and no log.
+	 * A usable PHY or a fixed link is enough to keep going; only
+	 * report an error when no link source is left at all.
+	 */
+	if (priv->phy_dev)
+		return 0;
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy_fixed); i++)
+		if (priv->phy->phy_fixed[i])
+			return 0;
+
+	return ret;
 }
 
 static void fe_phy_disconnect(struct fe_priv *priv)
