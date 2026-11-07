@@ -381,8 +381,9 @@ swconfig_led_work_func(struct work_struct *work)
 
 	swconfig_trig_update_leds(sw_trig);
 
-	schedule_delayed_work(&sw_trig->sw_led_work,
-			      SWCONFIG_LED_TIMER_INTERVAL);
+	if (sw_trig->port_mask)
+		schedule_delayed_work(&sw_trig->sw_led_work,
+				      SWCONFIG_LED_TIMER_INTERVAL);
 }
 
 static int
@@ -424,11 +425,15 @@ swconfig_destroy_led_trigger(struct switch_dev *swdev)
 	struct switch_led_trigger *sw_trig;
 
 	sw_trig = swdev->led_trigger;
-	if (sw_trig) {
-		cancel_delayed_work_sync(&sw_trig->sw_led_work);
-		led_trigger_unregister(&sw_trig->trig);
-		kfree(sw_trig);
-	}
+	if (!sw_trig)
+		return;
+
+	swdev->led_trigger = NULL;
+	sw_trig->port_mask = 0;
+	cancel_delayed_work_sync(&sw_trig->sw_led_work);
+	led_trigger_unregister(&sw_trig->trig);
+	cancel_delayed_work_sync(&sw_trig->sw_led_work);
+	kfree(sw_trig);
 }
 
 #else /* SWCONFIG_LEDS */
