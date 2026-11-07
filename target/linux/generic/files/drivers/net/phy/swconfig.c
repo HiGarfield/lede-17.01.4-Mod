@@ -366,7 +366,7 @@ swconfig_dump_attr(struct swconfig_callback *cb, void *arg)
 
 	hdr = genlmsg_put(msg, info->snd_portid, info->snd_seq, &switch_fam,
 			NLM_F_MULTI, SWITCH_CMD_NEW_ATTR);
-	if (IS_ERR(hdr))
+	if (!hdr)
 		return -1;
 
 	if (nla_put_u32(msg, SWITCH_ATTR_OP_ID, id))
@@ -887,7 +887,7 @@ swconfig_get_attr(struct sk_buff *skb, struct genl_info *info)
 
 	hdr = genlmsg_put(msg, info->snd_portid, info->snd_seq, &switch_fam,
 			0, cmd);
-	if (IS_ERR(hdr))
+	if (!hdr)
 		goto nla_put_failure;
 
 	switch (attr->type) {
@@ -944,7 +944,7 @@ swconfig_send_switch(struct sk_buff *msg, u32 pid, u32 seq, int flags,
 
 	hdr = genlmsg_put(msg, pid, seq, &switch_fam, flags,
 			SWITCH_CMD_NEW_ATTR);
-	if (IS_ERR(hdr))
+	if (!hdr)
 		return -1;
 
 	if (nla_put_u32(msg, SWITCH_ATTR_ID, dev->id))
