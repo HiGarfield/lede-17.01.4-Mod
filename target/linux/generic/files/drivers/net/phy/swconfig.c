@@ -876,6 +876,11 @@ swconfig_get_attr(struct sk_buff *skb, struct genl_info *info)
 	if (err)
 		goto error;
 
+	if (attr->type == SWITCH_TYPE_PORTS && val.len > dev->ports) {
+		err = -EINVAL;
+		goto error;
+	}
+
 	msg = nlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
 	if (!msg)
 		goto error;
