@@ -206,16 +206,17 @@ static inline int fe_max_buf_size(int frag_size)
 
 static inline void fe_get_rxd(struct fe_rx_dma *rxd, struct fe_rx_dma *dma_rxd)
 {
-	rxd->rxd1 = dma_rxd->rxd1;
+	/* DMA publishes the payload words before setting RX_DMA_DONE.
+	 * Sample the ownership word first and keep the remaining reads
+	 * behind a barrier: a dma_rmb() placed after the whole copy
+	 * cannot order reads that were already issued, so on a weakly
+	 * ordered MIPS CPU rxd1/rxd3/rxd4 could still be stale.
+	 */
 	rxd->rxd2 = dma_rxd->rxd2;
+	dma_rmb();
+	rxd->rxd1 = dma_rxd->rxd1;
 	rxd->rxd3 = dma_rxd->rxd3;
 	rxd->rxd4 = dma_rxd->rxd4;
-	/* the DONE bit (rxd2) must be ordered before the descriptor
-	 * fields it protects: on weakly ordered MIPS the CPU may
-	 * otherwise speculate rxd1 (the DMA address) before DONE is
-	 * known to be set
-	 */
-	dma_rmb();
 }
 
 static inline void fe_set_txd(struct fe_tx_dma *txd, struct fe_tx_dma *dma_txd)
