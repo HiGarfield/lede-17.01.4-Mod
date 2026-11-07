@@ -1200,7 +1200,7 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 	list_for_each_entry(sdev, &swdevs, dev_list) {
 		if (!sscanf(sdev->devname, SWCONFIG_DEVNAME, &i))
 			continue;
-		if (i < 0 || i > max_switches)
+		if (i < 0 || i >= max_switches)
 			continue;
 
 		set_bit(i, &in_use);
