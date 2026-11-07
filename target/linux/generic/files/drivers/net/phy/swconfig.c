@@ -804,6 +804,9 @@ swconfig_send_link(struct sk_buff *msg, struct genl_info *info, int attr,
 	int err = 0;
 
 	p = nla_nest_start(msg, attr);
+	if (!p)
+		return -1;
+
 	if (link->link) {
 		if (nla_put_flag(msg, SWITCH_LINK_FLAG_LINK))
 			goto nla_put_failure;
