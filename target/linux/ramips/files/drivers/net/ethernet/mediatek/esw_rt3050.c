@@ -1198,7 +1198,16 @@ static int esw_get_port_pvid(struct switch_dev *dev, int port, int *val)
 	if (port < 0 || port >= RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
-	*val = esw_get_pvid(esw, port);
+	/* esw_set_port_pvid() only updates ports[].pvid; PVIDC is written
+	 * by esw_apply_config(). The VLAN member getter was already moved
+	 * to the software state (1a240ef2) because reading the registers
+	 * reported stale data for a pending or failed configuration.
+	 * Do the same here, under update_lock like the setter, so a
+	 * "set pvid" is visible to "get pvid" before apply.
+	 */
+	mutex_lock(&esw->update_lock);
+	*val = esw->ports[port].pvid;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
