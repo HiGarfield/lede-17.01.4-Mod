@@ -33,8 +33,11 @@ static int fe_get_settings(struct net_device *dev,
 	 * used to report stale cached values
 	 */
 	err = phy_read_status(priv->phy_dev);
+	/* an MDIO failure is not a missing PHY: report the real error
+	 * instead of collapsing it into -ENODEV
+	 */
 	if (err)
-		goto out_gset;
+		return err;
 
 	return phy_ethtool_gset(priv->phy_dev, cmd);
 
