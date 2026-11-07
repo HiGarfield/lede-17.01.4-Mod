@@ -278,7 +278,12 @@ static inline void esw_rmw_raw(struct rt305x_esw *esw, unsigned reg,
 	unsigned long t;
 
 	t = __raw_readl(esw->base + reg) & ~mask;
-	__raw_writel(t | val, esw->base + reg);
+	/* Only the bits named by mask belong to this field. OR-ing an
+	 * unmasked val lets a caller clobber unrelated configuration bits
+	 * of the same register (e.g. SGC2's 6-bit LAN_PMAP with the
+	 * 8-bit DT portmap value, which also set bits 30/31).
+	 */
+	__raw_writel(t | (val & mask), esw->base + reg);
 }
 
 static void esw_rmw(struct rt305x_esw *esw, unsigned reg,
