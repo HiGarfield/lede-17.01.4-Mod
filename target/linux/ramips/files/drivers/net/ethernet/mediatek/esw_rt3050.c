@@ -871,7 +871,9 @@ static int esw_get_vlan_enable(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	mutex_lock(&esw->update_lock);
 	val->value.i = esw->global_vlan_enable;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -895,7 +897,9 @@ static int esw_get_alt_vlan_disable(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	mutex_lock(&esw->update_lock);
 	val->value.i = esw->alt_vlan_disable;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -920,7 +924,12 @@ rt305x_esw_set_bc_status(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	/* esw_set_gsc() reads this field from esw_apply_config() while
+	 * holding update_lock; the writer must use the same lock.
+	 */
+	mutex_lock(&esw->update_lock);
 	esw->bc_storm_protect = val->value.i & RT305X_ESW_GSC_BC_STROM_MASK;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -932,7 +941,9 @@ rt305x_esw_get_bc_status(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	mutex_lock(&esw->update_lock);
 	val->value.i = esw->bc_storm_protect;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -944,7 +955,9 @@ rt305x_esw_set_led_freq(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	mutex_lock(&esw->update_lock);
 	esw->led_frequency = val->value.i & RT305X_ESW_GSC_LED_FREQ_MASK;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -956,7 +969,9 @@ rt305x_esw_get_led_freq(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	mutex_lock(&esw->update_lock);
 	val->value.i = esw->led_frequency;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -1168,7 +1183,10 @@ static int esw_set_port_led(struct switch_dev *dev,
 	if (val->value.i > (u32)attr->max)
 		return -EINVAL;
 
+	/* esw_apply_config() programs ports[].led under update_lock */
+	mutex_lock(&esw->update_lock);
 	esw->ports[idx].led = val->value.i;
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
@@ -1219,8 +1237,12 @@ static int esw_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	/* Read back the software state written by esw_set_vlan_ports():
 	 * the set side only touches the hardware on apply, so reading
 	 * the registers here returned stale data or -EINVAL for a
-	 * pending configuration.
+	 * pending configuration. Both the VLAN table and ports[].untag
+	 * are written under update_lock, so read them under it too or
+	 * a concurrent set/apply can produce a torn port list.
 	 */
+	mutex_lock(&esw->update_lock);
+
 	for (i = 0; i < RT305X_ESW_NUM_VLANS; i++) {
 		if (esw->vlans[i].vid == val->port_vlan &&
 		    esw->vlans[i].ports != RT305X_ESW_PORTS_NONE) {
@@ -1229,8 +1251,10 @@ static int esw_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 		}
 	}
 
-	if (vlan_idx == -1)
+	if (vlan_idx == -1) {
+		mutex_unlock(&esw->update_lock);
 		return -EINVAL;
+	}
 
 	for (i = 0; i < RT305X_ESW_NUM_PORTS; i++) {
 		struct switch_port *p;
@@ -1246,6 +1270,8 @@ static int esw_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 		else
 			p->flags = 1 << SWITCH_PORT_FLAG_TAGGED;
 	}
+
+	mutex_unlock(&esw->update_lock);
 
 	return 0;
 }
