@@ -2046,6 +2046,15 @@ static int fe_probe(struct platform_device *pdev)
 	sysclk = devm_clk_get(&pdev->dev, NULL);
 	if (!IS_ERR(sysclk)) {
 		priv->sysclk = clk_get_rate(sysclk);
+	} else if (PTR_ERR(sysclk) == -EPROBE_DEFER) {
+		/* The clock provider has not probed yet. Collapsing the
+		 * deferral into -ENXIO (or ignoring it on SoCs without
+		 * FE_FLAG_CALIBRATE_CLK) would make the driver core give
+		 * up permanently, exactly the failure already handled
+		 * for device_reset(), ioremap and platform_get_irq().
+		 */
+		err = -EPROBE_DEFER;
+		goto err_free_dev;
 	} else if ((priv->flags & FE_FLAG_CALIBRATE_CLK)) {
 		dev_err(&pdev->dev, "this soc needs a clk for calibration\n");
 		err = -ENXIO;
