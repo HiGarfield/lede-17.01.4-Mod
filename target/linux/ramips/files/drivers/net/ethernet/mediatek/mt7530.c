@@ -282,8 +282,17 @@ mt7530_apply_mapping(struct mt7530_priv *mt7530, struct mt7530_mapping *map)
 {
 	int i = 0;
 
-	for (i = 0; i < MT7530_NUM_PORTS; i++)
+	/* The mapping carries VLAN table indices, not VIDs: port 4 of
+	 * "llllw" is 2 for VLAN slot 2. Mark them so apply_config()
+	 * resolves them through vlan_entries[] instead of programming
+	 * the index verbatim into PPBV1. With the default vids[k] == k
+	 * the two are numerically equal, but a mapping with a remapped
+	 * VID would otherwise put the wrong VID on the wire.
+	 */
+	for (i = 0; i < MT7530_NUM_PORTS; i++) {
 		mt7530->port_entries[i].pvid = map->pvids[i];
+		mt7530->port_entries[i].pvid_is_index = true;
+	}
 
 	for (i = 0; i < MT7530_NUM_VLANS; i++) {
 		mt7530->vlan_entries[i].member = map->members[i];
