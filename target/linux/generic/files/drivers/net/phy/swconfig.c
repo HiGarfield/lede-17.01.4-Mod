@@ -1185,6 +1185,7 @@ register_switch(struct switch_dev *dev, struct net_device *netdev)
 				dev->ports, GFP_KERNEL);
 		if (!dev->portmap) {
 			kfree(dev->portbuf);
+			dev->portbuf = NULL;
 			return -ENOMEM;
 		}
 	}
