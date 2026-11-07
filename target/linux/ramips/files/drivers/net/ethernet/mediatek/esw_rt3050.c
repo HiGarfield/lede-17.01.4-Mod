@@ -482,9 +482,9 @@ static void esw_set_gsc(struct rt305x_esw *esw)
 
 static int esw_apply_config(struct switch_dev *dev);
 
-static void esw_hw_init(struct rt305x_esw *esw)
+static int esw_hw_init(struct rt305x_esw *esw)
 {
-	int i;
+	int i, ret;
 	u8 port_disable = 0;
 	u8 port_map = RT305X_ESW_PMAP_LLLLLL;
 
@@ -732,10 +732,12 @@ static void esw_hw_init(struct rt305x_esw *esw)
 		esw->ports[i].led = 0x05;
 
 	/* Apply the empty config. */
-	esw_apply_config(&esw->swdev);
+	ret = esw_apply_config(&esw->swdev);
 
 	/* Only unmask the port change interrupt */
 	esw_w32(esw, ~RT305X_ESW_PORT_ST_CHG, RT305X_ESW_REG_IMR);
+
+	return ret;
 }
 
 static irqreturn_t esw_interrupt(int irq, void *_esw)
@@ -853,9 +855,8 @@ static int esw_reset_switch(struct switch_dev *dev)
 	memset(esw->ports, 0, sizeof(esw->ports));
 	memset(esw->vlans, 0, sizeof(esw->vlans));
 	mutex_unlock(&esw->update_lock);
-	esw_hw_init(esw);
 
-	return 0;
+	return esw_hw_init(esw);
 }
 
 static int esw_get_vlan_enable(struct switch_dev *dev,
@@ -1537,7 +1538,13 @@ static int esw_probe(struct platform_device *pdev)
 	 * that window was silently reverted.  reg_rw_lock was likewise
 	 * initialised only after the device was reachable.
 	 */
-	esw_hw_init(esw);
+	ret = esw_hw_init(esw);
+	if (ret) {
+		dev_err(&pdev->dev, "failed to initialize switch hardware\n");
+		if (esw->irq > 0)
+			irq_dispose_mapping(esw->irq);
+		return ret;
+	}
 
 	/*
 	 * External switch connected to RGMII interface; decide before
