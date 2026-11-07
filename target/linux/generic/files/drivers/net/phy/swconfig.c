@@ -1193,14 +1193,18 @@ int
 switch_generic_set_link(struct switch_dev *dev, int port,
 			struct switch_port_link *link)
 {
+	int err = 0;
+
 	if (WARN_ON(!dev->ops->phy_write16))
 		return -ENOTSUPP;
 
 	/* Generic implementation */
 	if (link->aneg) {
-		dev->ops->phy_write16(dev, port, MII_BMCR, 0x0000);
-		dev->ops->phy_write16(dev, port, MII_BMCR,
-					BMCR_ANENABLE | BMCR_ANRESTART);
+		err = dev->ops->phy_write16(dev, port, MII_BMCR, 0x0000);
+		if (err)
+			return err;
+		err = dev->ops->phy_write16(dev, port, MII_BMCR,
+					   BMCR_ANENABLE | BMCR_ANRESTART);
 	} else {
 		u16 bmcr = 0;
 
@@ -1220,10 +1224,10 @@ switch_generic_set_link(struct switch_dev *dev, int port,
 			return -ENOTSUPP;
 		}
 
-		dev->ops->phy_write16(dev, port, MII_BMCR, bmcr);
+		err = dev->ops->phy_write16(dev, port, MII_BMCR, bmcr);
 	}
 
-	return 0;
+	return err;
 }
 
 static int __init
