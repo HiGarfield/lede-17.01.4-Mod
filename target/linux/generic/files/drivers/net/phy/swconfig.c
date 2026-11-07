@@ -1130,7 +1130,10 @@ of_switch_load_portmap(struct switch_dev *dev)
 			continue;
 		}
 
+		kfree(dev->portmap[phys].s);
 		dev->portmap[phys].s = kstrdup(segment, GFP_KERNEL);
+		if (!dev->portmap[phys].s)
+			continue;
 		dev->portmap[phys].virt = be32_to_cpup(prop);
 		pr_debug("Found port: %s, physical: %d, virtual: %d\n",
 			segment, phys, dev->portmap[phys].virt);
