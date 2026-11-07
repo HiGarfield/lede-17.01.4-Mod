@@ -257,6 +257,16 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	 * kept PHYs at non-zero addresses from ever connecting.
 	 * fe_connect_phy_node() drops the node itself on failure.
 	 */
-	if (priv->phy->phy_node[0])
-		fe_connect_phy_node(priv, priv->phy->phy_node[0], 0);
+	if (priv->phy->phy_node[0]) {
+		/* fe_connect_phy_node() already drops the DT node on
+		 * failure, so ignoring its error leaves the interface
+		 * running with no PHY and no diagnostic -- the same
+		 * problem 7bada2a1 fixed for mt7620_port_init().
+		 */
+		int err = fe_connect_phy_node(priv,
+					      priv->phy->phy_node[0], 0);
+
+		if (err)
+			dev_err(priv->dev, "failed to connect PHY: %d\n", err);
+	}
 }
