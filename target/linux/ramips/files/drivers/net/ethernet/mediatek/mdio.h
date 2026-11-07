@@ -15,6 +15,8 @@
 #ifndef _RALINK_MDIO_H__
 #define _RALINK_MDIO_H__
 
+#include <linux/errno.h>
+
 #ifdef CONFIG_NET_MEDIATEK_MDIO
 int fe_mdio_init(struct fe_priv *priv);
 void fe_mdio_cleanup(struct fe_priv *priv);
@@ -23,5 +25,10 @@ int fe_connect_phy_node(struct fe_priv *priv,
 #else
 static inline int fe_mdio_init(struct fe_priv *priv) { return 0; }
 static inline void fe_mdio_cleanup(struct fe_priv *priv) {}
+static inline int fe_connect_phy_node(struct fe_priv *priv,
+				      struct device_node *phy_node)
+{
+	return -ENODEV;
+}
 #endif
 #endif
