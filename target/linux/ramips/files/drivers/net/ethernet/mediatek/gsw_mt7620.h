@@ -44,8 +44,8 @@
 
 #define GSW_REG_MIB_CNT_EN	0x4000
 
-#define GSW_REG_PORT_PMCR(x)	(0x3000 + (x * 0x100))
-#define GSW_REG_PORT_STATUS(x)	(0x3008 + (x * 0x100))
+#define GSW_REG_PORT_PMCR(x)	(0x3000 + ((x) * 0x100))
+#define GSW_REG_PORT_STATUS(x)	(0x3008 + ((x) * 0x100))
 #define GSW_REG_SMACCR0		0x3fE4
 #define GSW_REG_SMACCR1		0x3fE8
 #define GSW_REG_CKGCR		0x3ff0
@@ -83,13 +83,13 @@
 #define	PMCR_BACKPRES		BIT(8)
 #define	PMCR_RX_FC		BIT(5)
 #define	PMCR_TX_FC		BIT(4)
-#define	PMCR_SPEED(_x)		(_x << 2)
+#define	PMCR_SPEED(_x)		((_x) << 2)
 #define	PMCR_DUPLEX		BIT(1)
 #define	PMCR_LINK		BIT(0)
 
 #define PHY_AN_EN		BIT(31)
 #define PHY_PRE_EN		BIT(30)
-#define PMY_MDC_CONF(_x)	((_x & 0x3f) << 24)
+#define PMY_MDC_CONF(_x)	(((_x) & 0x3f) << 24)
 
 
 enum {
