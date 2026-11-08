@@ -90,8 +90,13 @@ static int fe_set_settings(struct net_device *dev,
 		 * actually attached it: phy_ethtool_sset() ends up in
 		 * phydev->drv and must not run on an unattached phydev.
 		 */
+		/* cmd->phy_address was already bounded by PHY_MAX_ADDR at
+		 * the entry of this function. ARRAY_SIZE(priv->phy->phy) is
+		 * the number of eth-port slots, not the MDIO bus width, so
+		 * using it here rejects addresses 8..31 even though
+		 * phy_map[] and phy_attached cover the whole bus.
+		 */
 		if (!new_phy &&
-		    cmd->phy_address < ARRAY_SIZE(priv->phy->phy) &&
 		    priv->mii_bus &&
 		    priv->mii_bus->phy_map[cmd->phy_address] &&
 		    test_bit(cmd->phy_address, &priv->phy->phy_attached)) {
