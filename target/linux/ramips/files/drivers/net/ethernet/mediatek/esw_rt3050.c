@@ -950,6 +950,14 @@ rt305x_esw_set_bc_status(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	/* swconfig does not enforce attr->max: values above it used to be
+	 * silently wrapped by the field mask, so "set 4" returned success
+	 * while programming 0 and "get" reported a different value than
+	 * the one requested. Reject them like the other setters do.
+	 */
+	if (val->value.i > (u32)attr->max)
+		return -EINVAL;
+
 	/* esw_set_gsc() reads this field from esw_apply_config() while
 	 * holding update_lock; the writer must use the same lock.
 	 */
@@ -980,6 +988,13 @@ rt305x_esw_set_led_freq(struct switch_dev *dev,
 			struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
+
+	/* swconfig does not enforce attr->max; see the bc_storm_protect
+	 * setter above. Without this check an out-of-range value is
+	 * silently wrapped to a different LED frequency.
+	 */
+	if (val->value.i > (u32)attr->max)
+		return -EINVAL;
 
 	mutex_lock(&esw->update_lock);
 	esw->led_frequency = val->value.i & RT305X_ESW_GSC_LED_FREQ_MASK;
