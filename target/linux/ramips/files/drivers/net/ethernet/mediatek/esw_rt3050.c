@@ -683,7 +683,12 @@ static int esw_hw_init(struct rt305x_esw *esw)
 
 		for (i = 0; i < 5; i++) {
 			rt305x_mii_write(esw, i, 31, 0x8000);
-			esw_phy_power(esw, i, true);
+			/* Copy disabled port configuration from device tree
+			 * setup like the RT3352/RT5350/default branches do:
+			 * powering up a PHY that portdisable asked to keep
+			 * down contradicts ports[] and POC0 DIS_PORT.
+			 */
+			esw_phy_power(esw, i, !esw->ports[i].disable);
 			rt305x_mii_write(esw, i, 30, 0xa000);
 			rt305x_mii_write(esw, i, 31, 0xa000);
 			rt305x_mii_write(esw, i, 16, 0x0606);
