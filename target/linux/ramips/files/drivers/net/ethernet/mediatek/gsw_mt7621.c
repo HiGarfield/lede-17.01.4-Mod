@@ -78,6 +78,8 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	struct fe_phy *phy = priv ? priv->phy : NULL;
 	unsigned long flags;
 	u32 reg, i;
+	int link[5];
+	bool link_valid[5] = { false, };
 
 	/* swconfig reaches the same MT7530 indirect registers through
 	 * mt7530.c, which holds bus->mdio_lock across the page-select +
@@ -113,28 +115,35 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	if (!priv)
 		goto out_reenable;
 
+	/* Each mt7530_mdio_r32() issues three PIAC transactions and each
+	 * transaction can busy-wait up to 2000 iterations. Collect all
+	 * port states before taking phy->lock: spin_lock_irqsave() disables
+	 * local interrupts, so doing up to five of these MDIO reads inside
+	 * the critical section can stall a UP target for tens of ms.
+	 */
+	for (i = 0; i < 5; i++) {
+		unsigned int val;
+
+		if (!(reg & BIT(i)))
+			continue;
+		if (mt7530_mdio_r32(gsw, 0x3008 + (i * 0x100), &val))
+			continue;
+		link[i] = val & 0x1;
+		link_valid[i] = true;
+	}
+
 	/* Keep link[] updates atomic with the PHY-side state machine, like
 	 * the MT7620 interrupt path does.
 	 */
 	if (phy)
 		spin_lock_irqsave(&phy->lock, flags);
 	for (i = 0; i < 5; i++) {
-		unsigned int link;
-
-		if (!(reg & BIT(i)))
-			continue;
-		if (mt7530_mdio_r32(gsw, 0x3008 + (i * 0x100), &link))
-			continue;
-		link &= 0x1;
-
-		if (link == priv->link[i])
+		if (!link_valid[i] || link[i] == priv->link[i])
 			continue;
 
-		priv->link[i] = link;
-		if (link)
-			netdev_info(priv->netdev, "port %d link up\n", i);
-		else
-			netdev_info(priv->netdev, "port %d link down\n", i);
+		priv->link[i] = link[i];
+		netdev_info(priv->netdev, "port %d link %s\n", i,
+			    link[i] ? "up" : "down");
 	}
 	if (phy)
 		spin_unlock_irqrestore(&phy->lock, flags);
