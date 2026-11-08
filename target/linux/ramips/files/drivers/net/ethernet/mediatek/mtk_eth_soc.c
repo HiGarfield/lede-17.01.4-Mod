@@ -2166,10 +2166,16 @@ static void fe_reset_pending(struct fe_priv *priv)
 			    "Driver up/down cycle failed, closing device.\n");
 		dev_close(dev);
 	}
-	rtnl_unlock();
-
+	/* reset_ports() dereferences priv->soc->swpriv and priv->mii_bus
+	 * (MT7621 powers the switch PHYs down/up through the MDIO bus).
+	 * Both are released by fe_uninit()/fe_mdio_cleanup() while
+	 * unregister_netdev() runs from fe_remove(), and that path needs
+	 * RTNL too. Keep the port reset under the same RTNL section so
+	 * teardown cannot free those objects underneath the pending work.
+	 */
 	if (priv->soc->reset_ports)
 		priv->soc->reset_ports(priv);
+	rtnl_unlock();
 }
 
 static const struct fe_work_t fe_work[] = {
