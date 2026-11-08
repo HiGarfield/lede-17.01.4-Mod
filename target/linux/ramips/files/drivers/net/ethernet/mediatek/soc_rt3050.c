@@ -71,7 +71,12 @@ static int rt3050_fwd_config(struct fe_priv *priv)
 
 static void rt305x_fe_reset(void)
 {
-	fe_reset(RT305X_RESET_FE);
+	/* RT3050/RT3052/RT3352 have an integrated ESW sharing the same
+	 * reset-controller register. Asserting only the FE bit leaves the
+	 * switch (VLAN table, port state) in its previous configuration;
+	 * rt5350_fe_reset() already pulses both bits.
+	 */
+	fe_reset(RT305X_RESET_FE | RT305X_RESET_ESW);
 }
 
 static void rt5350_init_data(struct fe_soc_data *data,
