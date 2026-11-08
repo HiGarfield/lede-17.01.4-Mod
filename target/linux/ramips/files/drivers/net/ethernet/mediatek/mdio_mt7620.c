@@ -265,7 +265,11 @@ int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 	return 0;
 }
 
-static unsigned char *fe_speed_str(int speed)
+/* The returned strings are read-only literals; declaring them as
+ * unsigned char * mismatches both the literal type and the %s argument
+ * it is passed to.
+ */
+static const char *fe_speed_str(int speed)
 {
 	switch (speed) {
 	case 2:
