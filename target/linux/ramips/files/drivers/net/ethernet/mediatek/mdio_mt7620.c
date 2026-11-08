@@ -15,6 +15,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
+#include <linux/errno.h>
 
 #include "mtk_eth_soc.h"
 #include "gsw_mt7620.h"
@@ -75,6 +76,22 @@ static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 	return -ETIMEDOUT;
 }
 
+/* The PIAC command word has two 5-bit fields: the PHY address at
+ * GSW_MDIO_ADDR_SHIFT (20) and the register at GSW_MDIO_REG_SHIFT (25).
+ * Bits 31 (START/BUSY) and 16 (START) are control bits, so a register
+ * value above 0x1f shifts straight into them and starts a bogus
+ * transaction. The mii_bus callbacks forward their operands without
+ * validation, so enforce the hardware field width here, where both the
+ * bus ops and the direct swconfig/irq-work callers converge.
+ */
+static inline int mt7620_mii_check_addr(u32 phy_addr, u32 phy_reg)
+{
+	if ((phy_addr & ~0x1fu) || (phy_reg & ~0x1fu))
+		return -EINVAL;
+
+	return 0;
+}
+
 /* unlocked variants: the PIAC is a single command/status register,
  * so a complete transaction (wait - issue - wait - collect) must be
  * atomic wrt other users. Direct callers (swconfig, the MT7621 irq
@@ -83,6 +100,9 @@ static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 static int __mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 			      u32 phy_register, u32 write_data)
 {
+	if (mt7620_mii_check_addr(phy_addr, phy_register))
+		return -EINVAL;
+
 	if (mt7620_mii_busy_wait(gsw))
 		return -ETIMEDOUT;
 
@@ -115,12 +135,15 @@ int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 static int __mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr,
 			     int phy_reg, u16 *val)
 {
+	if (mt7620_mii_check_addr(phy_addr, phy_reg))
+		return -EINVAL;
+
 	if (mt7620_mii_busy_wait(gsw))
 		return -ETIMEDOUT;
 
 	mtk_switch_w32(gsw, GSW_MDIO_ACCESS | GSW_MDIO_START | GSW_MDIO_READ |
-		(phy_reg << GSW_MDIO_REG_SHIFT) |
-		(phy_addr << GSW_MDIO_ADDR_SHIFT),
+		((u32)phy_reg << GSW_MDIO_REG_SHIFT) |
+		((u32)phy_addr << GSW_MDIO_ADDR_SHIFT),
 		MT7620A_GSW_REG_PIAC);
 
 	if (mt7620_mii_busy_wait(gsw))

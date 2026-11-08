@@ -15,6 +15,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/types.h>
+#include <linux/errno.h>
 #include <linux/of_net.h>
 #include <linux/of_mdio.h>
 
@@ -119,17 +120,36 @@ static int rt2880_mdio_wait_ready(struct fe_priv *priv)
 	return -ETIMEDOUT;
 }
 
+/* FE_MDIO_ACCESS carries 5-bit PHY address (bits 24..28) and register
+ * (bits 16..20) fields. Bit 30 selects a write and bit 31 starts the
+ * transaction, so an out-of-range operand shifts into those control bits
+ * and issues a different command; shifting a large signed int is also
+ * undefined behaviour. mdiobus read/write pass their operands straight
+ * through, so enforce the hardware field width here.
+ */
+static inline int rt2880_mdio_check_addr(int phy_addr, int phy_reg)
+{
+	if ((phy_addr & ~0x1f) || (phy_reg & ~0x1f))
+		return -EINVAL;
+
+	return 0;
+}
+
 int rt2880_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 {
 	struct fe_priv *priv = bus->priv;
 	int err;
 	u32 t;
 
+	err = rt2880_mdio_check_addr(phy_addr, phy_reg);
+	if (err)
+		return err;
+
 	err = rt2880_mdio_wait_ready(priv);
 	if (err)
 		return err;
 
-	t = (phy_addr << 24) | (phy_reg << 16);
+	t = ((u32)phy_addr << 24) | ((u32)phy_reg << 16);
 	fe_w32(t, FE_MDIO_ACCESS);
 	t |= BIT(31);
 	fe_w32(t, FE_MDIO_ACCESS);
@@ -150,6 +170,10 @@ int rt2880_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 	int err;
 	u32 t;
 
+	err = rt2880_mdio_check_addr(phy_addr, phy_reg);
+	if (err)
+		return err;
+
 	pr_debug("%s: addr=%04x, reg=%04x, value=%04x\n", __func__,
 		 phy_addr, phy_reg, fe_r32(FE_MDIO_ACCESS) & 0xffff);
 
@@ -157,7 +181,7 @@ int rt2880_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 	if (err)
 		return err;
 
-	t = (1 << 30) | (phy_addr << 24) | (phy_reg << 16) | val;
+	t = (1u << 30) | ((u32)phy_addr << 24) | ((u32)phy_reg << 16) | val;
 	fe_w32(t, FE_MDIO_ACCESS);
 	t |= BIT(31);
 	fe_w32(t, FE_MDIO_ACCESS);
