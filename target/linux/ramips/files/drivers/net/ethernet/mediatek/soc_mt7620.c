@@ -158,8 +158,8 @@ static void mt7620_set_mac(struct fe_priv *priv, unsigned char *mac)
 
 	spin_lock_irqsave(&priv->page_lock, flags);
 	mtk_switch_w32(gsw, (mac[0] << 8) | mac[1], GSW_REG_SMACCR1);
-	mtk_switch_w32(gsw, (mac[2] << 24) | (mac[3] << 16) | (mac[4] << 8) | mac[5],
-		GSW_REG_SMACCR0);
+	mtk_switch_w32(gsw, ((u32)mac[2] << 24) | ((u32)mac[3] << 16) |
+		((u32)mac[4] << 8) | mac[5], GSW_REG_SMACCR0);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 

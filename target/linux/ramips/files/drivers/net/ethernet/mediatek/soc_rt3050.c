@@ -89,8 +89,8 @@ static void rt5350_set_mac(struct fe_priv *priv, unsigned char *mac)
 
 	spin_lock_irqsave(&priv->page_lock, flags);
 	fe_w32((mac[0] << 8) | mac[1], RT5350_SDM_MAC_ADRH);
-	fe_w32((mac[2] << 24) | (mac[3] << 16) | (mac[4] << 8) | mac[5],
-	       RT5350_SDM_MAC_ADRL);
+	fe_w32(((u32)mac[2] << 24) | ((u32)mac[3] << 16) |
+	       ((u32)mac[4] << 8) | mac[5], RT5350_SDM_MAC_ADRL);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 

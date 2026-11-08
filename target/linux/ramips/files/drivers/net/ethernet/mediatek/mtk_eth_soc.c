@@ -160,8 +160,11 @@ static inline void fe_hw_set_macaddr(struct fe_priv *priv, unsigned char *mac)
 
 	spin_lock_irqsave(&priv->page_lock, flags);
 	fe_w32((mac[0] << 8) | mac[1], FE_GDMA1_MAC_ADRH);
-	fe_w32((mac[2] << 24) | (mac[3] << 16) | (mac[4] << 8) | mac[5],
-	       FE_GDMA1_MAC_ADRL);
+	/* mac[2] promotes to a signed int; shifting it by 24 is UB for
+	 * values >= 0x80. Widen first so the whole expression stays u32.
+	 */
+	fe_w32(((u32)mac[2] << 24) | ((u32)mac[3] << 16) |
+	       ((u32)mac[4] << 8) | mac[5], FE_GDMA1_MAC_ADRL);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 
