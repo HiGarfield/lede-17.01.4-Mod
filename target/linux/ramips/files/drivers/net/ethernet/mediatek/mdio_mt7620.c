@@ -232,7 +232,12 @@ int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 	if (ret)
 		return ret;
 
-	*val = (high << 16) | low;
+	/* high/low are u16 and promote to a *signed* int. Shifting a high
+	 * word of 0x8000 or above left by 16 overflows that int, which is
+	 * undefined behaviour and can produce a sign-extended register
+	 * value. Widen before shifting, as mt7530_read_reg() already does.
+	 */
+	*val = ((u32)high << 16) | (low & 0xffff);
 
 	return 0;
 }
