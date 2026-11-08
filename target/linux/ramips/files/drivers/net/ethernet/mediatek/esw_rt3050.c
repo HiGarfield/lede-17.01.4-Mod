@@ -806,6 +806,14 @@ static int esw_apply_config(struct switch_dev *dev)
 		if (esw->global_vlan_enable) {
 			vid = esw->vlans[i].vid;
 			vmsc = esw->vlans[i].ports;
+			/* Empty slots are zero-initialised and VID 0 is a
+			 * legal VLAN ID. Writing 0 into every unused slot
+			 * fills the hardware table with duplicate VID 0
+			 * entries and erases the 0xfff "no VLAN" sentinel
+			 * used by the rest of the driver.
+			 */
+			if (vmsc == RT305X_ESW_PORTS_NONE)
+				vid = RT305X_ESW_VLAN_NONE;
 		} else {
 			vid = RT305X_ESW_VLAN_NONE;
 			vmsc = RT305X_ESW_PORTS_NONE;
