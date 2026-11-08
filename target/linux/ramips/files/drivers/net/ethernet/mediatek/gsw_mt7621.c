@@ -39,6 +39,31 @@ u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg)
 	return ioread32(gsw->base + reg);
 }
 
+/* The MT7530 indirect register window is shared with swconfig and with the
+ * deferred link work: both build a page-select plus two data accesses while
+ * holding bus->mdio_lock. mt7530_mdio_w32() only serialises the PIAC
+ * register itself, so an IMR write done without the bus lock can be
+ * interleaved with such a sequence and end up in the wrong switch register.
+ */
+static int mt7621_gsw_set_imr(struct mt7620_gsw *gsw, struct fe_priv *fe,
+			      u32 mask)
+{
+	struct mii_bus *bus = fe ? fe->mii_bus : NULL;
+	int ret;
+
+	if (bus)
+		mutex_lock(&bus->mdio_lock);
+	ret = mt7530_mdio_w32(gsw, 0x7008, mask);
+	if (bus)
+		mutex_unlock(&bus->mdio_lock);
+
+	if (ret)
+		dev_err(gsw->dev, "failed to %s switch IRQ sources: %d\n",
+			mask ? "unmask" : "mask", ret);
+
+	return ret;
+}
+
 static void gsw_irq_work_mt7621(struct work_struct *work)
 {
 	struct mt7620_gsw *gsw = container_of(work, struct mt7620_gsw,
@@ -407,7 +432,7 @@ int mtk_gsw_init(struct fe_priv *priv)
 		/* only now unmask the switch interrupt sources, when the
 		 * handler is actually registered
 		 */
-		mt7530_mdio_w32(gsw, 0x7008, 0x1f);
+		mt7621_gsw_set_imr(gsw, priv, 0x1f);
 		enable_irq(gsw->irq);
 	}
 
@@ -453,7 +478,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 * line asserted while (ISR & IMR) != 0
 	 */
 	if (gsw->irq)
-		mt7530_mdio_w32(gsw, 0x7008, 0);
+		mt7621_gsw_set_imr(gsw, gsw->priv, 0);
 
 	/* the irq was requested with the fe_priv as dev_id; release it
 	 * on the fe side too, otherwise the handler may run after the
@@ -516,7 +541,7 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		 * from a NULL gsw.
 		 */
 		if (gsw->irq)
-			mt7530_mdio_w32(gsw, 0x7008, 0);
+			mt7621_gsw_set_imr(gsw, fe, 0);
 		/* gsw is devm allocated: drain the deferred link work
 		 * before returning, and keep the irq disable depth
 		 * balanced (see mt7621_gsw_stop_irq()).
