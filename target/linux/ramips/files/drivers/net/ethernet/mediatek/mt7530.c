@@ -1047,6 +1047,14 @@ mt7530_apply_config(struct switch_dev *dev)
 		err = mt7530_read_reg(priv, REG_ESW_PORT_PCR(i), &val);
 		if (err)
 			goto out_unlock;
+		/* The source bits are sticky in hardware. Clear them before
+		 * OR-ing the requested state, otherwise disabling a mirror
+		 * (or moving it to another port) leaves the old port still
+		 * mirroring; it becomes active again as soon as any other
+		 * port re-enables the global MIRROR_ENABLE bit.
+		 */
+		val &= ~(REG_ESW_PORT_PCR_MIRROR_SRC_RX_BIT |
+			 REG_ESW_PORT_PCR_MIRROR_SRC_TX_BIT);
 		if (priv->port_entries[i].mirror_rx) {
 			val |= REG_ESW_PORT_PCR_MIRROR_SRC_RX_BIT;
 			is_mirror = true;
