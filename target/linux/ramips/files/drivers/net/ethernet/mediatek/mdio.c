@@ -192,6 +192,28 @@ static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 	return 0;
 }
 
+/* phy[] is indexed by the eth-port id, while mii_bus->phy_map[] is
+ * indexed by the MDIO address. A PHY described by a "phy-handle" has
+ * already been attached by fe_connect_phy_node(), but it is still
+ * present in phy_map[] at its bus address. When the port id and the
+ * MDIO address differ, the same phy_device would otherwise be seen a
+ * second time by the bus-scan branch of fe_phy_connect() and attached
+ * again -- and phy_attached would then make fe_phy_start(),
+ * fe_phy_stop() and fe_phy_disconnect() act on it twice as well.
+ * Match by object identity instead of by array index.
+ */
+static bool fe_phy_is_port_phy(struct fe_priv *priv,
+			       struct phy_device *phydev)
+{
+	int i;
+
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++)
+		if (priv->phy->phy[i] == phydev)
+			return true;
+
+	return false;
+}
+
 static int fe_phy_connect(struct fe_priv *priv)
 {
 	int i, err, ret = 0;
@@ -202,7 +224,9 @@ static int fe_phy_connect(struct fe_priv *priv)
 				priv->phy_dev = priv->phy->phy[i];
 				priv->phy_flags = FE_PHY_FLAG_PORT;
 			}
-		} else if (priv->mii_bus && priv->mii_bus->phy_map[i]) {
+		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+			   !fe_phy_is_port_phy(priv,
+					       priv->mii_bus->phy_map[i])) {
 			err = phy_init(priv, priv->mii_bus->phy_map[i]);
 			if (err) {
 				dev_err(priv->dev,
