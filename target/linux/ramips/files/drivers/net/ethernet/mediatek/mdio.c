@@ -258,9 +258,18 @@ static int fe_phy_connect(struct fe_priv *priv)
 				priv->phy_dev = priv->phy->phy[i];
 				priv->phy_flags = FE_PHY_FLAG_PORT;
 			}
-		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
-			   !fe_phy_is_port_phy(priv,
-					       priv->mii_bus->phy_map[i])) {
+		}
+
+		/* phy_node[]/phy[] are keyed by eth-port id, phy_map[] by
+		 * MDIO address. A port may reference a PHY at a different
+		 * address, so the presence of phy_node[i] says nothing about
+		 * the PHY sitting at address i: an else-if here skipped that
+		 * bus PHY entirely. fe_phy_is_port_phy() already filters out
+		 * the case where both slots hold the same object.
+		 */
+		if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+		    !fe_phy_is_port_phy(priv,
+					priv->mii_bus->phy_map[i])) {
 			err = phy_init(priv, priv->mii_bus->phy_map[i]);
 			if (err) {
 				dev_err(priv->dev,
@@ -322,12 +331,17 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 		if (priv->phy->phy[i]) {
 			phy_disconnect(priv->phy->phy[i]);
 			priv->phy->phy[i] = NULL;
-		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
-			   test_bit(i, &priv->phy->phy_attached)) {
+		}
+		if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+		    test_bit(i, &priv->phy->phy_attached)) {
 			/* only release PHYs that were actually connected by
 			 * fe_phy_connect(); phy_disconnect() also cancels
 			 * the state machine started by phy_connect(), which
 			 * would otherwise run against a detached phy_device.
+			 * A port PHY and a bus PHY at the same index are two
+			 * different objects here: phy_attached is only set
+			 * when fe_phy_is_port_phy() reported no match, so
+			 * this cannot disconnect the same phydev twice.
 			 */
 			phy_disconnect(priv->mii_bus->phy_map[i]);
 			clear_bit(i, &priv->phy->phy_attached);
@@ -382,10 +396,10 @@ static void fe_phy_start(struct fe_priv *priv)
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		}
 
-		if (priv->phy->phy[i]) {
+		if (priv->phy->phy[i])
 			phy_start(priv->phy->phy[i]);
-		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
-			   test_bit(i, &priv->phy->phy_attached)) {
+		if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+		    test_bit(i, &priv->phy->phy_attached)) {
 			/* PHYs found by the bus scan are attached by
 			 * fe_phy_connect() but never stored in phy[].
 			 * phy_start_aneg() only kicks off one negotiation;
@@ -414,10 +428,10 @@ static void fe_phy_stop(struct fe_priv *priv)
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		}
 
-		if (priv->phy->phy[i]) {
+		if (priv->phy->phy[i])
 			phy_stop(priv->phy->phy[i]);
-		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
-			   test_bit(i, &priv->phy->phy_attached)) {
+		if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+		    test_bit(i, &priv->phy->phy_attached)) {
 			/* keep the start/stop calls balanced for bus-scanned
 			 * PHYs as well
 			 */
