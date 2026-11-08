@@ -117,6 +117,12 @@ static int mt7620_gsw_config(struct fe_priv *priv)
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *) priv->soc->swpriv;
 	int err, start;
 
+	/* swpriv points at devm-owned state that mtk_gsw_cleanup() and
+	 * mt7620_gsw_remove() clear while the FE netdev is still alive.
+	 */
+	if (!gsw)
+		return -ENODEV;
+
 	/* is the mt7530 internal or external */
 	if (priv->mii_bus && priv->mii_bus->phy_map[0x1f]) {
 		start = priv->soc->gsw_dev_num;
@@ -156,6 +162,13 @@ static void mt7620_set_mac(struct fe_priv *priv, unsigned char *mac)
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	unsigned long flags;
 
+	/* ndo_set_mac_address can run long after probe; the gsw platform
+	 * device may already have been unbound and cleared swpriv. The
+	 * MDIO/carrier paths already guard this pointer.
+	 */
+	if (!gsw)
+		return;
+
 	spin_lock_irqsave(&priv->page_lock, flags);
 	mtk_switch_w32(gsw, (mac[0] << 8) | mac[1], GSW_REG_SMACCR1);
 	mtk_switch_w32(gsw, ((u32)mac[2] << 24) | ((u32)mac[3] << 16) |
@@ -189,7 +202,16 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 	int phy_mode, size, id;
 	int shift = 12;
 	u32 mask = 0;
-	int min = (gsw->port4 == PORT4_EPHY) ? (5) : (4);
+	int min;
+
+	/* swpriv is cleared on gsw unbind/cleanup; do not dereference it
+	 * in the declaration block below.
+	 */
+	if (!gsw) {
+		dev_err(priv->dev, "switch device is gone, skipping port init\n");
+		return;
+	}
+	min = (gsw->port4 == PORT4_EPHY) ? (5) : (4);
 
 	/* of_get_property(..., NULL) returns no length, but the old code
 	 * unconditionally dereferenced four bytes of the "reg" property.
