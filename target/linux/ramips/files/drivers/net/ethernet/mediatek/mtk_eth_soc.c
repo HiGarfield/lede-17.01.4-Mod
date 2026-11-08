@@ -155,6 +155,28 @@ static inline void fe_int_enable(struct fe_priv *priv, u32 mask)
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 
+/* fe_stop() sets __FE_DOWN and then masks the rx/tx sources under
+ * page_lock. A NAPI poll that already passed an unlocked state check
+ * could otherwise re-enable those sources after that mask, leaving an
+ * administratively down device with live interrupts and a disabled
+ * NAPI. Re-check the state inside the same critical section that
+ * serialises the register write: either this enable comes first and
+ * fe_stop()'s disable is last, or the bit is already set and the
+ * enable is skipped.
+ */
+static inline void fe_int_enable_if_running(struct fe_priv *priv, u32 mask)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&priv->page_lock, flags);
+	if (!test_bit(__FE_DOWN, &priv->state))
+		fe_reg_w32(fe_reg_r32(FE_REG_FE_INT_ENABLE) | mask,
+			   FE_REG_FE_INT_ENABLE);
+	/* flush write */
+	fe_reg_r32(FE_REG_FE_INT_ENABLE);
+	spin_unlock_irqrestore(&priv->page_lock, flags);
+}
+
 static inline void fe_hw_set_macaddr(struct fe_priv *priv, unsigned char *mac)
 {
 	unsigned long flags;
@@ -1295,9 +1317,8 @@ static int fe_poll(struct napi_struct *napi, int budget)
 	}
 
 	if (!tx_again && (rx_done < budget)) {
-		if (likely(napi_complete_done(napi, rx_done) && !test_bit(__FE_DOWN, &priv->state))) {
-			fe_int_enable(priv, tx_intr | rx_intr);
-		}
+		if (likely(napi_complete_done(napi, rx_done)))
+			fe_int_enable_if_running(priv, tx_intr | rx_intr);
 	} else if (tx_again) {
 		/* report the full budget only to keep NAPI polling for
 		 * the pending TX reclaim; the real rx_done is what it is
