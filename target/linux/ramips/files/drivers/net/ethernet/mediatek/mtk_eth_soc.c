@@ -1372,6 +1372,20 @@ static int fe_poll(struct napi_struct *napi, int budget)
 		 * discarded.
 		 */
 		fe_reg_w32(fe_status & status_intr, status_reg);
+
+		/* On MT7620/MT7621 status_reg is FE_REG_FE_INT_STATUS2, but
+		 * fe_handle_irq() reads and leaves the counter-full bits
+		 * pending in the primary FE_REG_FE_INT_STATUS. Acknowledge
+		 * the primary snapshot bits too, otherwise that W1C source
+		 * has no clear path at all and a level/shared interrupt line
+		 * keeps re-entering the handler. Only the bits from the entry
+		 * snapshot are written, so events arriving during this poll
+		 * are not discarded.
+		 */
+		if (status_reg != FE_REG_FE_INT_STATUS &&
+		    (status & status_intr))
+			fe_reg_w32(status & status_intr,
+				   FE_REG_FE_INT_STATUS);
 	}
 
 	if (unlikely(netif_msg_intr(priv))) {
