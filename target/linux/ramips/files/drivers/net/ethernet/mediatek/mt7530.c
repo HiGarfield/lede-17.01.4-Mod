@@ -1407,14 +1407,23 @@ static int mt7621_get_port_stats(struct switch_dev *dev, int port,
 					struct switch_port_stats *stats)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
+	u64 tx, rx;
 
 	if (port < 0 || port >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
 
-	stats->tx_bytes = get_mib_counter(priv, MT7621_PORT_MIB_TXB_ID, port);
-	stats->rx_bytes = get_mib_counter(priv, MT7621_PORT_MIB_RXB_ID, port);
+	tx = get_mib_counter(priv, MT7621_PORT_MIB_TXB_ID, port);
+	rx = get_mib_counter(priv, MT7621_PORT_MIB_RXB_ID, port);
+
+	/* The MT7621 byte counters are 64 bit, while swconfig's
+	 * switch_port_stats uses unsigned long (32 bit on ramips). An
+	 * implicit truncation silently dropped the high word and made the
+	 * reported counters wrap; saturate at the representable maximum.
+	 */
+	stats->tx_bytes = (unsigned long)min_t(u64, tx, ~0UL);
+	stats->rx_bytes = (unsigned long)min_t(u64, rx, ~0UL);
 
 	mutex_unlock(&priv->reg_mutex);
 
