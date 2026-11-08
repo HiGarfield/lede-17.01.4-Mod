@@ -311,6 +311,15 @@ static void fe_phy_start(struct fe_priv *priv)
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		} else if (priv->phy->phy[i]) {
 			phy_start(priv->phy->phy[i]);
+		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+			   test_bit(i, &priv->phy->phy_attached)) {
+			/* PHYs found by the bus scan are attached by
+			 * fe_phy_connect() but never stored in phy[].
+			 * phy_start_aneg() only kicks off one negotiation;
+			 * without phy_start() the state machine never runs
+			 * and link up/down changes are never reported.
+			 */
+			phy_start(priv->mii_bus->phy_map[i]);
 		}
 	}
 }
@@ -329,6 +338,12 @@ static void fe_phy_stop(struct fe_priv *priv)
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		} else if (priv->phy->phy[i]) {
 			phy_stop(priv->phy->phy[i]);
+		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
+			   test_bit(i, &priv->phy->phy_attached)) {
+			/* keep the start/stop calls balanced for bus-scanned
+			 * PHYs as well
+			 */
+			phy_stop(priv->mii_bus->phy_map[i]);
 		}
 }
 
