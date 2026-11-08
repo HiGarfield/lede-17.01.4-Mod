@@ -19,6 +19,7 @@
 #include <linux/of_device.h>
 #include <linux/of_irq.h>
 #include <linux/workqueue.h>
+#include <linux/mutex.h>
 
 #include <ralink_regs.h>
 
@@ -43,8 +44,21 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	struct mt7620_gsw *gsw = container_of(work, struct mt7620_gsw,
 					      irq_work);
 	struct fe_priv *priv = gsw->priv;
+	struct mii_bus *bus = priv ? priv->mii_bus : NULL;
 	unsigned long flags;
 	u32 reg, i;
+
+	/* swconfig reaches the same MT7530 indirect registers through
+	 * mt7530.c, which holds bus->mdio_lock across the page-select +
+	 * two data accesses. This work builds those three-step transactions
+	 * via mt7530_mdio_r32/w32() under gsw->mdio_lock only. Without the
+	 * bus lock the two three-step sequences can interleave: one sets
+	 * the page, the other overwrites it, and the first then reads or
+	 * writes the wrong register. bus is NULL during early hw init and
+	 * teardown, when no swconfig user exists yet.
+	 */
+	if (bus)
+		mutex_lock(&bus->mdio_lock);
 
 	/* MDIO transactions involve busy-waiting the PIAC and are far
 	 * too slow for hardirq context; they run here in process
@@ -103,6 +117,8 @@ out_reenable:
 	 * disable_irq_nosync() done by the handler.
 	 */
 	clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
+	if (bus)
+		mutex_unlock(&bus->mdio_lock);
 	enable_irq(gsw->irq);
 }
 
