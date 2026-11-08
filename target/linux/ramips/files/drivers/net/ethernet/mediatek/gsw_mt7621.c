@@ -80,6 +80,8 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	u32 reg, i;
 	int link[5];
 	bool link_valid[5] = { false, };
+	int ack_err;
+	bool status_read_ok;
 
 	/* swconfig reaches the same MT7530 indirect registers through
 	 * mt7530.c, which holds bus->mdio_lock across the page-select +
@@ -106,13 +108,16 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	 * the interrupt/work pair forever. Skipping it when the read
 	 * failed has the same effect.
 	 */
-	if (mt7530_mdio_r32(gsw, 0x700c, &reg)) {
-		mt7530_mdio_w32(gsw, 0x700c, 0xffffffff);
-		goto out_reenable;
-	}
-	mt7530_mdio_w32(gsw, 0x700c, reg);
+	status_read_ok = !mt7530_mdio_r32(gsw, 0x700c, &reg);
+	if (!status_read_ok)
+		/* The read failed: clear every source so none stays
+		 * asserted. */
+		reg = 0xffffffff;
+	ack_err = mt7530_mdio_w32(gsw, 0x700c, reg);
+	if (ack_err)
+		goto out_masked;
 
-	if (!priv)
+	if (!status_read_ok || !priv)
 		goto out_reenable;
 
 	/* Each mt7530_mdio_r32() issues three PIAC transactions and each
@@ -149,6 +154,17 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 		spin_unlock_irqrestore(&phy->lock, flags);
 
 	mt7620_handle_carrier(priv);
+
+out_masked:
+	/* The W1C write failed, so the level-high source is still
+	 * asserted. Keep GSW_IRQ_DISABLED set and leave the line
+	 * disabled instead of enabling it straight back into the
+	 * handler and spinning the interrupt/work pair forever.
+	 */
+	dev_err(gsw->dev, "failed to clear switch IRQ status: %d\n", ack_err);
+	if (bus)
+		mutex_unlock(&bus->mdio_lock);
+	return;
 
 out_reenable:
 	/* Clear the guard before the line becomes live again: a handler
