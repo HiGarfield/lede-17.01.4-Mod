@@ -1613,7 +1613,17 @@ static int fe_stop(struct net_device *dev)
 	unsigned long flags;
 	int i;
 
-	set_bit(__FE_DOWN, &priv->state);
+	/* ndo_stop can be entered twice for one shutdown: both
+	 * fe_reset_pending() and the catastrophic fe_realloc_dma() rollback
+	 * call fe_stop() themselves and then call dev_close(), which sees
+	 * IFF_UP still set (fe_stop() never clears it) and invokes ndo_stop
+	 * again. Running napi_disable()/netif_tx_disable()/DMA quiescing a
+	 * second time without a matching fe_open() is not balanced. Make
+	 * the teardown one-shot using the same __FE_DOWN bit fe_open()
+	 * clears on a successful start.
+	 */
+	if (test_and_set_bit(__FE_DOWN, &priv->state))
+		return 0;
 
 	netif_tx_disable(dev);
 	fe_int_disable(priv, priv->soc->tx_int | priv->soc->rx_int);
