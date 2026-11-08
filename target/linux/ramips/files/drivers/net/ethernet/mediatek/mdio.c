@@ -37,39 +37,45 @@ static void fe_phy_link_adjust(struct net_device *dev)
 	int i;
 
 	spin_lock_irqsave(&priv->phy->lock, flags);
-	for (i = 0; i < 8; i++) {
-		if (priv->phy->phy_node[i]) {
-			struct phy_device *phydev = priv->phy->phy[i];
-			int status_change = 0;
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
+		struct phy_device *phydev = priv->phy->phy[i];
+		int status_change = 0;
 
-			/* phy_node[] is set before the connect fills phy[];
-			 * a state machine running in that window (or after a
-			 * failed connect) must not be dereferenced
-			 */
-			if (!phydev)
-				continue;
+		/* PHYs found by the bus scan are attached straight from
+		 * phy_map[] and never stored in phy[]/phy_node[]. Their
+		 * state machine calls this callback too, so include those
+		 * slots in the walk instead of gating on phy_node[].
+		 */
+		if (!phydev && priv->mii_bus &&
+		    test_bit(i, &priv->phy->phy_attached))
+			phydev = priv->mii_bus->phy_map[i];
 
-			if (phydev->link)
-				if (priv->phy->duplex[i] != phydev->duplex ||
-				    priv->phy->speed[i] != phydev->speed)
-					status_change = 1;
+		/* phy_node[] is set before the connect fills phy[];
+		 * a state machine running in that window (or after a
+		 * failed connect) must not dereference a NULL phydev.
+		 */
+		if (!phydev)
+			continue;
 
-			if (phydev->link != priv->link[i])
+		if (phydev->link)
+			if (priv->phy->duplex[i] != phydev->duplex ||
+			    priv->phy->speed[i] != phydev->speed)
 				status_change = 1;
 
-			switch (phydev->speed) {
-			case SPEED_1000:
-			case SPEED_100:
-			case SPEED_10:
-				priv->link[i] = phydev->link;
-				priv->phy->duplex[i] = phydev->duplex;
-				priv->phy->speed[i] = phydev->speed;
+		if (phydev->link != priv->link[i])
+			status_change = 1;
 
-				if (status_change &&
-				    priv->soc->mdio_adjust_link)
-					priv->soc->mdio_adjust_link(priv, i);
-				break;
-			}
+		switch (phydev->speed) {
+		case SPEED_1000:
+		case SPEED_100:
+		case SPEED_10:
+			priv->link[i] = phydev->link;
+			priv->phy->duplex[i] = phydev->duplex;
+			priv->phy->speed[i] = phydev->speed;
+
+			if (status_change && priv->soc->mdio_adjust_link)
+				priv->soc->mdio_adjust_link(priv, i);
+			break;
 		}
 	}
 	spin_unlock_irqrestore(&priv->phy->lock, flags);
@@ -175,8 +181,16 @@ static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 	if (phy_mode < 0)
 		phy_mode = PHY_INTERFACE_MODE_MII;
 
-	p = phy_attach(priv->netdev, dev_name(&phy->dev), phy_mode);
-	/* phy_attach() returns an ERR_PTR() on failure, not NULL */
+	/* phy_attach() neither installs phydev->adjust_link nor starts the
+	 * state machine, while phy_state_machine() calls that callback
+	 * unconditionally and phy_start() only changes the state. A
+	 * bus-scanned PHY attached this way would either oops on a NULL
+	 * function pointer or never report link changes. phy_connect()
+	 * does both and matches of_phy_connect() used for DT PHYs.
+	 */
+	p = phy_connect(priv->netdev, dev_name(&phy->dev),
+			fe_phy_link_adjust, phy_mode);
+	/* phy_connect() returns an ERR_PTR() on failure, not NULL */
 	if (IS_ERR(p))
 		return PTR_ERR(p);
 
@@ -195,8 +209,12 @@ static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 	 * PHY core reference would be leaked.
 	 */
 	err = phy_start_aneg(phy);
-	if (err)
-		phy_detach(p);
+	if (err) {
+		/* phy_connect() started the state machine: stop it as
+		 * well as dropping the attach reference.
+		 */
+		phy_disconnect(p);
+	}
 
 	return err;
 }
@@ -299,11 +317,12 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 			priv->phy->phy[i] = NULL;
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
 			   test_bit(i, &priv->phy->phy_attached)) {
-			/* only detach PHYs that were actually attached by
-			 * fe_phy_connect(); detaching a never-attached PHY
-			 * unbalances the phy core's references
+			/* only release PHYs that were actually connected by
+			 * fe_phy_connect(); phy_disconnect() also cancels
+			 * the state machine started by phy_connect(), which
+			 * would otherwise run against a detached phy_device.
 			 */
-			phy_detach(priv->mii_bus->phy_map[i]);
+			phy_disconnect(priv->mii_bus->phy_map[i]);
 			clear_bit(i, &priv->phy->phy_attached);
 		}
 
