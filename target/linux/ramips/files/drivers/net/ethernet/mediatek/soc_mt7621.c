@@ -17,6 +17,7 @@
 #include <linux/if_vlan.h>
 #include <linux/of_net.h>
 #include <linux/delay.h>
+#include <linux/mutex.h>
 #include <linux/switch.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
@@ -193,10 +194,25 @@ static void mt7621_set_mac(struct fe_priv *priv, unsigned char *mac)
 static void mt7621_reset_ports(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = priv->soc->swpriv;
+	struct mii_bus *bus;
 	u8 i;
 
 	if (!gsw)
 		return;
+
+	/* swconfig (mt7530.c) performs its indirect register accesses as a
+	 * page-select plus two data transfers under bus->mdio_lock, while
+	 * gsw_irq_work_mt7621() takes the same lock before touching PIAC.
+	 * This reset runs from the TX-timeout work, i.e. with the mii_bus
+	 * alive and swconfig callable, but only held gsw->mdio_lock for
+	 * each single transfer. Without the bus lock a PHY access here can
+	 * land between another user's page select and its data transfer and
+	 * make that transfer hit the wrong register. Hold the same mutex
+	 * for the whole port power-cycle.
+	 */
+	bus = priv->mii_bus;
+	if (bus)
+		mutex_lock(&bus->mdio_lock);
 
 	/* Disable all ports */
 	for (i = 0; i <= 4; i++) {
@@ -229,6 +245,9 @@ static void mt7621_reset_ports(struct fe_priv *priv)
 		mii_val &= ~BIT(11);
 		_mt7620_mii_write(gsw, i, 0, mii_val);
 	}
+
+	if (bus)
+		mutex_unlock(&bus->mdio_lock);
 }
 
 static struct fe_soc_data mt7621_data = {
