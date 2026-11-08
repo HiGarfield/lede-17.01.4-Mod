@@ -25,6 +25,9 @@
 #include "mtk_eth_soc.h"
 #include "gsw_mt7620.h"
 
+/* set while one disable_irq_nosync() is outstanding */
+#define GSW_IRQ_DISABLED	0
+
 void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg)
 {
 	iowrite32(val, gsw->base + reg);
@@ -94,6 +97,12 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	mt7620_handle_carrier(priv);
 
 out_reenable:
+	/* Clear the guard before the line becomes live again: a handler
+	 * entering right after enable_irq() must be able to start a new
+	 * disable/work cycle. Exactly one enable balances the one
+	 * disable_irq_nosync() done by the handler.
+	 */
+	clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
 	enable_irq(gsw->irq);
 }
 
@@ -106,6 +115,16 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
 	 * can be cleared while the action is still live during teardown
 	 */
 	if (!gsw)
+		return IRQ_HANDLED;
+
+	/* The source is level-high: on SMP a second handler can enter on
+	 * another CPU before the line is fully masked. schedule_work()
+	 * coalesces an already queued work item, so a second
+	 * disable_irq_nosync() would never be balanced by a second
+	 * enable_irq() and the interrupt would stay disabled forever.
+	 * Only the first entry owns the disable/work cycle.
+	 */
+	if (test_and_set_bit(GSW_IRQ_DISABLED, &gsw->irq_state))
 		return IRQ_HANDLED;
 
 	disable_irq_nosync(irq);
@@ -340,6 +359,10 @@ int mtk_gsw_init(struct fe_priv *priv)
 	if (gsw->irq) {
 		int irqerr;
 
+		/* a previous instance has been drained by
+		 * mt7621_gsw_stop_irq(); start with a clean guard
+		 */
+		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
 		INIT_WORK(&gsw->irq_work, gsw_irq_work_mt7621);
 		irqerr = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
 				     "gsw", priv);

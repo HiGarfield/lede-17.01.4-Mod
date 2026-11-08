@@ -120,6 +120,12 @@ struct mt7620_gsw {
 	 * deferred to this work item
 	 */
 	struct work_struct	irq_work;
+	/* MT7621: bit 0 is set while a disable_irq_nosync() is waiting
+	 * for its matching enable_irq() from irq_work, so a second
+	 * (SMP) entry into the handler cannot unbalance the disable
+	 * depth of the interrupt line
+	 */
+	unsigned long		irq_state;
 };
 
 void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg);
