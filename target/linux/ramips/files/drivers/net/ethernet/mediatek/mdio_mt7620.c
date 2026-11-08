@@ -272,8 +272,14 @@ int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 static const char *fe_speed_str(int speed)
 {
 	switch (speed) {
+	case 3:
 	case 2:
 	case SPEED_1000:
+		/* The port status register encodes a forced gigabit link as
+		 * either 2 or 3; esw_rt3050.c and mt7530.c both treat both
+		 * values as 1000M. Without case 3 the link log printed
+		 * "? Mbps" for exactly that state.
+		 */
 		return "1000";
 	case 1:
 	case SPEED_100:
