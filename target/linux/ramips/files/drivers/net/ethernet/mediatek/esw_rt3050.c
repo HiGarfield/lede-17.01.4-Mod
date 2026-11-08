@@ -886,15 +886,15 @@ static int esw_reset_switch(struct switch_dev *dev)
 	esw->alt_vlan_disable = 0;
 	memset(esw->ports, 0, sizeof(esw->ports));
 	memset(esw->vlans, 0, sizeof(esw->vlans));
-	/* esw_hw_init() below reinitialises the switch and clears the 16-bit
-	 * hardware packet counters. The software wrap accumulators and their
-	 * last-read baselines must be reset together with them: otherwise the
-	 * first read after a reset computes (u16)(0 - old_last) and reports
-	 * up to 65535 phantom packets as a normal counter wrap.
+	/* Only the software accumulators are reset. The 16-bit hardware
+	 * packet counters (PXPC/PXTPC) are free-running: esw_hw_init()
+	 * never writes them. Clearing last_recv/last_tr as well would make
+	 * the first read after a reset compute (u16)(cur - 0) and report
+	 * the whole counter value as up to 65535 phantom packets. Keep the
+	 * baselines so the first read only folds in the increment since
+	 * the previous one.
 	 */
-	memset(esw->last_recv, 0, sizeof(esw->last_recv));
 	memset(esw->accum_recv, 0, sizeof(esw->accum_recv));
-	memset(esw->last_tr, 0, sizeof(esw->last_tr));
 	memset(esw->accum_tr, 0, sizeof(esw->accum_tr));
 	mutex_unlock(&esw->update_lock);
 
