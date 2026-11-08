@@ -1055,6 +1055,16 @@ static int fe_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	tx_num = fe_cal_txd_req(skb);
 	if (unlikely(fe_empty_txd(ring) <= tx_num)) {
 		netif_stop_queue(dev);
+		/* fe_poll_tx() only wakes a queue that is already stopped.
+		 * It can finish reclaiming the missing descriptors (and
+		 * therefore skip the wake) between the check above and this
+		 * stop. Pair the stop with the same barrier and re-check the
+		 * successful mapping path uses, or the queue stays XOFF with
+		 * no in-flight descriptors left to raise another TX interrupt.
+		 */
+		smp_mb();
+		if (unlikely(fe_empty_txd(ring) > tx_num))
+			netif_wake_queue(dev);
 		netif_err(priv, tx_queued, dev,
 			  "Tx Ring full when queue awake!\n");
 		return NETDEV_TX_BUSY;
@@ -1251,13 +1261,18 @@ static int fe_poll_tx(struct fe_priv *priv, int budget, u32 tx_intr,
 	if (idx != hwidx && ring->tx_buf[idx].skb)
 		*tx_again = 1;
 
-	if (done) {
+	if (done)
 		netdev_completed_queue(netdev, done, bytes_compl);
-		smp_mb();
-		if (unlikely(netif_queue_stopped(netdev) &&
-			     (fe_empty_txd(ring) > ring->tx_thresh)))
-			netif_wake_queue(netdev);
-	}
+
+	/* A poll can also reclaim nothing but DUMMY descriptors: that still
+	 * advances tx_free_idx and frees ring space. Gating the wake on
+	 * done > 0 can leave a stopped queue with no completions left to
+	 * wake it. Order the index store before the queue-state read.
+	 */
+	smp_mb();
+	if (unlikely(netif_queue_stopped(netdev) &&
+		     (fe_empty_txd(ring) > ring->tx_thresh)))
+		netif_wake_queue(netdev);
 
 	return done;
 }
