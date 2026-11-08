@@ -73,7 +73,13 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		mdio_cfg |= FE_MDIO_CFG_GP1_SPEED_1000;
 		break;
 	default:
+		/* link[0] can already be 1 here (fixed link or a PHY
+		 * reporting an unknown speed). Returning without touching
+		 * the carrier leaves the interface up with the old MAC
+		 * speed configuration.
+		 */
 		WARN_ON(1);
+		netif_carrier_off(priv->netdev);
 		return;
 	}
 
