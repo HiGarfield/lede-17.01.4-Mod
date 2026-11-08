@@ -16,6 +16,11 @@
 #ifndef _MT7530_H__
 #define _MT7530_H__
 
+#include <linux/compiler.h>
+#include <linux/errno.h>
+#include <linux/err.h>
+#include <linux/kconfig.h>
+
 #define MT7620_MIB_COUNTER_BASE_PORT	0x4000
 #define MT7620_MIB_COUNTER_PORT_OFFSET	0x100
 #define MT7620_MIB_COUNTER_BASE	0x1010
@@ -182,9 +187,35 @@
 #define MT7621_STATS_RDPC_ARL	0xB8
 
 struct switch_dev;
+struct device;
+struct mii_bus;
+
+#if IS_ENABLED(CONFIG_NET_MEDIATEK_GSW_MT7620) || \
+    IS_ENABLED(CONFIG_NET_MEDIATEK_GSW_MT7621)
 
 struct switch_dev *mt7530_probe(struct device *dev, void __iomem *base,
 				struct mii_bus *bus, int vlan);
 void mt7530_remove(struct switch_dev *swdev);
+
+#else
+
+/* mt7530.o is only built for the MT7620/MT7621 GSW configurations, but
+ * mtk_eth_soc.c calls mt7530_remove() unconditionally from
+ * fe_unregister_switches(). Without stubs the RT3050/RT288x/RT3883
+ * kernels end up with an undefined reference in vmlinux. mdio.h and
+ * esw_rt3050.h use the same pattern for their optional objects.
+ */
+static inline struct switch_dev *
+mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus,
+	     int vlan)
+{
+	return ERR_PTR(-ENODEV);
+}
+
+static inline void mt7530_remove(struct switch_dev *swdev)
+{
+}
+
+#endif
 
 #endif
