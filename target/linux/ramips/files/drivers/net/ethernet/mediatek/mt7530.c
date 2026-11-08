@@ -938,6 +938,18 @@ mt7530_apply_config(struct switch_dev *dev)
 		if (err)
 			goto out_unlock;
 
+		/* The mirror source bits in every PCR were overwritten with
+		 * 0x00400000 above. Clear the software state in the same
+		 * critical section so the getters do not keep reporting a
+		 * monitor port and source ports that the hardware no longer
+		 * has programmed.
+		 */
+		priv->mirror_dest_port = 0;
+		for (i = 0; i < MT7530_NUM_PORTS; i++) {
+			priv->port_entries[i].mirror_rx = false;
+			priv->port_entries[i].mirror_tx = false;
+		}
+
 		mutex_unlock(&priv->reg_mutex);
 
 		return 0;
