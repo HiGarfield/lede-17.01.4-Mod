@@ -63,9 +63,11 @@ static int fe_set_settings(struct net_device *dev,
 		goto out_sset;
 
 	if (cmd->phy_address != priv->phy_dev->addr) {
-		/* phy_dev is read locklessly by the PHY state machine
-		 * callbacks and the other ethtool paths; serialise the
-		 * switch against them
+		/* Serialise the switch against other set_settings() calls
+		 * and the MDIO paths that hold phy->lock. The other ethtool
+		 * readers are lockless, so the sset call below must use the
+		 * local snapshot instead of re-reading priv->phy_dev after
+		 * the lock has been dropped.
 		 */
 		spin_lock_irqsave(&priv->phy->lock, flags);
 
@@ -103,6 +105,12 @@ static int fe_set_settings(struct net_device *dev,
 		}
 		priv->phy_dev = new_phy;
 		spin_unlock_irqrestore(&priv->phy->lock, flags);
+
+		/* A concurrent switch can replace priv->phy_dev as soon as
+		 * the lock is released; apply the settings to the PHY that
+		 * was just selected, not to whatever is published now.
+		 */
+		return phy_ethtool_sset(new_phy, cmd);
 	}
 
 	return phy_ethtool_sset(priv->phy_dev, cmd);
