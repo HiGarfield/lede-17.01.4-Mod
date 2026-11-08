@@ -279,6 +279,16 @@ int mtk_gsw_init(struct fe_priv *priv)
 	 */
 	gsw->priv = priv;
 
+	/* mt7620_hw_init() powers the PHYs down/up and forces the port
+	 * link state, which raises the level-triggered port-change status.
+	 * The handler is only registered below, and the chip's power-on
+	 * IMR is not guaranteed to mask every source, so an asserted line
+	 * with no action installed is reported as a spurious interrupt and
+	 * genirq may disable the IRQ permanently. Mask all sources first;
+	 * the port-change bits are unmasked again after request_irq().
+	 */
+	mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
+
 	mt7620_hw_init(gsw, mt7620_mdio_mode(priv->dev->of_node));
 
 	if (gsw->irq) {
