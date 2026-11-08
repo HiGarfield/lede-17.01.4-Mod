@@ -380,6 +380,14 @@ mt7530_set_vlan_enable(struct switch_dev *dev,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
+	/* swconfig does not enforce attr->max. Without this check any
+	 * non-zero value is silently normalised to 1, so "set 2" reports
+	 * success while "get" returns a different value. Reject it like
+	 * every other setter in this driver (and esw_rt3050.c) does.
+	 */
+	if (val->value.i > (u32)attr->max)
+		return -EINVAL;
+
 	mutex_lock(&priv->reg_mutex);
 	priv->global_vlan_enable = val->value.i != 0;
 	mutex_unlock(&priv->reg_mutex);
