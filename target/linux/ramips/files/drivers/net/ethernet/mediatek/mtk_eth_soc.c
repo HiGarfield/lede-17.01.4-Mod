@@ -1394,6 +1394,22 @@ static irqreturn_t fe_handle_irq(int irq, void *dev)
 		 */
 		fe_reg_w32(status & ~priv->soc->status_int,
 			   FE_REG_FE_INT_STATUS);
+
+		/* With no rx/tx source this interrupt has not started a
+		 * poll, so a plain "leave them pending" has no next poll:
+		 * when status consists only of counter-full bits the write
+		 * above is zero, nothing is acknowledged, and a level or
+		 * shared line re-enters the handler forever while the
+		 * clear-on-read counters are never folded into hw_stats.
+		 * Start the poll that fe_poll() uses to update and ACK
+		 * them. If NAPI is already scheduled that poll will see
+		 * the still-pending bits, so no second schedule is needed.
+		 */
+		if ((status & priv->soc->status_int) &&
+		    likely(napi_schedule_prep(&priv->rx_napi))) {
+			fe_int_disable(priv, int_mask);
+			__napi_schedule(&priv->rx_napi);
+		}
 	}
 
 	return IRQ_HANDLED;
