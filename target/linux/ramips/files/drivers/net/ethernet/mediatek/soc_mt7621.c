@@ -163,7 +163,11 @@ static int mt7621_fwd_config(struct fe_priv *priv)
 
 static void mt7621_tx_dma(struct fe_tx_dma *txd)
 {
-	txd->txd4 = MT7621_TX_DMA_FPORT;
+	/* fe_tx_map_dma() places VLAN, checksum and TSO information in
+	 * the user-defined field of txd4. MT7621 needs its UDF enable bit
+	 * in the SoC default value for the hardware to interpret them.
+	 */
+	txd->txd4 = MT7621_TX_DMA_FPORT | MT7621_TX_DMA_UDF;
 }
 
 static void mt7621_init_data(struct fe_soc_data *data,
