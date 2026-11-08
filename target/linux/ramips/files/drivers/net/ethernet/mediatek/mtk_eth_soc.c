@@ -2268,17 +2268,18 @@ static int fe_probe(struct platform_device *pdev)
 	netdev->netdev_ops = &fe_netdev_ops;
 	netdev->base_addr = (unsigned long)fe_base;
 
-	netdev->irq = platform_get_irq(pdev, 0);
-	if (netdev->irq < 0) {
-		/* platform_get_irq() reports -EPROBE_DEFER while the irq
-		 * controller is not ready yet. Collapsing every failure
-		 * into -ENXIO turned that into a permanent probe failure.
-		 */
-		dev_err(&pdev->dev, "no IRQ resource found: %d\n",
-			netdev->irq);
-		err = netdev->irq;
+	/* net_device::irq is an unsigned int on this kernel: storing a
+	 * negative platform_get_irq() error in it turns -EPROBE_DEFER and
+	 * -ENXIO into large positive values, so a subsequent "< 0" test
+	 * can never fire. Keep the signed result in err until it is known
+	 * to be a valid IRQ number.
+	 */
+	err = platform_get_irq(pdev, 0);
+	if (err < 0) {
+		dev_err(&pdev->dev, "no IRQ resource found: %d\n", err);
 		goto err_free_dev;
 	}
+	netdev->irq = err;
 
 	if (soc->init_data)
 		soc->init_data(soc, netdev);
