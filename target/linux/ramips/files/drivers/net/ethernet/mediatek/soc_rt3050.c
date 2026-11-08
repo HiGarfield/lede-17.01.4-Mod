@@ -71,12 +71,16 @@ static int rt3050_fwd_config(struct fe_priv *priv)
 
 static void rt305x_fe_reset(void)
 {
-	/* RT3050/RT3052/RT3352 have an integrated ESW sharing the same
-	 * reset-controller register. Asserting only the FE bit leaves the
-	 * switch (VLAN table, port state) in its previous configuration;
-	 * rt5350_fe_reset() already pulses both bits.
+	/* rt3050_data is used by the ralink,rt3050-eth compatible (RT3050,
+	 * RT3052, RT3352). Their ethernet node declares only the FE reset
+	 * line; the ESW reset line belongs to the separate esw@10110000
+	 * device and its own driver. fe_init() calls reset_fe() on every
+	 * ndo_init, so pulsing BIT(23) here would silently wipe the VLAN
+	 * and port state programmed by the ESW driver without replaying
+	 * its software state. RT5350/MT7628 declare both lines on the
+	 * ethernet node and use rt5350_fe_reset(), which pulses both.
 	 */
-	fe_reset(RT305X_RESET_FE | RT305X_RESET_ESW);
+	fe_reset(RT305X_RESET_FE);
 }
 
 static void rt5350_init_data(struct fe_soc_data *data,
