@@ -1349,7 +1349,14 @@ static int fe_poll(struct napi_struct *napi, int budget)
 	 * poll and whose descriptors have not been processed yet
 	 */
 
-	if (unlikely(fe_status & status_intr)) {
+	/* fe_handle_irq() leaves counter-full bits pending in the primary
+	 * FE_REG_FE_INT_STATUS snapshot, while on MT7620/MT7621 fe_status
+	 * is re-read from FE_REG_FE_INT_STATUS2. Gate the fold/ack on the
+	 * union of both snapshots: testing only fe_status made the primary
+	 * register ack below unreachable in exactly the case it was added
+	 * for, leaving that W1C source asserted forever.
+	 */
+	if (unlikely((fe_status | status) & status_intr)) {
 		if (hwstat) {
 			/* Take the lock unconditionally, like the two process
 			 * context readers: fe_stats_update() folds
