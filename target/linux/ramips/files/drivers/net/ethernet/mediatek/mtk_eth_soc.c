@@ -1196,7 +1196,15 @@ static int fe_poll_tx(struct fe_priv *priv, int budget, u32 tx_intr,
 	struct fe_tx_ring *ring = &priv->tx_ring;
 
 	idx = ring->tx_free_idx;
-	hwidx = fe_reg_r32(FE_REG_TX_DTX_IDX0);
+	/* Software indices are always kept modulo tx_ring_size by
+	 * NEXT_TX_DESP_IDX(), but the raw hardware index is not bounded
+	 * that way (e.g. while the engine is reset or reconfigured).
+	 * Comparing an unmasked value against idx can never become false,
+	 * so reclaim would walk on until it hits an empty slot, advance
+	 * tx_free_idx to a bogus position and wedge fe_empty_txd()'s
+	 * free-space accounting (and therefore the transmit queue).
+	 */
+	hwidx = fe_reg_r32(FE_REG_TX_DTX_IDX0) & (ring->tx_ring_size - 1);
 
 	while ((idx != hwidx) && budget) {
 		tx_buf = &ring->tx_buf[idx];
