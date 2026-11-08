@@ -31,6 +31,7 @@
 #include <linux/io.h>
 #include <linux/bug.h>
 #include <linux/bitmap.h>
+#include <linux/mutex.h>
 #include <linux/switch.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
@@ -113,18 +114,31 @@ u32 fe_reg_r32(enum fe_reg reg)
 	return fe_r32(fe_reg_table[reg]);
 }
 
+/* RSTCTRL is a shared system-controller register: fe_init() resets the
+ * frame engine while the ESW/GSW drivers reset the switch or EPHY with
+ * the same helper. Serialise the whole assert/deassert sequence, and
+ * re-read the register before deasserting so changes made by another
+ * driver during the delay are not written back from a stale snapshot.
+ * All callers run in process context, so a mutex is safe across the
+ * sleeps.
+ */
+static DEFINE_MUTEX(fe_reset_lock);
+
 void fe_reset(u32 reset_bits)
 {
 	u32 t;
 
+	mutex_lock(&fe_reset_lock);
 	t = rt_sysc_r32(SYSC_REG_RSTCTRL);
 	t |= reset_bits;
 	rt_sysc_w32(t, SYSC_REG_RSTCTRL);
 	usleep_range(10, 20);
 
+	t = rt_sysc_r32(SYSC_REG_RSTCTRL);
 	t &= ~reset_bits;
 	rt_sysc_w32(t, SYSC_REG_RSTCTRL);
 	usleep_range(10, 20);
+	mutex_unlock(&fe_reset_lock);
 }
 /* esw_rt3050.o and gsw_mt7621.o are separate modules when built as =m */
 EXPORT_SYMBOL_GPL(fe_reset);
