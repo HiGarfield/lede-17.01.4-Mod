@@ -154,6 +154,7 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 		spin_unlock_irqrestore(&phy->lock, flags);
 
 	mt7620_handle_carrier(priv);
+	goto out_reenable;
 
 out_masked:
 	/* The W1C write failed, so the level-high source is still
