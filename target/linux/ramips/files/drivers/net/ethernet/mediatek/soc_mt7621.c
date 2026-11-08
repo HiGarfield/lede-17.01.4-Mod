@@ -29,6 +29,7 @@
 #define MT7620A_CDMA_CSG_CFG	0x400
 #define MT7621_CDMP_IG_CTRL	(MT7620A_CDMA_CSG_CFG + 0x00)
 #define MT7621_CDMP_EG_CTRL	(MT7620A_CDMA_CSG_CFG + 0x04)
+#define MT7621_CDMP_EG_RXVLAN	BIT(0)
 #define MT7621_RESET_FE		BIT(6)
 #define MT7621_L4_VALID		BIT(24)
 
@@ -131,10 +132,18 @@ static void mt7621_rxcsum_config(bool enable)
 
 static void mt7621_rxvlan_config(bool enable)
 {
+	/* This is a shared CDMA egress control register, not a single-bit
+	 * latch: writing a bare 1 or 0 also clears every other field that
+	 * the bootloader/hardware programmed into it. mt7621_fwd_config()
+	 * is called on every frame-engine init, so toggle only the RX VLAN
+	 * bit and preserve the rest, like mt7621_rxcsum_config() does.
+	 */
+	u32 val = fe_r32(MT7621_CDMP_EG_CTRL) & ~MT7621_CDMP_EG_RXVLAN;
+
 	if (enable)
-		fe_w32(1, MT7621_CDMP_EG_CTRL);
-	else
-		fe_w32(0, MT7621_CDMP_EG_CTRL);
+		val |= MT7621_CDMP_EG_RXVLAN;
+
+	fe_w32(val, MT7621_CDMP_EG_CTRL);
 }
 
 static int mt7621_fwd_config(struct fe_priv *priv)
