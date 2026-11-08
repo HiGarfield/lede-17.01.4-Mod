@@ -898,6 +898,19 @@ static int esw_reset_switch(struct switch_dev *dev)
 	memset(esw->accum_tr, 0, sizeof(esw->accum_tr));
 	mutex_unlock(&esw->update_lock);
 
+	/* esw_hw_init() seeds ports[].disable from the hardware POC0
+	 * DIS_PORT field. That field still contains the mask programmed
+	 * by the last esw_apply_config(), so a plain re-init would put
+	 * the runtime settings straight back into the just-cleared
+	 * software state, and apply_config() would then write them to
+	 * the hardware again. Clear the field first so a reset really
+	 * falls back to the DT port_disable mask (and bootloader state
+	 * is still honoured on the initial probe).
+	 */
+	esw_rmw(esw, RT305X_ESW_REG_POC0,
+		RT305X_ESW_POC0_DIS_PORT_M << RT305X_ESW_POC0_DIS_PORT_S,
+		0);
+
 	return esw_hw_init(esw);
 }
 
