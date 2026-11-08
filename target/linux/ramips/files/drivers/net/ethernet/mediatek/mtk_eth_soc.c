@@ -289,7 +289,13 @@ static void fe_clean_rx(struct fe_priv *priv)
 	if (ring->rx_data) {
 		for (i = 0; i < ring->rx_ring_size; i++)
 			if (ring->rx_data[i]) {
-				if (ring->rx_dma && ring->rx_dma[i].rxd1)
+				/* Only dma_mapping_error() can tell whether a
+				 * mapping failed: dma address 0 is legal and
+				 * rxd1 == 0 is not a valid "unmapped" flag.
+				 * Use the recorded mapping count instead so
+				 * partial allocations are unwound exactly.
+				 */
+				if (ring->rx_dma && i < ring->rx_mapped)
 					dma_unmap_single(priv->dev,
 							 ring->rx_dma[i].rxd1,
 							 ring->rx_buf_size,
@@ -300,6 +306,7 @@ static void fe_clean_rx(struct fe_priv *priv)
 		kfree(ring->rx_data);
 		ring->rx_data = NULL;
 	}
+	ring->rx_mapped = 0;
 
 	if (ring->rx_dma) {
 		dma_free_coherent(priv->dev,
@@ -346,6 +353,7 @@ static int fe_alloc_rx(struct fe_priv *priv)
 		pad = 0;
 	else
 		pad = NET_IP_ALIGN;
+	ring->rx_mapped = 0;
 	for (i = 0; i < ring->rx_ring_size; i++) {
 		dma_addr_t dma_addr = dma_map_single(priv->dev,
 				ring->rx_data[i] + NET_SKB_PAD + pad,
@@ -354,6 +362,7 @@ static int fe_alloc_rx(struct fe_priv *priv)
 		if (unlikely(dma_mapping_error(priv->dev, dma_addr)))
 			goto no_rx_mem;
 		ring->rx_dma[i].rxd1 = (unsigned int)dma_addr;
+		ring->rx_mapped++;
 
 		if (priv->flags & FE_FLAG_RX_SG_DMA)
 			ring->rx_dma[i].rxd2 = RX_DMA_PLEN0(ring->rx_buf_size);

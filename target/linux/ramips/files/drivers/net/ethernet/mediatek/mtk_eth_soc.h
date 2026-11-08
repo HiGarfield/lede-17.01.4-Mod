@@ -470,6 +470,10 @@ struct fe_rx_ring {
 	u16 frag_size;
 	u16 rx_buf_size;
 	u16 rx_calc_idx;
+	/* number of rx_data[] entries with a live dma_map_single() mapping;
+	 * DMA address 0 is valid, so rxd1 cannot be used as a sentinel
+	 */
+	u16 rx_mapped;
 };
 
 enum fe_state_t {
