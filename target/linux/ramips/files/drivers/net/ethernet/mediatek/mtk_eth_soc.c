@@ -978,11 +978,19 @@ static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
 			return ret;
 
 		if (skb->len < len) {
+			/* skb_pad() already calls __skb_put(): it grows
+			 * skb->len and advances skb->tail by the pad length
+			 * while leaving data_len alone. Overwriting both
+			 * fields with the total frame length makes
+			 * skb_headlen() larger than the linear area that was
+			 * actually padded whenever the skb has frags, so
+			 * fe_tx_dma_map_skb() then DMA-maps past the end of
+			 * the linear buffer and skb->len no longer equals
+			 * headlen + data_len.
+			 */
 			ret = skb_pad(skb, len - skb->len);
 			if (ret < 0)
 				return ret;
-			skb->len = len;
-			skb_set_tail_pointer(skb, len);
 		}
 	}
 
