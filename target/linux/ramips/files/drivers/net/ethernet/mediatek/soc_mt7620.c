@@ -408,6 +408,13 @@ static int mt7620_fwd_config(struct fe_priv *priv)
 
 static void mt7620_tx_dma(struct fe_tx_dma *txd)
 {
+	/* The core only fills TX_DMA_DESP4_DEF itself when the SoC does
+	 * not provide a tx_dma callback. MT7620 uses a different txd4
+	 * layout: the forwarding-port bitmap and the UDF bit must be
+	 * programmed here. An empty callback left txd4 at zero on every
+	 * transmit, dropping queue/port selection and offload flags.
+	 */
+	txd->txd4 = TX_DMA_FP_BMAP | MT7620_TX_DMA_UDF;
 }
 
 static void mt7620_init_data(struct fe_soc_data *data,
