@@ -941,6 +941,12 @@ static int esw_set_vlan_enable(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
+	/* swconfig does not enforce attr->max; reject out-of-range values
+	 * like the other setters in this driver instead of silently
+	 * normalising them to 1. */
+	if (val->value.i > (u32)attr->max)
+		return -EINVAL;
+
 	mutex_lock(&esw->update_lock);
 	esw->global_vlan_enable = val->value.i != 0;
 	mutex_unlock(&esw->update_lock);
@@ -966,6 +972,10 @@ static int esw_set_alt_vlan_disable(struct switch_dev *dev,
 				struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
+
+	/* swconfig does not enforce attr->max; see esw_set_vlan_enable(). */
+	if (val->value.i > (u32)attr->max)
+		return -EINVAL;
 
 	mutex_lock(&esw->update_lock);
 	esw->alt_vlan_disable = val->value.i != 0;
