@@ -1431,7 +1431,12 @@ static void fe_poll_controller(struct net_device *dev)
 
 	fe_int_disable(priv, int_mask);
 	fe_handle_irq(dev->irq, dev);
-	fe_int_enable(priv, int_mask);
+	/* Use the same __FE_DOWN check as fe_poll(): fe_stop() sets the bit
+	 * and then masks these sources under page_lock. A plain enable here
+	 * would undo that mask for an administratively down device, leaving
+	 * live interrupts with NAPI disabled.
+	 */
+	fe_int_enable_if_running(priv, int_mask);
 }
 #endif
 
