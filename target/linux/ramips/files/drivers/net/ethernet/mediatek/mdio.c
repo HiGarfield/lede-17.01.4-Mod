@@ -65,18 +65,25 @@ static void fe_phy_link_adjust(struct net_device *dev)
 		if (phydev->link != priv->link[i])
 			status_change = 1;
 
+		/* A PHY can report an unknown speed (phy_init() explicitly
+		 * starts with speed 0, and a link-down PHY may do the same).
+		 * The switch only caches the negotiated values: keeping the
+		 * link state and the adjust_link notification inside it made
+		 * those events disappear, leaving priv->link[] and the
+		 * carrier at their old value after a link loss.
+		 */
 		switch (phydev->speed) {
 		case SPEED_1000:
 		case SPEED_100:
 		case SPEED_10:
-			priv->link[i] = phydev->link;
 			priv->phy->duplex[i] = phydev->duplex;
 			priv->phy->speed[i] = phydev->speed;
-
-			if (status_change && priv->soc->mdio_adjust_link)
-				priv->soc->mdio_adjust_link(priv, i);
 			break;
 		}
+
+		priv->link[i] = phydev->link;
+		if (status_change && priv->soc->mdio_adjust_link)
+			priv->soc->mdio_adjust_link(priv, i);
 	}
 	spin_unlock_irqrestore(&priv->phy->lock, flags);
 }
