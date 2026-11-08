@@ -1497,6 +1497,31 @@ static const struct switch_attr mt7530_global[] = {
 	},
 };
 
+/* MT7621 has no global GDM/PPE MIB block: mt7530_sw_get_mib() reads the
+ * MT7620 counter base (0x1010) with the MT7620 descriptor table, while
+ * the MT7621 counters start at 0x4000 and are laid out per port. Expose
+ * only the attributes that are valid on MT7621; the per-port "mib"
+ * attribute already uses mt7621_mibs and the correct base.
+ */
+static const struct switch_attr mt7621_global[] = {
+	{
+		.type = SWITCH_TYPE_INT,
+		.name = "enable_vlan",
+		.description = "VLAN mode (1:enabled)",
+		.max = 1,
+		.id = MT7530_ATTR_ENABLE_VLAN,
+		.get = mt7530_get_vlan_enable,
+		.set = mt7530_set_vlan_enable,
+	}, {
+		.type = SWITCH_TYPE_INT,
+		.name = "mirror_monitor_port",
+		.description = "Mirror monitor port",
+		.set = mt7530_set_mirror_monitor_port,
+		.get = mt7530_get_mirror_monitor_port,
+		.max = MT7530_NUM_PORTS - 1
+	},
+};
+
 static const struct switch_attr mt7621_port[] = {
 	{
 		.type = SWITCH_TYPE_STRING,
@@ -1569,8 +1594,8 @@ static const struct switch_attr mt7530_vlan[] = {
 
 static const struct switch_dev_ops mt7621_ops = {
 	.attr_global = {
-		.attr = mt7530_global,
-		.n_attr = ARRAY_SIZE(mt7530_global),
+		.attr = mt7621_global,
+		.n_attr = ARRAY_SIZE(mt7621_global),
 	},
 	.attr_port = {
 		.attr = mt7621_port,
