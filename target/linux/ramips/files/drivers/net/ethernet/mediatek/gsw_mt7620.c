@@ -41,7 +41,7 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 	struct fe_phy *phy;
 	unsigned long flags;
 	u32 status;
-	int i, max;
+	int i;
 
 	/* swpriv can already be gone while this action is still
 	 * registered during teardown; every access below dereferences it
@@ -56,7 +56,6 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 	 */
 	phy = priv->phy;
 
-	max = (gsw->port4 == PORT4_EPHY) ? (4) : (3);
 	status = mtk_switch_r32(gsw, GSW_REG_ISR);
 	if (status & PORT_IRQ_ST_CHG) {
 		/* priv->link[] is shared with the process-context phy
@@ -64,7 +63,12 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 		 */
 		if (phy)
 			spin_lock_irqsave(&phy->lock, flags);
-		for (i = 0; i <= max; i++) {
+		/* PORT_IRQ_ST_CHG spans all GSW_NUM_PORTS ports and the
+		 * ISR is write-one-to-clear. Sampling only the PHY ports
+		 * (0..3/4) while acknowledging the whole mask discarded
+		 * link-change events for the remaining ports.
+		 */
+		for (i = 0; i < GSW_NUM_PORTS; i++) {
 			u32 status = mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i));
 			int link = status & 0x1;
 
