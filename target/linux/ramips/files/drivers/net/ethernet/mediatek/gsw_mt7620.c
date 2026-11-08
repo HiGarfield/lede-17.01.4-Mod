@@ -38,6 +38,7 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 {
 	struct fe_priv *priv = (struct fe_priv *)_priv;
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct fe_phy *phy;
 	unsigned long flags;
 	u32 status;
 	int i, max;
@@ -48,14 +49,21 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 	if (!gsw)
 		return IRQ_HANDLED;
 
+	/* Snapshot the pointer once: fe_mdio_init() can clear priv->phy,
+	 * and deciding lock/unlock from two separate reads of the same
+	 * mutable pointer can leave the spinlock held forever (or unlock
+	 * a different object).
+	 */
+	phy = priv->phy;
+
 	max = (gsw->port4 == PORT4_EPHY) ? (4) : (3);
 	status = mtk_switch_r32(gsw, GSW_REG_ISR);
 	if (status & PORT_IRQ_ST_CHG) {
 		/* priv->link[] is shared with the process-context phy
 		 * link adjustment, serialise against it
 		 */
-		if (priv->phy)
-			spin_lock_irqsave(&priv->phy->lock, flags);
+		if (phy)
+			spin_lock_irqsave(&phy->lock, flags);
 		for (i = 0; i <= max; i++) {
 			u32 status = mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i));
 			int link = status & 0x1;
@@ -67,8 +75,8 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 
 			priv->link[i] = link;
 		}
-		if (priv->phy)
-			spin_unlock_irqrestore(&priv->phy->lock, flags);
+		if (phy)
+			spin_unlock_irqrestore(&phy->lock, flags);
 	}
 	mt7620_handle_carrier(priv);
 	/* acknowledge only the bit we actually handled instead of

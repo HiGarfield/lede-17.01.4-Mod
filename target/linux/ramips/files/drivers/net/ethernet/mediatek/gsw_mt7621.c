@@ -45,6 +45,12 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 					      irq_work);
 	struct fe_priv *priv = gsw->priv;
 	struct mii_bus *bus = priv ? priv->mii_bus : NULL;
+	/* Snapshot both pointers before the first use: the teardown paths
+	 * clear gsw->priv/priv->phy while this work may still be running,
+	 * and a lock/unlock pair must not be decided by two separate reads
+	 * of a mutable pointer.
+	 */
+	struct fe_phy *phy = priv ? priv->phy : NULL;
 	unsigned long flags;
 	u32 reg, i;
 
@@ -85,8 +91,8 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	/* Keep link[] updates atomic with the PHY-side state machine, like
 	 * the MT7620 interrupt path does.
 	 */
-	if (priv->phy)
-		spin_lock_irqsave(&priv->phy->lock, flags);
+	if (phy)
+		spin_lock_irqsave(&phy->lock, flags);
 	for (i = 0; i < 5; i++) {
 		unsigned int link;
 
@@ -105,8 +111,8 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 		else
 			netdev_info(priv->netdev, "port %d link down\n", i);
 	}
-	if (priv->phy)
-		spin_unlock_irqrestore(&priv->phy->lock, flags);
+	if (phy)
+		spin_unlock_irqrestore(&phy->lock, flags);
 
 	mt7620_handle_carrier(priv);
 
