@@ -38,6 +38,7 @@
 #include "mtk_eth_soc.h"
 #include "mdio.h"
 #include "ethtool.h"
+#include "mt7530.h"
 
 #define	MAX_RX_LENGTH		1536
 #define FE_RX_ETH_HLEN		(VLAN_ETH_HLEN + VLAN_HLEN + ETH_FCS_LEN)
@@ -1599,7 +1600,8 @@ static void fe_unregister_switches(struct fe_priv *priv)
 	int i;
 
 	for (i = 0; i < priv->soc->gsw_dev_num; i++) {
-		unregister_switch(priv->soc->gsw_dev[i]);
+		if (priv->soc->gsw_dev[i])
+			mt7530_remove(priv->soc->gsw_dev[i]);
 		priv->soc->gsw_dev[i] = NULL;
 	}
 	priv->soc->gsw_dev_num = 0;

@@ -185,5 +185,6 @@ struct switch_dev;
 
 struct switch_dev *mt7530_probe(struct device *dev, void __iomem *base,
 				struct mii_bus *bus, int vlan);
+void mt7530_remove(struct switch_dev *swdev);
 
 #endif

@@ -137,7 +137,7 @@ static int mt7620_gsw_config(struct fe_priv *priv)
 			while (priv->soc->gsw_dev_num > start) {
 				int idx = --priv->soc->gsw_dev_num;
 
-				unregister_switch(priv->soc->gsw_dev[idx]);
+				mt7530_remove(priv->soc->gsw_dev[idx]);
 				priv->soc->gsw_dev[idx] = NULL;
 			}
 			return err;

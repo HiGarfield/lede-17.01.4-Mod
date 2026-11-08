@@ -19,6 +19,7 @@
 #include <linux/list.h>
 #include <linux/if_ether.h>
 #include <linux/skbuff.h>
+#include <linux/slab.h>
 #include <linux/netdevice.h>
 #include <linux/netlink.h>
 #include <linux/bitops.h>
@@ -1609,7 +1610,14 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	struct mt7530_mapping *map;
 	int i, ret;
 
-	mt7530 = devm_kzalloc(dev, sizeof(struct mt7530_priv), GFP_KERNEL);
+	/* This state belongs to the switch_dev, not to the frame-engine
+	 * platform device (which stays alive across ndo_init() retries).
+	 * devres would only release it when that device is removed, so a
+	 * failed probe -- or an unregister/re-probe cycle -- would leak the
+	 * whole private state including the 4095-entry VLAN table. Allocate
+	 * explicitly and pair it with mt7530_remove().
+	 */
+	mt7530 = kzalloc(sizeof(struct mt7530_priv), GFP_KERNEL);
 	if (!mt7530)
 		return ERR_PTR(-ENOMEM);
 
@@ -1665,6 +1673,7 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 		dev_err(dev, "failed to apply initial switch config: %d\n",
 			ret);
 		mutex_destroy(&mt7530->reg_mutex);
+		kfree(mt7530);
 		return ERR_PTR(ret);
 	}
 
@@ -1682,6 +1691,7 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 		mutex_unlock(&mt7530->reg_mutex);
 		if (ret) {
 			mutex_destroy(&mt7530->reg_mutex);
+			kfree(mt7530);
 			return ERR_PTR(ret);
 		}
 	}
@@ -1703,10 +1713,24 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	if (ret) {
 		dev_err(dev, "failed to register mt7530\n");
 		mutex_destroy(&mt7530->reg_mutex);
+		kfree(mt7530);
 		return ERR_PTR(ret);
 	}
 
 	dev_info(dev, "loaded %s driver\n", swdev->name);
 
 	return swdev;
+}
+
+void mt7530_remove(struct switch_dev *swdev)
+{
+	struct mt7530_priv *mt7530 = container_of(swdev,
+						  struct mt7530_priv, swdev);
+
+	/* unregister_switch() drains in-flight swconfig calls, so nothing
+	 * can still dereference the private state once it returns.
+	 */
+	unregister_switch(swdev);
+	mutex_destroy(&mt7530->reg_mutex);
+	kfree(mt7530);
 }
