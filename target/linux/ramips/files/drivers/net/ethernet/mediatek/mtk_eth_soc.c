@@ -1982,6 +1982,15 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 				dev_close(priv->netdev);
 			return err;
 		}
+		/* The old geometry has been reallocated successfully and,
+		 * when the device was up, fe_open() below brings it back.
+		 * Clear the error from the first attempt: returning it
+		 * makes fe_change_mtu() roll the MTU back and report a
+		 * failure even though the rings are live again. It also
+		 * prevents the "oerr && !err" check below from recording
+		 * a genuine fe_open() failure.
+		 */
+		err = 0;
 	}
 
 	if (was_running) {
