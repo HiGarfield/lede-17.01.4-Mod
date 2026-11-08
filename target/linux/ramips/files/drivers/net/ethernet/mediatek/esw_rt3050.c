@@ -1104,6 +1104,19 @@ static int esw_set_port_bool(struct switch_dev *dev,
 	    val->value.i < 0 || val->value.i > 1)
 		return -EINVAL;
 
+	/* esw_probe() rejects bit 6 in the "mediatek,portdisable" DT
+	 * property because the CPU port must never be shut down, but
+	 * swconfig exposes "disable" for every port in swdev->ports.
+	 * esw_apply_config() feeds ports[].disable straight into the
+	 * POC0 DIS_PORT field, so allowing it here silently cuts the only
+	 * path between the switch and the frame engine -- and the MII
+	 * power-up loop in esw_set_port_disable() only covers ports 0..4,
+	 * so nothing ever brings it back.
+	 */
+	if (attr->id == RT305X_ESW_ATTR_PORT_DISABLE &&
+	    idx == (int)dev->cpu_port)
+		return -EINVAL;
+
 	mutex_lock(&esw->update_lock);
 	switch (attr->id) {
 	case RT305X_ESW_ATTR_PORT_DISABLE:
