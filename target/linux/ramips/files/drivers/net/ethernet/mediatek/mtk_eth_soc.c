@@ -2426,8 +2426,14 @@ err_iounmap:
 	 * unmapped address
 	 */
 	fe_base = NULL;
-	fe_reg_table = fe_reg_table_default;
 err_out:
+	/* restore the module-wide register table on every failure path,
+	 * including the devm_ioremap_resource() error (notably
+	 * -EPROBE_DEFER) which jumps straight here without an iounmap.
+	 * Leaving the SoC table installed would make a later probe retry
+	 * use the wrong register map.
+	 */
+	fe_reg_table = fe_reg_table_default;
 	return err;
 }
 
