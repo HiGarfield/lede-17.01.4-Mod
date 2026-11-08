@@ -75,7 +75,7 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 			if (link != priv->link[i])
 				mt7620_print_link_state(priv, i, link,
 							(status >> 2) & 3,
-							(status & 0x2));
+							(status >> 1) & 1);
 
 			priv->link[i] = link;
 		}
