@@ -28,11 +28,13 @@ void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg)
 {
 	iowrite32(val, gsw->base + reg);
 }
+EXPORT_SYMBOL_GPL(mtk_switch_w32);
 
 u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg)
 {
 	return ioread32(gsw->base + reg);
 }
+EXPORT_SYMBOL_GPL(mtk_switch_r32);
 
 static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 {
@@ -322,6 +324,7 @@ int mtk_gsw_init(struct fe_priv *priv)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(mtk_gsw_init);
 
 void mtk_gsw_cleanup(struct fe_priv *priv)
 {
@@ -353,6 +356,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	gsw->priv = NULL;
 	priv->soc->swpriv = NULL;
 }
+EXPORT_SYMBOL_GPL(mtk_gsw_cleanup);
 
 static int mt7620_gsw_probe(struct platform_device *pdev)
 {

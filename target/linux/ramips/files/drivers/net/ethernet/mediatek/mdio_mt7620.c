@@ -131,6 +131,7 @@ int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 
 	return ret;
 }
+EXPORT_SYMBOL_GPL(_mt7620_mii_write);
 
 static int __mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr,
 			     int phy_reg, u16 *val)
@@ -187,6 +188,7 @@ int mt7620_mii_read_reg(struct mt7620_gsw *gsw, int phy_addr, int phy_reg,
 
 	return ret;
 }
+EXPORT_SYMBOL_GPL(mt7620_mii_read_reg);
 
 int mt7620_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 {
@@ -237,6 +239,7 @@ int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
 
 	return ret;
 }
+EXPORT_SYMBOL_GPL(mt7530_mdio_w32);
 
 int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 {
@@ -264,6 +267,7 @@ int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(mt7530_mdio_r32);
 
 /* The returned strings are read-only literals; declaring them as
  * unsigned char * mismatches both the literal type and the %s argument
@@ -320,6 +324,7 @@ void mt7620_handle_carrier(struct fe_priv *priv)
 	else
 		netif_carrier_off(priv->netdev);
 }
+EXPORT_SYMBOL_GPL(mt7620_handle_carrier);
 
 void mt7620_print_link_state(struct fe_priv *priv, int port, int link,
 			     int speed, int duplex)
@@ -331,6 +336,7 @@ void mt7620_print_link_state(struct fe_priv *priv, int port, int link,
 	else
 		netdev_info(priv->netdev, "port %d link down\n", port);
 }
+EXPORT_SYMBOL_GPL(mt7620_print_link_state);
 
 void mt7620_mdio_link_adjust(struct fe_priv *priv, int port)
 {

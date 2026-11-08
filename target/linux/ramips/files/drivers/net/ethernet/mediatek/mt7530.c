@@ -1791,6 +1791,7 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 
 	return swdev;
 }
+EXPORT_SYMBOL_GPL(mt7530_probe);
 
 void mt7530_remove(struct switch_dev *swdev)
 {
@@ -1804,3 +1805,4 @@ void mt7530_remove(struct switch_dev *swdev)
 	mutex_destroy(&mt7530->reg_mutex);
 	kfree(mt7530);
 }
+EXPORT_SYMBOL_GPL(mt7530_remove);

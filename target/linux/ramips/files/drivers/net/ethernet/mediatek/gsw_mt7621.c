@@ -33,11 +33,13 @@ void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg)
 {
 	iowrite32(val, gsw->base + reg);
 }
+EXPORT_SYMBOL_GPL(mtk_switch_w32);
 
 u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg)
 {
 	return ioread32(gsw->base + reg);
 }
+EXPORT_SYMBOL_GPL(mtk_switch_r32);
 
 /* The MT7530 indirect register window is shared with swconfig and with the
  * deferred link work: both build a page-select plus two data accesses while
@@ -464,6 +466,7 @@ int mtk_gsw_init(struct fe_priv *priv)
 
 	return 0;
 }
+EXPORT_SYMBOL_GPL(mtk_gsw_init);
 
 /* Both the FE teardown and this driver's remove() may be the first to
  * release the interrupt, so make this helper idempotent. The hardirq
@@ -521,6 +524,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	gsw->priv = NULL;
 	priv->soc->swpriv = NULL;
 }
+EXPORT_SYMBOL_GPL(mtk_gsw_cleanup);
 
 static int mt7621_gsw_probe(struct platform_device *pdev)
 {
