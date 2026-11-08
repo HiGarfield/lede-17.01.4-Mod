@@ -2146,12 +2146,21 @@ static int fe_probe(struct platform_device *pdev)
 	int err, napi_weight;
 
 	err = device_reset(&pdev->dev);
-	/* -EPROBE_DEFER means the reset controller has not probed yet;
-	 * -ENOENT is the normal result when the ethernet node has no
-	 * "resets" property and must not abort the probe.
+	/* -EPROBE_DEFER means the reset controller has not probed yet and
+	 * must reach the driver core. -ENOENT is the normal result when the
+	 * ethernet node has no "resets" property; the -ENOTSUPP variants
+	 * are returned when reset controller support is not built in. Those
+	 * are the only outcomes in which no reset was requested at all.
+	 * Every other error means the requested reset did not happen: the
+	 * frame engine registers would then be programmed from an unknown
+	 * state, so do not silently continue probing.
 	 */
 	if (err == -EPROBE_DEFER)
 		return err;
+	if (err && err != -ENOENT && err != -ENOTSUPP && err != -EOPNOTSUPP) {
+		dev_err(&pdev->dev, "failed to reset device: %d\n", err);
+		return err;
+	}
 
 	match = of_match_device(of_fe_match, &pdev->dev);
 	if (!match)
