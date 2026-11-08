@@ -15,7 +15,7 @@
 #ifndef _RALINK_ESW_RT3052_H__
 #define _RALINK_ESW_RT3052_H__
 
-#ifdef CONFIG_NET_MEDIATEK_ESW_RT3052
+#ifdef CONFIG_NET_MEDIATEK_ESW_RT3050
 
 int __init mtk_switch_init(void);
 void mtk_switch_exit(void);
