@@ -279,13 +279,22 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
+		/* A fixed-link entry and a bus-scanned PHY at the same index
+		 * are not mutually exclusive: fe_phy_connect() attaches the
+		 * latter whenever phy_node[] is empty, even if phy_fixed[]
+		 * is set. Handle the two states independently so the PHY is
+		 * always detached again; an else-if chain leaked its phy
+		 * core reference and left phy_attached stale for a re-probe.
+		 */
 		if (priv->phy->phy_fixed[i]) {
 			spin_lock_irqsave(&priv->phy->lock, flags);
 			priv->link[i] = 0;
 			if (priv->soc->mdio_adjust_link)
 				priv->soc->mdio_adjust_link(priv, i);
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
-		} else if (priv->phy->phy[i]) {
+		}
+
+		if (priv->phy->phy[i]) {
 			phy_disconnect(priv->phy->phy[i]);
 			priv->phy->phy[i] = NULL;
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
@@ -336,13 +345,18 @@ static void fe_phy_start(struct fe_priv *priv)
 	int i;
 
 	for (i = 0; i < 8; i++) {
+		/* see fe_phy_disconnect(): a fixed link does not preclude a
+		 * bus-scanned PHY at this index, both states must be handled
+		 */
 		if (priv->phy->phy_fixed[i]) {
 			spin_lock_irqsave(&priv->phy->lock, flags);
 			priv->link[i] = 1;
 			if (priv->soc->mdio_adjust_link)
 				priv->soc->mdio_adjust_link(priv, i);
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
-		} else if (priv->phy->phy[i]) {
+		}
+
+		if (priv->phy->phy[i]) {
 			phy_start(priv->phy->phy[i]);
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
 			   test_bit(i, &priv->phy->phy_attached)) {
@@ -362,14 +376,19 @@ static void fe_phy_stop(struct fe_priv *priv)
 	unsigned long flags;
 	int i;
 
-	for (i = 0; i < 8; i++)
+	for (i = 0; i < 8; i++) {
+		/* see fe_phy_disconnect(): keep fixed-link and PHY handling
+		 * independent so start/stop stay balanced on every port
+		 */
 		if (priv->phy->phy_fixed[i]) {
 			spin_lock_irqsave(&priv->phy->lock, flags);
 			priv->link[i] = 0;
 			if (priv->soc->mdio_adjust_link)
 				priv->soc->mdio_adjust_link(priv, i);
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
-		} else if (priv->phy->phy[i]) {
+		}
+
+		if (priv->phy->phy[i]) {
 			phy_stop(priv->phy->phy[i]);
 		} else if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
 			   test_bit(i, &priv->phy->phy_attached)) {
@@ -378,6 +397,7 @@ static void fe_phy_stop(struct fe_priv *priv)
 			 */
 			phy_stop(priv->mii_bus->phy_map[i]);
 		}
+	}
 }
 
 static struct fe_phy phy_ralink = {
