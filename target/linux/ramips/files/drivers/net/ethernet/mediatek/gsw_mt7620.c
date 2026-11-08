@@ -121,7 +121,11 @@ static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
 	u32 i;
 	u32 is_BGA = (rt_sysc_r32(0x0c) >> 16) & 1;
 
-	rt_sysc_w32(rt_sysc_r32(SYSC_REG_CFG1) | BIT(8), SYSC_REG_CFG1);
+	/* CFG1 is shared with the other SoC drivers; a read-modify-write
+	 * here can drop a concurrent update. Use the atomic masked helper
+	 * (soc_mt7620.c already does this for the port mux fields).
+	 */
+	rt_sysc_m32(0, BIT(8), SYSC_REG_CFG1);
 	mtk_switch_w32(gsw, mtk_switch_r32(gsw, GSW_REG_CKGCR) & ~(0x3 << 4), GSW_REG_CKGCR);
 
 	/* Enable MIB stats */
@@ -234,19 +238,16 @@ static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
 
 	/* setup port 4 */
 	if (gsw->port4 == PORT4_EPHY) {
-		u32 val = rt_sysc_r32(SYSC_REG_CFG1);
-
-		val |= 3 << 14;
-		rt_sysc_w32(val, SYSC_REG_CFG1);
+		/* set only the two port4 mux bits: the plain RMW used here
+		 * raced other users of the shared CFG1 register
+		 */
+		rt_sysc_m32(0, 3 << 14, SYSC_REG_CFG1);
 		_mt7620_mii_write(gsw, 4, 30, 0xa000);
 		_mt7620_mii_write(gsw, 4, 4, 0x05e1);
 		_mt7620_mii_write(gsw, 4, 16, 0x1313);
 		pr_info("gsw: setting port4 to ephy mode\n");
 	} else if (!mdio_mode) {
-		u32 val = rt_sysc_r32(SYSC_REG_CFG1);
-
-		val &= ~(3 << 14);
-		rt_sysc_w32(val, SYSC_REG_CFG1);
+		rt_sysc_m32(3 << 14, 0, SYSC_REG_CFG1);
 		pr_info("gsw: setting port4 to gmac mode\n");
 	}
 }
