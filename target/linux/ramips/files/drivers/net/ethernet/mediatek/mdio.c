@@ -161,7 +161,7 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node,
 static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 {
 	struct phy_device *p;
-	int phy_mode;
+	int phy_mode, err;
 
 	/* honour the phy-mode from the PHY's own DT node instead of
 	 * hardcoding MII: RGMII/RMII boards would otherwise attach
@@ -187,9 +187,18 @@ static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 			PHY_GBIT_FEATURES : PHY_BASIC_FEATURES;
 	phy->advertising = phy->supported | ADVERTISED_Autoneg;
 
-	phy_start_aneg(phy);
+	/* Ignoring this result reported a successfully attached PHY whose
+	 * negotiation was never started (e.g. after a failed MDIO write to
+	 * BMCR), leaving the port permanently down with no error to the
+	 * caller. fe_phy_connect() only records phy_attached on success,
+	 * so roll the attach back here before returning the error or the
+	 * PHY core reference would be leaked.
+	 */
+	err = phy_start_aneg(phy);
+	if (err)
+		phy_detach(p);
 
-	return 0;
+	return err;
 }
 
 /* phy[] is indexed by the eth-port id, while mii_bus->phy_map[] is
