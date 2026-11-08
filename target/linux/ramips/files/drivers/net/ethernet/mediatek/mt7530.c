@@ -1682,12 +1682,20 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	mutex_init(&mt7530->reg_mutex);
 
 	swdev = &mt7530->swdev;
-	if (bus) {
-		swdev->alias = "mt7530";
-		swdev->name = "mt7530";
-	} else if (IS_ENABLED(CONFIG_SOC_MT7621)) {
+	/* MT7621's built-in switch is probed with bus != NULL (soc_mt7621.c
+	 * passes priv->mii_bus), so testing bus first named it "mt7530"
+	 * while swdev->ops, the VLAN table size and the VTCR addressing are
+	 * selected by CONFIG_SOC_MT7621; it also made the "mt7621" branch
+	 * unreachable. Use the same compile-time criterion for the identity
+	 * as for the ops, and fall back to the external/built-in MT7530
+	 * naming on the other SoCs.
+	 */
+	if (IS_ENABLED(CONFIG_SOC_MT7621)) {
 		swdev->alias = "mt7621";
 		swdev->name = "mt7621";
+	} else if (bus) {
+		swdev->alias = "mt7530";
+		swdev->name = "mt7530";
 	} else {
 		swdev->alias = "mt7620";
 		swdev->name = "mt7620";
