@@ -1331,25 +1331,24 @@ static int fe_poll(struct napi_struct *napi, int budget)
 			/* Take the lock unconditionally, like the two process
 			 * context readers: fe_stats_update() folds
 			 * clear-on-read 32-bit counters, so a failed trylock
-			 * loses their increments once they wrap. The ACK
-			 * below is in this branch as well, so skipping the
-			 * update also left the counter-full source pending.
+			 * loses their increments once they wrap.
 			 * NAPI runs in softirq, so spin_lock() suffices and
 			 * cannot deadlock with the _bh variants.
 			 */
 			spin_lock(&hwstat->stats_lock);
 			fe_stats_update(priv);
 			spin_unlock(&hwstat->stats_lock);
-			/* Acknowledge only the counter-full bits present in
-			 * this snapshot, and only after the counters have
-			 * been folded in. Writing the whole SoC mask also
-			 * clears events that arrived while fe_stats_update()
-			 * was running, so those increments would never be
-			 * read (the same stale-snapshot problem already
-			 * fixed for the rx/tx bits above).
-			 */
-			fe_reg_w32(fe_status & status_intr, status_reg);
 		}
+		/* fe_handle_irq() deliberately leaves the counter-full bits
+		 * pending for this poll. Acknowledge them even when there is
+		 * no hw_stats object to fold (counter base == 0): otherwise
+		 * the W1C source is never cleared and the level/shared line
+		 * re-enters the handler forever. Acknowledge only the bits
+		 * present in this snapshot, and only after the counters have
+		 * been folded in, so increments arriving meanwhile are not
+		 * discarded.
+		 */
+		fe_reg_w32(fe_status & status_intr, status_reg);
 	}
 
 	if (unlikely(netif_msg_intr(priv))) {
