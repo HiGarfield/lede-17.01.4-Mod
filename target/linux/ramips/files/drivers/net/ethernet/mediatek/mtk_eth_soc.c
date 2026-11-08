@@ -209,12 +209,24 @@ static int fe_set_mac_address(struct net_device *dev, void *p)
 
 static inline int fe_max_frag_size(int mtu)
 {
-	/* make sure buf_size will be at least MAX_RX_LENGTH */
-	if (mtu + FE_RX_ETH_HLEN < MAX_RX_LENGTH)
-		mtu = MAX_RX_LENGTH - FE_RX_ETH_HLEN;
+	unsigned int len;
 
-	return SKB_DATA_ALIGN(FE_RX_HLEN + mtu) +
-		SKB_DATA_ALIGN(sizeof(struct skb_shared_info));
+	if (mtu < 0)
+		return -EINVAL;
+
+	len = mtu;
+	/* make sure buf_size will be at least MAX_RX_LENGTH */
+	if (len < MAX_RX_LENGTH - FE_RX_ETH_HLEN)
+		len = MAX_RX_LENGTH - FE_RX_ETH_HLEN;
+
+	/* Keep the arithmetic unsigned: mtu + FE_RX_ETH_HLEN used to be a
+	 * signed addition that overflowed for large MTUs, wrapped to a
+	 * negative value and was then clamped back to the default 1500
+	 * byte size. Callers bound the result by PAGE_SIZE, so the sum
+	 * always fits the signed return type here.
+	 */
+	return (int)(SKB_DATA_ALIGN(FE_RX_HLEN + len) +
+		     SKB_DATA_ALIGN(sizeof(struct skb_shared_info)));
 }
 
 static inline int fe_max_buf_size(int frag_size)
@@ -1980,16 +1992,23 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 		if (new_mtu > 2048)
 			return -EINVAL;
 
-	frag_size = fe_max_frag_size(new_mtu);
 	/* 68 is the minimum payload (ETH_MIN_MTU does not exist in the
 	 * 4.4 headers); it already accounts for the minimum
 	 * 802.1q-tagged frame the MAC must transport.
-	 * The upper bound is implicit: frag_size is capped by PAGE_SIZE
-	 * (RX buffers come from page frags), so MTUs beyond roughly
-	 * PAGE_SIZE - overhead are rejected here rather than by an
-	 * explicit limit; MT7621 adds its own stricter cap above.
+	 *
+	 * The upper bound has to be explicit. RX buffers come from page
+	 * frags, so no MTU at or above PAGE_SIZE can ever be served by the
+	 * rings. Relying only on "frag_size > PAGE_SIZE" was not enough:
+	 * fe_max_frag_size() used to overflow its signed addition for an
+	 * MTU near INT_MAX and return the small default size, which passed
+	 * that check and let dev->mtu be set to a value no buffer can hold.
+	 * MT7621 adds its own stricter cap above.
 	 */
-	if (new_mtu < 68 || frag_size > PAGE_SIZE)
+	if (new_mtu < 68 || new_mtu > PAGE_SIZE)
+		return -EINVAL;
+
+	frag_size = fe_max_frag_size(new_mtu);
+	if (frag_size < 0 || frag_size > PAGE_SIZE)
 		return -EINVAL;
 
 	old_mtu = dev->mtu;
