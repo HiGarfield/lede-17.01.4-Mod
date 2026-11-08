@@ -412,10 +412,15 @@ static void esw_set_vmsc(struct rt305x_esw *esw, unsigned vlan, unsigned msc)
 	unsigned s;
 
 	s = RT305X_ESW_VMSC_MSC_S * (vlan % 4);
+	/* s reaches 24 for the fourth entry per register. Both operands of
+	 * esw_rmw() are unsigned long: shifting the int constant 0xff by
+	 * 24 overflows a signed int (UB) and would sign-extend into the
+	 * upper half of a 64-bit unsigned long. Widen before shifting.
+	 */
 	esw_rmw(esw,
 		       RT305X_ESW_REG_VMSC(vlan / 4),
-		       RT305X_ESW_VMSC_MSC_M << s,
-		       (msc & RT305X_ESW_VMSC_MSC_M) << s);
+		       (unsigned long)RT305X_ESW_VMSC_MSC_M << s,
+		       (unsigned long)(msc & RT305X_ESW_VMSC_MSC_M) << s);
 }
 
 static unsigned esw_get_port_disable(struct rt305x_esw *esw)
