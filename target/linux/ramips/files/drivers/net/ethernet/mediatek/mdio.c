@@ -284,14 +284,20 @@ static bool fe_phy_is_port_phy(struct fe_priv *priv,
 
 static int fe_phy_connect(struct fe_priv *priv)
 {
+	unsigned long flags;
 	int i, err, ret = 0;
 
 	for (i = 0; i < 8; i++) {
 		if (priv->phy->phy_node[i]) {
+			/* phy_dev/phy_flags are read under phy->lock by
+			 * fe_set_settings(); publish them the same way.
+			 */
+			spin_lock_irqsave(&priv->phy->lock, flags);
 			if (!priv->phy_dev) {
 				priv->phy_dev = priv->phy->phy[i];
 				priv->phy_flags = FE_PHY_FLAG_PORT;
 			}
+			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		}
 
 		/* phy_node[]/phy[] are keyed by eth-port id, phy_map[] by
@@ -313,11 +319,19 @@ static int fe_phy_connect(struct fe_priv *priv)
 					ret = err;
 				continue;
 			}
+			/* phy_init() started this PHY's state machine, and
+			 * fe_phy_link_adjust() reads the bitmap and phy_dev
+			 * under phy->lock. Publish all three fields in one
+			 * critical section; keep the sleeping phy_init()
+			 * call outside the spinlock.
+			 */
+			spin_lock_irqsave(&priv->phy->lock, flags);
 			set_bit(i, &priv->phy->phy_attached);
 			if (!priv->phy_dev) {
 				priv->phy_dev = priv->mii_bus->phy_map[i];
 				priv->phy_flags = FE_PHY_FLAG_ATTACH;
 			}
+			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		}
 	}
 
