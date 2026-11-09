@@ -536,6 +536,7 @@ void fe_reg_w32(u32 val, enum fe_reg reg);
 u32 fe_reg_r32(enum fe_reg reg);
 
 void fe_reset(u32 reset_bits);
+void fe_unregister_switches(struct fe_priv *priv);
 
 int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 		   u16 new_frag, u16 new_buf);

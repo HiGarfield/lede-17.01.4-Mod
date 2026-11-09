@@ -719,6 +719,16 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		 */
 		mt7621_gsw_stop_irq(gsw);
 
+		/* The switch_dev registered by mt7621_gsw_config() still
+		 * references priv->mii_bus through this GSW instance. FE
+		 * teardown is not necessarily in progress on an independent
+		 * platform-device unbind, so unregister it here while the
+		 * bus and the devm state are still alive; unregister_switch()
+		 * drains in-flight swconfig calls first.
+		 */
+		if (fe)
+			fe_unregister_switches(fe);
+
 		if (fe)
 			fe->soc->swpriv = NULL;
 		gsw->priv = NULL;

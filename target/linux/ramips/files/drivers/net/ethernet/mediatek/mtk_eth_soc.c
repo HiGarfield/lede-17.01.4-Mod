@@ -1822,17 +1822,23 @@ static int fe_stop(struct net_device *dev)
 	return 0;
 }
 
-static void fe_unregister_switches(struct fe_priv *priv)
+void fe_unregister_switches(struct fe_priv *priv)
 {
 	int i;
 
-	for (i = 0; i < priv->soc->gsw_dev_num; i++) {
+	/* Walk the whole array, not just gsw_dev_num: a failed probe can
+	 * leave a registered entry behind a stale counter, and this helper
+	 * is also called from the GSW unbind paths after the FE side has
+	 * already changed that counter.
+	 */
+	for (i = 0; i < ARRAY_SIZE(priv->soc->gsw_dev); i++) {
 		if (priv->soc->gsw_dev[i])
 			mt7530_remove(priv->soc->gsw_dev[i]);
 		priv->soc->gsw_dev[i] = NULL;
 	}
 	priv->soc->gsw_dev_num = 0;
 }
+EXPORT_SYMBOL_GPL(fe_unregister_switches);
 
 /* ndo_init is reached through the persistent fe_netdev_ops table, so it
  * can run long after module init (deferred probe, unbind/rebind). It must

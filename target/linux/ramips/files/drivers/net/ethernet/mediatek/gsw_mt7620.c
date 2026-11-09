@@ -470,6 +470,18 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 		if (gsw->irq && fe)
 			free_irq(gsw->irq, fe);
 
+		/* mt7620_gsw_config() handed gsw->base to mt7530_probe(),
+		 * and that switch_dev is still on the swconfig global list.
+		 * It is devm-owned by this platform device: as soon as
+		 * remove() returns the mapping is released while swconfig
+		 * can still call mt7530_read_reg() on it. Unregister (and
+		 * thereby drain in-flight swconfig calls) while the
+		 * mapping is still valid. fe is NULL when the FE side has
+		 * already torn everything down.
+		 */
+		if (fe)
+			fe_unregister_switches(fe);
+
 		if (fe)
 			fe->soc->swpriv = NULL;
 		/* Clear the back-pointer unconditionally: when there is no
