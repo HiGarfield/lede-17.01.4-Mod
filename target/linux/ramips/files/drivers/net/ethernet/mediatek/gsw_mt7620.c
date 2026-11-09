@@ -334,12 +334,27 @@ int mtk_gsw_init(struct fe_priv *priv)
 }
 EXPORT_SYMBOL_GPL(mtk_gsw_init);
 
+/* The FE ndo_uninit() and this platform driver's remove() are two
+ * independent teardown paths that both own the same irq action and
+ * the soc->swpriv / gsw->priv pair. Without a common lock, both can
+ * snapshot a non-NULL fe_priv and call free_irq() twice, or dereference
+ * an fe_priv already released by unregister_netdev(). The lock is
+ * module-wide, so it stays valid even after the devm gsw object and
+ * its back-pointer are gone.
+ */
+static DEFINE_MUTEX(gsw_teardown_lock);
+
 void mtk_gsw_cleanup(struct fe_priv *priv)
 {
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct mt7620_gsw *gsw;
+	struct fe_priv *owner;
 
-	if (!gsw)
+	mutex_lock(&gsw_teardown_lock);
+	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	if (!gsw) {
+		mutex_unlock(&gsw_teardown_lock);
 		return;
+	}
 
 	/* mask the port-change source before the handler goes away: the
 	 * IMR was opened in mtk_gsw_init(), and an asserted level line
@@ -348,13 +363,12 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	if (gsw->irq)
 		mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
 
-	/* the irq was requested with the fe_priv as dev_id; release it
-	 * on the fe side too, otherwise the handler may run after the
-	 * netdev/fe_priv is gone (UAF), and a retried fe_init would
-	 * request the same irq twice
+	/* Re-read the back-pointer under the lock: only the path that
+	 * still owns it may release the irq action.
 	 */
-	if (gsw->irq && gsw->priv)
-		free_irq(gsw->irq, gsw->priv);
+	owner = gsw->priv;
+	if (gsw->irq && owner)
+		free_irq(gsw->irq, owner);
 
 	/* The FE netdev and its fe_priv are freed shortly after
 	 * ndo_uninit(). Clear the back-pointer unconditionally, also on
@@ -363,6 +377,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 */
 	gsw->priv = NULL;
 	priv->soc->swpriv = NULL;
+	mutex_unlock(&gsw_teardown_lock);
 }
 EXPORT_SYMBOL_GPL(mtk_gsw_cleanup);
 
@@ -408,10 +423,14 @@ static int mt7620_gsw_probe(struct platform_device *pdev)
 
 static int mt7620_gsw_remove(struct platform_device *pdev)
 {
-	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
+	struct mt7620_gsw *gsw;
+	struct fe_priv *fe;
+
+	mutex_lock(&gsw_teardown_lock);
+	gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
-		struct fe_priv *fe = gsw->priv;
+		fe = gsw->priv;
 
 		/* The FE driver caches this devm object in soc->swpriv, and
 		 * gsw_interrupt_mt7620() resolves it through that pointer.
@@ -433,6 +452,7 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 		gsw->priv = NULL;
 		platform_set_drvdata(pdev, NULL);
 	}
+	mutex_unlock(&gsw_teardown_lock);
 
 	return 0;
 }

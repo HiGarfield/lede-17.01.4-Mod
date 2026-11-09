@@ -538,12 +538,25 @@ static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw)
 	gsw->priv = NULL;
 }
 
+/* The FE ndo_uninit() and this platform driver's remove() are two
+ * independent teardown paths that both own the same irq, irq_work and
+ * the soc->swpriv / gsw->priv pair. Without a common lock both can
+ * snapshot a non-NULL fe_priv, call free_irq() twice or dereference an
+ * fe_priv already released by unregister_netdev(). The lock is
+ * module-wide, so it stays valid after the devm gsw object is gone.
+ */
+static DEFINE_MUTEX(gsw_teardown_lock);
+
 void mtk_gsw_cleanup(struct fe_priv *priv)
 {
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct mt7620_gsw *gsw;
 
-	if (!gsw)
+	mutex_lock(&gsw_teardown_lock);
+	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	if (!gsw) {
+		mutex_unlock(&gsw_teardown_lock);
 		return;
+	}
 
 	/* mask the port-change source before the handler goes away: the
 	 * IMR was opened in mtk_gsw_init(), and the MT7530 keeps a level
@@ -569,6 +582,7 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 */
 	gsw->priv = NULL;
 	priv->soc->swpriv = NULL;
+	mutex_unlock(&gsw_teardown_lock);
 }
 EXPORT_SYMBOL_GPL(mtk_gsw_cleanup);
 
@@ -609,10 +623,14 @@ static int mt7621_gsw_probe(struct platform_device *pdev)
 
 static int mt7621_gsw_remove(struct platform_device *pdev)
 {
-	struct mt7620_gsw *gsw = platform_get_drvdata(pdev);
+	struct mt7620_gsw *gsw;
+	struct fe_priv *fe;
+
+	mutex_lock(&gsw_teardown_lock);
+	gsw = platform_get_drvdata(pdev);
 
 	if (gsw) {
-		struct fe_priv *fe = gsw->priv;
+		fe = gsw->priv;
 
 		/* The FE driver caches this devm object in soc->swpriv, and
 		 * gsw_interrupt_mt7621() resolves it through that pointer
@@ -634,6 +652,7 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		gsw->priv = NULL;
 		platform_set_drvdata(pdev, NULL);
 	}
+	mutex_unlock(&gsw_teardown_lock);
 
 	return 0;
 }
