@@ -120,6 +120,15 @@ struct mt7620_gsw {
 	 * disabling local IRQs for that long starves the timer and FE IRQs.
 	 */
 	struct mutex		mdio_lock;
+	/* First MDIO transaction error seen during a hardware init
+	 * sequence. The init helpers issue dozens of PIAC writes whose
+	 * return values cannot be checked individually; every transaction
+	 * passes through mt7620_mii_busy_wait(), which records a timeout
+	 * here. The hardware init helpers clear it before each attempt
+	 * and mtk_gsw_init() reports it afterwards instead of bringing
+	 * up a half-initialised switch.
+	 */
+	int			mdio_err;
 	/* MT7621: MDIO is too slow for hardirq, link handling is
 	 * deferred to this work item
 	 */

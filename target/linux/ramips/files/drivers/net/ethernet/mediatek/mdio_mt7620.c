@@ -66,6 +66,15 @@ static int mt7620_mii_busy_wait(struct mt7620_gsw *gsw)
 	}
 
 	dev_err(gsw->dev, "mdio: MDIO timeout\n");
+	/* Record the first failure for the hardware init sequence: the
+	 * callers there issue dozens of transactions and otherwise have
+	 * no way to tell that a page select or calibration write was
+	 * dropped. Runtime users simply leave their accumulated error in
+	 * this field; the hardware init helpers clear it before each
+	 * attempt.
+	 */
+	if (!gsw->mdio_err)
+		gsw->mdio_err = -ETIMEDOUT;
 	/* without this recovery the busy bit would stay set and every
 	 * later transfer would time out as well
 	 */

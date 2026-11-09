@@ -150,10 +150,20 @@ static int mt7620_mdio_mode(struct device_node *eth_node)
 	return ret;
 }
 
-static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
+static int mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
 {
 	u32 i;
 	u32 is_BGA = (rt_sysc_r32(0x0c) >> 16) & 1;
+	int err;
+
+	/* Every transaction below goes through mt7620_mii_busy_wait(),
+	 * which records a timeout in mdio_err while holding mdio_lock.
+	 * Clear and sample the field under that same lock so no runtime
+	 * MDIO user can race with the init sequence.
+	 */
+	mutex_lock(&gsw->mdio_lock);
+	gsw->mdio_err = 0;
+	mutex_unlock(&gsw->mdio_lock);
 
 	/* CFG1 is shared with the other SoC drivers; a read-modify-write
 	 * here can drop a concurrent update. Use the atomic masked helper
@@ -284,6 +294,12 @@ static void mt7620_hw_init(struct mt7620_gsw *gsw, int mdio_mode)
 		rt_sysc_m32(3 << 14, 0, SYSC_REG_CFG1);
 		pr_info("gsw: setting port4 to gmac mode\n");
 	}
+
+	mutex_lock(&gsw->mdio_lock);
+	err = gsw->mdio_err;
+	mutex_unlock(&gsw->mdio_lock);
+
+	return err;
 }
 
 static const struct of_device_id mediatek_gsw_match[] = {
@@ -298,6 +314,7 @@ int mtk_gsw_init(struct fe_priv *priv)
 	struct platform_device *pdev = of_find_device_by_node(np);
 	struct mt7620_gsw *gsw;
 	int err = 0;
+	int mdio_mode;
 
 	if (!pdev)
 		return -ENODEV;
@@ -345,7 +362,29 @@ int mtk_gsw_init(struct fe_priv *priv)
 	 */
 	mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
 
-	mt7620_hw_init(gsw, mt7620_mdio_mode(priv->dev->of_node));
+	mdio_mode = mt7620_mdio_mode(priv->dev->of_node);
+	err = mt7620_hw_init(gsw, mdio_mode);
+	if (err) {
+		/* A single PIAC busy-wait timeout is often transient; the
+		 * register sequence is idempotent, so try it once more
+		 * before declaring the switch unusable.
+		 */
+		dev_err(gsw->dev, "switch hardware init failed: %d, retrying\n",
+			err);
+		err = mt7620_hw_init(gsw, mdio_mode);
+	}
+	if (err) {
+		/* A timed-out page select or calibration write leaves the
+		 * switch half configured. Do not publish it: fe_init()
+		 * treats a switch_init() failure as terminal, no irq
+		 * action is registered yet, and the IMR is still fully
+		 * masked.
+		 */
+		dev_err(gsw->dev, "switch hardware init failed: %d\n", err);
+		priv->soc->swpriv = NULL;
+		gsw->priv = NULL;
+		goto out_unlock;
+	}
 
 	if (gsw->irq) {
 		err = request_irq(gsw->irq, gsw_interrupt_mt7620, 0,

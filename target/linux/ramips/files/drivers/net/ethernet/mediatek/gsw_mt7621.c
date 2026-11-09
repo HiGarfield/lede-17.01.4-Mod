@@ -255,10 +255,20 @@ static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
 	return IRQ_HANDLED;
 }
 
-static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
+static int mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 {
 	u32 i;
 	u32 val;
+	int err;
+
+	/* Every transaction below goes through mt7620_mii_busy_wait(),
+	 * which records a timeout in mdio_err while holding mdio_lock.
+	 * Clear and sample the field under that same lock so no runtime
+	 * MDIO user can race with the init sequence.
+	 */
+	mutex_lock(&gsw->mdio_lock);
+	gsw->mdio_err = 0;
+	mutex_unlock(&gsw->mdio_lock);
 
 	/* wardware reset the switch */
 	fe_reset(RST_CTRL_MCM);
@@ -440,6 +450,12 @@ static void mt7621_hw_init(struct mt7620_gsw *gsw, struct device_node *np)
 	 * interrupt mask without a registered handler would leave a
 	 * spurious interrupt source hanging
 	 */
+
+	mutex_lock(&gsw->mdio_lock);
+	err = gsw->mdio_err;
+	mutex_unlock(&gsw->mdio_lock);
+
+	return err;
 }
 
 static const struct of_device_id mediatek_gsw_match[] = {
@@ -516,7 +532,20 @@ int mtk_gsw_init(struct fe_priv *priv)
 		disable_irq(gsw->irq);
 	}
 
-	mt7621_hw_init(gsw, np);
+	err = mt7621_hw_init(gsw, np);
+	if (err) {
+		/* A single PIAC busy-wait timeout is often transient; the
+		 * reset and register sequence is idempotent, so try it
+		 * once more before declaring the switch unusable.
+		 */
+		dev_err(gsw->dev, "switch hardware init failed: %d, retrying\n",
+			err);
+		err = mt7621_hw_init(gsw, np);
+	}
+	if (err) {
+		dev_err(gsw->dev, "switch hardware init failed: %d\n", err);
+		goto err_late;
+	}
 
 	if (gsw->irq) {
 		int irqerr;
@@ -526,33 +555,35 @@ int mtk_gsw_init(struct fe_priv *priv)
 		 */
 		irqerr = mt7621_gsw_set_imr(gsw, priv, 0x1f);
 		if (irqerr) {
-			/* The three-step MDIO write failed, so no link-change
-			 * event would ever reach the handler. Keep the sources
-			 * masked, balance the disable_irq() above and release
-			 * the action and both back-pointers before reporting
-			 * the error: fe_init() treats a switch_init() failure
-			 * as terminal and has no rollback for this path.
-			 *
-			 * An irq may already have fired between request_irq()
-			 * and disable_irq() (or while hw_init had the line
-			 * live), which queued gsw->irq_work and owns one
-			 * extra disable_irq_nosync(). Simply free_irq() here
-			 * lets that work run afterwards against a NULL
-			 * gsw->priv and call enable_irq() on an action that
-			 * is already gone. Use the same helper as both
-			 * teardown paths: it frees the action, drains the
-			 * work and balances the leftover disable depth.
+			/* The three-step MDIO write failed, so no
+			 * link-change event would ever reach the handler.
 			 */
-			if (mt7621_gsw_set_imr(gsw, priv, 0))
-				mt7621_gsw_set_imr(gsw, priv, 0);
-			enable_irq(gsw->irq);
-			mt7621_gsw_stop_irq(gsw);
-			priv->soc->swpriv = NULL;
 			err = irqerr;
-			goto out_unlock;
+			goto err_late;
 		}
 		enable_irq(gsw->irq);
 	}
+	goto out_unlock;
+
+err_late:
+	/* Both failures happen after request_irq()/disable_irq() and
+	 * after fe_init() has no rollback of its own. Mask the sources,
+	 * balance the disable depth, then reuse the helper shared by the
+	 * teardown paths: it frees the action, drains an irq_work that
+	 * may have been queued between request_irq() and disable_irq(),
+	 * and clears gsw->priv. A plain free_irq() would leave that work
+	 * running against a NULL back-pointer and enable a released
+	 * action.
+	 */
+	if (gsw->irq) {
+		if (mt7621_gsw_set_imr(gsw, priv, 0))
+			mt7621_gsw_set_imr(gsw, priv, 0);
+		enable_irq(gsw->irq);
+		mt7621_gsw_stop_irq(gsw);
+	} else {
+		gsw->priv = NULL;
+	}
+	priv->soc->swpriv = NULL;
 
 out_unlock:
 	mutex_unlock(&gsw_teardown_lock);
