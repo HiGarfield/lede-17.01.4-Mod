@@ -2512,6 +2512,14 @@ static int fe_probe(struct platform_device *pdev)
 	return 0;
 
 err_napi_del:
+	/* register_netdev() already ran ndo_init(), which installed the
+	 * irq and enabled DMA. fe_tx_timeout() may have queued
+	 * pending_work, and fe_pending_work() re-arms itself while
+	 * pending_flags is non-empty. Drain it before free_netdev(),
+	 * just as fe_remove() does, otherwise the work runs against a
+	 * freed fe_priv.
+	 */
+	cancel_work_sync(&priv->pending_work);
 	/* pairs with netif_napi_add(): free_netdev() does not remove
 	 * the napi_struct from the poll list on this kernel
 	 */
