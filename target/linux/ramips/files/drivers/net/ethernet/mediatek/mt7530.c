@@ -1860,3 +1860,10 @@ void mt7530_remove(struct switch_dev *swdev)
 	kfree(mt7530);
 }
 EXPORT_SYMBOL_GPL(mt7530_remove);
+
+/* Makefile builds mt7530.o as a separate object next to gsw_*.o, so
+ * with CONFIG_NET_MEDIATEK_GSW_*=m this is its own module. It imports
+ * the GPL-only register_switch()/unregister_switch() symbols; without
+ * an explicit license the module loader refuses to resolve them.
+ */
+MODULE_LICENSE("GPL");
