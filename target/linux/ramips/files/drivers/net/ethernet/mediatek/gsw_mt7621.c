@@ -195,9 +195,21 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 
 out_masked:
 	/* The W1C write failed, so the level-high source is still
-	 * asserted. Keep GSW_IRQ_DISABLED set and leave the line
-	 * disabled instead of enabling it straight back into the
-	 * handler and spinning the interrupt/work pair forever.
+	 * asserted. The teardown helper only compensates the disable
+	 * depth on unbind: leaving the line masked here would kill link
+	 * change reporting for the whole lifetime of this instance after
+	 * a single transient PIAC timeout. Retry the acknowledge once
+	 * (still under bus->mdio_lock) and clear every source so no event
+	 * that arrived in the meantime can keep the line asserted; on
+	 * success follow the normal re-enable path.
+	 */
+	if (!mt7530_mdio_w32(gsw, 0x700c, 0xffffffff))
+		goto out_reenable;
+
+	/* Still wedged: keep GSW_IRQ_DISABLED set and leave the line
+	 * disabled instead of enabling it straight back into the handler
+	 * and spinning the interrupt/work pair forever.
+	 * mt7621_gsw_stop_irq() balances that depth at teardown.
 	 */
 	dev_err(gsw->dev, "failed to clear switch IRQ status: %d\n", ack_err);
 	if (bus)
