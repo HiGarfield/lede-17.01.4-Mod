@@ -2545,8 +2545,6 @@ static int fe_remove(struct platform_device *pdev)
 
 	fe_unregister_switches(priv);
 
-	of_node_put(priv->switch_np);
-
 	/* unregister first: while the device is still registered and up,
 	 * a TX timeout may re-arm pending_work; cancelling the work
 	 * before unregister_netdev() would let that work run after
@@ -2554,6 +2552,17 @@ static int fe_remove(struct platform_device *pdev)
 	 */
 	unregister_netdev(dev);
 	cancel_work_sync(&priv->pending_work);
+
+	/* switch_np is an of_parse_phandle() reference used by
+	 * mtk_gsw_init(), which is reached again from ndo_init on an
+	 * unregister/re-register cycle. Dropping it before
+	 * unregister_netdev() publishes a node whose refcount is already
+	 * gone through that path, and leaving the non-NULL pointer behind
+	 * allows a second put. Release it only after all device teardown
+	 * callbacks have finished and clear the pointer.
+	 */
+	of_node_put(priv->switch_np);
+	priv->switch_np = NULL;
 
 	netif_napi_del(&priv->rx_napi);
 	kfree(priv->hw_stats);
