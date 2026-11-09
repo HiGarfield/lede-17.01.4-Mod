@@ -2077,7 +2077,7 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct fe_priv *priv = netdev_priv(dev);
 	int frag_size, old_mtu, err;
-	u16 new_frag, new_buf;
+	int new_frag, new_buf;
 
 	if (!(priv->flags & FE_FLAG_JUMBO_FRAME))
 		return eth_change_mtu(dev, new_mtu);
@@ -2105,6 +2105,24 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	if (frag_size < 0 || frag_size > PAGE_SIZE)
 		return -EINVAL;
 
+	/* fe_realloc_dma() and the ring geometry fields are u16, while
+	 * PAGE_SIZE may be 64 KiB on MIPS. Computing these values into
+	 * u16 locals truncated new_frag to 0 and turned a negative
+	 * fe_max_buf_size() into a huge u16, so fe_alloc_rx() later
+	 * allocated zero-length frags and dma_map_single() mapped far
+	 * beyond them. Validate the full-width results before narrowing,
+	 * and do it before dev->mtu is changed so no rollback is needed.
+	 */
+	if (new_mtu <= ETH_DATA_LEN)
+		new_frag = fe_max_frag_size(ETH_DATA_LEN);
+	else
+		new_frag = PAGE_SIZE;
+	if (new_frag <= 0 || new_frag > 0xffff)
+		return -EINVAL;
+	new_buf = fe_max_buf_size(new_frag);
+	if (new_buf <= 0 || new_buf > 0xffff)
+		return -EINVAL;
+
 	old_mtu = dev->mtu;
 	dev->mtu = new_mtu;
 
@@ -2119,12 +2137,6 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 		fe_jumbo_config(dev, frag_size);
 		return 0;
 	}
-
-	if (new_mtu <= ETH_DATA_LEN)
-		new_frag = fe_max_frag_size(ETH_DATA_LEN);
-	else
-		new_frag = PAGE_SIZE;
-	new_buf = fe_max_buf_size(new_frag);
 
 	/* Rebuild the rings in the !running case too: they were
 	 * allocated by fe_init() with the old buffer geometry, and
