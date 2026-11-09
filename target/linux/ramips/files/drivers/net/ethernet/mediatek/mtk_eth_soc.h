@@ -303,8 +303,10 @@ enum fe_work_flag {
 /* rxd2 */
 #define RX_DMA_DONE		BIT(31)
 #define RX_DMA_LSO		BIT(30)
-#define RX_DMA_PLEN0(_x)	(((_x) & 0x3fff) << 16)
-#define RX_DMA_GET_PLEN0(_x)	(((_x) >> 16) & 0x3fff)
+/* The RX descriptor carries the buffer length in a 14-bit field. */
+#define RX_DMA_PLEN0_LEN_MASK	0x3fff
+#define RX_DMA_PLEN0(_x)	(((_x) & RX_DMA_PLEN0_LEN_MASK) << 16)
+#define RX_DMA_GET_PLEN0(_x)	(((_x) >> 16) & RX_DMA_PLEN0_LEN_MASK)
 #define RX_DMA_TAG		BIT(15)
 /* rxd3 */
 #define RX_DMA_TPID(_x)		(((_x) >> 16) & 0xffff)

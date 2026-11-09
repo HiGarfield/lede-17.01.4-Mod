@@ -332,6 +332,14 @@ static int fe_alloc_rx(struct fe_priv *priv)
 	struct fe_rx_ring *ring = &priv->rx_ring;
 	int i, pad;
 
+	/* RX_DMA_PLEN0 masks the buffer length down to 14 bits. A larger
+	 * value would be silently truncated in every descriptor while
+	 * dma_map_single() still maps the full rx_buf_size, so refuse the
+	 * geometry instead of letting software and hardware disagree.
+	 */
+	if (WARN_ON_ONCE(ring->rx_buf_size > RX_DMA_PLEN0_LEN_MASK))
+		return -EINVAL;
+
 	ring->rx_data = kcalloc(ring->rx_ring_size, sizeof(*ring->rx_data),
 			GFP_KERNEL);
 	if (!ring->rx_data)
@@ -2343,19 +2351,28 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	/* fe_realloc_dma() and the ring geometry fields are u16, while
 	 * PAGE_SIZE may be 64 KiB on MIPS. Computing these values into
 	 * u16 locals truncated new_frag to 0 and turned a negative
-	 * fe_max_buf_size() into a huge u16, so fe_alloc_rx() later
-	 * allocated zero-length frags and dma_map_single() mapped far
-	 * beyond them. Validate the full-width results before narrowing,
-	 * and do it before dev->mtu is changed so no rollback is needed.
+	 * fe_max_buf_size() into a huge u16. Validate the full-width
+	 * results before narrowing, and do it before dev->mtu is changed
+	 * so no rollback is needed.
+	 *
+	 * The RX descriptor length is only 14 bits wide. Using a whole
+	 * page as the frag is fine on 4K/8K/16K pages, but on 32K/64K
+	 * pages it produces an rx_buf_size that RX_DMA_PLEN0 truncates
+	 * (software maps the full size, hardware sees the low 14 bits),
+	 * and on 64K pages it also exceeds the u16 field so every jumbo
+	 * MTU was rejected outright. Size the frag from the MTU instead
+	 * whenever a whole page cannot fit the descriptor field.
 	 */
 	if (new_mtu <= ETH_DATA_LEN)
 		new_frag = fe_max_frag_size(ETH_DATA_LEN);
+	else if (PAGE_SIZE > RX_DMA_PLEN0_LEN_MASK)
+		new_frag = frag_size;
 	else
 		new_frag = PAGE_SIZE;
 	if (new_frag <= 0 || new_frag > 0xffff)
 		return -EINVAL;
 	new_buf = fe_max_buf_size(new_frag);
-	if (new_buf <= 0 || new_buf > 0xffff)
+	if (new_buf <= 0 || new_buf > RX_DMA_PLEN0_LEN_MASK)
 		return -EINVAL;
 
 	old_mtu = dev->mtu;
