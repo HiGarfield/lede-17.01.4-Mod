@@ -405,6 +405,11 @@ struct fe_soc_data {
 	void *swpriv;
 	struct switch_dev *gsw_dev[2];
 	int gsw_dev_num;
+	/* Set while a full teardown is claiming gsw_dev[]. Protected by
+	 * fe_switch_lock: a probe that arrives after the claim must not
+	 * publish a switch_dev into the devm state being released.
+	 */
+	bool switch_dying;
 	u32 pdma_glo_cfg;
 	u32 rx_int;
 	u32 tx_int;

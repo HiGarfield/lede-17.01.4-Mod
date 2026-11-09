@@ -1848,6 +1848,18 @@ static int fe_stop(struct net_device *dev)
  */
 static DEFINE_MUTEX(fe_switch_lock);
 
+/* Called after switch_init() succeeded, before switch_config() may
+ * publish any switch_dev. A full teardown sets switch_dying in the
+ * same critical section that claims gsw_dev[], so a new registration
+ * round has to clear it explicitly.
+ */
+static void fe_switch_mark_alive(struct fe_priv *priv)
+{
+	mutex_lock(&fe_switch_lock);
+	priv->soc->switch_dying = false;
+	mutex_unlock(&fe_switch_lock);
+}
+
 int fe_probe_and_register_switch(struct fe_priv *priv, void __iomem *base,
 				 struct mii_bus *bus, int vlan)
 {
@@ -1861,6 +1873,20 @@ int fe_probe_and_register_switch(struct fe_priv *priv, void __iomem *base,
 	 * switch_dev pointing into the released devm mapping survives.
 	 */
 	mutex_lock(&fe_switch_lock);
+	/* A GSW unbind may have won this lock while the probe was waiting.
+	 * Its claim-and-clear found nothing to remove, it then dropped
+	 * swpriv and returned, and devres released gsw/gsw->base. The
+	 * base/bus pointers this probe carries are already stale, and no
+	 * later teardown path is guaranteed to run for a surviving FE.
+	 * switch_dying is raised in that same claim critical section, so
+	 * refuse to publish a switch_dev that would stay on the global
+	 * swconfig list forever. mt7620_gsw_config()/mt7621_gsw_config()
+	 * propagate this error out of fe_init().
+	 */
+	if (priv->soc->switch_dying) {
+		err = -ENODEV;
+		goto out_unlock_probe;
+	}
 	if (priv->soc->gsw_dev_num < ARRAY_SIZE(priv->soc->gsw_dev)) {
 		swdev = mt7530_probe(priv->dev, base, bus, vlan);
 		if (IS_ERR(swdev))
@@ -1870,6 +1896,7 @@ int fe_probe_and_register_switch(struct fe_priv *priv, void __iomem *base,
 			err = 0;
 		}
 	}
+out_unlock_probe:
 	mutex_unlock(&fe_switch_lock);
 
 	return err;
@@ -1888,6 +1915,15 @@ void fe_unregister_switches_from(struct fe_priv *priv, int start)
 	 * while a probe is waiting for it.
 	 */
 	mutex_lock(&fe_switch_lock);
+	/* A full teardown (start == 0) means the switch is going away for
+	 * good. Publish that fact in the same critical section as the
+	 * claim, so a probe already waiting on fe_switch_lock cannot
+	 * repopulate gsw_dev[] after we release it. A partial rollback
+	 * (start > 0) only undoes one failed config attempt and must not
+	 * block the retry.
+	 */
+	if (start == 0)
+		priv->soc->switch_dying = true;
 	for (i = 0; i < ARRAY_SIZE(priv->soc->gsw_dev); i++) {
 		claimed[i] = (i >= start) ? priv->soc->gsw_dev[i] : NULL;
 		if (i >= start)
@@ -1941,6 +1977,13 @@ static int fe_init(struct net_device *dev)
 			 */
 			return swerr;
 		}
+
+		/* switch_init() published swpriv again. Allow this new
+		 * init round to register switch_devs, clearing the flag a
+		 * previous teardown (for example an unregister/re-register
+		 * cycle) left set. Do it now, before switch_config() runs.
+		 */
+		fe_switch_mark_alive(priv);
 	}
 
 	mac_addr = of_get_mac_address(priv->dev->of_node);
