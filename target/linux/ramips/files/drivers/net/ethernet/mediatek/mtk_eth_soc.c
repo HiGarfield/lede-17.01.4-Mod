@@ -1670,8 +1670,20 @@ static int fe_open(struct net_device *dev)
 	fe_reg_w32(val, FE_REG_PDMA_GLO_CFG);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 
-	if (priv->soc->has_carrier && priv->soc->has_carrier(priv))
-		netif_carrier_on(dev);
+	/* A netdev starts with the carrier up. Only calling
+	 * netif_carrier_on() leaves LOWER_UP asserted when every switch
+	 * port is down, and mt7620_handle_carrier() returns immediately
+	 * on switch-only boards with no priv->phy to correct it later.
+	 * Keep the SoC-specific carrier source authoritative in both
+	 * directions; SoCs without has_carrier keep their PHY-driven
+	 * (or default) state untouched.
+	 */
+	if (priv->soc->has_carrier) {
+		if (priv->soc->has_carrier(priv))
+			netif_carrier_on(dev);
+		else
+			netif_carrier_off(dev);
+	}
 
 	clear_bit(__FE_DOWN, &priv->state);
 
