@@ -2026,8 +2026,22 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 		 * any error from this function.
 		 */
 		err = fe_stop(priv->netdev);
-		if (err)
+		if (err) {
+			/* fe_stop() already stopped the queue, disabled
+			 * NAPI and interrupts, stopped the PHYs and cleared
+			 * the DMA enable bits before reporting the timeout.
+			 * Leaving IFF_UP set would report the interface as
+			 * running while it can neither transmit nor receive,
+			 * and no in-flight descriptor can raise a TX timeout
+			 * to recover. Close it so an explicit up can call
+			 * fe_open() on the still-intact rings.
+			 * ndo_change_mtu callers hold RTNL, which is what
+			 * dev_close() requires; the rollback path below
+			 * already uses the same call.
+			 */
+			dev_close(priv->netdev);
 			return err;
+		}
 	} else {
 		/* The DMA engine may still be running here: it is enabled
 		 * in fe_init() (ndo_init) and only stopped again by
