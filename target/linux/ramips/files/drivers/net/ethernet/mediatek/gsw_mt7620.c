@@ -77,11 +77,22 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 	if (!(status & PORT_IRQ_ST_CHG))
 		return IRQ_NONE;
 
+	/* switch_init() installs and unmasks this handler before
+	 * fe_init() reaches fe_mdio_init(), so priv->phy can still be NULL
+	 * here. link[] is only ever written under phy->lock (link adjust,
+	 * port_init, the MT7621 irq work), and without the lock object
+	 * there is no way to serialise an update. Skip the link walk in
+	 * that window and just acknowledge the source below: no PHY state
+	 * exists yet, and mt7620_handle_carrier() returns immediately
+	 * while priv->phy is NULL anyway.
+	 */
+	if (!phy)
+		goto ack_irq;
+
 	/* priv->link[] is shared with the process-context phy
 	 * link adjustment, serialise against it
 	 */
-	if (phy)
-		spin_lock_irqsave(&phy->lock, flags);
+	spin_lock_irqsave(&phy->lock, flags);
 	/* PORT_IRQ_ST_CHG spans all GSW_NUM_PORTS ports and the
 	 * ISR is write-one-to-clear. Sampling only the PHY ports
 	 * (0..3/4) while acknowledging the whole mask discarded
@@ -98,10 +109,10 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 
 		priv->link[i] = link;
 	}
-	if (phy)
-		spin_unlock_irqrestore(&phy->lock, flags);
+	spin_unlock_irqrestore(&phy->lock, flags);
 
 	mt7620_handle_carrier(priv);
+ack_irq:
 	/* acknowledge only the bit we actually handled instead of
 	 * clearing every status bit, including events that arrived
 	 * while this handler was running

@@ -148,38 +148,47 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	if (!status_read_ok || !priv)
 		goto out_reenable;
 
-	/* Each mt7530_mdio_r32() issues three PIAC transactions and each
-	 * transaction can busy-wait up to 2000 iterations. Collect all
-	 * port states before taking phy->lock: spin_lock_irqsave() disables
-	 * local interrupts, so doing up to five of these MDIO reads inside
-	 * the critical section can stall a UP target for tens of ms.
+	/* switch_init() installs the handler and unmasks the sources
+	 * before fe_init() reaches fe_mdio_init(), so priv->phy can still
+	 * be NULL on an early work item. link[] is only ever written under
+	 * phy->lock (link adjust, port_init, the MT7620 interrupt path);
+	 * with no lock object there is no serialised way to update it.
+	 * Skip the link walk in that window but still refresh the carrier
+	 * and acknowledge/re-enable the line below.
 	 */
-	for (i = 0; i < 5; i++) {
-		unsigned int val;
+	if (phy) {
+		/* Each mt7530_mdio_r32() issues three PIAC transactions and
+		 * each transaction can busy-wait up to 2000 iterations.
+		 * Collect all port states before taking phy->lock:
+		 * spin_lock_irqsave() disables local interrupts, so doing
+		 * up to five of these MDIO reads inside the critical
+		 * section can stall a UP target for tens of ms.
+		 */
+		for (i = 0; i < 5; i++) {
+			unsigned int val;
 
-		if (!(reg & BIT(i)))
-			continue;
-		if (mt7530_mdio_r32(gsw, 0x3008 + (i * 0x100), &val))
-			continue;
-		link[i] = val & 0x1;
-		link_valid[i] = true;
-	}
+			if (!(reg & BIT(i)))
+				continue;
+			if (mt7530_mdio_r32(gsw, 0x3008 + (i * 0x100), &val))
+				continue;
+			link[i] = val & 0x1;
+			link_valid[i] = true;
+		}
 
-	/* Keep link[] updates atomic with the PHY-side state machine, like
-	 * the MT7620 interrupt path does.
-	 */
-	if (phy)
+		/* Keep link[] updates atomic with the PHY-side state
+		 * machine, like the MT7620 interrupt path does.
+		 */
 		spin_lock_irqsave(&phy->lock, flags);
-	for (i = 0; i < 5; i++) {
-		if (!link_valid[i] || link[i] == priv->link[i])
-			continue;
+		for (i = 0; i < 5; i++) {
+			if (!link_valid[i] || link[i] == priv->link[i])
+				continue;
 
-		priv->link[i] = link[i];
-		netdev_info(priv->netdev, "port %d link %s\n", i,
-			    link[i] ? "up" : "down");
-	}
-	if (phy)
+			priv->link[i] = link[i];
+			netdev_info(priv->netdev, "port %d link %s\n", i,
+				    link[i] ? "up" : "down");
+		}
 		spin_unlock_irqrestore(&phy->lock, flags);
+	}
 
 	mt7620_handle_carrier(priv);
 	goto out_reenable;
