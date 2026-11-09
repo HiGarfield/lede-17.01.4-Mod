@@ -359,11 +359,15 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 		udelay(1);
 	}
 out:
-	mutex_unlock(&esw->mii_lock);
 	if (ret) {
 		dev_err(esw->dev, "ramips_eth: MDIO timeout\n");
+		/* esw_hw_init() reads this flag under the same lock. Writing
+		 * it after mutex_unlock() would leave the only shared state
+		 * of the calibration sequence unprotected.
+		 */
 		esw->mii_failed = true;
 	}
+	mutex_unlock(&esw->mii_lock);
 	return ret;
 }
 
@@ -521,10 +525,13 @@ static int esw_hw_init(struct rt305x_esw *esw)
 	u8 port_map = RT305X_ESW_PMAP_LLLLLL;
 
 	/* All calibration writes below share the PCR0/PCR1 command
-	 * register. Start a fresh error record: a previous apply may have
+	 * register. Start a fresh error record under mii_lock, which also
+	 * guards the flag in rt305x_mii_write(): a previous apply may have
 	 * flagged a timeout that has nothing to do with this init pass.
 	 */
+	mutex_lock(&esw->mii_lock);
 	esw->mii_failed = false;
+	mutex_unlock(&esw->mii_lock);
 
 	/* vodoo from original driver */
 	esw_w32(esw, 0xC8A07850, RT305X_ESW_REG_FCT0);
@@ -791,8 +798,10 @@ static int esw_hw_init(struct rt305x_esw *esw)
 	 * failure to esw_probe()/esw_reset_switch() instead of returning
 	 * success. apply_config()'s own error takes precedence.
 	 */
+	mutex_lock(&esw->mii_lock);
 	if (esw->mii_failed && !ret)
 		ret = -EIO;
+	mutex_unlock(&esw->mii_lock);
 
 	/* Do not touch the IMR here: esw_reset_switch() calls this
 	 * function with the handler already installed, and esw_probe()
