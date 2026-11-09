@@ -117,9 +117,7 @@ static void rt5350_rxcsum_config(bool enable)
 
 static int rt5350_fwd_config(struct fe_priv *priv)
 {
-	struct net_device *dev = priv_netdev(priv);
-
-	rt5350_rxcsum_config((dev->features & NETIF_F_RXCSUM));
+	rt5350_rxcsum_config((priv->fwd_features & NETIF_F_RXCSUM));
 
 	return 0;
 }

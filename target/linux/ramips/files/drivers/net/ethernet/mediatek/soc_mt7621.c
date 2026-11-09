@@ -140,14 +140,12 @@ static void mt7621_rxvlan_config(bool enable)
 
 static int mt7621_fwd_config(struct fe_priv *priv)
 {
-	struct net_device *dev = priv_netdev(priv);
-
 	fe_w32(fe_r32(MT7620A_GDMA1_FWD_CFG) & ~0xffff,
 	       MT7620A_GDMA1_FWD_CFG);
 
 	/* mt7621 doesn't have txcsum config */
-	mt7621_rxcsum_config((dev->features & NETIF_F_RXCSUM));
-	mt7621_rxvlan_config(dev->features & NETIF_F_HW_VLAN_CTAG_RX);
+	mt7621_rxcsum_config((priv->fwd_features & NETIF_F_RXCSUM));
+	mt7621_rxvlan_config(priv->fwd_features & NETIF_F_HW_VLAN_CTAG_RX);
 
 	return 0;
 }

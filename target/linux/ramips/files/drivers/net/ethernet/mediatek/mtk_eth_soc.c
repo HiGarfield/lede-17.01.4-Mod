@@ -665,13 +665,14 @@ static int fe_vlan_rx_add_vid(struct net_device *dev,
 	set_bit(vid, priv->active_vids);
 
 	/* Keep the hardware VID table in sync with active_vids even while
-	 * TX VLAN offload is switched off. There is no ndo_set_features
-	 * hook that could program these slots later, so VIDs registered
-	 * while the feature was off used to stay unprogrammed forever;
-	 * when ethtool re-enabled the offload, fe_tx_map_dma() resolved
-	 * VIDX through a stale table and frames got the wrong VLAN tag.
-	 * A hash collision is the only case where a VID must stay without
-	 * a slot; fe_fix_features() blocks the offload until it is gone.
+	 * TX VLAN offload is switched off. ndo_set_features() only
+	 * reprograms the checksum and RX-VLAN bits, never these slots, so
+	 * VIDs registered while the feature was off used to stay
+	 * unprogrammed forever; when ethtool re-enabled the offload,
+	 * fe_tx_map_dma() resolved VIDX through a stale table and frames
+	 * got the wrong VLAN tag. A hash collision is the only case where
+	 * a VID must stay without a slot; fe_fix_features() blocks the
+	 * offload until it is gone.
 	 */
 	if (priv->vlan_offload_conflict)
 		return 0;
@@ -1136,6 +1137,7 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 	struct net_device_stats *stats = &netdev->stats;
 	struct fe_soc_data *soc = priv->soc;
 	struct fe_rx_ring *ring = &priv->rx_ring;
+	netdev_features_t features = netdev->features;
 	int idx = ring->rx_calc_idx;
 	u32 checksum_bit;
 	struct sk_buff *skb;
@@ -1143,7 +1145,12 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 	struct fe_rx_dma *rxd, trxd;
 	int done = 0, pad;
 
-	if (netdev->features & NETIF_F_RXCSUM)
+	/* Sample the feature set once per poll batch. The core can commit
+	 * a new dev->features while NAPI runs, and reading it separately
+	 * for the checksum and RX-VLAN decisions could apply two different
+	 * offload sets to the same skb.
+	 */
+	if (features & NETIF_F_RXCSUM)
 		checksum_bit = soc->checksum_bit;
 	else
 		checksum_bit = 0;
@@ -1220,7 +1227,7 @@ static int fe_poll_rx(struct napi_struct *napi, int budget,
 			skb_checksum_none_assert(skb);
 		skb->protocol = eth_type_trans(skb, netdev);
 
-		if (netdev->features & NETIF_F_HW_VLAN_CTAG_RX &&
+		if (features & NETIF_F_HW_VLAN_CTAG_RX &&
 		    RX_DMA_TAG & trxd.rxd2 && RX_DMA_VID(trxd.rxd3))
 			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
 					       RX_DMA_VID(trxd.rxd3));
@@ -1610,11 +1617,9 @@ static void fe_txcsum_config(bool enable)
 
 void fe_csum_config(struct fe_priv *priv)
 {
-	struct net_device *dev = priv_netdev(priv);
-
-	fe_txcsum_config((dev->features &
+	fe_txcsum_config((priv->fwd_features &
 			  (NETIF_F_IP_CSUM | NETIF_F_IPV6_CSUM)) != 0);
-	fe_rxcsum_config((dev->features & NETIF_F_RXCSUM));
+	fe_rxcsum_config((priv->fwd_features & NETIF_F_RXCSUM));
 }
 
 static int fe_hw_init(struct net_device *dev)
@@ -1682,6 +1687,11 @@ static int fe_hw_init(struct net_device *dev)
 		priv->vlan_tx_offload_wanted = false;
 	}
 
+	/* Seed the hardware feature snapshot before the first
+	 * fwd_config(): the helpers no longer read dev->features, which
+	 * the core may still change after ndo_set_features() returns.
+	 */
+	priv->fwd_features = dev->features;
 	err = priv->soc->fwd_config(priv);
 	if (err) {
 		netdev_err(dev, "unable to configure frame engine\n");
@@ -2268,22 +2278,24 @@ static int fe_set_features(struct net_device *dev,
 			   netdev_features_t features)
 {
 	struct fe_priv *priv = netdev_priv(dev);
-	netdev_features_t saved;
+	netdev_features_t saved = priv->fwd_features;
 	int ret;
 
 	/* netdev_update_features() only calls this hook when the set
-	 * actually changes, so always reprogram: deriving "changed" from
-	 * dev->features is unreliable if the core has already committed
-	 * the new set before invoking us. Every SoC fwd_config() reads
-	 * dev->features to program the checksum and RX-VLAN hardware bits,
-	 * so publish the new set for the callback and restore the old one
-	 * if programming fails.
+	 * actually changes, so always reprogram. The SoC fwd_config()
+	 * helpers read priv->fwd_features, not dev->features: the core
+	 * commits dev->features only after this hook returns, and NAPI
+	 * reads that field locklessly. Publishing a temporary value (and
+	 * rolling it back on failure) into the netdev field used to expose
+	 * an intermediate offload set to the receive path while the
+	 * hardware was still being reprogrammed. A driver-private
+	 * snapshot is only ever read under RTNL here and in fe_hw_init(),
+	 * so no concurrent reader sees the transient state.
 	 */
-	saved = dev->features;
-	dev->features = features;
+	priv->fwd_features = features;
 	ret = priv->soc->fwd_config(priv);
 	if (ret) {
-		dev->features = saved;
+		priv->fwd_features = saved;
 		return ret;
 	}
 
@@ -2609,6 +2621,11 @@ static int fe_probe(struct platform_device *pdev)
 	/* fake rx vlan filter func. to support tx vlan offload func */
 	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
 		netdev->features |= NETIF_F_HW_VLAN_CTAG_FILTER;
+
+	/* ndo_set_features() may run before fe_hw_init() seeds this from
+	 * dev->features; give it the same initial set in that case.
+	 */
+	priv->fwd_features = netdev->features;
 
 	if (fe_reg_table[FE_REG_FE_COUNTER_BASE]) {
 		priv->hw_stats = kzalloc(sizeof(*priv->hw_stats), GFP_KERNEL);

@@ -519,6 +519,13 @@ struct fe_priv {
 	 * off for a collision, so restoring does not override ethtool
 	 */
 	bool				vlan_tx_offload_wanted;
+	/* Snapshot consumed by the SoC fwd_config() helpers. The core
+	 * commits dev->features only after ndo_set_features() returns, so
+	 * those helpers must not read dev->features while the driver is
+	 * programming the hardware, and the driver must not publish a
+	 * temporary value into the netdev field that NAPI reads locklessly.
+	 */
+	netdev_features_t		fwd_features;
 	struct work_struct		pending_work;
 	DECLARE_BITMAP(pending_flags, FE_FLAG_MAX);
 };
