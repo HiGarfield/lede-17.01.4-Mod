@@ -254,13 +254,16 @@ struct rt305x_esw {
 	unsigned int		reg_initval_fpa2;
 	unsigned int		reg_led_polarity;
 
-	/* software accumulation for the 16-bit hardware packet
-	 * counters, which wrap quickly on fast ports
+	/* Software accumulation for the 16-bit hardware packet counters,
+	 * which wrap quickly on fast ports. Keep the accumulators 64 bit:
+	 * a u32 one wraps after 4G packets and makes the exported counter
+	 * jump back to zero. switch_val.value.i is u32, so the getters
+	 * saturate the reported value instead of truncating it.
 	 */
 	u16			last_recv[RT305X_ESW_NUM_LANWAN][2];
-	u32			accum_recv[RT305X_ESW_NUM_LANWAN][2];
+	u64			accum_recv[RT305X_ESW_NUM_LANWAN][2];
 	u16			last_tr[RT305X_ESW_NUM_LANWAN][2];
-	u32			accum_tr[RT305X_ESW_NUM_LANWAN][2];
+	u64			accum_tr[RT305X_ESW_NUM_LANWAN][2];
 
 	struct switch_dev	swdev;
 	bool			global_vlan_enable;
@@ -1257,7 +1260,8 @@ static int esw_get_port_recv_badgood(struct switch_dev *dev,
 
 		esw->accum_recv[idx][w] += (u16)(cur - esw->last_recv[idx][w]);
 		esw->last_recv[idx][w] = cur;
-		val->value.i = esw->accum_recv[idx][w];
+		val->value.i = (u32)min_t(u64, esw->accum_recv[idx][w],
+					  0xffffffffULL);
 	}
 	mutex_unlock(&esw->update_lock);
 
@@ -1289,7 +1293,8 @@ esw_get_port_tr_badgood(struct switch_dev *dev,
 
 		esw->accum_tr[idx][w] += (u16)(cur - esw->last_tr[idx][w]);
 		esw->last_tr[idx][w] = cur;
-		val->value.i = esw->accum_tr[idx][w];
+		val->value.i = (u32)min_t(u64, esw->accum_tr[idx][w],
+					  0xffffffffULL);
 	}
 	mutex_unlock(&esw->update_lock);
 
