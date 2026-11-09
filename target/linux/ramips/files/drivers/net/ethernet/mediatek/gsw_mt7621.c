@@ -557,9 +557,28 @@ static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw)
 	 * where fe is already NULL: returning early there would leave
 	 * an in-flight work touching this devm object after remove().
 	 * flush_work() (unlike cancel_work_sync()) also waits for the
-	 * matching enable_irq(), keeping the disable depth balanced.
+	 * normal path's matching enable_irq().
 	 */
 	flush_work(&gsw->irq_work);
+
+	/* gsw_irq_work_mt7621() normally clears GSW_IRQ_DISABLED and
+	 * enables the line before returning. Its out_masked path (the
+	 * W1C status write failed) deliberately keeps the guard set and
+	 * returns without that enable_irq(), since re-enabling a still
+	 * asserted level-high source would spin the irq/work pair.
+	 * free_irq() does not reset the irq_desc disable depth, so the
+	 * one outstanding disable_irq_nosync() then survives teardown:
+	 * a later re-probe stacks request_irq() + disable_irq() +
+	 * enable_irq() on top of depth 1 and the switch link IRQ stays
+	 * masked forever. free_irq() has synchronised all handlers and
+	 * flush_work() has drained the work, so the guard is stable;
+	 * balance that leftover depth exactly once. A work item that
+	 * finished normally cleared the bit itself and must not be
+	 * enabled a second time.
+	 */
+	if (test_and_clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state))
+		enable_irq(gsw->irq);
+
 	gsw->priv = NULL;
 }
 
