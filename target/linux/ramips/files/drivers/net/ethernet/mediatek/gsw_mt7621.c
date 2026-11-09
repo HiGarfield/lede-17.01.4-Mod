@@ -41,6 +41,16 @@ u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg)
 }
 EXPORT_SYMBOL_GPL(mtk_switch_r32);
 
+/* The FE ndo_init()/ndo_uninit() and this platform driver's remove() are
+ * two independent paths that both own the same irq, irq_work and the
+ * soc->swpriv / gsw->priv pair. Without a common lock both can snapshot a
+ * non-NULL fe_priv, call free_irq() twice or dereference an fe_priv already
+ * released by unregister_netdev(). The lock is module-wide, so it stays
+ * valid after the devm gsw object is gone. Define it before mtk_gsw_init()
+ * so the init path can take it too.
+ */
+static DEFINE_MUTEX(gsw_teardown_lock);
+
 /* The MT7530 indirect register window is shared with swconfig and with the
  * deferred link work: both build a page-select plus two data accesses while
  * holding bus->mdio_lock. mt7530_mdio_w32() only serialises the PIAC
@@ -419,6 +429,7 @@ int mtk_gsw_init(struct fe_priv *priv)
 	struct device_node *np = priv->switch_np;
 	struct platform_device *pdev = of_find_device_by_node(np);
 	struct mt7620_gsw *gsw;
+	int err = 0;
 
 	if (!pdev)
 		return -ENODEV;
@@ -428,6 +439,17 @@ int mtk_gsw_init(struct fe_priv *priv)
 		return -EINVAL;
 	}
 
+	/* Both teardown paths (mtk_gsw_cleanup() and mt7621_gsw_remove())
+	 * read gsw->priv, flush irq_work and free_irq() while holding
+	 * gsw_teardown_lock. Publishing swpriv/gsw->priv, installing the
+	 * action and resetting irq_state must use the same lock: an
+	 * unbind racing with ndo_init() could otherwise free an action
+	 * that was never registered, or let init install a handler after
+	 * remove() dropped both back-pointers, leaving the work item and
+	 * the hardirq handler to dereference a freed fe_priv.
+	 */
+	mutex_lock(&gsw_teardown_lock);
+
 	gsw = platform_get_drvdata(pdev);
 	put_device(&pdev->dev);
 	/* the platform device exists but has no drvdata yet: the gsw
@@ -435,8 +457,10 @@ int mtk_gsw_init(struct fe_priv *priv)
 	 * fail permanently and take the whole ethernet down with no
 	 * retry, so ask for a deferred probe instead.
 	 */
-	if (!gsw)
-		return -EPROBE_DEFER;
+	if (!gsw) {
+		err = -EPROBE_DEFER;
+		goto out_unlock;
+	}
 
 	priv->soc->swpriv = gsw;
 	/* Keep the back-pointer even when no interrupt is configured: the
@@ -445,8 +469,6 @@ int mtk_gsw_init(struct fe_priv *priv)
 	gsw->priv = priv;
 
 	if (gsw->irq) {
-		int irqerr;
-
 		/* a previous instance has been drained by
 		 * mt7621_gsw_stop_irq(); start with a clean guard. The work
 		 * item itself is initialised once by mt7621_gsw_probe():
@@ -455,17 +477,17 @@ int mtk_gsw_init(struct fe_priv *priv)
 		 * INIT_WORK() on a live work_struct corrupts its list node.
 		 */
 		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
-		irqerr = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
-				     "gsw", priv);
+		err = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
+				  "gsw", priv);
 
-		if (irqerr) {
-			dev_err(gsw->dev, "request_irq failed: %d\n", irqerr);
+		if (err) {
+			dev_err(gsw->dev, "request_irq failed: %d\n", err);
 			/* do not leave swpriv pointing at a switch the
 			 * caller now considers uninitialised
 			 */
 			priv->soc->swpriv = NULL;
 			gsw->priv = NULL;
-			return irqerr;
+			goto out_unlock;
 		}
 		disable_irq(gsw->irq);
 	}
@@ -492,12 +514,15 @@ int mtk_gsw_init(struct fe_priv *priv)
 			free_irq(gsw->irq, priv);
 			gsw->priv = NULL;
 			priv->soc->swpriv = NULL;
-			return irqerr;
+			err = irqerr;
+			goto out_unlock;
 		}
 		enable_irq(gsw->irq);
 	}
 
-	return 0;
+out_unlock:
+	mutex_unlock(&gsw_teardown_lock);
+	return err;
 }
 EXPORT_SYMBOL_GPL(mtk_gsw_init);
 
@@ -537,15 +562,6 @@ static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw)
 	flush_work(&gsw->irq_work);
 	gsw->priv = NULL;
 }
-
-/* The FE ndo_uninit() and this platform driver's remove() are two
- * independent teardown paths that both own the same irq, irq_work and
- * the soc->swpriv / gsw->priv pair. Without a common lock both can
- * snapshot a non-NULL fe_priv, call free_irq() twice or dereference an
- * fe_priv already released by unregister_netdev(). The lock is
- * module-wide, so it stays valid after the devm gsw object is gone.
- */
-static DEFINE_MUTEX(gsw_teardown_lock);
 
 void mtk_gsw_cleanup(struct fe_priv *priv)
 {
