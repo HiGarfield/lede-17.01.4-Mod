@@ -520,12 +520,11 @@ struct fe_priv {
 	u16				vlan_vid[16];
 	/* every VID registered through ndo_vlan_rx_add_vid() */
 	DECLARE_BITMAP(active_vids, VLAN_N_VID);
-	/* set while a hash collision forces TX VLAN offload off */
-	bool				vlan_offload_conflict;
-	/* user's wanted_features TX VLAN offload bit before we turned it
-	 * off for a collision, so restoring does not override ethtool
+	/* set while a hash collision forces TX VLAN offload off. The
+	 * feature is removed by fe_fix_features(); dev->wanted_features
+	 * is deliberately left untouched so it keeps the user's choice.
 	 */
-	bool				vlan_tx_offload_wanted;
+	bool				vlan_offload_conflict;
 	/* Snapshot consumed by the SoC fwd_config() helpers. The core
 	 * commits dev->features only after ndo_set_features() returns, so
 	 * those helpers must not read dev->features while the driver is

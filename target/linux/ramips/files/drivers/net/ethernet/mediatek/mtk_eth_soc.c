@@ -699,17 +699,15 @@ static int fe_vlan_rx_add_vid(struct net_device *dev,
 		netdev_warn(dev,
 			    "TX VLAN offload disabled: VID %u collides with VID %u in slot %u\n",
 			    vid, priv->vlan_vid[idx], idx);
-		if (!priv->vlan_offload_conflict) {
-			/* Record what the user wanted before we force the
-			 * feature off, so restoring it does not override an
-			 * explicit 'ethtool -K tx-vlan-offload off'.
-			 */
-			priv->vlan_tx_offload_wanted =
-				!!(dev->wanted_features &
-				   NETIF_F_HW_VLAN_CTAG_TX);
-			priv->vlan_offload_conflict = true;
-		}
-		dev->wanted_features &= ~NETIF_F_HW_VLAN_CTAG_TX;
+		priv->vlan_offload_conflict = true;
+		/* Never touch dev->wanted_features: it records the user's
+		 * ethtool -K choice. fe_fix_features() strips the feature
+		 * from dev->features while the conflict lasts, and clearing
+		 * the flag plus netdev_update_features() on recovery lets
+		 * that choice take effect again. Sampling the old value and
+		 * OR-ing it back on recovery silently overrode an explicit
+		 * "tx-vlan-offload off" issued during the conflict.
+		 */
 		netdev_update_features(dev);
 		return 0;
 	}
@@ -750,9 +748,11 @@ static int fe_vlan_rx_kill_vid(struct net_device *dev,
 	 */
 	if (priv->vlan_offload_conflict &&
 	    bitmap_empty(priv->active_vids, VLAN_N_VID)) {
+		/* Drop the block and let the core recompute dev->features
+		 * from dev->wanted_features, which still reflects the
+		 * user's most recent ethtool -K command.
+		 */
 		priv->vlan_offload_conflict = false;
-		if (priv->vlan_tx_offload_wanted)
-			dev->wanted_features |= NETIF_F_HW_VLAN_CTAG_TX;
 		netdev_update_features(dev);
 	}
 
@@ -1676,23 +1676,21 @@ static int fe_hw_init(struct net_device *dev)
 		priv->vlan_map = 0;
 		memset(priv->vlan_vid, 0, sizeof(priv->vlan_vid));
 
-		/* active_vids, vlan_offload_conflict and
-		 * vlan_tx_offload_wanted are private to this driver: the
-		 * VLAN core only re-issues add_vid, it never clears them.
-		 * Leaving a stale conflict behind makes every add_vid
-		 * return without programming a slot, makes fe_fix_features
-		 * strip NETIF_F_HW_VLAN_CTAG_TX forever, and blocks the
-		 * recovery condition in fe_vlan_rx_kill_vid() because
-		 * active_vids is never empty. Restore the full fresh state,
-		 * including the wanted_features bit that the conflict logic
-		 * had cleared, so the user can enable TX offload again.
+		/* active_vids and vlan_offload_conflict are private to
+		 * this driver: the VLAN core only re-issues add_vid, it
+		 * never clears them. Leaving a stale conflict behind makes
+		 * every add_vid return without programming a slot, makes
+		 * fe_fix_features strip NETIF_F_HW_VLAN_CTAG_TX forever,
+		 * and blocks the recovery condition in
+		 * fe_vlan_rx_kill_vid() because active_vids is never empty.
+		 * Restore the fresh state. Do not compensate
+		 * dev->wanted_features here: an unconditional OR would
+		 * re-enable offload against an explicit ethtool -K off
+		 * and, without netdev_update_features(), would leave
+		 * wanted_features and features diverged.
 		 */
 		bitmap_clear(priv->active_vids, 0, VLAN_N_VID);
-		if (priv->vlan_offload_conflict)
-			dev->wanted_features |=
-				dev->hw_features & NETIF_F_HW_VLAN_CTAG_TX;
 		priv->vlan_offload_conflict = false;
-		priv->vlan_tx_offload_wanted = false;
 	}
 
 	/* Seed the hardware feature snapshot before the first
