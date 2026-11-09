@@ -51,6 +51,9 @@ EXPORT_SYMBOL_GPL(mtk_switch_r32);
  */
 static DEFINE_MUTEX(gsw_teardown_lock);
 
+/* also used by the mt7621_gsw_set_imr() failure rollback in mtk_gsw_init() */
+static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw);
+
 /* The MT7530 indirect register window is shared with swconfig and with the
  * deferred link work: both build a page-select plus two data accesses while
  * holding bus->mdio_lock. mt7530_mdio_w32() only serialises the PIAC
@@ -508,11 +511,20 @@ int mtk_gsw_init(struct fe_priv *priv)
 			 * the action and both back-pointers before reporting
 			 * the error: fe_init() treats a switch_init() failure
 			 * as terminal and has no rollback for this path.
+			 *
+			 * An irq may already have fired between request_irq()
+			 * and disable_irq() (or while hw_init had the line
+			 * live), which queued gsw->irq_work and owns one
+			 * extra disable_irq_nosync(). Simply free_irq() here
+			 * lets that work run afterwards against a NULL
+			 * gsw->priv and call enable_irq() on an action that
+			 * is already gone. Use the same helper as both
+			 * teardown paths: it frees the action, drains the
+			 * work and balances the leftover disable depth.
 			 */
 			mt7621_gsw_set_imr(gsw, priv, 0);
 			enable_irq(gsw->irq);
-			free_irq(gsw->irq, priv);
-			gsw->priv = NULL;
+			mt7621_gsw_stop_irq(gsw);
 			priv->soc->swpriv = NULL;
 			err = irqerr;
 			goto out_unlock;
