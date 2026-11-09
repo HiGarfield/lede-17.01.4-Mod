@@ -25,6 +25,18 @@
 
 #define FE_MDIO_RETRY	1000
 
+/* Fields of FE_MDIO_CFG owned by rt2880_mdio_link_adjust(): both clock
+ * skew fields (bits 0..3) and the forced GP1 speed/duplex/flow-control
+ * block (bits 10..15). The remaining bits (MDC clock divider, Turbo MII,
+ * auto-poll enable, backpressure enable, link-down/autoneg-fail status)
+ * are programmed by the bootloader or other drivers and must survive a
+ * link change.
+ */
+#define RT2880_MDIO_CFG_LINK_MASK \
+	(0xfu | (3u << 13) | FE_MDIO_CFG_GP1_FRC_EN | \
+	 FE_MDIO_CFG_GP1_DUPLEX | FE_MDIO_CFG_GP1_FC_TX | \
+	 FE_MDIO_CFG_GP1_FC_RX)
+
 static const char *rt2880_speed_str(struct fe_priv *priv)
 {
 	switch (priv->phy->speed[0]) {
@@ -83,7 +95,13 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		return;
 	}
 
-	fe_w32(mdio_cfg, FE_MDIO_CFG);
+	/* Preserve every field this function does not own. A full 32-bit
+	 * write used to clear the MDC divider, Turbo MII and auto-poll
+	 * settings on every link up, breaking MDIO timing and PHY polling.
+	 */
+	fe_w32((fe_r32(FE_MDIO_CFG) & ~RT2880_MDIO_CFG_LINK_MASK) |
+	       (mdio_cfg & RT2880_MDIO_CFG_LINK_MASK),
+	       FE_MDIO_CFG);
 
 	netif_carrier_on(priv->netdev);
 	netdev_info(priv->netdev, "link up (%sMbps/%s duplex)\n",
