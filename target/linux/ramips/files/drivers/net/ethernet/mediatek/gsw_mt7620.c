@@ -59,31 +59,39 @@ static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 	phy = priv->phy;
 
 	status = mtk_switch_r32(gsw, GSW_REG_ISR);
-	if (status & PORT_IRQ_ST_CHG) {
-		/* priv->link[] is shared with the process-context phy
-		 * link adjustment, serialise against it
-		 */
-		if (phy)
-			spin_lock_irqsave(&phy->lock, flags);
-		/* PORT_IRQ_ST_CHG spans all GSW_NUM_PORTS ports and the
-		 * ISR is write-one-to-clear. Sampling only the PHY ports
-		 * (0..3/4) while acknowledging the whole mask discarded
-		 * link-change events for the remaining ports.
-		 */
-		for (i = 0; i < GSW_NUM_PORTS; i++) {
-			u32 status = mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i));
-			int link = status & 0x1;
+	/* Only the port-change sources are unmasked by mtk_gsw_init().
+	 * A spurious/shared interrupt has nothing to acknowledge: a 0
+	 * write into the W1C register clears no bit, and IRQ_HANDLED would
+	 * hide a permanently asserted level line from the generic
+	 * spurious-IRQ detection, re-entering this handler forever.
+	 */
+	if (!(status & PORT_IRQ_ST_CHG))
+		return IRQ_NONE;
 
-			if (link != priv->link[i])
-				mt7620_print_link_state(priv, i, link,
-							(status >> 2) & 3,
-							(status >> 1) & 1);
+	/* priv->link[] is shared with the process-context phy
+	 * link adjustment, serialise against it
+	 */
+	if (phy)
+		spin_lock_irqsave(&phy->lock, flags);
+	/* PORT_IRQ_ST_CHG spans all GSW_NUM_PORTS ports and the
+	 * ISR is write-one-to-clear. Sampling only the PHY ports
+	 * (0..3/4) while acknowledging the whole mask discarded
+	 * link-change events for the remaining ports.
+	 */
+	for (i = 0; i < GSW_NUM_PORTS; i++) {
+		u32 status = mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i));
+		int link = status & 0x1;
 
-			priv->link[i] = link;
-		}
-		if (phy)
-			spin_unlock_irqrestore(&phy->lock, flags);
+		if (link != priv->link[i])
+			mt7620_print_link_state(priv, i, link,
+						(status >> 2) & 3,
+						(status >> 1) & 1);
+
+		priv->link[i] = link;
 	}
+	if (phy)
+		spin_unlock_irqrestore(&phy->lock, flags);
+
 	mt7620_handle_carrier(priv);
 	/* acknowledge only the bit we actually handled instead of
 	 * clearing every status bit, including events that arrived
