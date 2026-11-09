@@ -2250,16 +2250,25 @@ static void fe_reset_pending(struct fe_priv *priv)
 		netif_alert(priv, ifup, dev,
 			    "Driver up/down cycle failed, closing device.\n");
 		dev_close(dev);
+	} else if (priv->soc->reset_ports) {
+		/* reset_ports() dereferences priv->soc->swpriv and
+		 * priv->mii_bus (MT7621 powers the switch PHYs down/up
+		 * through the MDIO bus). Both are released by
+		 * fe_uninit()/fe_mdio_cleanup() while unregister_netdev()
+		 * runs from fe_remove(), and that path needs RTNL too.
+		 * Keep the port reset under the same RTNL section so
+		 * teardown cannot free those objects underneath the
+		 * pending work. Only reset after a successful open, and
+		 * do not report a recovered interface when a PHY was
+		 * left powered down.
+		 */
+		err = priv->soc->reset_ports(priv);
+		if (err) {
+			netif_alert(priv, ifup, dev,
+				    "Switch port reset failed, closing device.\n");
+			dev_close(dev);
+		}
 	}
-	/* reset_ports() dereferences priv->soc->swpriv and priv->mii_bus
-	 * (MT7621 powers the switch PHYs down/up through the MDIO bus).
-	 * Both are released by fe_uninit()/fe_mdio_cleanup() while
-	 * unregister_netdev() runs from fe_remove(), and that path needs
-	 * RTNL too. Keep the port reset under the same RTNL section so
-	 * teardown cannot free those objects underneath the pending work.
-	 */
-	if (priv->soc->reset_ports)
-		priv->soc->reset_ports(priv);
 	rtnl_unlock();
 }
 

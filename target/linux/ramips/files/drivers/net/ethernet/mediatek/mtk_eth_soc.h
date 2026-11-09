@@ -398,7 +398,7 @@ struct fe_soc_data {
 	int (*mdio_read)(struct mii_bus *bus, int phy_addr, int phy_reg);
 	void (*mdio_reset)(struct fe_priv *priv);
 	void (*mdio_adjust_link)(struct fe_priv *priv, int port);
-	void (*reset_ports)(struct fe_priv *priv);
+	int (*reset_ports)(struct fe_priv *priv);
 
 	void *swpriv;
 	struct switch_dev *gsw_dev[2];

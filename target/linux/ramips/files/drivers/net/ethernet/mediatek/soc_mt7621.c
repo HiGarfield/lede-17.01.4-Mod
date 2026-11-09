@@ -195,14 +195,15 @@ static void mt7621_set_mac(struct fe_priv *priv, unsigned char *mac)
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 
-static void mt7621_reset_ports(struct fe_priv *priv)
+static int mt7621_reset_ports(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = priv->soc->swpriv;
 	struct mii_bus *bus;
+	int ret = 0;
 	u8 i;
 
 	if (!gsw)
-		return;
+		return 0;
 
 	/* swconfig (mt7530.c) performs its indirect register accesses as a
 	 * page-select plus two data transfers under bus->mdio_lock, while
@@ -228,10 +229,15 @@ static void mt7621_reset_ports(struct fe_priv *priv)
 		if (mt7620_mii_read_reg(gsw, i, 0x0, &mii_val)) {
 			dev_warn(priv->dev, "PHY %d: power-down read failed\n",
 				 i);
+			ret = -EIO;
 			continue;
 		}
 		mii_val |= BIT(11);
-		_mt7620_mii_write(gsw, i, 0x0, mii_val);
+		if (_mt7620_mii_write(gsw, i, 0x0, mii_val)) {
+			dev_warn(priv->dev, "PHY %d: power-down write failed\n",
+				 i);
+			ret = -EIO;
+		}
 	}
 
 	/* Allow ports a (short) time to settle */
@@ -244,14 +250,21 @@ static void mt7621_reset_ports(struct fe_priv *priv)
 		if (mt7620_mii_read_reg(gsw, i, 0, &mii_val)) {
 			dev_warn(priv->dev, "PHY %d: power-up read failed\n",
 				 i);
+			ret = -EIO;
 			continue;
 		}
 		mii_val &= ~BIT(11);
-		_mt7620_mii_write(gsw, i, 0, mii_val);
+		if (_mt7620_mii_write(gsw, i, 0, mii_val)) {
+			dev_warn(priv->dev, "PHY %d: power-up write failed\n",
+				 i);
+			ret = -EIO;
+		}
 	}
 
 	if (bus)
 		mutex_unlock(&bus->mdio_lock);
+
+	return ret;
 }
 
 static struct fe_soc_data mt7621_data = {
