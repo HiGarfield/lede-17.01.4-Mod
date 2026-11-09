@@ -1610,6 +1610,16 @@ static int fe_hw_init(struct net_device *dev)
 	struct fe_priv *priv = netdev_priv(dev);
 	int i, err;
 
+	/* Mask every source before the handler becomes live. ndo_init can
+	 * run again on the same netdev, and INT_ENABLE may still carry the
+	 * rx/tx bits programmed by the previous instance's fe_open(). With
+	 * NAPI still disabled, napi_schedule_prep() cannot succeed, so an
+	 * asserted level line (in particular a pending counter-full bit)
+	 * would re-enter fe_handle_irq() with no poll able to acknowledge
+	 * it until the mask below is reached.
+	 */
+	fe_int_disable(priv, ~0);
+
 	err = request_irq(dev->irq, fe_handle_irq, 0, dev_name(priv->dev), dev);
 	if (err)
 		return err;
@@ -1621,9 +1631,6 @@ static int fe_hw_init(struct net_device *dev)
 
 	/* disable delay interrupt */
 	fe_reg_w32(0, FE_REG_DLY_INT_CFG);
-
-	/* disable all interrupts during hw init */
-	fe_int_disable(priv, ~0);
 
 	/* frame engine will push VLAN tag regarding to VIDX feild in Tx desc */
 	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
