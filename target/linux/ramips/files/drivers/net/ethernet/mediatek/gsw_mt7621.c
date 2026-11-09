@@ -91,8 +91,11 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	 * via mt7530_mdio_r32/w32() under gsw->mdio_lock only. Without the
 	 * bus lock the two three-step sequences can interleave: one sets
 	 * the page, the other overwrites it, and the first then reads or
-	 * writes the wrong register. bus is NULL during early hw init and
-	 * teardown, when no swconfig user exists yet.
+	 * writes the wrong register. bus is NULL only during early hw init,
+	 * before fe_mdio_init() creates it and before switch_dev is
+	 * registered, when no swconfig user exists yet. Teardown keeps
+	 * gsw->priv alive until this work has drained (see
+	 * mt7621_gsw_stop_irq()), so the bus lock is taken there too.
 	 */
 	if (bus)
 		mutex_lock(&bus->mdio_lock);
@@ -484,18 +487,28 @@ static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw)
 {
 	struct fe_priv *fe = gsw->priv;
 
-	if (!gsw->irq || !fe)
+	if (!gsw->irq)
 		return;
 
-	/* With the action gone no new work can be queued. Clearing the
-	 * back-pointer makes a queued work take its no-op path, which
-	 * still re-enables the line; flush_work() (unlike
-	 * cancel_work_sync()) waits for that to happen and guarantees
-	 * nothing references this devm object after remove() returns.
+	/* Only the first teardown path owns the irq action. */
+	if (fe)
+		free_irq(gsw->irq, fe);
+
+	/* Keep gsw->priv alive until the work has drained. The work
+	 * resolves fe->mii_bus through that pointer in order to take
+	 * bus->mdio_lock around its three-step MDIO transactions.
+	 * Clearing it first made a queued work skip the bus lock while
+	 * the switch_dev was still registered and swconfig could
+	 * interleave its own page select and data accesses.
+	 *
+	 * Every caller must flush, including the second teardown path
+	 * where fe is already NULL: returning early there would leave
+	 * an in-flight work touching this devm object after remove().
+	 * flush_work() (unlike cancel_work_sync()) also waits for the
+	 * matching enable_irq(), keeping the disable depth balanced.
 	 */
-	free_irq(gsw->irq, fe);
-	gsw->priv = NULL;
 	flush_work(&gsw->irq_work);
+	gsw->priv = NULL;
 }
 
 void mtk_gsw_cleanup(struct fe_priv *priv)
