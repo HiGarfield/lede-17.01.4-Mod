@@ -15,15 +15,16 @@
 #ifndef _RALINK_ESW_RT3052_H__
 #define _RALINK_ESW_RT3052_H__
 
-#ifdef CONFIG_NET_MEDIATEK_ESW_RT3050
-
-int __init mtk_switch_init(void);
-void mtk_switch_exit(void);
-
-#else
-
-static inline int __init mtk_switch_init(void) { return 0; }
+/* esw_rt3050.c registers itself with module_platform_driver(). The
+ * legacy mtk_switch_init()/mtk_switch_exit() entry points have no
+ * implementation and no caller anywhere in the tree. The old =y
+ * branch declared them as external symbols (undefined reference if
+ * ever called) while the =m branch silently turned them into no-op
+ * inlines. Keep one unconditional pair of no-op inlines so both
+ * configurations behave identically and no dead external declaration
+ * remains.
+ */
+static inline int mtk_switch_init(void) { return 0; }
 static inline void mtk_switch_exit(void) { }
 
-#endif
 #endif
