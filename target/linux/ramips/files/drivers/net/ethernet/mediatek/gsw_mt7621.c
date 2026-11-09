@@ -50,9 +50,19 @@ EXPORT_SYMBOL_GPL(mtk_switch_r32);
 static int mt7621_gsw_set_imr(struct mt7620_gsw *gsw, struct fe_priv *fe,
 			      u32 mask)
 {
-	struct mii_bus *bus = fe ? fe->mii_bus : NULL;
+	struct mii_bus *bus;
 	int ret;
 
+	if (!fe) {
+		/* No FE instance to resolve the bus from: the other
+		 * teardown path has already masked the sources and there
+		 * is no swconfig user left. Do not issue an indirect
+		 * write that cannot take bus->mdio_lock.
+		 */
+		return 0;
+	}
+
+	bus = fe->mii_bus;
 	if (bus)
 		mutex_lock(&bus->mdio_lock);
 	ret = mt7530_mdio_w32(gsw, 0x7008, mask);
@@ -520,10 +530,13 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 
 	/* mask the port-change source before the handler goes away: the
 	 * IMR was opened in mtk_gsw_init(), and the MT7530 keeps a level
-	 * line asserted while (ISR & IMR) != 0
+	 * line asserted while (ISR & IMR) != 0. Pass the priv being torn
+	 * down, not gsw->priv: the gsw remove() path may have cleared the
+	 * back-pointer already, and fe_mdio_cleanup() has not run yet on
+	 * this path, so priv->mii_bus is still valid for the bus lock.
 	 */
 	if (gsw->irq)
-		mt7621_gsw_set_imr(gsw, gsw->priv, 0);
+		mt7621_gsw_set_imr(gsw, priv, 0);
 
 	/* the irq was requested with the fe_priv as dev_id; release it
 	 * on the fe side too, otherwise the handler may run after the
