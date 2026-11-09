@@ -934,6 +934,7 @@ mt7530_apply_config(struct switch_dev *dev)
 	u8 tag_ports;
 	u8 untag_ports;
 	bool is_mirror = false;
+	bool empty_table = false;
 
 	mutex_lock(&priv->reg_mutex);
 
@@ -990,13 +991,6 @@ mt7530_apply_config(struct switch_dev *dev)
 		return 0;
 	}
 
-	/* set all ports as security mode */
-	for (i = 0; i < MT7530_NUM_PORTS; i++) {
-		err = mt7530_w32(priv, REG_ESW_PORT_PCR(i), 0x00ff0003);
-		if (err)
-			goto out_unlock;
-	}
-
 	/* check if a port is used in tag/untag vlan egress mode */
 	tag_ports = 0;
 	untag_ports = 0;
@@ -1019,11 +1013,38 @@ mt7530_apply_config(struct switch_dev *dev)
 		}
 	}
 
+	/* An empty VLAN table with VLAN mode enabled puts every port in
+	 * security mode with no membership at all, so every frame is
+	 * dropped. mt7530_reset_switch() avoids precisely that state by
+	 * turning VLAN mode off, but the same state is reached at probe
+	 * time when the caller asks for vlan=1 without a DT portmap, and
+	 * whenever all VLANs are cleared before an apply. Keep the ports
+	 * transparent until members exist; the table is still written
+	 * below, so the first real configuration takes effect directly.
+	 */
+	empty_table = !tag_ports && !untag_ports;
+
+	/* set all ports as security mode (transparent while table is empty) */
+	for (i = 0; i < MT7530_NUM_PORTS; i++) {
+		u32 pcr = empty_table ? 0x00400000 : 0x00ff0003;
+
+		err = mt7530_w32(priv, REG_ESW_PORT_PCR(i), pcr);
+		if (err)
+			goto out_unlock;
+	}
+	if (empty_table) {
+		err = mt7530_w32(priv, REG_ESW_PORT_PCR(MT7530_CPU_PORT),
+				 0x00ff0000);
+		if (err)
+			goto out_unlock;
+	}
+
 	/* set all untag-only ports as transparent and the rest as user port */
 	for (i = 0; i < MT7530_NUM_PORTS; i++) {
-		u32 pvc_mode = 0x81000000;
+		u32 pvc_mode = empty_table ? 0x810000c0 : 0x81000000;
 
-		if (untag_ports & BIT(i) && !(tag_ports & BIT(i)))
+		if (!empty_table && (untag_ports & BIT(i)) &&
+		    !(tag_ports & BIT(i)))
 			pvc_mode = 0x810000c0;
 
 		err = mt7530_w32(priv, REG_ESW_PORT_PVC(i), pvc_mode);
