@@ -803,16 +803,22 @@ static int esw_hw_init(struct rt305x_esw *esw)
 static irqreturn_t esw_interrupt(int irq, void *_esw)
 {
 	struct rt305x_esw *esw = (struct rt305x_esw *)_esw;
-	u32 status;
+	u32 status, link;
 
 	status = esw_r32(esw, RT305X_ESW_REG_ISR);
-	if (status & RT305X_ESW_PORT_ST_CHG) {
-		u32 link = esw_r32(esw, RT305X_ESW_REG_POA);
+	/* The port-change source is the only one this handler owns. On a
+	 * spurious/shared interrupt there is nothing to acknowledge:
+	 * writing 0 into the W1C register clears no bit, and claiming
+	 * IRQ_HANDLED hides a permanently asserted level line from the
+	 * generic spurious-IRQ detection, which then re-enters forever.
+	 */
+	if (!(status & RT305X_ESW_PORT_ST_CHG))
+		return IRQ_NONE;
 
-		link >>= RT305X_ESW_POA_LINK_SHIFT;
-		link &= RT305X_ESW_POA_LINK_MASK;
-		dev_info(esw->dev, "link changed 0x%02X\n", link);
-	}
+	link = esw_r32(esw, RT305X_ESW_REG_POA);
+	link >>= RT305X_ESW_POA_LINK_SHIFT;
+	link &= RT305X_ESW_POA_LINK_MASK;
+	dev_info(esw->dev, "link changed 0x%02X\n", link);
 	/* The ISR is write-one-to-clear and only the port-change source is
 	 * unmasked by esw_probe(). Writing back the whole snapshot also
 	 * clears any status bit that became set while this handler was
