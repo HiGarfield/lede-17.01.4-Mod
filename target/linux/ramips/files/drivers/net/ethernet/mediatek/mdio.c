@@ -355,6 +355,9 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 	int i;
 
 	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
+		struct phy_device *port_phy;
+		struct phy_device *bus_phy;
+
 		/* A fixed-link entry and a bus-scanned PHY at the same index
 		 * are not mutually exclusive: fe_phy_connect() attaches the
 		 * latter whenever phy_node[] is empty, even if phy_fixed[]
@@ -370,24 +373,37 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 			spin_unlock_irqrestore(&priv->phy->lock, flags);
 		}
 
-		if (priv->phy->phy[i]) {
-			phy_disconnect(priv->phy->phy[i]);
-			priv->phy->phy[i] = NULL;
-		}
+		/* fe_phy_link_adjust() is shared by every attached PHY: it
+		 * takes phy->lock and walks all slots, dereferencing the
+		 * phy_device it finds. phy_stop() cannot synchronously drain
+		 * an already queued state machine (it runs under RTNL), so
+		 * another port's work can still be in flight here.
+		 * phy_disconnect() may sleep, so first withdraw both shared
+		 * references under phy->lock and only then detach the
+		 * snapshots outside the spinlock. Leaving the pointer in
+		 * place until after phy_disconnect() lets that work see a
+		 * detached, possibly freed phy_device.
+		 */
+		spin_lock_irqsave(&priv->phy->lock, flags);
+		port_phy = priv->phy->phy[i];
+		priv->phy->phy[i] = NULL;
+		bus_phy = NULL;
 		if (priv->mii_bus && priv->mii_bus->phy_map[i] &&
-		    test_bit(i, &priv->phy->phy_attached)) {
-			/* only release PHYs that were actually connected by
-			 * fe_phy_connect(); phy_disconnect() also cancels
-			 * the state machine started by phy_connect(), which
-			 * would otherwise run against a detached phy_device.
-			 * A port PHY and a bus PHY at the same index are two
-			 * different objects here: phy_attached is only set
-			 * when fe_phy_is_port_phy() reported no match, so
-			 * this cannot disconnect the same phydev twice.
-			 */
-			phy_disconnect(priv->mii_bus->phy_map[i]);
-			clear_bit(i, &priv->phy->phy_attached);
-		}
+		    test_and_clear_bit(i, &priv->phy->phy_attached))
+			bus_phy = priv->mii_bus->phy_map[i];
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
+
+		/* Only release PHYs that were actually connected by
+		 * fe_phy_connect(); phy_disconnect() also cancels the state
+		 * machine started by phy_connect(). A port PHY and a bus PHY
+		 * at the same index are different objects, because
+		 * phy_attached is only set when fe_phy_is_port_phy() found
+		 * no match, so the same phydev is never detached twice.
+		 */
+		if (port_phy)
+			phy_disconnect(port_phy);
+		if (bus_phy)
+			phy_disconnect(bus_phy);
 
 		if (priv->phy->phy_node[i]) {
 			of_node_put(priv->phy->phy_node[i]);
