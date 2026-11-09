@@ -473,10 +473,27 @@ int mtk_gsw_init(struct fe_priv *priv)
 	mt7621_hw_init(gsw, np);
 
 	if (gsw->irq) {
+		int irqerr;
+
 		/* only now unmask the switch interrupt sources, when the
 		 * handler is actually registered
 		 */
-		mt7621_gsw_set_imr(gsw, priv, 0x1f);
+		irqerr = mt7621_gsw_set_imr(gsw, priv, 0x1f);
+		if (irqerr) {
+			/* The three-step MDIO write failed, so no link-change
+			 * event would ever reach the handler. Keep the sources
+			 * masked, balance the disable_irq() above and release
+			 * the action and both back-pointers before reporting
+			 * the error: fe_init() treats a switch_init() failure
+			 * as terminal and has no rollback for this path.
+			 */
+			mt7621_gsw_set_imr(gsw, priv, 0);
+			enable_irq(gsw->irq);
+			free_irq(gsw->irq, priv);
+			gsw->priv = NULL;
+			priv->soc->swpriv = NULL;
+			return irqerr;
+		}
 		enable_irq(gsw->irq);
 	}
 
