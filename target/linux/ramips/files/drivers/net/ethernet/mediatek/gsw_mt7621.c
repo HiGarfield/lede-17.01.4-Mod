@@ -531,7 +531,8 @@ int mtk_gsw_init(struct fe_priv *priv)
 			 * teardown paths: it frees the action, drains the
 			 * work and balances the leftover disable depth.
 			 */
-			mt7621_gsw_set_imr(gsw, priv, 0);
+			if (mt7621_gsw_set_imr(gsw, priv, 0))
+				mt7621_gsw_set_imr(gsw, priv, 0);
 			enable_irq(gsw->irq);
 			mt7621_gsw_stop_irq(gsw);
 			priv->soc->swpriv = NULL;
@@ -621,7 +622,10 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	 * back-pointer already, and fe_mdio_cleanup() has not run yet on
 	 * this path, so priv->mii_bus is still valid for the bus lock.
 	 */
-	if (gsw->irq)
+	/* A PIAC timeout is transient; retry once so a still-asserted
+	 * level-high source is not left enabled after free_irq() below.
+	 */
+	if (gsw->irq && mt7621_gsw_set_imr(gsw, priv, 0))
 		mt7621_gsw_set_imr(gsw, priv, 0);
 
 	/* the irq was requested with the fe_priv as dev_id; release it
@@ -695,7 +699,7 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		 * otherwise an interrupt in that window queues a work item
 		 * from a NULL gsw.
 		 */
-		if (gsw->irq)
+		if (gsw->irq && mt7621_gsw_set_imr(gsw, fe, 0))
 			mt7621_gsw_set_imr(gsw, fe, 0);
 		/* gsw is devm allocated: drain the deferred link work
 		 * before returning, and keep the irq disable depth
