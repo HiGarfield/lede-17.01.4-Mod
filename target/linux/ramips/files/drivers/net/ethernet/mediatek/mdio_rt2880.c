@@ -221,7 +221,6 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	unsigned long flags;
 	int size;
 	int phy_mode;
-	int speed;
 
 	/* A short "reg" property must not be dereferenced as a full
 	 * __be32; of_property_read_u32() validates the length.
@@ -279,11 +278,40 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 		return;
 
 	if (priv->phy->phy_fixed[0]) {
+		u32 sp, dup, tfc, rfc;
+
 		if (priv->phy->phy_node[0]) {
 			of_node_put(priv->phy->phy_node[0]);
 			priv->phy->phy_node[0] = NULL;
 		}
 		link = priv->phy->phy_fixed[0];
+		sp  = be32_to_cpup(link++);
+		dup = be32_to_cpup(link++);
+		tfc = be32_to_cpup(link++);
+		rfc = be32_to_cpup(link++);
+
+		/* Validate the whole tuple before publishing it. Only
+		 * speed was checked, so a value such as duplex=2 was
+		 * accepted and then interpreted as half duplex by
+		 * rt2880_mdio_link_adjust() (== DUPLEX_FULL) but as full
+		 * duplex by mt7620_port_init() (if (duplex)). Reject
+		 * DUPLEX_HALF/DUPLEX_FULL and boolean flow-control values.
+		 */
+		if (sp != SPEED_10 && sp != SPEED_100 && sp != SPEED_1000) {
+			dev_err(priv->dev, "invalid link speed: %u\n", sp);
+			goto invalid_fixed_link;
+		}
+		if (dup > 1) {
+			dev_err(priv->dev, "invalid fixed-link duplex: %u\n",
+				dup);
+			goto invalid_fixed_link;
+		}
+		if (tfc > 1 || rfc > 1) {
+			dev_err(priv->dev,
+				"invalid fixed-link flow control: %u/%u\n",
+				tfc, rfc);
+			goto invalid_fixed_link;
+		}
 
 		/* fe_phy_link_adjust() holds phy->lock while reading
 		 * speed/duplex/flow-control and link[] and while invoking
@@ -291,38 +319,29 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 		 * under the same lock instead of writing it unlocked.
 		 */
 		spin_lock_irqsave(&priv->phy->lock, flags);
-		priv->phy->speed[0] = be32_to_cpup(link++);
-		priv->phy->duplex[0] = be32_to_cpup(link++);
-		priv->phy->tx_fc[0] = be32_to_cpup(link++);
-		priv->phy->rx_fc[0] = be32_to_cpup(link++);
+		priv->phy->speed[0] = sp;
+		priv->phy->duplex[0] = dup;
+		priv->phy->tx_fc[0] = tfc;
+		priv->phy->rx_fc[0] = rfc;
 		priv->link[0] = 1;
-		speed = priv->phy->speed[0];
 		spin_unlock_irqrestore(&priv->phy->lock, flags);
 
-		switch (speed) {
-		case SPEED_10:
-			break;
-		case SPEED_100:
-			break;
-		case SPEED_1000:
-			break;
-		default:
-			dev_err(priv->dev, "invalid link speed: %d\n", speed);
-			priv->phy->phy_fixed[0] = 0;
-			/* undo the early link-up above: the carrier must
-			 * not stay up for a port we just rejected
-			 */
-			spin_lock_irqsave(&priv->phy->lock, flags);
-			priv->link[0] = 0;
-			spin_unlock_irqrestore(&priv->phy->lock, flags);
-			return;
-		}
 		dev_info(priv->dev, "using fixed link parameters\n");
 		/* mdio_adjust_link is always called with phy->lock held by
 		 * fe_phy_link_adjust(); keep the direct call identical.
 		 */
 		spin_lock_irqsave(&priv->phy->lock, flags);
 		rt2880_mdio_link_adjust(priv, 0);
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
+		return;
+
+invalid_fixed_link:
+		/* Drop the bad description and make sure a previous
+		 * ndo_init's link state cannot stay up for a rejected port.
+		 */
+		priv->phy->phy_fixed[0] = 0;
+		spin_lock_irqsave(&priv->phy->lock, flags);
+		priv->link[0] = 0;
 		spin_unlock_irqrestore(&priv->phy->lock, flags);
 		return;
 	}

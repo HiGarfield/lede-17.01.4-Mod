@@ -267,7 +267,7 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 	if (priv->phy->phy_fixed[id]) {
 		const __be32 *link = priv->phy->phy_fixed[id];
 		unsigned long flags;
-		int speed, duplex, tx_fc, rx_fc;
+		u32 sp, dup, tfc, rfc;
 		u32 val = 0;
 
 		if (priv->phy->phy_node[id]) {
@@ -282,25 +282,47 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		 * same DT property.  Keep tx_fc/rx_fc in priv->phy as well so
 		 * the port state is complete regardless of the SoC.
 		 *
-		 * The GSW irq handler/irq_work and fe_phy_link_adjust() all
+		 * Validate the whole tuple before publishing it. Only speed
+		 * was checked: duplex=2 was then used as a boolean here but
+		 * compared against DUPLEX_FULL in mdio_rt2880.c, so the same
+		 * DT value produced opposite duplex settings on the two
+		 * paths. Flow-control cells must be boolean too.
+		 */
+		sp  = be32_to_cpup(link++);
+		dup = be32_to_cpup(link++);
+		tfc = be32_to_cpup(link++);
+		rfc = be32_to_cpup(link++);
+
+		if (sp != SPEED_10 && sp != SPEED_100 && sp != SPEED_1000) {
+			dev_err(priv->dev, "invalid link speed: %u\n", sp);
+			goto invalid_fixed_link;
+		}
+		if (dup > 1) {
+			dev_err(priv->dev, "invalid fixed-link duplex: %u\n",
+				dup);
+			goto invalid_fixed_link;
+		}
+		if (tfc > 1 || rfc > 1) {
+			dev_err(priv->dev,
+				"invalid fixed-link flow control: %u/%u\n",
+				tfc, rfc);
+			goto invalid_fixed_link;
+		}
+
+		/* The GSW irq handler/irq_work and fe_phy_link_adjust() all
 		 * read these fields and link[] under phy->lock (the switch
 		 * interrupt is already registered by the time fe_init() runs
-		 * port_init). Publish and consume the whole tuple under that
-		 * lock instead of racing with them.
+		 * port_init). Publish the validated tuple under that lock.
 		 */
 		spin_lock_irqsave(&priv->phy->lock, flags);
-		priv->phy->speed[id] = be32_to_cpup(link++);
-		priv->phy->duplex[id] = be32_to_cpup(link++);
-		priv->phy->tx_fc[id] = be32_to_cpup(link++);
-		priv->phy->rx_fc[id] = be32_to_cpup(link++);
+		priv->phy->speed[id] = sp;
+		priv->phy->duplex[id] = dup;
+		priv->phy->tx_fc[id] = tfc;
+		priv->phy->rx_fc[id] = rfc;
 		priv->link[id] = 1;
-		speed = priv->phy->speed[id];
-		duplex = priv->phy->duplex[id];
-		tx_fc = priv->phy->tx_fc[id];
-		rx_fc = priv->phy->rx_fc[id];
 		spin_unlock_irqrestore(&priv->phy->lock, flags);
 
-		switch (speed) {
+		switch (sp) {
 		case SPEED_10:
 			val = 0;
 			break;
@@ -310,28 +332,28 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		case SPEED_1000:
 			val = 2;
 			break;
-		default:
-			dev_err(priv->dev, "invalid link speed: %d\n", speed);
-			priv->phy->phy_fixed[id] = 0;
-			/* undo the early link-up above: the carrier must
-			 * not stay up for a port we just rejected
-			 */
-			spin_lock_irqsave(&priv->phy->lock, flags);
-			priv->link[id] = 0;
-			spin_unlock_irqrestore(&priv->phy->lock, flags);
-			return;
 		}
 		val = PMCR_SPEED(val);
 		val |= PMCR_LINK | PMCR_BACKPRES | PMCR_BACKOFF | PMCR_RX_EN |
 			PMCR_TX_EN | PMCR_FORCE | PMCR_MAC_MODE | PMCR_IPG;
-		if (tx_fc)
+		if (tfc)
 			val |= PMCR_TX_FC;
-		if (rx_fc)
+		if (rfc)
 			val |= PMCR_RX_FC;
-		if (duplex)
+		if (dup)
 			val |= PMCR_DUPLEX;
 		mtk_switch_w32(gsw, val, GSW_REG_PORT_PMCR(id));
 		dev_info(priv->dev, "using fixed link parameters\n");
+		return;
+
+invalid_fixed_link:
+		/* Drop the bad description and make sure a previous
+		 * ndo_init's link state cannot stay up for a rejected port.
+		 */
+		priv->phy->phy_fixed[id] = 0;
+		spin_lock_irqsave(&priv->phy->lock, flags);
+		priv->link[id] = 0;
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
 		return;
 	}
 
