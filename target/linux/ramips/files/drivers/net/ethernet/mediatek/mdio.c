@@ -287,7 +287,7 @@ static int fe_phy_connect(struct fe_priv *priv)
 	unsigned long flags;
 	int i, err, ret = 0;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
 		if (priv->phy->phy_node[i]) {
 			/* phy_dev/phy_flags are read under phy->lock by
 			 * fe_set_settings(); publish them the same way.
@@ -456,7 +456,7 @@ static void fe_phy_start(struct fe_priv *priv)
 	unsigned long flags;
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
 		/* see fe_phy_disconnect(): a fixed link does not preclude a
 		 * bus-scanned PHY at this index, both states must be handled
 		 */
@@ -488,7 +488,7 @@ static void fe_phy_stop(struct fe_priv *priv)
 	unsigned long flags;
 	int i;
 
-	for (i = 0; i < 8; i++) {
+	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
 		/* see fe_phy_disconnect(): keep fixed-link and PHY handling
 		 * independent so start/stop stay balanced on every port
 		 */

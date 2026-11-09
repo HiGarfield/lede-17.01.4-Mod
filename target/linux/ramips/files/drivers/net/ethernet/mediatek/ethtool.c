@@ -53,10 +53,18 @@ static int fe_set_settings(struct net_device *dev,
 	unsigned long flags;
 	int i;
 
-	/* ethtool's phy_address is an MDIO bus address, so bound it
-	 * against the bus width, not against the 8 port slots.
+	/* This driver only ever manages MDIO addresses 0..7:
+	 * fe_phy_connect(), fe_phy_start/stop/disconnect() and
+	 * fe_phy_link_adjust() all walk the eight port-sized arrays and
+	 * phy_attached only has bits 0..7 set. Bounding by PHY_MAX_ADDR
+	 * promised addresses that can never be attached, and the old
+	 * comment claiming phy_map[]/phy_attached cover the whole bus
+	 * was wrong: widening those loops to PHY_MAX_ADDR would write
+	 * past link[8], phy[8] and speed[8]. Reject them up front.
+	 * ARRAY_SIZE() is a compile-time constant, so this is safe even
+	 * before the priv->phy NULL check below.
 	 */
-	if (cmd->phy_address >= PHY_MAX_ADDR)
+	if (cmd->phy_address >= ARRAY_SIZE(priv->phy->phy))
 		return -EINVAL;
 
 	if (!priv->phy_dev || !priv->phy)
@@ -90,11 +98,10 @@ static int fe_set_settings(struct net_device *dev,
 		 * actually attached it: phy_ethtool_sset() ends up in
 		 * phydev->drv and must not run on an unattached phydev.
 		 */
-		/* cmd->phy_address was already bounded by PHY_MAX_ADDR at
-		 * the entry of this function. ARRAY_SIZE(priv->phy->phy) is
-		 * the number of eth-port slots, not the MDIO bus width, so
-		 * using it here rejects addresses 8..31 even though
-		 * phy_map[] and phy_attached cover the whole bus.
+		/* cmd->phy_address is now bounded by the same 8 slots that
+		 * fe_phy_connect() walks, so phy_map[] indexing is safe and
+		 * phy_attached can only be set for an address this driver
+		 * actually attached in phy_init().
 		 */
 		if (!new_phy &&
 		    priv->mii_bus &&
