@@ -212,8 +212,18 @@ static int phy_init(struct fe_priv *priv, struct phy_device *phy)
 	phy->autoneg = AUTONEG_ENABLE;
 	phy->speed = 0;
 	phy->duplex = 0;
-	phy->supported &= IS_ENABLED(CONFIG_NET_MEDIATEK_MDIO_MT7620) ?
-			PHY_GBIT_FEATURES : PHY_BASIC_FEATURES;
+	/* mdio.o is only built for RT2880/RT3883/MT7620/MT7621, all of
+	 * which are gigabit SoCs: rt2880_mdio_link_adjust() programs
+	 * GP1_SPEED_1000 and rt2880_port_init() accepts RGMII. Keying the
+	 * mask off the MDIO implementation's config symbol forced those
+	 * boards down to 10/100 for bus-scanned PHYs, while the very same
+	 * PHY connected through a DT handle got PHY_GBIT_FEATURES in
+	 * fe_connect_phy_node(). Keep both attachment paths consistent;
+	 * the PHY's own supported mask still limits what is advertised.
+	 * The 10/100-only RT3050/RT5350 have no mdio ops, so phy_init()
+	 * is never reached there.
+	 */
+	phy->supported &= PHY_GBIT_FEATURES;
 	phy->advertising = phy->supported | ADVERTISED_Autoneg;
 
 	/* Ignoring this result reported a successfully attached PHY whose
