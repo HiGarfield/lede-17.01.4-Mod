@@ -171,18 +171,20 @@ static u32 fe_get_link(struct net_device *dev)
 	int err;
 
 	if (!priv->phy_dev)
-		goto out_get_link;
+		return ethtool_op_get_link(dev);
 
-	if (priv->phy_flags == FE_PHY_FLAG_ATTACH) {
-		err = genphy_update_link(priv->phy_dev);
-		if (err)
-			goto out_get_link;
-	}
+	/* Refresh for both attachment types. Only the bus-scanned
+	 * (FE_PHY_FLAG_ATTACH) path called genphy_update_link(), so a
+	 * DT phy-handle PHY returned a cached link value until its state
+	 * machine next polled. fe_get_settings() already calls
+	 * phy_read_status(), which made one ethtool report show a stale
+	 * link alongside freshly read speed and duplex.
+	 */
+	err = phy_read_status(priv->phy_dev);
+	if (err)
+		return ethtool_op_get_link(dev);
 
 	return priv->phy_dev->link;
-
-out_get_link:
-	return ethtool_op_get_link(dev);
 }
 
 static int fe_set_ringparam(struct net_device *dev,
