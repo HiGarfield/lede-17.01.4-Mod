@@ -1822,21 +1822,77 @@ static int fe_stop(struct net_device *dev)
 	return 0;
 }
 
-void fe_unregister_switches(struct fe_priv *priv)
+/* gsw_dev[] and gsw_dev_num live in the module-wide fe_soc_data. They
+ * are touched by three independent teardown paths (fe_remove, fe_uninit
+ * and fe_init's rollback, plus the two GSW platform drivers' remove())
+ * and by the switch_config probe path. Those platform devices have
+ * separate device locks, so two of these paths can run at the same time.
+ */
+static DEFINE_MUTEX(fe_switch_lock);
+
+int fe_probe_and_register_switch(struct fe_priv *priv, void __iomem *base,
+				 struct mii_bus *bus, int vlan)
 {
+	struct switch_dev *swdev;
+	int err = -ENOSPC;
+
+	/* Keep the whole probe and its publication inside one critical
+	 * section. If the GSW device is unbound while mt7530_probe() is
+	 * still calling register_switch(), the remove path must be able
+	 * to claim the new entry as soon as it appears; otherwise a
+	 * switch_dev pointing into the released devm mapping survives.
+	 */
+	mutex_lock(&fe_switch_lock);
+	if (priv->soc->gsw_dev_num < ARRAY_SIZE(priv->soc->gsw_dev)) {
+		swdev = mt7530_probe(priv->dev, base, bus, vlan);
+		if (IS_ERR(swdev))
+			err = PTR_ERR(swdev);
+		else {
+			priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
+			err = 0;
+		}
+	}
+	mutex_unlock(&fe_switch_lock);
+
+	return err;
+}
+EXPORT_SYMBOL_GPL(fe_probe_and_register_switch);
+
+void fe_unregister_switches_from(struct fe_priv *priv, int start)
+{
+	struct switch_dev *claimed[ARRAY_SIZE(priv->soc->gsw_dev)];
 	int i;
 
-	/* Walk the whole array, not just gsw_dev_num: a failed probe can
-	 * leave a registered entry behind a stale counter, and this helper
-	 * is also called from the GSW unbind paths after the FE side has
-	 * already changed that counter.
+	/* Claim-and-clear under the lock so a concurrent teardown sees
+	 * NULL instead of a pointer that is about to be freed. The actual
+	 * removal runs outside the lock: unregister_switch() drains
+	 * sleeping swconfig callbacks and must not hold fe_switch_lock
+	 * while a probe is waiting for it.
 	 */
+	mutex_lock(&fe_switch_lock);
 	for (i = 0; i < ARRAY_SIZE(priv->soc->gsw_dev); i++) {
-		if (priv->soc->gsw_dev[i])
-			mt7530_remove(priv->soc->gsw_dev[i]);
-		priv->soc->gsw_dev[i] = NULL;
+		claimed[i] = (i >= start) ? priv->soc->gsw_dev[i] : NULL;
+		if (i >= start)
+			priv->soc->gsw_dev[i] = NULL;
 	}
-	priv->soc->gsw_dev_num = 0;
+	if (start == 0)
+		priv->soc->gsw_dev_num = 0;
+	else if (priv->soc->gsw_dev_num > start)
+		priv->soc->gsw_dev_num = start;
+	mutex_unlock(&fe_switch_lock);
+
+	for (i = 0; i < ARRAY_SIZE(priv->soc->gsw_dev); i++)
+		if (claimed[i])
+			mt7530_remove(claimed[i]);
+}
+EXPORT_SYMBOL_GPL(fe_unregister_switches_from);
+
+void fe_unregister_switches(struct fe_priv *priv)
+{
+	/* Walk the whole array, not just gsw_dev_num: a failed probe can
+	 * leave a registered entry behind a stale counter.
+	 */
+	fe_unregister_switches_from(priv, 0);
 }
 EXPORT_SYMBOL_GPL(fe_unregister_switches);
 

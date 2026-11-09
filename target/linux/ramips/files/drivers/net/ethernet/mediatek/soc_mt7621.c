@@ -86,8 +86,6 @@ static const u16 mt7621_reg_table[FE_REG_COUNT] = {
 
 static int mt7621_gsw_config(struct fe_priv *priv)
 {
-	struct switch_dev *swdev;
-
 	/* the MT7530 must answer at MDIO address 0x1f; succeeding
 	 * silently without it would leave FE_FLAG_HAS_SWITCH set with
 	 * no switch behind it
@@ -97,21 +95,14 @@ static int mt7621_gsw_config(struct fe_priv *priv)
 		return -ENODEV;
 	}
 
-	/* check the tracking array before probing: mt7530_probe()
-	 * allocates devm state on this device, registers a switch_dev
-	 * and rewrites the hardware VLAN table, none of which an
-	 * overflow path could fully undo
+	/* The capacity check, mt7530_probe() and the publication into
+	 * gsw_dev[] must be one locked operation: mt7530_probe()
+	 * allocates state, registers a switch_dev and rewrites the
+	 * hardware VLAN table, none of which an overflow path could
+	 * fully undo, and a racing GSW unbind must not leave a newly
+	 * registered switch behind after releasing its devm mapping.
 	 */
-	if (priv->soc->gsw_dev_num >= ARRAY_SIZE(priv->soc->gsw_dev))
-		return -ENOSPC;
-
-	swdev = mt7530_probe(priv->dev, NULL, priv->mii_bus, 1);
-	if (IS_ERR(swdev))
-		return PTR_ERR(swdev);
-
-	priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
-
-	return 0;
+	return fe_probe_and_register_switch(priv, NULL, priv->mii_bus, 1);
 }
 
 static void mt7621_fe_reset(void)

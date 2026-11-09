@@ -95,21 +95,10 @@ static const u16 mt7620_reg_table[FE_REG_COUNT] = {
 static int mt7620_mt7530_probe(struct fe_priv *priv, void __iomem *base,
 			       struct mii_bus *bus, int vlan)
 {
-	struct switch_dev *swdev;
-
-	/* probing past the tracking array would register a switch_dev
-	 * nothing could ever unregister again
+	/* Capacity check, probe and publication must be atomic with
+	 * respect to the teardown paths claiming gsw_dev[].
 	 */
-	if (priv->soc->gsw_dev_num >= ARRAY_SIZE(priv->soc->gsw_dev))
-		return -ENOSPC;
-
-	swdev = mt7530_probe(priv->dev, base, bus, vlan);
-	if (IS_ERR(swdev))
-		return PTR_ERR(swdev);
-
-	priv->soc->gsw_dev[priv->soc->gsw_dev_num++] = swdev;
-
-	return 0;
+	return fe_probe_and_register_switch(priv, base, bus, vlan);
 }
 
 static int mt7620_gsw_config(struct fe_priv *priv)
@@ -135,17 +124,10 @@ static int mt7620_gsw_config(struct fe_priv *priv)
 			/* Undo exactly the switches this call registered.
 			 * gsw_dev_num is a static SoC-global and can already
 			 * be non-zero on a re-probe, so the first probe may
-			 * have landed in slot 1: unregistering the hardcoded
-			 * slot 0 then passes NULL (or a foreign switch) to
-			 * unregister_switch(), resets the counter to 0 and
-			 * leaves the real switch registered forever.
+			 * have landed in slot 1. Use the same locked
+			 * claim-and-clear helper as the teardown paths.
 			 */
-			while (priv->soc->gsw_dev_num > start) {
-				int idx = --priv->soc->gsw_dev_num;
-
-				mt7530_remove(priv->soc->gsw_dev[idx]);
-				priv->soc->gsw_dev[idx] = NULL;
-			}
+			fe_unregister_switches_from(priv, start);
 			return err;
 		}
 	} else {
