@@ -1759,12 +1759,21 @@ static int fe_stop(struct net_device *dev)
 
 	/* wait dma stop */
 	for (i = 0; i < 10; i++) {
-		if (fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
-				(FE_TX_DMA_BUSY | FE_RX_DMA_BUSY)) {
-			msleep(20);
-			continue;
-		}
-		break;
+		if (!(fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+				(FE_TX_DMA_BUSY | FE_RX_DMA_BUSY)))
+			break;
+		msleep(20);
+	}
+	/* The loop used to fall through after ten iterations without
+	 * checking the result. Callers free the descriptor rings right
+	 * after fe_stop(), so a wedged engine would keep writing into
+	 * memory that has already been unmapped or reallocated.
+	 */
+	if (i == 10 &&
+	    (fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+			(FE_TX_DMA_BUSY | FE_RX_DMA_BUSY))) {
+		netdev_err(dev, "DMA engine did not quiesce, rings kept\n");
+		return -EBUSY;
 	}
 
 	return 0;
@@ -1920,6 +1929,14 @@ static void fe_uninit(struct net_device *dev)
 			break;
 		msleep(20);
 	}
+	/* unregister_netdev() cannot be aborted at this point, so the
+	 * rings must still be released; make the otherwise silent wedged
+	 * engine visible instead of letting it look like a random oops.
+	 */
+	if (i == 10 &&
+	    (fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+		    (FE_TX_DMA_BUSY | FE_RX_DMA_BUSY)))
+		netdev_err(dev, "DMA engine did not quiesce during uninit\n");
 
 	/* cut the interrupt sources before the lengthy cleanup below:
 	 * phy disconnect and MDIO teardown can take long enough for the
@@ -1979,7 +1996,13 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 	int err;
 
 	if (was_running) {
-		fe_stop(priv->netdev);
+		/* Do not free the rings while the engine is still writing
+		 * to them. fe_change_mtu() already rolls dev->mtu back on
+		 * any error from this function.
+		 */
+		err = fe_stop(priv->netdev);
+		if (err)
+			return err;
 	} else {
 		/* The DMA engine may still be running here: it is enabled
 		 * in fe_init() (ndo_init) and only stopped again by
@@ -1999,6 +2022,13 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 			      (FE_TX_DMA_BUSY | FE_RX_DMA_BUSY)))
 				break;
 			msleep(20);
+		}
+		if (i == 10 &&
+		    (fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
+			    (FE_TX_DMA_BUSY | FE_RX_DMA_BUSY))) {
+			netdev_err(priv->netdev,
+				   "DMA engine did not quiesce, rings kept\n");
+			return -EBUSY;
 		}
 	}
 
@@ -2250,7 +2280,13 @@ static void fe_reset_pending(struct fe_priv *priv)
 		rtnl_unlock();
 		return;
 	}
-	fe_stop(dev);
+	/* A -EBUSY here means the engine never went quiet. The rings are
+	 * still allocated and this is a recovery path, so deliberately
+	 * proceed with the up/down cycle, but do not hide the condition.
+	 */
+	if (fe_stop(dev))
+		netif_alert(priv, ifup, dev,
+			    "DMA engine wedged during up/down cycle.\n");
 
 	err = fe_open(dev);
 	if (err) {
