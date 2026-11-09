@@ -2202,6 +2202,38 @@ static void fe_jumbo_config(struct net_device *dev, int frag_size)
 	fe_w32(fwd_cfg, FE_GDMA1_FWD_CFG);
 }
 
+static int fe_set_features(struct net_device *dev,
+			   netdev_features_t features)
+{
+	struct fe_priv *priv = netdev_priv(dev);
+	netdev_features_t saved;
+	int ret;
+
+	/* netdev_update_features() only calls this hook when the set
+	 * actually changes, so always reprogram: deriving "changed" from
+	 * dev->features is unreliable if the core has already committed
+	 * the new set before invoking us. Every SoC fwd_config() reads
+	 * dev->features to program the checksum and RX-VLAN hardware bits,
+	 * so publish the new set for the callback and restore the old one
+	 * if programming fails.
+	 */
+	saved = dev->features;
+	dev->features = features;
+	ret = priv->soc->fwd_config(priv);
+	if (ret) {
+		dev->features = saved;
+		return ret;
+	}
+
+	/* fwd_config() rewrites GDMA1_FWD_CFG and, on jumbo-capable SoCs,
+	 * clears FE_GDM1_JMB_EN. Restore the programmed jumbo state for
+	 * the current MTU so an ethtool -K does not silently disable it.
+	 */
+	fe_jumbo_config(dev, priv->rx_ring.frag_size);
+
+	return 0;
+}
+
 static int fe_change_mtu(struct net_device *dev, int new_mtu)
 {
 	struct fe_priv *priv = netdev_priv(dev);
@@ -2319,6 +2351,7 @@ static const struct net_device_ops fe_netdev_ops = {
 	.ndo_validate_addr	= eth_validate_addr,
 	.ndo_do_ioctl		= fe_do_ioctl,
 	.ndo_fix_features	= fe_fix_features,
+	.ndo_set_features	= fe_set_features,
 	.ndo_change_mtu		= fe_change_mtu,
 	.ndo_tx_timeout		= fe_tx_timeout,
 	.ndo_get_stats64        = fe_get_stats64,
