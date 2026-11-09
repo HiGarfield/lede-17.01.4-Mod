@@ -435,10 +435,13 @@ int mtk_gsw_init(struct fe_priv *priv)
 		int irqerr;
 
 		/* a previous instance has been drained by
-		 * mt7621_gsw_stop_irq(); start with a clean guard
+		 * mt7621_gsw_stop_irq(); start with a clean guard. The work
+		 * item itself is initialised once by mt7621_gsw_probe():
+		 * ndo_init() can run again after an unregister/re-register
+		 * while a work item is still queued or running, and
+		 * INIT_WORK() on a live work_struct corrupts its list node.
 		 */
 		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
-		INIT_WORK(&gsw->irq_work, gsw_irq_work_mt7621);
 		irqerr = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
 				     "gsw", priv);
 
@@ -541,6 +544,11 @@ static int mt7621_gsw_probe(struct platform_device *pdev)
 
 	gsw->dev = &pdev->dev;
 	spin_lock_init(&gsw->mdio_lock);
+	/* Initialise the work item once, while the devm object is fresh.
+	 * Teardown must be able to flush_work() even when FE ndo_init()
+	 * never got as far as request_irq().
+	 */
+	INIT_WORK(&gsw->irq_work, gsw_irq_work_mt7621);
 	gsw->irq = platform_get_irq(pdev, 0);
 	/* do not swallow -EPROBE_DEFER: mapping it to 0 made the probe
 	 * succeed permanently without an interrupt (same fix as
