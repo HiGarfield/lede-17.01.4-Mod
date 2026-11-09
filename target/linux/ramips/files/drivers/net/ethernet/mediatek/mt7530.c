@@ -640,6 +640,25 @@ mt7530_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 			etags |= BIT(p->id);
 	}
 	mutex_lock(&priv->reg_mutex);
+
+	/* Freeze every index reference to this VLAN before replacing the
+	 * member list. An untagged member stores the table index in pvid;
+	 * if it is now tagged or has left the VLAN, that reference must not
+	 * survive, otherwise a later set_vid() on this VLAN silently
+	 * changes an unrelated port's PVID when apply_config() resolves
+	 * the stale index. Ports that stay untagged are re-marked below.
+	 */
+	for (i = 0; i < MT7530_NUM_PORTS; i++) {
+		struct mt7530_port_entry *entry = &priv->port_entries[i];
+
+		if (!entry->pvid_is_index ||
+		    entry->pvid != val->port_vlan)
+			continue;
+
+		entry->pvid = priv->vlan_entries[val->port_vlan].vid;
+		entry->pvid_is_index = false;
+	}
+
 	priv->vlan_entries[val->port_vlan].member = member;
 	priv->vlan_entries[val->port_vlan].etags = etags;
 	set_bit(val->port_vlan, priv->vlan_dirty);
