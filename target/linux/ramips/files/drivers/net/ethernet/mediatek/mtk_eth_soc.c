@@ -1659,12 +1659,27 @@ static int fe_hw_init(struct net_device *dev)
 		 * and skip fe_vlan_write_slot(). For any VID whose value
 		 * differs from its (vid & 0xf) slot the hardware then holds
 		 * the reset value and frames are tagged with the wrong VID.
-		 * Reset just the slot mirror; active_vids and the offload
-		 * conflict state belong to the VLAN core and are rebuilt by
-		 * its add_vid calls after re-registration.
 		 */
 		priv->vlan_map = 0;
 		memset(priv->vlan_vid, 0, sizeof(priv->vlan_vid));
+
+		/* active_vids, vlan_offload_conflict and
+		 * vlan_tx_offload_wanted are private to this driver: the
+		 * VLAN core only re-issues add_vid, it never clears them.
+		 * Leaving a stale conflict behind makes every add_vid
+		 * return without programming a slot, makes fe_fix_features
+		 * strip NETIF_F_HW_VLAN_CTAG_TX forever, and blocks the
+		 * recovery condition in fe_vlan_rx_kill_vid() because
+		 * active_vids is never empty. Restore the full fresh state,
+		 * including the wanted_features bit that the conflict logic
+		 * had cleared, so the user can enable TX offload again.
+		 */
+		bitmap_clear(priv->active_vids, 0, VLAN_N_VID);
+		if (priv->vlan_offload_conflict)
+			dev->wanted_features |=
+				dev->hw_features & NETIF_F_HW_VLAN_CTAG_TX;
+		priv->vlan_offload_conflict = false;
+		priv->vlan_tx_offload_wanted = false;
 	}
 
 	err = priv->soc->fwd_config(priv);
