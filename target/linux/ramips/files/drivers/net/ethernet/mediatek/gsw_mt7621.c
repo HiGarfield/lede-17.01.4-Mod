@@ -569,7 +569,7 @@ static int mt7621_gsw_probe(struct platform_device *pdev)
 		return PTR_ERR(gsw->base);
 
 	gsw->dev = &pdev->dev;
-	spin_lock_init(&gsw->mdio_lock);
+	mutex_init(&gsw->mdio_lock);
 	/* Initialise the work item once, while the devm object is fresh.
 	 * Teardown must be able to flush_work() even when FE ndo_init()
 	 * never got as far as request_irq().

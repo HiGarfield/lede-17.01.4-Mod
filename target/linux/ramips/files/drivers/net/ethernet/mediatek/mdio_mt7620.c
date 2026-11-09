@@ -16,6 +16,7 @@
 #include <linux/kernel.h>
 #include <linux/types.h>
 #include <linux/errno.h>
+#include <linux/mutex.h>
 
 #include "mtk_eth_soc.h"
 #include "gsw_mt7620.h"
@@ -24,7 +25,6 @@
 void mt7620_mdio_reset(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
-	unsigned long flags;
 
 	if (!gsw)
 		return;
@@ -36,21 +36,22 @@ void mt7620_mdio_reset(struct fe_priv *priv)
 	 * every other user or it can clear START/BUSY in the middle of
 	 * somebody else's transaction.
 	 */
-	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	mutex_lock(&gsw->mdio_lock);
 	mtk_switch_w32(gsw,
 		       mtk_switch_r32(gsw, MT7620A_GSW_REG_PIAC) &
 		       ~GSW_MDIO_ACCESS,
 		       MT7620A_GSW_REG_PIAC);
-	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+	mutex_unlock(&gsw->mdio_lock);
 	udelay(10);
 }
 
-/* The PIAC busy-wait runs inside spin_lock_irqsave(&gsw->mdio_lock),
- * i.e. with local interrupts disabled. jiffies only advances from the
- * timer interrupt, so on the UP targets (every ramips subtarget except
- * mt7621) a jiffies based timeout can never expire: a wedged engine
- * would spin forever with interrupts off. Use a bounded retry count
- * that does not depend on the tick instead.
+/* The PIAC busy-wait runs while gsw->mdio_lock is held. jiffies only
+ * advances from the timer interrupt, so on the UP targets (every ramips
+ * subtarget except mt7621) a jiffies based timeout cannot be relied on
+ * during a long transaction. Use a bounded retry count that does not
+ * depend on the tick instead. The lock is now a mutex, so this wait no
+ * longer disables local interrupts: a wedged engine can no longer stall
+ * the timer tick or the FE interrupt for the whole retry window.
  */
 #define GSW_MDIO_BUSY_RETRIES	2000
 
@@ -122,12 +123,11 @@ static int __mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 int _mt7620_mii_write(struct mt7620_gsw *gsw, u32 phy_addr,
 		      u32 phy_register, u32 write_data)
 {
-	unsigned long flags;
 	int ret;
 
-	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	mutex_lock(&gsw->mdio_lock);
 	ret = __mt7620_mii_write(gsw, phy_addr, phy_register, write_data);
-	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+	mutex_unlock(&gsw->mdio_lock);
 
 	return ret;
 }
@@ -157,13 +157,12 @@ static int __mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr,
 
 int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 {
-	unsigned long flags;
 	u16 d;
 	int ret;
 
-	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	mutex_lock(&gsw->mdio_lock);
 	ret = __mt7620_mii_read(gsw, phy_addr, phy_reg, &d);
-	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+	mutex_unlock(&gsw->mdio_lock);
 
 	/* A PIAC timeout is not register value 0xffff. Returning a fake
 	 * positive value lets a read-modify-write caller program 0xffff
@@ -179,12 +178,11 @@ int _mt7620_mii_read(struct mt7620_gsw *gsw, int phy_addr, int phy_reg)
 int mt7620_mii_read_reg(struct mt7620_gsw *gsw, int phy_addr, int phy_reg,
 			u16 *val)
 {
-	unsigned long flags;
 	int ret;
 
-	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	mutex_lock(&gsw->mdio_lock);
 	ret = __mt7620_mii_read(gsw, phy_addr, phy_reg, val);
-	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+	mutex_unlock(&gsw->mdio_lock);
 
 	return ret;
 }
@@ -220,7 +218,6 @@ int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 
 int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
 {
-	unsigned long flags;
 	int ret;
 
 	/* the indirect-address write and the two data writes are one
@@ -228,14 +225,14 @@ int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
 	 * other transaction can clobber the address register in
 	 * between. Abort on the first failed transaction.
 	 */
-	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	mutex_lock(&gsw->mdio_lock);
 	ret = __mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
 	if (!ret)
 		ret = __mt7620_mii_write(gsw, 0x1f, (reg >> 2) & 0xf,
 					 val & 0xffff);
 	if (!ret)
 		ret = __mt7620_mii_write(gsw, 0x1f, 0x10, val >> 16);
-	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+	mutex_unlock(&gsw->mdio_lock);
 
 	return ret;
 }
@@ -243,17 +240,16 @@ EXPORT_SYMBOL_GPL(mt7530_mdio_w32);
 
 int mt7530_mdio_r32(struct mt7620_gsw *gsw, u32 reg, u32 *val)
 {
-	unsigned long flags;
 	u16 high, low;
 	int ret;
 
-	spin_lock_irqsave(&gsw->mdio_lock, flags);
+	mutex_lock(&gsw->mdio_lock);
 	ret = __mt7620_mii_write(gsw, 0x1f, 0x1f, (reg >> 6) & 0x3ff);
 	if (!ret)
 		ret = __mt7620_mii_read(gsw, 0x1f, (reg >> 2) & 0xf, &low);
 	if (!ret)
 		ret = __mt7620_mii_read(gsw, 0x1f, 0x10, &high);
-	spin_unlock_irqrestore(&gsw->mdio_lock, flags);
+	mutex_unlock(&gsw->mdio_lock);
 
 	if (ret)
 		return ret;

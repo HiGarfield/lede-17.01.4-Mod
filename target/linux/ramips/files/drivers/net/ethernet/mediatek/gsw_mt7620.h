@@ -15,6 +15,7 @@
 #ifndef _RALINK_GSW_MT7620_H__
 #define _RALINK_GSW_MT7620_H__
 
+#include <linux/mutex.h>
 #include <linux/spinlock.h>
 #include <linux/workqueue.h>
 
@@ -111,11 +112,14 @@ struct mt7620_gsw {
 	int			irq;
 	int			port4;
 	unsigned long int	autopoll;
-	/* serialises PIAC (MDIO) transactions: besides the mii_bus
+	/* Serialises whole PIAC (MDIO) transactions: besides the mii_bus
 	 * ops, the PIAC is also poked directly from swconfig and the
-	 * MT7621 irq handler, bypassing the mdiobus lock
+	 * MT7621 irq work. A three-step indirect access can busy-wait for
+	 * milliseconds, so this must be a sleeping lock; every caller runs
+	 * in process or workqueue context (there is no hardirq user), and
+	 * disabling local IRQs for that long starves the timer and FE IRQs.
 	 */
-	spinlock_t		mdio_lock;
+	struct mutex		mdio_lock;
 	/* MT7621: MDIO is too slow for hardirq, link handling is
 	 * deferred to this work item
 	 */
