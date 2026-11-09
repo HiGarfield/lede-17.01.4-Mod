@@ -233,6 +233,15 @@ struct rt305x_esw {
 	 */
 	struct mutex		mii_lock;
 
+	/* Records any timed-out PCR0/PCR1 transaction since the last
+	 * esw_hw_init() reset. The calibration sequence issues dozens of
+	 * writes whose return values cannot all be checked at the call
+	 * site; esw_hw_init() reads this flag so a failed register page
+	 * switch is still reported to probe/reset instead of being
+	 * silently ignored.
+	 */
+	bool			mii_failed;
+
 	/* Serialises esw_apply_config() against the set callbacks that
 	 * modify the software state it reads, so a VLANI/VMSC/PVIDC
 	 * triple cannot be programmed half old, half new
@@ -348,8 +357,10 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 	}
 out:
 	mutex_unlock(&esw->mii_lock);
-	if (ret)
+	if (ret) {
 		dev_err(esw->dev, "ramips_eth: MDIO timeout\n");
+		esw->mii_failed = true;
+	}
 	return ret;
 }
 
@@ -505,6 +516,12 @@ static int esw_hw_init(struct rt305x_esw *esw)
 	u32 poc0;
 	u8 port_disable = 0;
 	u8 port_map = RT305X_ESW_PMAP_LLLLLL;
+
+	/* All calibration writes below share the PCR0/PCR1 command
+	 * register. Start a fresh error record: a previous apply may have
+	 * flagged a timeout that has nothing to do with this init pass.
+	 */
+	esw->mii_failed = false;
 
 	/* vodoo from original driver */
 	esw_w32(esw, 0xC8A07850, RT305X_ESW_REG_FCT0);
@@ -761,6 +778,18 @@ static int esw_hw_init(struct rt305x_esw *esw)
 
 	/* Apply the empty config. */
 	ret = esw_apply_config(&esw->swdev);
+
+	/* The RT3352/RT5350/MT7628/default calibration sequences issue
+	 * dozens of PHY writes whose individual return values are not
+	 * checked. A timed-out write leaves the PHY on the wrong register
+	 * page, so every later calibration value lands in an unrelated
+	 * register (BMCR/ANAR included). Finish programming, like
+	 * esw_apply_config() does for its own MII writes, but report the
+	 * failure to esw_probe()/esw_reset_switch() instead of returning
+	 * success. apply_config()'s own error takes precedence.
+	 */
+	if (esw->mii_failed && !ret)
+		ret = -EIO;
 
 	/* Do not touch the IMR here: esw_reset_switch() calls this
 	 * function with the handler already installed, and esw_probe()
