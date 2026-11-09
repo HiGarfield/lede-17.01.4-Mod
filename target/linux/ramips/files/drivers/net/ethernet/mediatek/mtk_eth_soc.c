@@ -1633,11 +1633,27 @@ static int fe_hw_init(struct net_device *dev)
 	fe_reg_w32(0, FE_REG_DLY_INT_CFG);
 
 	/* frame engine will push VLAN tag regarding to VIDX feild in Tx desc */
-	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE])
+	if (fe_reg_table[FE_REG_FE_DMA_VID_BASE]) {
 		for (i = 0; i < 16; i += 2)
 			fe_w32(((i + 1) << 16) + i,
 			       fe_reg_table[FE_REG_FE_DMA_VID_BASE] +
 			       (i * 2));
+
+		/* This table is rewritten from scratch on every ndo_init,
+		 * but ndo_init can run again on the same netdev after an
+		 * unregister/re-register cycle. The software mirror is only
+		 * zeroed by alloc_etherdev(), so stale slot bits would make
+		 * fe_vlan_rx_add_vid() decide a VID is already programmed
+		 * and skip fe_vlan_write_slot(). For any VID whose value
+		 * differs from its (vid & 0xf) slot the hardware then holds
+		 * the reset value and frames are tagged with the wrong VID.
+		 * Reset just the slot mirror; active_vids and the offload
+		 * conflict state belong to the VLAN core and are rebuilt by
+		 * its add_vid calls after re-registration.
+		 */
+		priv->vlan_map = 0;
+		memset(priv->vlan_vid, 0, sizeof(priv->vlan_vid));
+	}
 
 	err = priv->soc->fwd_config(priv);
 	if (err) {
