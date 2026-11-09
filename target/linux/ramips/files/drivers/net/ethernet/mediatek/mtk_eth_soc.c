@@ -2141,6 +2141,7 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 static void fe_jumbo_config(struct net_device *dev, int frag_size)
 {
 	u32 fwd_cfg;
+	int units;
 
 	if (IS_ENABLED(CONFIG_SOC_MT7621))
 		return;
@@ -2149,9 +2150,22 @@ static void fe_jumbo_config(struct net_device *dev, int frag_size)
 	if (dev->mtu <= ETH_DATA_LEN) {
 		fwd_cfg &= ~FE_GDM1_JMB_EN;
 	} else {
-		fwd_cfg &= ~(FE_GDM1_JMB_LEN_MASK << FE_GDM1_JMB_LEN_SHIFT);
-		fwd_cfg |= (DIV_ROUND_UP(frag_size, 1024) <<
-				FE_GDM1_JMB_LEN_SHIFT) | FE_GDM1_JMB_EN;
+		/* FE_GDM1_JMB_LEN_MASK is 0xf at bit 28. Shifting that
+		 * int constant by 28 overflows signed int (UB), and the
+		 * field is only 4 bits wide: a frag size above 15 KiB
+		 * used to be truncated into a bogus length. Widen the
+		 * mask to u32 and clamp the number of 1 KiB units.
+		 */
+		units = DIV_ROUND_UP(frag_size, 1024);
+		if (units < 1)
+			units = 1;
+		if (units > FE_GDM1_JMB_LEN_MASK)
+			units = FE_GDM1_JMB_LEN_MASK;
+
+		fwd_cfg &= ~((u32)FE_GDM1_JMB_LEN_MASK <<
+			     FE_GDM1_JMB_LEN_SHIFT);
+		fwd_cfg |= ((u32)units << FE_GDM1_JMB_LEN_SHIFT) |
+			   FE_GDM1_JMB_EN;
 	}
 	fe_w32(fwd_cfg, FE_GDMA1_FWD_CFG);
 }
