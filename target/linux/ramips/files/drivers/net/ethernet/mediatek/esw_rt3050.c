@@ -16,6 +16,7 @@
 #include <linux/module.h>
 #include <linux/kernel.h>
 #include <linux/mutex.h>
+#include <linux/delay.h>
 #include <linux/platform_device.h>
 #include <asm/mach-ralink/ralink_regs.h>
 #include <linux/of_irq.h>
@@ -315,9 +316,13 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 	unsigned long t_start = jiffies;
 	int ret = 0;
 
-	/* the two busy-waits and the PCR0 command write are one
+	/* The two busy-waits and the PCR0 command write are one
 	 * transaction: a concurrent writer would clobber the command
-	 * word in between
+	 * word in between. mii_lock is a mutex, so the polling loop is
+	 * allowed to sleep. usleep_range() yields the CPU and keeps the
+	 * timer tick running while this path holds update_lock and the
+	 * swconfig sw_mutex for up to the jiffies timeout; a udelay()
+	 * loop here could spin for seconds and starve every other user.
 	 */
 	mutex_lock(&esw->mii_lock);
 
@@ -337,7 +342,7 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 			ret = 1;
 			goto out;
 		}
-		udelay(1);
+		usleep_range(5, 10);
 	}
 
 	write_data &= 0xffff;
@@ -356,7 +361,7 @@ static u32 rt305x_mii_write(struct rt305x_esw *esw, u32 phy_addr,
 			ret = 1;
 			break;
 		}
-		udelay(1);
+		usleep_range(5, 10);
 	}
 out:
 	if (ret) {
