@@ -578,6 +578,7 @@ static struct rtnl_link_stats64 *fe_get_stats64(struct net_device *dev,
 	struct fe_hw_stats *hwstats = priv->hw_stats;
 	unsigned int base = fe_reg_table[FE_REG_FE_COUNTER_BASE];
 	unsigned int start;
+	unsigned long flags;
 
 	if (!base) {
 		netdev_stats_to_stats64(storage, &dev->stats);
@@ -585,13 +586,17 @@ static struct rtnl_link_stats64 *fe_get_stats64(struct net_device *dev,
 	}
 
 	if (netif_running(dev) && netif_device_present(dev)) {
-		/* take the lock unconditionally: a failed trylock silently
+		/* Take the lock unconditionally: a failed trylock silently
 		 * skipped the update, and increments sitting in the 32-bit
-		 * hardware counters were lost once they wrapped
+		 * hardware counters were lost once they wrapped. Use the
+		 * IRQ-safe form like every other writer: fe_poll() can run
+		 * from netpoll with hard IRQs disabled, and mixing _bh with
+		 * plain spin_lock() on the same lock is a lockdep error and
+		 * a hardirq/process self-deadlock on a UP target.
 		 */
-		spin_lock_bh(&hwstats->stats_lock);
+		spin_lock_irqsave(&hwstats->stats_lock, flags);
 		fe_stats_update(priv);
-		spin_unlock_bh(&hwstats->stats_lock);
+		spin_unlock_irqrestore(&hwstats->stats_lock, flags);
 	}
 
 	do {
@@ -1315,6 +1320,7 @@ static int fe_poll(struct napi_struct *napi, int budget)
 	int tx_done, rx_done, tx_again;
 	u32 status, fe_status, status_reg, mask;
 	u32 tx_intr, rx_intr, status_intr;
+	unsigned long flags;
 
 	if (unlikely(test_bit(__FE_DOWN, &priv->state))) {
 		napi_complete(napi);
@@ -1362,12 +1368,15 @@ static int fe_poll(struct napi_struct *napi, int budget)
 			 * context readers: fe_stats_update() folds
 			 * clear-on-read 32-bit counters, so a failed trylock
 			 * loses their increments once they wrap.
-			 * NAPI runs in softirq, so spin_lock() suffices and
-			 * cannot deadlock with the _bh variants.
+			 *
+			 * netpoll calls this poll with hard IRQs disabled,
+			 * so spin_lock() here could spin on a lock held by a
+			 * preempted process-context writer on the same CPU.
+			 * Use the same IRQ-safe form on all three writers.
 			 */
-			spin_lock(&hwstat->stats_lock);
+			spin_lock_irqsave(&hwstat->stats_lock, flags);
 			fe_stats_update(priv);
-			spin_unlock(&hwstat->stats_lock);
+			spin_unlock_irqrestore(&hwstat->stats_lock, flags);
 		}
 		/* fe_handle_irq() deliberately leaves the counter-full bits
 		 * pending for this poll. Acknowledge them even when there is

@@ -236,6 +236,7 @@ static void fe_get_ethtool_stats(struct net_device *dev,
 	struct fe_hw_stats *hwstats = priv->hw_stats;
 	u64 *data_src, *data_dst;
 	unsigned int start;
+	unsigned long flags;
 	int i;
 
 	/* the copy below relies on the FE_STAT_REG_DECLARE expansion
@@ -250,12 +251,14 @@ static void fe_get_ethtool_stats(struct net_device *dev,
 		/* Take the lock unconditionally, like fe_get_stats64():
 		 * a failed trylock skips the clear-on-read hardware
 		 * counters, and 32-bit increments can wrap away before
-		 * the next successful update. The critical section is
-		 * short and this callback runs in process context.
+		 * the next successful update. Use the IRQ-safe form used
+		 * by fe_poll() as well: netpoll can run that poll with
+		 * hard IRQs disabled, so a _bh/plain spin_lock() mix on
+		 * this lock deadlocks the same CPU.
 		 */
-		spin_lock_bh(&hwstats->stats_lock);
+		spin_lock_irqsave(&hwstats->stats_lock, flags);
 		fe_stats_update(priv);
-		spin_unlock_bh(&hwstats->stats_lock);
+		spin_unlock_irqrestore(&hwstats->stats_lock, flags);
 	}
 
 	do {
