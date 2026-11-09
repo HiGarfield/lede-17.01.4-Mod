@@ -329,16 +329,24 @@ static int fe_phy_connect(struct fe_priv *priv)
 	 * and MII ioctls always failing with -ENODEV. In particular, a DT
 	 * whose mdio-bus has no enabled PHY produced no phy_init() error,
 	 * so ret was still 0 here.
+	 *
+	 * A non-zero ret is different: a real PHY was found but could not
+	 * be attached or autoneg could not be started. Return it before
+	 * the has_carrier() fallback, otherwise MT7620/MT7621 silently
+	 * swallow every attach error and fe_init() reports success with
+	 * no usable PHY, ethtool and MII ioctls stuck at -ENODEV.
 	 */
 	if (priv->phy_dev)
 		return 0;
 	for (i = 0; i < ARRAY_SIZE(priv->phy->phy_fixed); i++)
 		if (priv->phy->phy_fixed[i])
 			return 0;
+	if (ret)
+		return ret;
 	if (priv->soc->has_carrier)
 		return 0;
 
-	return ret ? ret : -ENODEV;
+	return -ENODEV;
 }
 
 static void fe_phy_disconnect(struct fe_priv *priv)
