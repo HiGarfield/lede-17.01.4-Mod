@@ -126,6 +126,7 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node,
 			int port)
 {
 	struct phy_device *phydev;
+	unsigned long flags;
 	int phy_mode;
 
 	/* phy_node[] is indexed by the eth-port id, not by the MDIO
@@ -165,8 +166,15 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node,
 		 port, dev_name(&phydev->dev), phydev->phy_id,
 		 phydev->drv->name);
 
+	/* of_phy_connect() already started the PHY state machine, and
+	 * fe_phy_link_adjust() walks phy[] and link[] while holding
+	 * phy->lock. Publish both fields under the same lock instead of
+	 * handing the state machine a half-updated slot.
+	 */
+	spin_lock_irqsave(&priv->phy->lock, flags);
 	priv->phy->phy[port] = phydev;
 	priv->link[port] = 0;
+	spin_unlock_irqrestore(&priv->phy->lock, flags);
 
 	return 0;
 }

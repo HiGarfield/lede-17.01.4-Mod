@@ -200,8 +200,10 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	struct device_node *phy_np;
 	u32 port_reg = 0;
 	const __be32 *link;
+	unsigned long flags;
 	int size;
 	int phy_mode;
+	int speed;
 
 	/* A short "reg" property must not be dereferenced as a full
 	 * __be32; of_property_read_u32() validates the length.
@@ -264,13 +266,22 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 			priv->phy->phy_node[0] = NULL;
 		}
 		link = priv->phy->phy_fixed[0];
+
+		/* fe_phy_link_adjust() holds phy->lock while reading
+		 * speed/duplex/flow-control and link[] and while invoking
+		 * mdio_adjust_link. Publish the complete fixed-link tuple
+		 * under the same lock instead of writing it unlocked.
+		 */
+		spin_lock_irqsave(&priv->phy->lock, flags);
 		priv->phy->speed[0] = be32_to_cpup(link++);
 		priv->phy->duplex[0] = be32_to_cpup(link++);
 		priv->phy->tx_fc[0] = be32_to_cpup(link++);
 		priv->phy->rx_fc[0] = be32_to_cpup(link++);
-
 		priv->link[0] = 1;
-		switch (priv->phy->speed[0]) {
+		speed = priv->phy->speed[0];
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
+
+		switch (speed) {
 		case SPEED_10:
 			break;
 		case SPEED_100:
@@ -278,17 +289,23 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 		case SPEED_1000:
 			break;
 		default:
-			dev_err(priv->dev, "invalid link speed: %d\n",
-				priv->phy->speed[0]);
+			dev_err(priv->dev, "invalid link speed: %d\n", speed);
 			priv->phy->phy_fixed[0] = 0;
 			/* undo the early link-up above: the carrier must
 			 * not stay up for a port we just rejected
 			 */
+			spin_lock_irqsave(&priv->phy->lock, flags);
 			priv->link[0] = 0;
+			spin_unlock_irqrestore(&priv->phy->lock, flags);
 			return;
 		}
 		dev_info(priv->dev, "using fixed link parameters\n");
+		/* mdio_adjust_link is always called with phy->lock held by
+		 * fe_phy_link_adjust(); keep the direct call identical.
+		 */
+		spin_lock_irqsave(&priv->phy->lock, flags);
 		rt2880_mdio_link_adjust(priv, 0);
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
 		return;
 	}
 

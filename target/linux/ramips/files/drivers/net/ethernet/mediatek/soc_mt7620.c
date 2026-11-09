@@ -284,6 +284,8 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 
 	if (priv->phy->phy_fixed[id]) {
 		const __be32 *link = priv->phy->phy_fixed[id];
+		unsigned long flags;
+		int speed, duplex, tx_fc, rx_fc;
 		u32 val = 0;
 
 		if (priv->phy->phy_node[id]) {
@@ -297,14 +299,26 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 		 * rt2880_port_init() in mdio_rt2880.c, which parses the very
 		 * same DT property.  Keep tx_fc/rx_fc in priv->phy as well so
 		 * the port state is complete regardless of the SoC.
+		 *
+		 * The GSW irq handler/irq_work and fe_phy_link_adjust() all
+		 * read these fields and link[] under phy->lock (the switch
+		 * interrupt is already registered by the time fe_init() runs
+		 * port_init). Publish and consume the whole tuple under that
+		 * lock instead of racing with them.
 		 */
+		spin_lock_irqsave(&priv->phy->lock, flags);
 		priv->phy->speed[id] = be32_to_cpup(link++);
 		priv->phy->duplex[id] = be32_to_cpup(link++);
 		priv->phy->tx_fc[id] = be32_to_cpup(link++);
 		priv->phy->rx_fc[id] = be32_to_cpup(link++);
 		priv->link[id] = 1;
+		speed = priv->phy->speed[id];
+		duplex = priv->phy->duplex[id];
+		tx_fc = priv->phy->tx_fc[id];
+		rx_fc = priv->phy->rx_fc[id];
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
 
-		switch (priv->phy->speed[id]) {
+		switch (speed) {
 		case SPEED_10:
 			val = 0;
 			break;
@@ -315,23 +329,24 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 			val = 2;
 			break;
 		default:
-			dev_err(priv->dev, "invalid link speed: %d\n",
-				priv->phy->speed[id]);
+			dev_err(priv->dev, "invalid link speed: %d\n", speed);
 			priv->phy->phy_fixed[id] = 0;
 			/* undo the early link-up above: the carrier must
 			 * not stay up for a port we just rejected
 			 */
+			spin_lock_irqsave(&priv->phy->lock, flags);
 			priv->link[id] = 0;
+			spin_unlock_irqrestore(&priv->phy->lock, flags);
 			return;
 		}
 		val = PMCR_SPEED(val);
 		val |= PMCR_LINK | PMCR_BACKPRES | PMCR_BACKOFF | PMCR_RX_EN |
 			PMCR_TX_EN | PMCR_FORCE | PMCR_MAC_MODE | PMCR_IPG;
-		if (priv->phy->tx_fc[id])
+		if (tx_fc)
 			val |= PMCR_TX_FC;
-		if (priv->phy->rx_fc[id])
+		if (rx_fc)
 			val |= PMCR_RX_FC;
-		if (priv->phy->duplex[id])
+		if (duplex)
 			val |= PMCR_DUPLEX;
 		mtk_switch_w32(gsw, val, GSW_REG_PORT_PMCR(id));
 		dev_info(priv->dev, "using fixed link parameters\n");
