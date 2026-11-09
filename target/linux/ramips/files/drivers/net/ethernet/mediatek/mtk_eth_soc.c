@@ -1017,8 +1017,14 @@ static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
 			 * headlen + data_len.
 			 */
 			ret = skb_pad(skb, len - skb->len);
-			if (ret < 0)
+			if (ret < 0) {
+				/* skb_pad() frees the skb itself when
+				 * pskb_expand_head() fails. Ownership has
+				 * already been consumed: the caller must
+				 * report the drop without freeing it.
+				 */
 				return ret;
+			}
 		}
 	}
 
@@ -1079,7 +1085,10 @@ static int fe_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (fe_skb_padto(skb, priv)) {
 		netif_warn(priv, tx_err, dev, "tx padding failed!\n");
 		stats->tx_dropped++;
-		dev_kfree_skb_any(skb);
+		/* The only non-zero return comes from skb_pad(), which
+		 * already called kfree_skb() on this skb. Freeing it a
+		 * second time corrupts the skbuff cache.
+		 */
 		return NETDEV_TX_OK;
 	}
 
