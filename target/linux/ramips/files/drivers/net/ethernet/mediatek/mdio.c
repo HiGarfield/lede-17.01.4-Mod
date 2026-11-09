@@ -9,6 +9,7 @@
 
 #include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/mutex.h>
 #include <linux/phy.h>
 #include <linux/of_net.h>
 #include <linux/of_mdio.h>
@@ -23,9 +24,24 @@ static int fe_mdio_reset(struct mii_bus *bus)
 	/* A timed-out transaction leaves the controller's busy bit set
 	 * and every later transfer times out as well. Let the SoC glue
 	 * clear that bit so the engine accepts commands again.
+	 *
+	 * mdiobus_register() invokes bus->reset without holding
+	 * bus->mdio_lock, but every other user of the MT7530 indirect
+	 * window holds that lock across its page-select plus two data
+	 * transfers, and only takes gsw->mdio_lock per single PIAC
+	 * transaction. mt7620_mdio_reset() touches the shared PIAC
+	 * START/BUSY bit while holding only gsw->mdio_lock, so without
+	 * the outer lock it can slip between another user's page select
+	 * and data write and make that write hit the wrong register.
+	 * Take the same outer lock (bus->mdio_lock -> gsw->mdio_lock)
+	 * as gsw_irq_work_mt7621(), mt7621_gsw_set_imr() and
+	 * mt7621_reset_ports(). mdiobus_register() initialises
+	 * mdio_lock before calling reset, so there is no self-deadlock.
 	 */
+	mutex_lock(&bus->mdio_lock);
 	if (priv->soc->mdio_reset)
 		priv->soc->mdio_reset(priv);
+	mutex_unlock(&bus->mdio_lock);
 
 	return 0;
 }
