@@ -140,7 +140,10 @@ void fe_reset(u32 reset_bits)
 	usleep_range(10, 20);
 	mutex_unlock(&fe_reset_lock);
 }
-/* esw_rt3050.o and gsw_mt7621.o are separate modules when built as =m */
+/* esw_rt3050.o and gsw_mt7621.o are separate objects from
+ * mtk-eth-soc.o, so the shared RSTCTRL helper must be exported even
+ * though the subsystem is now built-in only.
+ */
 EXPORT_SYMBOL_GPL(fe_reset);
 
 static inline void fe_int_disable(struct fe_priv *priv, u32 mask)

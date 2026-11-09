@@ -1,11 +1,17 @@
 config NET_VENDOR_MEDIATEK
-	tristate "Mediatek/Ralink ethernet driver"
+	bool "Mediatek/Ralink ethernet driver"
 	depends on RALINK
+	# The Makefile splits mtk-eth-soc.o, gsw_*.o and mt7530.o into
+	# independent objects. They reference each other's exported
+	# symbols in both directions, and mt7530.o also calls
+	# switch_generic_set_link() which swconfig.c does not export.
+	# A modular (=m) build therefore produces a cyclic modules.dep
+	# and an unresolved symbol. Keep the whole subsystem built-in.
 	help
 	  This driver supports the ethernet mac inside the Mediatek and Ralink WiSoCs
 
 config NET_MEDIATEK_SOC
-	def_tristate NET_VENDOR_MEDIATEK
+	def_bool NET_VENDOR_MEDIATEK
 	# every supported SoC has exactly one MAC entry in the choice
 	# below; without this dependency an empty choice would still
 	# build mtk-eth-soc.o, which references of_fe_match defined only
@@ -58,14 +64,14 @@ config NET_MEDIATEK_MDIO_MT7620
 	select NET_MEDIATEK_MDIO
 
 config NET_MEDIATEK_ESW_RT3050
-	def_tristate NET_MEDIATEK_SOC
+	def_bool NET_MEDIATEK_SOC
 	depends on NET_MEDIATEK_RT3050
 
 config NET_MEDIATEK_GSW_MT7620
-	def_tristate NET_MEDIATEK_SOC
+	def_bool NET_MEDIATEK_SOC
 	depends on NET_MEDIATEK_MT7620
 
 config NET_MEDIATEK_GSW_MT7621
-	def_tristate NET_MEDIATEK_SOC
+	def_bool NET_MEDIATEK_SOC
 	depends on NET_MEDIATEK_MT7621
 endif
