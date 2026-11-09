@@ -1535,9 +1535,18 @@ int fe_set_clock_cycle(struct fe_priv *priv)
 	/* FE_US_CYC_CNT is an 8-bit field at FE_US_CYC_CNT_SHIFT. Only the
 	 * masked low byte is cleared below, so a clock above 255 MHz (the
 	 * usual case on RT305x/RT3883) would OR bits 16 and above into
-	 * unrelated FE_FE_GLO_CFG configuration bits.
+	 * unrelated FE_FE_GLO_CFG configuration bits. Masking alone is not
+	 * enough: wrapping the value silently (480 MHz becomes 224) makes
+	 * the microsecond cycle count and delay interrupt run at a wrong
+	 * rate with no diagnostic. Clamp to the largest representable
+	 * value instead of truncating.
 	 */
-	sysclk &= FE_US_CYC_CNT_MASK;
+	if (sysclk > FE_US_CYC_CNT_MASK) {
+		dev_warn(priv->dev,
+			 "sysclk %lu MHz exceeds the 8-bit US_CYC_CNT field, clamping to %u\n",
+			 sysclk, (unsigned)FE_US_CYC_CNT_MASK);
+		sysclk = FE_US_CYC_CNT_MASK;
+	}
 	sysclk <<= FE_US_CYC_CNT_SHIFT;
 
 	fe_w32((fe_r32(FE_FE_GLO_CFG) &
