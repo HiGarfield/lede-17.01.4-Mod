@@ -1690,6 +1690,12 @@ mt7530_probe(struct device *dev, void __iomem *base, struct mii_bus *bus, int vl
 	mutex_init(&mt7530->reg_mutex);
 
 	swdev = &mt7530->swdev;
+	/* register_switch() calls of_switch_load_portmap(), which walks the
+	 * swconfig,segment / swconfig,portmap children of swdev->of_node.
+	 * Leaving it NULL silently ignores that generic DT port map. Use the
+	 * same node mt7530_find_mapping() reads its mediatek,portmap from.
+	 */
+	swdev->of_node = dev->of_node;
 	/* MT7621's built-in switch is probed with bus != NULL (soc_mt7621.c
 	 * passes priv->mii_bus), so testing bus first named it "mt7530"
 	 * while swdev->ops, the VLAN table size and the VTCR addressing are
