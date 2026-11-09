@@ -234,6 +234,12 @@ struct mt7530_priv {
 	char			mib_buf[4096];
 };
 
+/* Number of VLAN table entries actually described by every
+ * mt7530_defaults[] mapping. The arrays themselves are sized
+ * MT7530_NUM_VLANS and their tails are zero-filled.
+ */
+#define MT7530_MAPPING_NUM_VLANS	3
+
 struct mt7530_mapping {
 	char	*name;
 	u16	pvids[MT7530_NUM_PORTS];
@@ -298,14 +304,16 @@ mt7530_apply_mapping(struct mt7530_priv *mt7530, struct mt7530_mapping *map)
 	for (i = 0; i < MT7530_NUM_VLANS; i++) {
 		mt7530->vlan_entries[i].member = map->members[i];
 		mt7530->vlan_entries[i].etags = map->etags[i];
-		/* On MT7621 the table is addressed by VID and
-		 * mt7530_set_vid() only allows vid == index. A mapping
-		 * defines just the first three VIDs; copying the
-		 * zero-filled tail would turn the remaining 4092 slots
-		 * into VID 0, make every VTCR write target that VID and
-		 * desynchronise mt7621_get_vid(). Keep the seeded VIDs.
+		/* A mapping only defines the first three VIDs; the rest of
+		 * map->vids[] is zero-filled. Copying the whole tail turns
+		 * every remaining slot into VID 0 and desynchronises both
+		 * get_vid() callbacks from the vid == index invariant that
+		 * mt7530_probe() seeds and mt7530_reset_switch() restores.
+		 * On MT7621 the VTCR is additionally addressed by VID, so
+		 * all those writes would target VID 0. This is not an
+		 * MT7621-only problem: keep the seeded VIDs on every SoC.
 		 */
-		if (!IS_ENABLED(CONFIG_SOC_MT7621))
+		if (i < MT7530_MAPPING_NUM_VLANS)
 			mt7530->vlan_entries[i].vid = map->vids[i];
 	}
 }
