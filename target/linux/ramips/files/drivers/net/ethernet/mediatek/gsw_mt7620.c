@@ -36,6 +36,15 @@ u32 mtk_switch_r32(struct mt7620_gsw *gsw, unsigned reg)
 }
 EXPORT_SYMBOL_GPL(mtk_switch_r32);
 
+/* The FE ndo_init()/ndo_uninit() and this platform driver's remove() are
+ * two independent paths that both own the same irq action and the
+ * soc->swpriv / gsw->priv pair. Without a common lock, both can snapshot a
+ * non-NULL fe_priv and call free_irq() twice, or dereference an fe_priv
+ * already released by unregister_netdev(). The lock is module-wide, so it
+ * stays valid even after the devm gsw object and its back-pointer are gone.
+ */
+static DEFINE_MUTEX(gsw_teardown_lock);
+
 static irqreturn_t gsw_interrupt_mt7620(int irq, void *_priv)
 {
 	struct fe_priv *priv = (struct fe_priv *)_priv;
@@ -277,6 +286,7 @@ int mtk_gsw_init(struct fe_priv *priv)
 	struct device_node *np = priv->switch_np;
 	struct platform_device *pdev = of_find_device_by_node(np);
 	struct mt7620_gsw *gsw;
+	int err = 0;
 
 	if (!pdev)
 		return -ENODEV;
@@ -286,6 +296,16 @@ int mtk_gsw_init(struct fe_priv *priv)
 		return -EINVAL;
 	}
 
+	/* Both teardown paths (mtk_gsw_cleanup() and mt7620_gsw_remove())
+	 * read gsw->priv and release the irq action under gsw_teardown_lock.
+	 * Publishing swpriv/gsw->priv and installing the action must use
+	 * the very same lock: otherwise remove() can free_irq() with a
+	 * dev_id that init has not registered yet, or init can install the
+	 * action after remove() has already cleared both pointers, leaving
+	 * a live handler on a devm object (and later on a freed fe_priv).
+	 */
+	mutex_lock(&gsw_teardown_lock);
+
 	gsw = platform_get_drvdata(pdev);
 	put_device(&pdev->dev);
 	/* the platform device exists but has no drvdata yet: the gsw
@@ -293,8 +313,10 @@ int mtk_gsw_init(struct fe_priv *priv)
 	 * fail permanently and take the whole ethernet down with no
 	 * retry, so ask for a deferred probe instead.
 	 */
-	if (!gsw)
-		return -EPROBE_DEFER;
+	if (!gsw) {
+		err = -EPROBE_DEFER;
+		goto out_unlock;
+	}
 
 	priv->soc->swpriv = gsw;
 	/* Keep the back-pointer even when no interrupt is configured: the
@@ -315,34 +337,28 @@ int mtk_gsw_init(struct fe_priv *priv)
 	mt7620_hw_init(gsw, mt7620_mdio_mode(priv->dev->of_node));
 
 	if (gsw->irq) {
-		int irqerr = request_irq(gsw->irq, gsw_interrupt_mt7620, 0,
-					 "gsw", priv);
+		err = request_irq(gsw->irq, gsw_interrupt_mt7620, 0,
+				  "gsw", priv);
 
-		if (irqerr) {
-			dev_err(gsw->dev, "request_irq failed: %d\n", irqerr);
+		if (err) {
+			dev_err(gsw->dev, "request_irq failed: %d\n", err);
 			/* do not leave swpriv pointing at a switch the
-			 * caller now considers uninitialised
+			 * caller now considers uninitialised. Roll back
+			 * under the lock so no teardown path can observe
+			 * a half-published pair of back-pointers.
 			 */
 			priv->soc->swpriv = NULL;
 			gsw->priv = NULL;
-			return irqerr;
+			goto out_unlock;
 		}
 		mtk_switch_w32(gsw, ~PORT_IRQ_ST_CHG, GSW_REG_IMR);
 	}
 
-	return 0;
+out_unlock:
+	mutex_unlock(&gsw_teardown_lock);
+	return err;
 }
 EXPORT_SYMBOL_GPL(mtk_gsw_init);
-
-/* The FE ndo_uninit() and this platform driver's remove() are two
- * independent teardown paths that both own the same irq action and
- * the soc->swpriv / gsw->priv pair. Without a common lock, both can
- * snapshot a non-NULL fe_priv and call free_irq() twice, or dereference
- * an fe_priv already released by unregister_netdev(). The lock is
- * module-wide, so it stays valid even after the devm gsw object and
- * its back-pointer are gone.
- */
-static DEFINE_MUTEX(gsw_teardown_lock);
 
 void mtk_gsw_cleanup(struct fe_priv *priv)
 {
