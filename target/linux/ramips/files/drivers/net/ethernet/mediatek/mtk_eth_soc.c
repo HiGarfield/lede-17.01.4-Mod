@@ -2151,16 +2151,32 @@ static int fe_init(struct net_device *dev)
 
 	if ((priv->flags & FE_FLAG_HAS_SWITCH) && priv->soc->switch_config) {
 		err = priv->soc->switch_config(priv);
-		if (err) {
-			netdev_err(dev, "failed to configure switch core: %d\n",
-				   err);
-			/* ndo_uninit() is not called when ndo_init() fails,
-			 * so release the irq installed by fe_hw_init()
-			 * before the common error path unwinds.
-			 */
-			free_irq(dev->irq, dev);
-			goto err_phy_disconnect;
-		}
+		/* switch_config() only fails for recoverable reasons: a
+		 * GSW that has not finished probing, a PIAC/MDIO/VTCR
+		 * busy-wait timeout (the GSW init paths already retry
+		 * those once because they are transient), a missing
+		 * phy_map[0x1f] entry, or a short-lived register_switch()
+		 * allocation failure.
+		 *
+		 * A failed ndo_init() is terminal on this kernel:
+		 * register_netdevice() gives up without a retry and does
+		 * not call ndo_uninit(), and none of these errors is
+		 * -EPROBE_DEFER, so the driver core never probes again.
+		 * Propagating the error therefore destroys the whole
+		 * interface together with the switch device. Keep the
+		 * netdev registered; a later ndo_init (netns move, or an
+		 * unregister/re-register cycle) retries switch_config().
+		 * A partially published switch_dev is already rolled back
+		 * by fe_unregister_switches_from() inside the MT7620
+		 * config path, and mt7530_probe() cleans up its own state
+		 * on failure, so continuing leaves nothing behind.
+		 *
+		 * The irq installed by fe_hw_init() stays live here; it is
+		 * released by fe_uninit() when the device goes away.
+		 */
+		if (err)
+			netdev_warn(dev, "switch configuration failed: %d\n",
+				    err);
 	}
 
 	set_bit(__FE_DOWN, &priv->state);
