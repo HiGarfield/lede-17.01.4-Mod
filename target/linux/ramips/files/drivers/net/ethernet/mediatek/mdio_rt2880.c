@@ -121,6 +121,32 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		    (priv->phy->duplex[port] == DUPLEX_FULL) ? "Full" : "Half");
 }
 
+/* Every path that declines to establish a link on port 0 must retract
+ * the software link state AND the netdev carrier. On these SoCs
+ * rt2880_mdio_link_adjust() is the only writer of netif_carrier_*(),
+ * and fe_phy_start(), fe_phy_stop() and fe_phy_disconnect() all pair
+ * their link[] update with it. There is no has_carrier callback here,
+ * so fe_open() cannot correct the carrier later, and a netdev starts
+ * with the carrier up.
+ * Clearing link[0] alone therefore leaves the interface reporting
+ * LOWER_UP with no PHY and no fixed link: the carrier state stays
+ * whatever the previous ndo_init (or the netdev default) left it as.
+ *
+ * The successful fixed-link path below calls the same link-adjust
+ * function from inside phy->lock, so keeping that pairing here adds no
+ * new lock order and no new sleeping call to a spinlock-held context.
+ */
+static void rt2880_retract_link(struct fe_priv *priv)
+{
+	unsigned long flags;
+
+	spin_lock_irqsave(&priv->phy->lock, flags);
+	priv->phy->phy_fixed[0] = NULL;
+	priv->link[0] = 0;
+	rt2880_mdio_link_adjust(priv, 0);
+	spin_unlock_irqrestore(&priv->phy->lock, flags);
+}
+
 void rt2880_mdio_reset(struct fe_priv *priv)
 {
 	/* clear the busy/start bit so a wedged controller accepts new
@@ -253,7 +279,7 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	if (priv->phy->phy_fixed[0] &&
 	    (size != (4 * sizeof(*priv->phy->phy_fixed[0])))) {
 		pr_err("%s: invalid fixed link property\n", np->name);
-		priv->phy->phy_fixed[0] = NULL;
+		rt2880_retract_link(priv);
 		return;
 	}
 
@@ -271,6 +297,7 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 		 */
 		if (!priv->phy->phy_fixed[0]) {
 			dev_err(priv->dev, "port 0 - invalid phy mode\n");
+			rt2880_retract_link(priv);
 			return;
 		}
 		/* fixed-link does not use this setting for PHY attach */
@@ -351,10 +378,7 @@ invalid_fixed_link:
 		/* Drop the bad description and make sure a previous
 		 * ndo_init's link state cannot stay up for a rejected port.
 		 */
-		priv->phy->phy_fixed[0] = 0;
-		spin_lock_irqsave(&priv->phy->lock, flags);
-		priv->link[0] = 0;
-		spin_unlock_irqrestore(&priv->phy->lock, flags);
+		rt2880_retract_link(priv);
 		return;
 	}
 
