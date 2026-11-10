@@ -4,28 +4,12 @@ Date: Tue, 11 Nov 2025 01:22:35 +0800
 Subject: [PATCH] improve tcpsocket
 
 ---
- src/network/tcpsocket.c | 29 ++++++++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 3 deletions(-)
+ src/network/tcpsocket.c | 24 ++++++++++++++++++++----
+ 1 file changed, 20 insertions(+), 4 deletions(-)
 
 --- a/src/network/tcpsocket.c
 +++ b/src/network/tcpsocket.c
-@@ -139,6 +139,15 @@ static void client_read_cb(struct ustrea
-             cl->curr_len += HEADER_SIZE;
-             cl->final_len = ntohl(*(uint32_t *)cl->str);
- 
-+            if (cl->final_len < HEADER_SIZE || cl->final_len > 1024 * 1024) { // 1MB limit
-+                dawnlog_error("invalid message length: %" PRIu32 "\n", cl->final_len);
-+                dawn_free(cl->str);
-+                cl->str = NULL;
-+                cl->state = READ_STATUS_READY;
-+                cl->curr_len = 0;
-+                cl->final_len = 0;
-+                break;
-+            }
-             // On failure, dawn_realloc returns a null pointer. The original pointer str
-             // remains valid and may need to be deallocated.
-             char *str_tmp = dawn_realloc(cl->str, cl->final_len);
-@@ -194,6 +203,9 @@ static void client_read_cb(struct ustrea
+@@ -225,6 +225,9 @@ static void client_read_cb(struct ustrea
                      dawnlog_error("not enough memory (" STR_QUOTE(__LINE__) ")\n");
                      dawn_free(cl->str);
                      cl->str = NULL;
@@ -35,12 +19,16 @@ Subject: [PATCH] improve tcpsocket
                      break;
                  }
                  handle_network_msg(dec);
-@@ -232,14 +244,24 @@ static void server_cb(struct uloop_fd *f
+@@ -320,6 +323,8 @@ static void server_cb(struct uloop_fd *f
      sfd = accept(server.fd, (struct sockaddr *) &cl->sin, &sl);
      if (sfd < 0) {
          dawnlog_error("Accept failed\n");
 +        dawn_free(next_client);
 +        next_client = NULL;
+         return;
+     }
+ 
+@@ -332,11 +337,19 @@ static void server_cb(struct uloop_fd *f
          return;
      }
  
@@ -60,31 +48,38 @@ Subject: [PATCH] improve tcpsocket
      list_add(&cl->list, &cli_list);
      ustream_fd_init(&cl->s, sfd);
      dawn_regmem(&cl->s);
-@@ -250,7 +272,7 @@ static void server_cb(struct uloop_fd *f
+@@ -347,7 +360,7 @@ static void server_cb(struct uloop_fd *f
  int run_server(char *ipv4, int port) {
      dawnlog_debug("Adding socket!\n");
      char port_str[12];
 -    sprintf(port_str, "%d", port); // TODO: Manage buffer length
 +    snprintf(port_str, sizeof(port_str), "%d", port);
  
-     server.cb = server_cb;
-     server.fd = usock(USOCK_TCP | USOCK_SERVER | USOCK_IPV4ONLY | USOCK_NUMERIC, ipv4, port_str);
-@@ -342,7 +364,7 @@ int add_tcp_connection(char *ipv4, int p
-     dawnlog_debug_func("Entering...");
- 
+     /* To accept IPv6 peers, listen on the v6 wildcard (dual-stack)
+      * instead of the Legacy IP default, unless the user configured
+@@ -463,7 +476,7 @@ static int con_dial(struct network_con_s
+     char *addr = con->addrs[con->cur_addr];
      char port_str[12];
--    sprintf(port_str, "%d", port); // TODO: Manage buffer length
-+    snprintf(port_str, sizeof(port_str), "%d", port);
  
-     memset(&serv_addr, 0, sizeof(serv_addr));
-     serv_addr.sin_family = AF_INET;
-@@ -530,7 +552,8 @@ struct network_con_s* tcp_list_contains_
+-    sprintf(port_str, "%d", con->port); // TODO: Manage buffer length
++    snprintf(port_str, sizeof(port_str), "%d", con->port);
  
-     list_for_each_entry(con, &tcp_sock_list, list)
-     {
--        if(entry.sin_addr.s_addr == con->sock_addr.sin_addr.s_addr)
-+        if (entry.sin_addr.s_addr == con->sock_addr.sin_addr.s_addr &&
-+            entry.sin_port == con->sock_addr.sin_port)
-         {
-             return con;
-         }
+     if (getaddrinfo(addr, port_str, &hints, &res) || !res) {
+         dawnlog_error("Failed to parse peer address %s\n", addr);
+@@ -703,11 +716,14 @@ static int sockaddr_equal(const struct s
+         const struct sockaddr_in6 *b6 = (const struct sockaddr_in6 *)b;
+ 
+         return !memcmp(&a6->sin6_addr, &b6->sin6_addr, sizeof(a6->sin6_addr)) &&
+-               a6->sin6_scope_id == b6->sin6_scope_id;
++               a6->sin6_scope_id == b6->sin6_scope_id &&
++               a6->sin6_port == b6->sin6_port;
+     }
+ 
+     return ((const struct sockaddr_in *)a)->sin_addr.s_addr ==
+-           ((const struct sockaddr_in *)b)->sin_addr.s_addr;
++           ((const struct sockaddr_in *)b)->sin_addr.s_addr &&
++           ((const struct sockaddr_in *)a)->sin_port ==
++           ((const struct sockaddr_in *)b)->sin_port;
+ }
+ 
+ struct network_con_s* tcp_list_contains_address(const struct sockaddr_storage *entry) {
