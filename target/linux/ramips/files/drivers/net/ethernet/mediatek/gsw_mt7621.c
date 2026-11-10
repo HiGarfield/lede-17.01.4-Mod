@@ -20,6 +20,7 @@
 #include <linux/of_irq.h>
 #include <linux/workqueue.h>
 #include <linux/mutex.h>
+#include <linux/delay.h>
 
 #include <ralink_regs.h>
 
@@ -106,6 +107,7 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 	int link[5];
 	bool link_valid[5] = { false, };
 	int ack_err;
+	int retry;
 	bool status_read_ok;
 
 	/* swconfig reaches the same MT7530 indirect registers through
@@ -195,21 +197,51 @@ static void gsw_irq_work_mt7621(struct work_struct *work)
 
 out_masked:
 	/* The W1C write failed, so the level-high source is still
-	 * asserted. The teardown helper only compensates the disable
-	 * depth on unbind: leaving the line masked here would kill link
-	 * change reporting for the whole lifetime of this instance after
-	 * a single transient PIAC timeout. Retry the acknowledge once
-	 * (still under bus->mdio_lock) and clear every source so no event
-	 * that arrived in the meantime can keep the line asserted; on
-	 * success follow the normal re-enable path.
+	 * asserted. Retry the acknowledge once (still under
+	 * bus->mdio_lock) and clear every source so no event that arrived
+	 * in the meantime can keep the line asserted; on success follow
+	 * the normal re-enable path. If that also fails, the backoff loop
+	 * below gives the PIAC more time instead of leaving the line
+	 * disabled until teardown compensates the depth.
 	 */
 	if (!mt7530_mdio_w32(gsw, 0x700c, 0xffffffff))
 		goto out_reenable;
 
-	/* Still wedged: keep GSW_IRQ_DISABLED set and leave the line
-	 * disabled instead of enabling it straight back into the handler
-	 * and spinning the interrupt/work pair forever.
-	 * mt7621_gsw_stop_irq() balances that depth at teardown.
+	/* Both acknowledges failed. The handler's disable_irq_nosync()
+	 * still holds the line disabled, so no new handler can run while
+	 * we back off: retrying here cannot spin the interrupt/work pair.
+	 * Release the bus lock across each sleep so a transient PIAC
+	 * stall can clear and other MDIO users are not blocked; the
+	 * teardown path drains this work before freeing the bus.
+	 */
+	for (retry = 5; retry > 0; retry--) {
+		if (bus)
+			mutex_unlock(&bus->mdio_lock);
+		msleep(20);
+		if (bus)
+			mutex_lock(&bus->mdio_lock);
+		if (!mt7530_mdio_w32(gsw, 0x700c, 0xffffffff))
+			goto out_reenable;
+	}
+
+	/* Every acknowledge failed. Mask every source so that
+	 * (ISR & IMR) == 0 and the level-high line deasserts; only then
+	 * is enable_irq() safe. Drop the guard too, so
+	 * mt7621_gsw_stop_irq() does not enable a second time. A later
+	 * mtk_gsw_init() re-unmasks the intended sources: link reporting
+	 * stays degraded until then, but the disable depth and guard no
+	 * longer leak for the whole lifetime of this instance.
+	 */
+	if (!mt7530_mdio_w32(gsw, GSW_REG_IMR, 0)) {
+		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
+		if (bus)
+			mutex_unlock(&bus->mdio_lock);
+		enable_irq(gsw->irq);
+		return;
+	}
+
+	/* Even the mask write failed: keep the guard set and leave the
+	 * line disabled, as before. Teardown balances the depth.
 	 */
 	dev_err(gsw->dev, "failed to clear switch IRQ status: %d\n", ack_err);
 	if (bus)
