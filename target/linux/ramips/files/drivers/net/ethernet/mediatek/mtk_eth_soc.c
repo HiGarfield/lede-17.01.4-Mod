@@ -2417,19 +2417,23 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 		}
 		/* The old geometry has been reallocated successfully and,
 		 * when the device was up, fe_open() below brings it back.
-		 * Clear the error from the first attempt: returning it
-		 * makes fe_change_mtu() roll the MTU back and report a
-		 * failure even though the rings are live again. It also
-		 * prevents the "oerr && !err" check below from recording
-		 * a genuine fe_open() failure.
+		 * Keep the error from the first attempt: the live rings
+		 * now describe the OLD buffer sizes, so fe_change_mtu()
+		 * must roll dev->mtu back and must not program the jumbo
+		 * hardware limit from the new MTU. Clearing err here made
+		 * ndo_change_mtu() report success while dev->mtu, the
+		 * DMA mapping and the hardware jumbo limit described three
+		 * different sizes.
 		 */
-		err = 0;
 	}
 
 	if (was_running) {
 		int oerr = fe_open(priv->netdev);
 
-		if (oerr && !err)
+		/* A failed re-open is at least as important as the earlier
+		 * allocation failure; never let the latter hide it.
+		 */
+		if (oerr)
 			err = oerr;
 	}
 
