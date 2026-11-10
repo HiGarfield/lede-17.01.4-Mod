@@ -2077,6 +2077,11 @@ void fe_unregister_switches(struct fe_priv *priv)
 }
 EXPORT_SYMBOL_GPL(fe_unregister_switches);
 
+/* Defined below fe_init(); needed to replay the programmed jumbo state
+ * after fe_hw_init() has cleared FE_GDM1_JMB_EN.
+ */
+static void fe_jumbo_config(struct net_device *dev, int frag_size);
+
 /* ndo_init is reached through the persistent fe_netdev_ops table, so it
  * can run long after module init (deferred probe, unbind/rebind). It must
  * not be placed in .init.text, which is freed after boot.
@@ -2176,6 +2181,17 @@ static int fe_init(struct net_device *dev)
 	val |= priv->soc->pdma_glo_cfg;
 	fe_reg_w32(val, FE_REG_PDMA_GLO_CFG);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
+
+	/* fe_hw_init() -> fwd_config() clears FE_GDM1_JMB_EN on every
+	 * ndo_init. An unregister/re-register cycle (for example a netns
+	 * move) keeps dev->mtu but loses that hardware bit, so a jumbo
+	 * MTU would silently drop every large frame until the user
+	 * changed the MTU again. Replay the programmed state from the
+	 * current MTU and the ring geometry fe_init_dma() just used,
+	 * with the same length source as fe_change_mtu().
+	 */
+	if (priv->flags & FE_FLAG_JUMBO_FRAME)
+		fe_jumbo_config(dev, fe_max_frag_size(dev->mtu));
 
 	return 0;
 
