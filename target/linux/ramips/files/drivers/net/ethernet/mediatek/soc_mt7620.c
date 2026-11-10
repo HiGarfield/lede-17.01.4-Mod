@@ -114,7 +114,11 @@ static int mt7620_gsw_config(struct fe_priv *priv)
 
 	/* is the mt7530 internal or external */
 	if (priv->mii_bus && priv->mii_bus->phy_map[0x1f]) {
-		start = priv->soc->gsw_dev_num;
+		/* Snapshot under the same lock the teardown paths use to
+		 * rewrite this counter, so the rollback below undoes only
+		 * the entries registered by this call.
+		 */
+		start = fe_switch_start(priv);
 		err = mt7620_mt7530_probe(priv, gsw->base, NULL, 0);
 		if (err)
 			return err;

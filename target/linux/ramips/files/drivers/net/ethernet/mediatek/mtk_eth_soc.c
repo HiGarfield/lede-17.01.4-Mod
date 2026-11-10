@@ -1858,6 +1858,23 @@ static void fe_switch_mark_alive(struct fe_priv *priv)
 	mutex_unlock(&fe_switch_lock);
 }
 
+int fe_switch_start(struct fe_priv *priv)
+{
+	int start;
+
+	/* Every writer of gsw_dev_num holds fe_switch_lock. The MT7620
+	 * config path needs a consistent snapshot to know which entries
+	 * belong to its own two probes, so it must read under that lock
+	 * too instead of racing a concurrent teardown.
+	 */
+	mutex_lock(&fe_switch_lock);
+	start = priv->soc->gsw_dev_num;
+	mutex_unlock(&fe_switch_lock);
+
+	return start;
+}
+EXPORT_SYMBOL_GPL(fe_switch_start);
+
 int fe_probe_and_register_switch(struct fe_priv *priv, void __iomem *base,
 				 struct mii_bus *bus, int vlan)
 {
