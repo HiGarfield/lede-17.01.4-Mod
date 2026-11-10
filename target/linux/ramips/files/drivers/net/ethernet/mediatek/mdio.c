@@ -35,8 +35,9 @@ static int fe_mdio_reset(struct mii_bus *bus)
 	 * and data write and make that write hit the wrong register.
 	 * Take the same outer lock (bus->mdio_lock -> gsw->mdio_lock)
 	 * as gsw_irq_work_mt7621(), mt7621_gsw_set_imr() and
-	 * mt7621_reset_ports(). mdiobus_register() initialises
-	 * mdio_lock before calling reset, so there is no self-deadlock.
+	 * mt7621_reset_ports(). mdiobus_alloc() initialises mdio_lock,
+	 * so it is already usable when mdiobus_register() invokes
+	 * bus->reset; there is no self-deadlock.
 	 */
 	mutex_lock(&bus->mdio_lock);
 	if (priv->soc->mdio_reset)
@@ -527,6 +528,7 @@ static struct fe_phy phy_ralink = {
 int fe_mdio_init(struct fe_priv *priv)
 {
 	struct device_node *mii_np;
+	struct mii_bus *bus;
 	int err;
 
 	if (!priv->soc->mdio_read || !priv->soc->mdio_write)
@@ -555,29 +557,42 @@ int fe_mdio_init(struct fe_priv *priv)
 		return 0;
 	}
 
-	priv->mii_bus = mdiobus_alloc();
-	if (!priv->mii_bus) {
+	/* Keep the bus private until registration is complete.
+	 * switch_init() already enabled the GSW link IRQ at this point,
+	 * so an irq work item or an independent GSW unbind can reach
+	 * priv->mii_bus while of_mdiobus_register() is still running
+	 * bus->reset and scanning the PHYs. Publishing an allocated but
+	 * unregistered bus (MDIOBUS_ALLOCATED, empty phy_map) gives those
+	 * paths a synchronisation object whose lifetime has not begun.
+	 */
+	bus = mdiobus_alloc();
+	if (!bus) {
 		err = -ENOMEM;
 		goto err_put_node;
 	}
 
-	priv->mii_bus->name = "mdio";
-	priv->mii_bus->read = priv->soc->mdio_read;
-	priv->mii_bus->write = priv->soc->mdio_write;
-	priv->mii_bus->reset = fe_mdio_reset;
-	priv->mii_bus->priv = priv;
-	priv->mii_bus->parent = priv->dev;
+	bus->name = "mdio";
+	bus->read = priv->soc->mdio_read;
+	bus->write = priv->soc->mdio_write;
+	bus->reset = fe_mdio_reset;
+	bus->priv = priv;
+	bus->parent = priv->dev;
 
-	snprintf(priv->mii_bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
-	err = of_mdiobus_register(priv->mii_bus, mii_np);
+	snprintf(bus->id, MII_BUS_ID_SIZE, "%s", mii_np->name);
+	err = of_mdiobus_register(bus, mii_np);
 	if (err)
 		goto err_free_bus;
 
+	/* fe_mdio_reset() and both mdio callbacks resolve their state
+	 * through bus->priv, never priv->mii_bus, so registration does
+	 * not need the pointer to be published yet.
+	 */
+	priv->mii_bus = bus;
 	return 0;
 
 err_free_bus:
 	/* mdiobus_alloc() pairs with mdiobus_free(), not kfree() */
-	mdiobus_free(priv->mii_bus);
+	mdiobus_free(bus);
 err_put_node:
 	of_node_put(mii_np);
 	priv->mii_bus = NULL;
