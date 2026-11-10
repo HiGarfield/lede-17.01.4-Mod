@@ -1891,6 +1891,16 @@ bool fe_gsw_reader_enter(void)
 		return false;
 
 	atomic_inc(&fe_gsw_readers);
+	/* This is a Dekker/store-buffering pattern with
+	 * fe_gsw_readers_close(): each side needs a full barrier between
+	 * its own store and its read of the other side. close() has an
+	 * smp_mb() after its atomic_set; without the matching barrier here
+	 * a weakly ordered CPU may let the second read of closing complete
+	 * before the reader count is globally visible. remove() would then
+	 * see count == 0, return to devres, and this reader could still
+	 * report success and touch the released GSW.
+	 */
+	smp_mb();
 	/* close() may have run between the first check and the
 	 * increment. A reader counted after the drain started is not
 	 * waited for, so undo the count and refuse to touch the GSW.
