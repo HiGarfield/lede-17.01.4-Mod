@@ -509,6 +509,21 @@ int mtk_gsw_init(struct fe_priv *priv)
 	gsw->priv = priv;
 
 	if (gsw->irq) {
+		/* The chip's power-on IMR is not guaranteed to mask every
+		 * source. An IRQ arriving between request_irq() and the
+		 * disable_irq() below makes the handler take one
+		 * disable_irq_nosync() and queue irq_work. If that work
+		 * ends in out_masked it deliberately leaves the guard set
+		 * and cannot re-enable the line, and mt7621_gsw_stop_irq()
+		 * only compensates at teardown. The successful init path
+		 * would then keep a net disable depth of one for the whole
+		 * lifetime and lose every link change. Mask all sources
+		 * before the action becomes live, as the MT7620 init path
+		 * already does with GSW_REG_IMR. Retry a PIAC timeout.
+		 */
+		if (mt7621_gsw_set_imr(gsw, priv, 0))
+			mt7621_gsw_set_imr(gsw, priv, 0);
+
 		/* a previous instance has been drained by
 		 * mt7621_gsw_stop_irq(); start with a clean guard. The work
 		 * item itself is initialised once by mt7621_gsw_probe():
