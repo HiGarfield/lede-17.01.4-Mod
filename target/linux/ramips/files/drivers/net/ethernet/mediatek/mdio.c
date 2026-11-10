@@ -369,6 +369,20 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 	unsigned long flags;
 	int i;
 
+	/* priv->phy_dev aliases one of the phy[]/phy_map[] objects that
+	 * phy_disconnect() below releases, and priv->phy_flags records how
+	 * it was obtained. Withdraw the alias under phy->lock before any
+	 * detach: it used to be cleared unlocked only after the whole loop,
+	 * so during the entire detach sequence ethtool and MII ioctl could
+	 * observe a pointer to an already freed phy_device. Every other
+	 * writer of these two fields publishes under phy->lock, so do the
+	 * invalidation under the same lock.
+	 */
+	spin_lock_irqsave(&priv->phy->lock, flags);
+	priv->phy_dev = NULL;
+	priv->phy_flags = 0;
+	spin_unlock_irqrestore(&priv->phy->lock, flags);
+
 	for (i = 0; i < ARRAY_SIZE(priv->phy->phy); i++) {
 		struct phy_device *port_phy;
 		struct phy_device *bus_phy;
@@ -425,17 +439,6 @@ static void fe_phy_disconnect(struct fe_priv *priv)
 			priv->phy->phy_node[i] = NULL;
 		}
 	}
-
-	/*
-	 * priv->phy_dev aliases one of the objects released just above and
-	 * priv->phy_flags says how it was obtained.  The ethtool paths use
-	 * both without re-deriving them from phy[], so a stale value here is
-	 * a dangling phy_device pointer.  Both callers of this function
-	 * (fe_init's error path and fe_uninit) are terminal, so dropping the
-	 * alias unconditionally is correct.
-	 */
-	priv->phy_dev = NULL;
-	priv->phy_flags = 0;
 
 	/* drop the fixed-link pointers as well: they alias DT property
 	 * storage, and leaving them behind lets a re-probe of the global
