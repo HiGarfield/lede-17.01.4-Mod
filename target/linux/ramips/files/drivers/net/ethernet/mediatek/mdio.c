@@ -618,4 +618,13 @@ void fe_mdio_cleanup(struct fe_priv *priv)
 	 * freed pointer to mdiobus_unregister() again.
 	 */
 	priv->mii_bus = NULL;
+	/* fe_mdio_init() clears priv->phy on every failure so callers
+	 * never see a phy provider with no mii_bus behind it. Leave the
+	 * same state after teardown: otherwise fe_open(), fe_stop(),
+	 * fe_set_settings() and the rollback paths of a later ndo_init()
+	 * still see phy_ralink while the bus is gone. The !mii_bus early
+	 * return above keeps the fixed-link-only case intact, where
+	 * priv->phy is deliberately retained with no bus at all.
+	 */
+	priv->phy = NULL;
 }
