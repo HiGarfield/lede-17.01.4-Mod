@@ -545,6 +545,25 @@ int mtk_gsw_init(struct fe_priv *priv)
 			goto out_unlock;
 		}
 		disable_irq(gsw->irq);
+
+		/* If both mask writes above timed out, an already
+		 * asserted level line can enter the handler between
+		 * request_irq() and disable_irq(). That handler takes
+		 * one disable_irq_nosync() and queues irq_work. Drain
+		 * it before hw_init: otherwise a PIAC timeout in the
+		 * work pollutes gsw->mdio_err and makes a successful
+		 * hardware init look like a failure. Also balance the
+		 * extra disable depth: a work ending in out_masked
+		 * keeps GSW_IRQ_DISABLED set and never re-enables the
+		 * line, while the successful init path does not call
+		 * mt7621_gsw_stop_irq() to compensate it. The work
+		 * takes neither gsw_teardown_lock nor any lock held
+		 * here, so flushing cannot deadlock.
+		 */
+		flush_work(&gsw->irq_work);
+		if (test_and_clear_bit(GSW_IRQ_DISABLED,
+				       &gsw->irq_state))
+			enable_irq(gsw->irq);
 	}
 
 	err = mt7621_hw_init(gsw, np);
