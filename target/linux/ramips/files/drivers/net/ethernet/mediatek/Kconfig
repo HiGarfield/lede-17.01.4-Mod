@@ -21,6 +21,13 @@ config NET_MEDIATEK_SOC
 	# symbols (phy_ethtool_gset/sset, phy_read_status, genphy_*), also
 	# on RT3050 where NET_MEDIATEK_MDIO is not selected
 	select PHYLIB
+	# mt7530.o and esw_rt3050.o are built-in and call register_switch(),
+	# unregister_switch() and switch_generic_set_link(). swconfig.c only
+	# exports the first two, so a modular SWCONFIG leaves the last one
+	# unresolvable from vmlinux. Force SWCONFIG built-in, using the same
+	# select pattern as PHYLIB above rather than a depends-on that could
+	# form a PHYLIB evaluation cycle (SWCONFIG sits inside "if PHYLIB").
+	select SWCONFIG
 
 if NET_MEDIATEK_SOC
 choice
