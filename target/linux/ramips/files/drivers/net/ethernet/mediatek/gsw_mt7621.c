@@ -884,14 +884,13 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 	}
 	/* swpriv was cleared and the closing gate raised under the
 	 * teardown lock. Drain the readers that already snapshotted the
-	 * old pointer BEFORE releasing that lock: fe_gsw_readers_open()
-	 * runs under the same lock on a successful mtk_gsw_init(), and
-	 * letting it slip between close() and this wait would reopen the
-	 * gate for readers the drain does not cover, breaking the
-	 * "count reached zero means no reader can still enter" rule.
-	 * devres frees gsw and unmaps gsw->base as soon as remove()
-	 * returns. No reader ever takes gsw_teardown_lock, so waiting
-	 * while holding it cannot form a cycle.
+	 * old pointer BEFORE releasing that lock. No open() may slip
+	 * between close() and this wait: it would reopen the gate for
+	 * readers the drain does not cover, breaking the "count reached
+	 * zero means no reader can still enter" rule. devres frees gsw
+	 * and unmaps gsw->base as soon as remove() returns. No reader
+	 * ever takes gsw_teardown_lock, so waiting while holding it
+	 * cannot form a cycle.
 	 *
 	 * Only the branch that actually raised the gate has readers to
 	 * drain. fe_gsw_readers_close() is inside if (gsw); when drvdata
@@ -901,9 +900,26 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 	 * mtk_gsw_init(), mtk_gsw_cleanup() and remove() on
 	 * gsw_teardown_lock with no bound and nothing to make the reader
 	 * count converge. Match the condition of the close() call.
+	 *
+	 * The gate is only a drain barrier, not a permanent "GSW absent"
+	 * flag. close() exists solely in remove(), while open() only
+	 * existed at the end of a successful mtk_gsw_init(). A GSW unbind
+	 * leaves the FE netdev alive, and a later rebind runs probe()
+	 * only, never ndo_init(), so mtk_gsw_init() is not reached again
+	 * and fe_gsw_closing stayed set forever. Every reader then failed
+	 * at fe_gsw_reader_enter(): MDIO transfers returned -ENODEV, the
+	 * carrier helper always claimed link up, mdio_reset did nothing
+	 * and switch config/port reset bailed out. mtk_gsw_cleanup() also
+	 * never opens the gate. Reopen it here, under the same lock, once
+	 * the drain proves no reader holds the old object. swpriv and
+	 * drvdata are already NULL and every reader checks swpriv for
+	 * NULL, so a reader admitted afterwards returns safely instead of
+	 * dereferencing the devm object devres is about to free. The
+	 * mtk_gsw_init() open() remains as an idempotent confirmation.
 	 */
 	if (gsw)
 		fe_gsw_drain_readers();
+	fe_gsw_readers_open();
 	mutex_unlock(&gsw_teardown_lock);
 
 	return 0;
