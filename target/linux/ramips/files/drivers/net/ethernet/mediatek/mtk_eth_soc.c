@@ -2775,22 +2775,21 @@ static int fe_probe(struct platform_device *pdev)
 	struct clk *sysclk;
 	int err, napi_weight;
 
-	err = device_reset(&pdev->dev);
-	/* -EPROBE_DEFER means the reset controller has not probed yet and
-	 * must reach the driver core. -ENOENT is the normal result when the
-	 * ethernet node has no "resets" property; the -ENOTSUPP variants
-	 * are returned when reset controller support is not built in. Those
-	 * are the only outcomes in which no reset was requested at all.
-	 * Every other error means the requested reset did not happen: the
-	 * frame engine registers would then be programmed from an unknown
-	 * state, so do not silently continue probing.
+	/* Resetting through the DT "resets" phandle is best-effort.  The
+	 * authoritative frame-engine reset is soc->reset_fe(), called from
+	 * fe_init(), which drives the SoC RSTCTRL register directly on every
+	 * SoC.  device_reset() only pulses the first line, and the ralink
+	 * reset controller deliberately rejects line ids below 8 (the
+	 * system-wide reset bits) with -EPERM; MT7621 lists its FE reset as
+	 * line 6, so that call fails by design there.  Treating any error as
+	 * fatal aborts probe without a retry, leaving the switch device
+	 * unregistered and swconfig unable to find a switch.  The reset
+	 * controller is optional for this driver, so even a deferral must
+	 * not block registration.
 	 */
-	if (err == -EPROBE_DEFER)
-		return err;
-	if (err && err != -ENOENT && err != -ENOTSUPP && err != -EOPNOTSUPP) {
-		dev_err(&pdev->dev, "failed to reset device: %d\n", err);
-		return err;
-	}
+	err = device_reset(&pdev->dev);
+	if (err)
+		dev_warn(&pdev->dev, "device reset unavailable: %d\n", err);
 
 	match = of_match_device(of_fe_match, &pdev->dev);
 	if (!match)
