@@ -1901,7 +1901,8 @@ out_unlock_probe:
 }
 EXPORT_SYMBOL_GPL(fe_probe_and_register_switch);
 
-void fe_unregister_switches_from(struct fe_priv *priv, int start)
+static void fe_unregister_switches_range(struct fe_priv *priv, int start,
+					 bool full_teardown)
 {
 	struct switch_dev *claimed[ARRAY_SIZE(priv->soc->gsw_dev)];
 	int i;
@@ -1913,14 +1914,16 @@ void fe_unregister_switches_from(struct fe_priv *priv, int start)
 	 * while a probe is waiting for it.
 	 */
 	mutex_lock(&fe_switch_lock);
-	/* A full teardown (start == 0) means the switch is going away for
-	 * good. Publish that fact in the same critical section as the
-	 * claim, so a probe already waiting on fe_switch_lock cannot
-	 * repopulate gsw_dev[] after we release it. A partial rollback
-	 * (start > 0) only undoes one failed config attempt and must not
-	 * block the retry.
+	/* Only a real teardown declares the switch gone for good. This
+	 * used to be inferred from start == 0, but the first probe of a
+	 * fresh MT7620 also starts at 0: a failed second probe then ran
+	 * a partial rollback that set switch_dying and permanently
+	 * blocked any switch_config retry. Keep the two meanings
+	 * separate and publish the flag in the same critical section as
+	 * the claim, so a probe already waiting on fe_switch_lock cannot
+	 * repopulate gsw_dev[] after we release it.
 	 */
-	if (start == 0)
+	if (full_teardown)
 		priv->soc->switch_dying = true;
 	for (i = 0; i < ARRAY_SIZE(priv->soc->gsw_dev); i++) {
 		claimed[i] = (i >= start) ? priv->soc->gsw_dev[i] : NULL;
@@ -1937,6 +1940,12 @@ void fe_unregister_switches_from(struct fe_priv *priv, int start)
 		if (claimed[i])
 			mt7530_remove(claimed[i]);
 }
+
+void fe_unregister_switches_from(struct fe_priv *priv, int start)
+{
+	/* Undo one failed config attempt; a retry is still allowed. */
+	fe_unregister_switches_range(priv, start, false);
+}
 EXPORT_SYMBOL_GPL(fe_unregister_switches_from);
 
 void fe_unregister_switches(struct fe_priv *priv)
@@ -1944,7 +1953,7 @@ void fe_unregister_switches(struct fe_priv *priv)
 	/* Walk the whole array, not just gsw_dev_num: a failed probe can
 	 * leave a registered entry behind a stale counter.
 	 */
-	fe_unregister_switches_from(priv, 0);
+	fe_unregister_switches_range(priv, 0, true);
 }
 EXPORT_SYMBOL_GPL(fe_unregister_switches);
 
