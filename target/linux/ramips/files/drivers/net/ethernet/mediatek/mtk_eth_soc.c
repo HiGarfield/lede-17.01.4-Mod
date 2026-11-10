@@ -1356,6 +1356,24 @@ static int fe_poll(struct napi_struct *napi, int budget)
 		return 0;
 	}
 
+	/* status_int is never OR-ed into FE_REG_FE_INT_ENABLE, so the
+	 * counter-full source cannot raise an IRQ on its own. The MIB
+	 * counters are clear-on-read 32-bit values: if they are only
+	 * folded when a user reads /proc/net/dev or ethtool -S, they wrap
+	 * and the increment is lost. Fold them from NAPI at most once a
+	 * second instead of enabling that interrupt source, which would
+	 * need extra acknowledge paths in fe_handle_irq(), fe_stop() and
+	 * the __FE_DOWN early return and could spin the IRQ line.
+	 * Match the existing fold below: hwstat may be NULL and the
+	 * IRQ-safe lock form is required for the netpoll context.
+	 */
+	if (hwstat && time_after(jiffies, priv->stats_jiffies)) {
+		spin_lock_irqsave(&hwstat->stats_lock, flags);
+		fe_stats_update(priv);
+		spin_unlock_irqrestore(&hwstat->stats_lock, flags);
+		priv->stats_jiffies = jiffies + HZ;
+	}
+
 	status = fe_reg_r32(FE_REG_FE_INT_STATUS);
 	fe_status = status;
 	tx_intr = priv->soc->tx_int;

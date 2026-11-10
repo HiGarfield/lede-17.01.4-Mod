@@ -515,6 +515,10 @@ struct fe_priv {
 	int				link[8];
 
 	struct fe_hw_stats		*hw_stats;
+	/* next NAPI poll at which the clear-on-read MIB counters must be
+	 * folded, so they cannot wrap while nobody reads the statistics
+	 */
+	unsigned long			stats_jiffies;
 	unsigned long			vlan_map;
 	/* VID currently programmed in each of the 16 hash slots */
 	u16				vlan_vid[16];
