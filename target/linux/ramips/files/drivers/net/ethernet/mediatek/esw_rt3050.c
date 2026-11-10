@@ -1160,9 +1160,9 @@ static int esw_get_port_bool(struct switch_dev *dev,
 			 struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
-	int idx = val->port_vlan;
+	u32 idx = val->port_vlan;
 
-	if (idx < 0 || idx >= RT305X_ESW_NUM_PORTS)
+	if (idx >= RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
 	/* esw_set_port_bool() only changes ports[] under update_lock and
@@ -1211,10 +1211,9 @@ static int esw_set_port_bool(struct switch_dev *dev,
 			 struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
-	int idx = val->port_vlan;
+	u32 idx = val->port_vlan;
 
-	if (idx < 0 || idx >= RT305X_ESW_NUM_PORTS ||
-	    val->value.i < 0 || val->value.i > 1)
+	if (idx >= RT305X_ESW_NUM_PORTS || val->value.i > 1)
 		return -EINVAL;
 
 	/* esw_probe() rejects bit 6 in the "mediatek,portdisable" DT
@@ -1255,11 +1254,11 @@ static int esw_get_port_recv_badgood(struct switch_dev *dev,
 				 struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
-	int idx = val->port_vlan;
+	u32 idx = val->port_vlan;
 	int shift = attr->id == RT305X_ESW_ATTR_PORT_RECV_GOOD ? 0 : 16;
 	u32 reg;
 
-	if (idx < 0 || idx >= RT305X_ESW_NUM_LANWAN)
+	if (idx >= RT305X_ESW_NUM_LANWAN)
 		return -EINVAL;
 
 	/* the hardware counters are only 16 bits wide and wrap within
@@ -1289,14 +1288,14 @@ esw_get_port_tr_badgood(struct switch_dev *dev,
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
 
-	int idx = val->port_vlan;
+	u32 idx = val->port_vlan;
 	int shift = attr->id == RT5350_ESW_ATTR_PORT_TR_GOOD ? 0 : 16;
 	u32 reg;
 
 	if ((ralink_soc != RT305X_SOC_RT5350) && (ralink_soc != MT762X_SOC_MT7628AN) && (ralink_soc != MT762X_SOC_MT7688))
 		return -EINVAL;
 
-	if (idx < 0 || idx >= RT305X_ESW_NUM_LANWAN)
+	if (idx >= RT305X_ESW_NUM_LANWAN)
 		return -EINVAL;
 
 	mutex_lock(&esw->update_lock);
@@ -1320,9 +1319,9 @@ static int esw_get_port_led(struct switch_dev *dev,
 			struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
-	int idx = val->port_vlan;
+	u32 idx = val->port_vlan;
 
-	if (idx < 0 || idx >= RT305X_ESW_NUM_PORTS ||
+	if (idx >= RT305X_ESW_NUM_PORTS ||
 	    idx >= RT305X_ESW_NUM_LEDS)
 		return -EINVAL;
 
@@ -1342,9 +1341,9 @@ static int esw_set_port_led(struct switch_dev *dev,
 			struct switch_val *val)
 {
 	struct rt305x_esw *esw = container_of(dev, struct rt305x_esw, swdev);
-	int idx = val->port_vlan;
+	u32 idx = val->port_vlan;
 
-	if (idx < 0 || idx >= RT305X_ESW_NUM_LEDS)
+	if (idx >= RT305X_ESW_NUM_LEDS)
 		return -EINVAL;
 
 	/* swconfig does not enforce attr->max: a value above 15 would be
@@ -1411,7 +1410,7 @@ static int esw_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 
 	val->len = 0;
 
-	if (val->port_vlan < 0 || val->port_vlan >= RT305X_ESW_NUM_VIDS)
+	if (val->port_vlan >= RT305X_ESW_NUM_VIDS)
 		return -EINVAL;
 
 	/* Read back the software state written by esw_set_vlan_ports():
@@ -1463,7 +1462,7 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	int vlan_idx = -1;
 	int i;
 
-	if (val->port_vlan < 0 || val->port_vlan >= RT305X_ESW_NUM_VIDS ||
+	if (val->port_vlan >= RT305X_ESW_NUM_VIDS ||
 	    val->len > RT305X_ESW_NUM_PORTS)
 		return -EINVAL;
 
@@ -1495,7 +1494,7 @@ static int esw_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	for (i = 0; i < val->len; i++) {
 		struct switch_port *p = &val->value.ports[i];
 
-		if (p->id < 0 || p->id >= RT305X_ESW_NUM_PORTS)
+		if (p->id >= RT305X_ESW_NUM_PORTS)
 			goto out_unlock;
 	}
 
