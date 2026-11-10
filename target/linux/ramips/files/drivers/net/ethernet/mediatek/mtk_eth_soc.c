@@ -2422,8 +2422,9 @@ int fe_realloc_dma(struct fe_priv *priv, u16 new_tx_size, u16 new_rx_size,
 
 static void fe_jumbo_config(struct net_device *dev, int frag_size)
 {
+	struct fe_priv *priv = netdev_priv(dev);
 	u32 fwd_cfg;
-	int units;
+	int units, max_units;
 
 	if (IS_ENABLED(CONFIG_SOC_MT7621))
 		return;
@@ -2443,6 +2444,28 @@ static void fe_jumbo_config(struct net_device *dev, int frag_size)
 			units = 1;
 		if (units > FE_GDM1_JMB_LEN_MASK)
 			units = FE_GDM1_JMB_LEN_MASK;
+
+		/* On SoCs without FE_FLAG_RX_SG_DMA the RX descriptor
+		 * carries no buffer length (rxd2 is RX_DMA_LSO), so
+		 * FE_GDM1_JMB_LEN is the only ceiling on the hardware DMA
+		 * write. fe_alloc_rx() maps just rx_buf_size bytes starting
+		 * at NET_SKB_PAD + NET_IP_ALIGN inside a page_frag of
+		 * frag_size bytes. Rounding frag_size up to whole KiB units
+		 * can exceed both the mapping and the object: with a 4 KiB
+		 * page and MTU 3000, frag_size ~3360 requests a 4 KiB
+		 * ceiling while only ~3774 bytes are mapped from offset 66
+		 * of a 4096-byte frag. Clamp to whole KiB units that fit
+		 * the mapping, rounding DOWN so the hardware can never
+		 * write past it. fe_poll_rx() checks the length only after
+		 * the DMA has already happened and cannot prevent it.
+		 */
+		if (priv->rx_ring.rx_buf_size) {
+			max_units = priv->rx_ring.rx_buf_size / 1024;
+			if (max_units < 1)
+				max_units = 1;
+			if (units > max_units)
+				units = max_units;
+		}
 
 		fwd_cfg &= ~((u32)FE_GDM1_JMB_LEN_MASK <<
 			     FE_GDM1_JMB_LEN_SHIFT);
