@@ -336,20 +336,12 @@ static int fe_phy_connect(struct fe_priv *priv)
 		}
 	}
 
-	/* fe_init() has a rollback path for a failed connect. A usable PHY
-	 * or a fixed link is enough to keep going; switch-only SoCs get
-	 * their carrier from soc->has_carrier() and legitimately have
-	 * neither. Everything else has no link source at all: registering
-	 * the netdev would leave it permanently carrier-off with ethtool
-	 * and MII ioctls always failing with -ENODEV. In particular, a DT
-	 * whose mdio-bus has no enabled PHY produced no phy_init() error,
-	 * so ret was still 0 here.
-	 *
-	 * A non-zero ret is different: a real PHY was found but could not
-	 * be attached or autoneg could not be started. Return it before
-	 * the has_carrier() fallback, otherwise MT7620/MT7621 silently
-	 * swallow every attach error and fe_init() reports success with
-	 * no usable PHY, ethtool and MII ioctls stuck at -ENODEV.
+	/* A usable PHY, a fixed link or soc->has_carrier() is enough to
+	 * keep going. A non-zero ret is different: a real PHY was found
+	 * but could not be attached or autoneg could not be started.
+	 * Return it before the has_carrier() fallback, otherwise
+	 * MT7620/MT7621 silently swallow every attach error and fe_init()
+	 * reports success with no usable PHY.
 	 */
 	if (priv->phy_dev)
 		return 0;
@@ -361,7 +353,23 @@ static int fe_phy_connect(struct fe_priv *priv)
 	if (priv->soc->has_carrier)
 		return 0;
 
-	return -ENODEV;
+	/* No PHY object, no fixed link and no switch carrier source is a
+	 * valid board description, not an attach failure. fe_mdio_init()
+	 * deliberately succeeds with priv->phy set and priv->mii_bus NULL
+	 * when the mdio-bus node is disabled; RT2880/RT3883 boards wire
+	 * the FE MAC to an external switch through a fixed MAC-to-MAC
+	 * link and describe neither a PHY nor a fixed-link property.
+	 * Returning -ENODEV here contradicts that decision: fe_init() is
+	 * ndo_init, so register_netdevice() gives up without a retry and
+	 * without calling ndo_uninit(), and -ENODEV is not -EPROBE_DEFER
+	 * so the driver core never probes again. The board ends up with
+	 * no interface at all and the switch can never be reached.
+	 * Keep the netdev registered; genuine attach errors were already
+	 * returned above via ret.
+	 */
+	dev_warn(priv->dev, "no DT PHY or fixed link described\n");
+
+	return 0;
 }
 
 static void fe_phy_disconnect(struct fe_priv *priv)
