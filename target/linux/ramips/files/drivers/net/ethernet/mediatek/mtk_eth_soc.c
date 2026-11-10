@@ -31,7 +31,9 @@
 #include <linux/io.h>
 #include <linux/bug.h>
 #include <linux/bitmap.h>
+#include <linux/atomic.h>
 #include <linux/mutex.h>
+#include <linux/wait.h>
 #include <linux/switch.h>
 
 #include <asm/mach-ralink/ralink_regs.h>
@@ -1837,6 +1839,42 @@ static int fe_stop(struct net_device *dev)
 
 	return 0;
 }
+
+/* soc->swpriv points at a devm-owned GSW object that is freed as soon
+ * as the GSW platform driver's remove() returns. Its runtime readers
+ * (MDIO callbacks, has_carrier, set_mac, port_init, reset_ports) cannot
+ * take gsw_teardown_lock: mdiobus_read() already holds bus->mdio_lock
+ * before calling bus->read, while mt7621_gsw_set_imr() takes
+ * gsw_teardown_lock -> bus->mdio_lock. Adding the teardown lock to
+ * those readers would create an ABBA.
+ *
+ * Use a lock-free reader count instead. Readers only do atomic_inc/dec;
+ * remove() clears swpriv under the teardown lock, releases that lock,
+ * and then waits for the count to drain before returning to devres.
+ * A reader that increments after swpriv was cleared sees NULL and
+ * exits without touching the GSW, so the wait always terminates.
+ */
+static atomic_t fe_gsw_readers = ATOMIC_INIT(0);
+static DECLARE_WAIT_QUEUE_HEAD(fe_gsw_drain_wq);
+
+void fe_gsw_reader_enter(void)
+{
+	atomic_inc(&fe_gsw_readers);
+}
+EXPORT_SYMBOL_GPL(fe_gsw_reader_enter);
+
+void fe_gsw_reader_exit(void)
+{
+	if (atomic_dec_and_test(&fe_gsw_readers))
+		wake_up(&fe_gsw_drain_wq);
+}
+EXPORT_SYMBOL_GPL(fe_gsw_reader_exit);
+
+void fe_gsw_drain_readers(void)
+{
+	wait_event(fe_gsw_drain_wq, atomic_read(&fe_gsw_readers) == 0);
+}
+EXPORT_SYMBOL_GPL(fe_gsw_drain_readers);
 
 /* gsw_dev[] and gsw_dev_num live in the module-wide fe_soc_data. They
  * are touched by three independent teardown paths (fe_remove, fe_uninit

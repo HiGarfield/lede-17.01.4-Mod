@@ -195,7 +195,7 @@ static void mt7621_set_mac(struct fe_priv *priv, unsigned char *mac)
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 }
 
-static int mt7621_reset_ports(struct fe_priv *priv)
+static int mt7621_reset_ports_locked(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = priv->soc->swpriv;
 	struct mii_bus *bus;
@@ -263,6 +263,21 @@ static int mt7621_reset_ports(struct fe_priv *priv)
 
 	if (bus)
 		mutex_unlock(&bus->mdio_lock);
+
+	return ret;
+}
+
+static int mt7621_reset_ports(struct fe_priv *priv)
+{
+	int ret;
+
+	/* This runs from the TX-timeout work, which does not hold
+	 * gsw_teardown_lock. Keep the devm GSW alive for the whole
+	 * power-cycle even if the platform device is unbound meanwhile.
+	 */
+	fe_gsw_reader_enter();
+	ret = mt7621_reset_ports_locked(priv);
+	fe_gsw_reader_exit();
 
 	return ret;
 }

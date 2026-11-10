@@ -24,10 +24,17 @@
 
 void mt7620_mdio_reset(struct fe_priv *priv)
 {
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct mt7620_gsw *gsw;
+
+	/* Keep the devm GSW object alive until this transaction ends.
+	 * The reader count takes no lock, so it is safe from inside the
+	 * mdiobus_register() reset callback.
+	 */
+	fe_gsw_reader_enter();
+	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 
 	if (!gsw)
-		return;
+		goto out_reader;
 
 	/* mii_bus->reset is invoked directly by mdiobus_register(), outside
 	 * bus->mdio_lock, while the MT7621 link work already performs
@@ -43,6 +50,8 @@ void mt7620_mdio_reset(struct fe_priv *priv)
 		       MT7620A_GSW_REG_PIAC);
 	mutex_unlock(&gsw->mdio_lock);
 	udelay(10);
+out_reader:
+	fe_gsw_reader_exit();
 }
 
 /* The PIAC busy-wait runs while gsw->mdio_lock is held. jiffies only
@@ -200,29 +209,43 @@ EXPORT_SYMBOL_GPL(mt7620_mii_read_reg);
 int mt7620_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 {
 	struct fe_priv *priv = bus->priv;
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct mt7620_gsw *gsw;
+	int ret;
 
+	/* mdiobus_write() already holds bus->mdio_lock here. A reader
+	 * count takes no lock, so it cannot invert against the GSW
+	 * teardown path that goes teardown_lock -> bus->mdio_lock.
+	 */
+	fe_gsw_reader_enter();
+	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	if (!gsw)
-		return -ENODEV;
+		ret = -ENODEV;
+	else
+		ret = _mt7620_mii_write(gsw, phy_addr, phy_reg, val);
+	fe_gsw_reader_exit();
 
-	return _mt7620_mii_write(gsw, phy_addr, phy_reg, val);
+	return ret;
 }
 
 int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 {
 	struct fe_priv *priv = bus->priv;
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct mt7620_gsw *gsw;
 	u16 val;
 	int ret;
 
-	if (!gsw)
-		return -ENODEV;
+	fe_gsw_reader_enter();
+	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	if (!gsw) {
+		ret = -ENODEV;
+	} else {
+		ret = mt7620_mii_read_reg(gsw, phy_addr, phy_reg, &val);
+		if (!ret)
+			ret = val;
+	}
+	fe_gsw_reader_exit();
 
-	ret = mt7620_mii_read_reg(gsw, phy_addr, phy_reg, &val);
-	if (ret)
-		return ret;
-
-	return val;
+	return ret;
 }
 
 int mt7530_mdio_w32(struct mt7620_gsw *gsw, u32 reg, u32 val)
@@ -303,19 +326,27 @@ static const char *fe_speed_str(int speed)
 
 int mt7620_has_carrier(struct fe_priv *priv)
 {
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
-	int i;
+	struct mt7620_gsw *gsw;
+	int i, carrier = 1;
 
 	/* a DT without a gsw node leaves swpriv NULL; report carrier
-	 * rather than dereferencing it
+	 * rather than dereferencing it. This reader can run from fe_open
+	 * or the PHY state machine with no lock held.
 	 */
-	if (!gsw)
-		return 1;
+	fe_gsw_reader_enter();
+	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	if (gsw) {
+		carrier = 0;
+		for (i = 0; i < GSW_PORT6; i++)
+			if (mtk_switch_r32(gsw,
+					   GSW_REG_PORT_STATUS(i)) & 0x1) {
+				carrier = 1;
+				break;
+			}
+	}
+	fe_gsw_reader_exit();
 
-	for (i = 0; i < GSW_PORT6; i++)
-		if (mtk_switch_r32(gsw, GSW_REG_PORT_STATUS(i)) & 0x1)
-			return 1;
-	return 0;
+	return carrier;
 }
 
 

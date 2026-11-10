@@ -790,6 +790,14 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 	}
 	mutex_unlock(&gsw_teardown_lock);
 
+	/* swpriv was cleared under the teardown lock, so no new reader can
+	 * find the GSW. Wait for readers that already snapshotted the old
+	 * pointer: devres frees gsw and unmaps gsw->base as soon as this
+	 * function returns. Drain after unlocking to avoid coupling the
+	 * wait to any lock a reader may hold.
+	 */
+	fe_gsw_drain_readers();
+
 	return 0;
 }
 

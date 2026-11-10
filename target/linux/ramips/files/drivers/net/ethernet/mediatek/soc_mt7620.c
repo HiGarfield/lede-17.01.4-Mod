@@ -101,7 +101,7 @@ static int mt7620_mt7530_probe(struct fe_priv *priv, void __iomem *base,
 	return fe_probe_and_register_switch(priv, base, bus, vlan);
 }
 
-static int mt7620_gsw_config(struct fe_priv *priv)
+static int mt7620_gsw_config_locked(struct fe_priv *priv)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *) priv->soc->swpriv;
 	int err, start;
@@ -143,23 +143,42 @@ static int mt7620_gsw_config(struct fe_priv *priv)
 	return 0;
 }
 
+static int mt7620_gsw_config(struct fe_priv *priv)
+{
+	int ret;
+
+	/* Wrap the whole config sequence so gsw->base stays valid even if
+	 * the GSW platform device is unbound concurrently. The reader
+	 * count takes no lock and cannot invert with the teardown paths.
+	 */
+	fe_gsw_reader_enter();
+	ret = mt7620_gsw_config_locked(priv);
+	fe_gsw_reader_exit();
+
+	return ret;
+}
+
 static void mt7620_set_mac(struct fe_priv *priv, unsigned char *mac)
 {
-	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
+	struct mt7620_gsw *gsw;
 	unsigned long flags;
 
 	/* ndo_set_mac_address can run long after probe; the gsw platform
-	 * device may already have been unbound and cleared swpriv. The
-	 * MDIO/carrier paths already guard this pointer.
+	 * device may already have been unbound and cleared swpriv. Hold a
+	 * reader reference for the two MMIO writes.
 	 */
+	fe_gsw_reader_enter();
+	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	if (!gsw)
-		return;
+		goto out_reader;
 
 	spin_lock_irqsave(&priv->page_lock, flags);
 	mtk_switch_w32(gsw, (mac[0] << 8) | mac[1], GSW_REG_SMACCR1);
 	mtk_switch_w32(gsw, ((u32)mac[2] << 24) | ((u32)mac[3] << 16) |
 		((u32)mac[4] << 8) | mac[5], GSW_REG_SMACCR0);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
+out_reader:
+	fe_gsw_reader_exit();
 }
 
 static void mt7620_auto_poll(struct mt7620_gsw *gsw)
@@ -180,7 +199,8 @@ static void mt7620_auto_poll(struct mt7620_gsw *gsw)
 		(msb << 8) | lsb, ESW_PHY_POLLING);
 }
 
-static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
+static void mt7620_port_init_locked(struct fe_priv *priv,
+				    struct device_node *np)
 {
 	struct mt7620_gsw *gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	struct device_node *phy_np;
@@ -380,6 +400,17 @@ invalid_fixed_link:
 		gsw->autopoll |= BIT(id);
 		mt7620_auto_poll(gsw);
 	}
+}
+
+static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
+{
+	/* This function has many early returns. Wrapping it once keeps
+	 * the reader reference paired on every one of them without
+	 * touching the body.
+	 */
+	fe_gsw_reader_enter();
+	mt7620_port_init_locked(priv, np);
+	fe_gsw_reader_exit();
 }
 
 static void mt7620_fe_reset(void)
