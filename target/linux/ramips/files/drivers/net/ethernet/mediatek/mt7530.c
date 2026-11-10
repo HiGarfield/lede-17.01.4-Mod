@@ -688,12 +688,18 @@ mt7530_set_vid(struct switch_dev *dev, const struct switch_attr *attr,
 		struct switch_val *val)
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
-	int vlan;
+	u32 vlan;
 	u16 vid;
 
+	/* switch_val.port_vlan is unsigned int. Storing it in an int and
+	 * testing "vlan < 0" made the rejection of values at or above
+	 * 0x80000000 depend on an implementation-defined unsigned to
+	 * signed conversion. Compare the original type against the table
+	 * size instead; vlan is only used as an index and bit number.
+	 */
 	vlan = val->port_vlan;
 
-	if (vlan < 0 || vlan >= MT7530_NUM_VLANS)
+	if (vlan >= MT7530_NUM_VLANS)
 		return -EINVAL;
 
 	/* val->value.i is u32 and swconfig does not enforce attr->max.
