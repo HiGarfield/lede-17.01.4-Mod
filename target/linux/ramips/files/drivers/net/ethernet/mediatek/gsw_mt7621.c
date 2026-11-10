@@ -829,15 +829,19 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		gsw->priv = NULL;
 		platform_set_drvdata(pdev, NULL);
 	}
-	mutex_unlock(&gsw_teardown_lock);
-
-	/* swpriv was cleared under the teardown lock, so no new reader can
-	 * find the GSW. Wait for readers that already snapshotted the old
-	 * pointer: devres frees gsw and unmaps gsw->base as soon as this
-	 * function returns. Drain after unlocking to avoid coupling the
-	 * wait to any lock a reader may hold.
+	/* swpriv was cleared and the closing gate raised under the
+	 * teardown lock. Drain the readers that already snapshotted the
+	 * old pointer BEFORE releasing that lock: fe_gsw_readers_open()
+	 * runs under the same lock on a successful mtk_gsw_init(), and
+	 * letting it slip between close() and this wait would reopen the
+	 * gate for readers the drain does not cover, breaking the
+	 * "count reached zero means no reader can still enter" rule.
+	 * devres frees gsw and unmaps gsw->base as soon as remove()
+	 * returns. No reader ever takes gsw_teardown_lock, so waiting
+	 * while holding it cannot form a cycle.
 	 */
 	fe_gsw_drain_readers();
+	mutex_unlock(&gsw_teardown_lock);
 
 	return 0;
 }
