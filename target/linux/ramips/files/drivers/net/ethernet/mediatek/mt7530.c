@@ -582,7 +582,7 @@ mt7530_get_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 
 	val->len = 0;
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_VLANS)
+	if (val->port_vlan >= MT7530_NUM_VLANS)
 		return -EINVAL;
 
 	/* Pair with mt7530_set_vlan_ports(), which only updates the
@@ -624,14 +624,14 @@ mt7530_set_vlan_ports(struct switch_dev *dev, struct switch_val *val)
 	u8 etags = 0;
 	int i;
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_VLANS ||
+	if (val->port_vlan >= MT7530_NUM_VLANS ||
 			val->len > MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	for (i = 0; i < val->len; i++) {
 		struct switch_port *p = &val->value.ports[i];
 
-		if (p->id < 0 || p->id >= MT7530_NUM_PORTS)
+		if (p->id >= MT7530_NUM_PORTS)
 			return -EINVAL;
 
 		member |= BIT(p->id);
@@ -734,7 +734,7 @@ mt7621_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_VLANS)
+	if (val->port_vlan >= MT7530_NUM_VLANS)
 		return -EINVAL;
 
 	/* pair with mt7530_set_vid(): report the configured VID, not
@@ -752,7 +752,7 @@ mt7530_get_vid(struct switch_dev *dev, const struct switch_attr *attr,
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_VLANS)
+	if (val->port_vlan >= MT7530_NUM_VLANS)
 		return -EINVAL;
 
 	/* mt7530_set_vid() only updates vlan_entries[]; the VTIM register
@@ -807,7 +807,7 @@ mt7530_get_port_mirror_rx(struct switch_dev *dev, const struct switch_attr *attr
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
@@ -823,7 +823,7 @@ mt7530_set_port_mirror_rx(struct switch_dev *dev, const struct switch_attr *attr
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	/* swconfig does not enforce attr->max. Assigning an arbitrary u32
@@ -847,7 +847,7 @@ mt7530_get_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
@@ -863,7 +863,7 @@ mt7530_set_port_mirror_tx(struct switch_dev *dev, const struct switch_attr *attr
 {
 	struct mt7530_priv *priv = container_of(dev, struct mt7530_priv, swdev);
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	/* swconfig does not enforce attr->max; see the mirror_rx setter. */
@@ -1361,7 +1361,7 @@ static int mt7621_sw_get_port_mib(struct switch_dev *dev,
 	size_t len = 0;
 	int i;
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
@@ -1441,7 +1441,7 @@ static int mt7530_sw_get_port_mib(struct switch_dev *dev,
 	size_t len = 0;
 	int i;
 
-	if (val->port_vlan < 0 || val->port_vlan >= MT7530_NUM_PORTS)
+	if (val->port_vlan >= MT7530_NUM_PORTS)
 		return -EINVAL;
 
 	mutex_lock(&priv->reg_mutex);
