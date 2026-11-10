@@ -2580,14 +2580,26 @@ static int fe_change_mtu(struct net_device *dev, int new_mtu)
 	/* return early if the buffer sizes will not change */
 	if (old_mtu <= ETH_DATA_LEN && new_mtu <= ETH_DATA_LEN)
 		return 0;
-	if (old_mtu > ETH_DATA_LEN && new_mtu > ETH_DATA_LEN) {
-		/* the rings stay as they are, but the hardware jumbo
-		 * frame length must still track the new MTU
-		 * (e.g. 9000 -> 2000)
+	if (old_mtu > ETH_DATA_LEN && new_mtu > ETH_DATA_LEN &&
+	    new_frag == priv->rx_ring.frag_size &&
+	    new_buf == priv->rx_ring.rx_buf_size) {
+		/* The rings already have the right geometry, so only the
+		 * hardware jumbo frame length has to track the new MTU
+		 * (e.g. 9000 -> 2000).
 		 */
 		fe_jumbo_config(dev, frag_size);
 		return 0;
 	}
+
+	/* On large pages new_frag is derived from the MTU instead of a
+	 * whole PAGE_SIZE, so a jumbo-to-jumbo change can require a
+	 * different ring geometry. Falling through to fe_realloc_dma()
+	 * rebuilds it before fe_jumbo_config() programs the hardware.
+	 * Taking the fast path unconditionally used to keep a small
+	 * old ring while accepting a much larger dev->mtu: the DMA
+	 * mapping stayed short, every large frame was dropped, and
+	 * ndo_change_mtu still reported success.
+	 */
 
 	/* Rebuild the rings in the !running case too: they were
 	 * allocated by fe_init() with the old buffer geometry, and
