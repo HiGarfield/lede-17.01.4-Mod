@@ -275,7 +275,8 @@ static int mt7621_reset_ports(struct fe_priv *priv)
 	 * gsw_teardown_lock. Keep the devm GSW alive for the whole
 	 * power-cycle even if the platform device is unbound meanwhile.
 	 */
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return 0;
 	ret = mt7621_reset_ports_locked(priv);
 	fe_gsw_reader_exit();
 

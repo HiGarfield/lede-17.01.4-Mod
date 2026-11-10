@@ -151,7 +151,8 @@ static int mt7620_gsw_config(struct fe_priv *priv)
 	 * the GSW platform device is unbound concurrently. The reader
 	 * count takes no lock and cannot invert with the teardown paths.
 	 */
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return -ENODEV;
 	ret = mt7620_gsw_config_locked(priv);
 	fe_gsw_reader_exit();
 
@@ -167,7 +168,8 @@ static void mt7620_set_mac(struct fe_priv *priv, unsigned char *mac)
 	 * device may already have been unbound and cleared swpriv. Hold a
 	 * reader reference for the two MMIO writes.
 	 */
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return;
 	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	if (!gsw)
 		goto out_reader;
@@ -408,7 +410,8 @@ static void mt7620_port_init(struct fe_priv *priv, struct device_node *np)
 	 * the reader reference paired on every one of them without
 	 * touching the body.
 	 */
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return;
 	mt7620_port_init_locked(priv, np);
 	fe_gsw_reader_exit();
 }

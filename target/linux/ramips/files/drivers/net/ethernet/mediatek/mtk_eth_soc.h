@@ -553,8 +553,10 @@ void fe_reg_w32(u32 val, enum fe_reg reg);
 u32 fe_reg_r32(enum fe_reg reg);
 
 void fe_reset(u32 reset_bits);
-void fe_gsw_reader_enter(void);
+bool fe_gsw_reader_enter(void);
 void fe_gsw_reader_exit(void);
+void fe_gsw_readers_close(void);
+void fe_gsw_readers_open(void);
 void fe_gsw_drain_readers(void);
 void fe_unregister_switches(struct fe_priv *priv);
 void fe_unregister_switches_from(struct fe_priv *priv, int start);

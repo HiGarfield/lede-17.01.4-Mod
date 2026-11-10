@@ -1866,20 +1866,17 @@ static int fe_stop(struct net_device *dev)
  * gsw_teardown_lock -> bus->mdio_lock. Adding the teardown lock to
  * those readers would create an ABBA.
  *
- * Use a lock-free reader count instead. Readers only do atomic_inc/dec;
- * remove() clears swpriv under the teardown lock, releases that lock,
- * and then waits for the count to drain before returning to devres.
- * A reader that increments after swpriv was cleared sees NULL and
- * exits without touching the GSW, so the wait always terminates.
+ * Use a lock-free reader count plus a closing gate. remove() raises
+ * the gate before clearing swpriv, releases the teardown lock, then
+ * waits for the count to drain before returning to devres. Raising
+ * the gate is essential: without it a reader that starts only after
+ * the wait has returned is not counted at all, and its safety would
+ * depend solely on observing the cleared pointer rather than on the
+ * drain itself. Readers only do atomic operations, never take a mutex.
  */
 static atomic_t fe_gsw_readers = ATOMIC_INIT(0);
+static atomic_t fe_gsw_closing = ATOMIC_INIT(0);
 static DECLARE_WAIT_QUEUE_HEAD(fe_gsw_drain_wq);
-
-void fe_gsw_reader_enter(void)
-{
-	atomic_inc(&fe_gsw_readers);
-}
-EXPORT_SYMBOL_GPL(fe_gsw_reader_enter);
 
 void fe_gsw_reader_exit(void)
 {
@@ -1887,6 +1884,40 @@ void fe_gsw_reader_exit(void)
 		wake_up(&fe_gsw_drain_wq);
 }
 EXPORT_SYMBOL_GPL(fe_gsw_reader_exit);
+
+bool fe_gsw_reader_enter(void)
+{
+	if (atomic_read(&fe_gsw_closing))
+		return false;
+
+	atomic_inc(&fe_gsw_readers);
+	/* close() may have run between the first check and the
+	 * increment. A reader counted after the drain started is not
+	 * waited for, so undo the count and refuse to touch the GSW.
+	 * The double check is what makes "count reached zero" imply
+	 * "no reader can still enter".
+	 */
+	if (atomic_read(&fe_gsw_closing)) {
+		fe_gsw_reader_exit();
+		return false;
+	}
+	return true;
+}
+EXPORT_SYMBOL_GPL(fe_gsw_reader_enter);
+
+void fe_gsw_readers_close(void)
+{
+	atomic_set(&fe_gsw_closing, 1);
+	smp_mb();
+}
+EXPORT_SYMBOL_GPL(fe_gsw_readers_close);
+
+void fe_gsw_readers_open(void)
+{
+	atomic_set(&fe_gsw_closing, 0);
+	smp_mb();
+}
+EXPORT_SYMBOL_GPL(fe_gsw_readers_open);
 
 void fe_gsw_drain_readers(void)
 {

@@ -607,8 +607,15 @@ out_unlock:
 	 * unbind cannot publish switch_dying in between and then have
 	 * that claim erased by fe_init().
 	 */
-	if (!err)
+	if (!err) {
+		/* A fresh swpriv was published above. Let the MDIO and
+		 * carrier readers in again after a previous unbind raised
+		 * the gate. Both actions are under gsw_teardown_lock, so
+		 * they are atomic with respect to remove().
+		 */
+		fe_gsw_readers_open();
 		fe_switch_mark_alive(priv);
+	}
 	mutex_unlock(&gsw_teardown_lock);
 	return err;
 }
@@ -782,6 +789,13 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		 */
 		if (fe)
 			fe_unregister_switches(fe);
+
+		/* Reject new readers before dropping swpriv. Drain below
+		 * only waits for readers counted so far; without this gate
+		 * a reader starting after the wait returns would depend
+		 * solely on seeing the cleared pointer.
+		 */
+		fe_gsw_readers_close();
 
 		if (fe)
 			fe->soc->swpriv = NULL;

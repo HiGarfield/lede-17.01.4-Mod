@@ -30,7 +30,8 @@ void mt7620_mdio_reset(struct fe_priv *priv)
 	 * The reader count takes no lock, so it is safe from inside the
 	 * mdiobus_register() reset callback.
 	 */
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return;
 	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 
 	if (!gsw)
@@ -216,7 +217,8 @@ int mt7620_mdio_write(struct mii_bus *bus, int phy_addr, int phy_reg, u16 val)
 	 * count takes no lock, so it cannot invert against the GSW
 	 * teardown path that goes teardown_lock -> bus->mdio_lock.
 	 */
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return -ENODEV;
 	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	if (!gsw)
 		ret = -ENODEV;
@@ -234,7 +236,8 @@ int mt7620_mdio_read(struct mii_bus *bus, int phy_addr, int phy_reg)
 	u16 val;
 	int ret;
 
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return -ENODEV;
 	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	if (!gsw) {
 		ret = -ENODEV;
@@ -333,7 +336,8 @@ int mt7620_has_carrier(struct fe_priv *priv)
 	 * rather than dereferencing it. This reader can run from fe_open
 	 * or the PHY state machine with no lock held.
 	 */
-	fe_gsw_reader_enter();
+	if (!fe_gsw_reader_enter())
+		return 1;
 	gsw = (struct mt7620_gsw *)priv->soc->swpriv;
 	if (gsw) {
 		carrier = 0;
