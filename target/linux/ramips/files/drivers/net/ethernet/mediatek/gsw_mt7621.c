@@ -784,6 +784,24 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 	if (gsw) {
 		fe = gsw->priv;
 
+		/* Unregister the switch_devs before touching the irq or
+		 * any devm state. fe_unregister_switches() raises
+		 * switch_dying in the same critical section that claims
+		 * gsw_dev[], so a concurrent fe_init()/switch_config()
+		 * (GSW unbind does not hold RTNL) is rejected with
+		 * -ENODEV instead of publishing a switch_dev that this
+		 * remove would immediately claim and destroy. Doing this
+		 * after stop_irq() left a window where swpriv, mii_bus
+		 * and phy_map[0x1f] were all still valid but switch_dying
+		 * was still false, so fe_init() could succeed and then
+		 * silently lose every switch operation. The bus and the
+		 * devm mapping are both alive here, which is exactly what
+		 * unregister_switch() needs to drain in-flight swconfig
+		 * calls safely.
+		 */
+		if (fe)
+			fe_unregister_switches(fe);
+
 		/* The FE driver caches this devm object in soc->swpriv, and
 		 * gsw_interrupt_mt7621() resolves it through that pointer
 		 * before queueing &gsw->irq_work. Mask the source and drain
@@ -798,16 +816,6 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 		 * balanced (see mt7621_gsw_stop_irq()).
 		 */
 		mt7621_gsw_stop_irq(gsw);
-
-		/* The switch_dev registered by mt7621_gsw_config() still
-		 * references priv->mii_bus through this GSW instance. FE
-		 * teardown is not necessarily in progress on an independent
-		 * platform-device unbind, so unregister it here while the
-		 * bus and the devm state are still alive; unregister_switch()
-		 * drains in-flight swconfig calls first.
-		 */
-		if (fe)
-			fe_unregister_switches(fe);
 
 		/* Reject new readers before dropping swpriv. Drain below
 		 * only waits for readers counted so far; without this gate

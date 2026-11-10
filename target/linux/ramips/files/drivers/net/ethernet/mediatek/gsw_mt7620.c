@@ -513,6 +513,25 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 	if (gsw) {
 		fe = gsw->priv;
 
+		/* Unregister the switch_devs before masking the irq or
+		 * dropping swpriv. fe_unregister_switches() raises
+		 * switch_dying in the same critical section that claims
+		 * gsw_dev[], so a concurrent fe_init()/switch_config()
+		 * (GSW unbind does not hold RTNL) is rejected with
+		 * -ENODEV instead of publishing a switch_dev that this
+		 * remove would immediately claim and destroy. Doing this
+		 * after free_irq() left a window where swpriv, mii_bus and
+		 * the devm mapping were all still valid but switch_dying
+		 * was still false. mt7620_gsw_config() holds the reader
+		 * latch, but that only makes remove() wait for it; it does
+		 * not stop the config from succeeding and then losing its
+		 * freshly registered switch_dev. The bus and the mapping
+		 * are alive here, so unregister_switch() can drain
+		 * in-flight swconfig calls safely.
+		 */
+		if (fe)
+			fe_unregister_switches(fe);
+
 		/* The FE driver caches this devm object in soc->swpriv, and
 		 * gsw_interrupt_mt7620() resolves it through that pointer.
 		 * Mask the source and unregister the action BEFORE dropping
@@ -523,18 +542,6 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 			mtk_switch_w32(gsw, ~0, GSW_REG_IMR);
 		if (gsw->irq && fe)
 			free_irq(gsw->irq, fe);
-
-		/* mt7620_gsw_config() handed gsw->base to mt7530_probe(),
-		 * and that switch_dev is still on the swconfig global list.
-		 * It is devm-owned by this platform device: as soon as
-		 * remove() returns the mapping is released while swconfig
-		 * can still call mt7530_read_reg() on it. Unregister (and
-		 * thereby drain in-flight swconfig calls) while the
-		 * mapping is still valid. fe is NULL when the FE side has
-		 * already torn everything down.
-		 */
-		if (fe)
-			fe_unregister_switches(fe);
 
 		/* Reject new readers before dropping swpriv. Drain below
 		 * only waits for readers counted so far; without this gate
