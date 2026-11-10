@@ -2722,13 +2722,32 @@ static void fe_reset_pending(struct fe_priv *priv)
 		rtnl_unlock();
 		return;
 	}
-	/* A -EBUSY here means the engine never went quiet. The rings are
-	 * still allocated and this is a recovery path, so deliberately
-	 * proceed with the up/down cycle, but do not hide the condition.
+	/* A -EBUSY means fe_stop() could not quiesce the engine: the
+	 * FE_*_DMA_BUSY bits are still set, so the hardware may still own
+	 * descriptors whose software indices fe_open() does not reset.
+	 * fe_open() would rewrite FE_REG_PDMA_GLO_CFG with the DMA enable
+	 * bits and then napi_enable(), re-enable the IRQs and restart the
+	 * transmit queue against that engine, giving software and hardware
+	 * concurrent ownership of the rings. It also re-arms the
+	 * watchdog, so the timeout -> reset -> re-enable cycle repeats.
+	 *
+	 * fe_realloc_dma() treats the same -EBUSY as fatal for exactly this
+	 * reason: it closes the device instead of restarting DMA. Do the
+	 * same here and leave the interface down; only an explicit later
+	 * up is a safe retry. dev_close() is safe under rtnl_lock() on
+	 * this kernel (dev_close_many() only ASSERT_RTNL()), and the
+	 * ndo_stop it runs is fe_stop(), whose __FE_DOWN one-shot guard
+	 * makes that second call a no-op, so napi_disable() is not
+	 * repeated after fe_stop() already disabled NAPI.
 	 */
-	if (fe_stop(dev))
+	err = fe_stop(dev);
+	if (err) {
 		netif_alert(priv, ifup, dev,
-			    "DMA engine wedged during up/down cycle.\n");
+			    "DMA engine wedged during up/down cycle, closing device.\n");
+		dev_close(dev);
+		rtnl_unlock();
+		return;
+	}
 
 	err = fe_open(dev);
 	if (err) {
