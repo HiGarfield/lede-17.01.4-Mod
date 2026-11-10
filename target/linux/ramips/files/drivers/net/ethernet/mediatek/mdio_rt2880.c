@@ -37,9 +37,9 @@
 	 FE_MDIO_CFG_GP1_DUPLEX | FE_MDIO_CFG_GP1_FC_TX | \
 	 FE_MDIO_CFG_GP1_FC_RX)
 
-static const char *rt2880_speed_str(struct fe_priv *priv)
+static const char *rt2880_speed_str(struct fe_priv *priv, int port)
 {
-	switch (priv->phy->speed[0]) {
+	switch (priv->phy->speed[port]) {
 	case SPEED_1000:
 		return "1000";
 	case SPEED_100:
@@ -55,7 +55,19 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 {
 	u32 mdio_cfg;
 
-	if (!priv->link[0]) {
+	/* The caller passes the slot index that fe_phy_link_adjust() used
+	 * to store this PHY's state. RT2880/RT3883 normally use slot 0,
+	 * but a bus-scanned PHY can sit at a different MDIO address; a
+	 * hardcoded slot 0 then reads a link state that is never updated
+	 * and keeps the carrier down after a real link up.
+	 */
+	if (port < 0 || port >= ARRAY_SIZE(priv->link)) {
+		netdev_warn(priv->netdev, "invalid adjust_link port %d\n",
+			    port);
+		return;
+	}
+
+	if (!priv->link[port]) {
 		netif_carrier_off(priv->netdev);
 		netdev_info(priv->netdev, "link down\n");
 		return;
@@ -65,16 +77,16 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		   FE_MDIO_CFG_RX_CLK_SKEW_200 |
 		   FE_MDIO_CFG_GP1_FRC_EN;
 
-	if (priv->phy->duplex[0] == DUPLEX_FULL)
+	if (priv->phy->duplex[port] == DUPLEX_FULL)
 		mdio_cfg |= FE_MDIO_CFG_GP1_DUPLEX;
 
-	if (priv->phy->tx_fc[0])
+	if (priv->phy->tx_fc[port])
 		mdio_cfg |= FE_MDIO_CFG_GP1_FC_TX;
 
-	if (priv->phy->rx_fc[0])
+	if (priv->phy->rx_fc[port])
 		mdio_cfg |= FE_MDIO_CFG_GP1_FC_RX;
 
-	switch (priv->phy->speed[0]) {
+	switch (priv->phy->speed[port]) {
 	case SPEED_10:
 		mdio_cfg |= FE_MDIO_CFG_GP1_SPEED_10;
 		break;
@@ -85,7 +97,7 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		mdio_cfg |= FE_MDIO_CFG_GP1_SPEED_1000;
 		break;
 	default:
-		/* link[0] can already be 1 here (fixed link or a PHY
+		/* link[port] can already be 1 here (fixed link or a PHY
 		 * reporting an unknown speed). Returning without touching
 		 * the carrier leaves the interface up with the old MAC
 		 * speed configuration.
@@ -105,8 +117,8 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 
 	netif_carrier_on(priv->netdev);
 	netdev_info(priv->netdev, "link up (%sMbps/%s duplex)\n",
-		    rt2880_speed_str(priv),
-		    (priv->phy->duplex[0] == DUPLEX_FULL) ? "Full" : "Half");
+		    rt2880_speed_str(priv, port),
+		    (priv->phy->duplex[port] == DUPLEX_FULL) ? "Full" : "Half");
 }
 
 void rt2880_mdio_reset(struct fe_priv *priv)
