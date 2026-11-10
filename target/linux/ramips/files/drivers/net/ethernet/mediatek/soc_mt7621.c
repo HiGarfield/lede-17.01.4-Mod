@@ -86,15 +86,29 @@ static const u16 mt7621_reg_table[FE_REG_COUNT] = {
 
 static int mt7621_gsw_config(struct fe_priv *priv)
 {
+	int ret;
+
+	/* Wrap the whole config sequence so the devm GSW object stays
+	 * alive even if the GSW platform device is unbound concurrently.
+	 * A bare swpriv check only proves the pointer was valid at that
+	 * instant: mt7621_gsw_remove() can drop it, drain its readers and
+	 * let devres free gsw while mt7530_probe() is still issuing MDIO
+	 * transactions through that object. The reader count takes no
+	 * lock, so it cannot invert with the teardown paths; this is the
+	 * same pairing mt7620_gsw_config() uses.
+	 */
+	if (!fe_gsw_reader_enter())
+		return -ENODEV;
+
 	/* A GSW platform-device unbind can clear swpriv while the FE
 	 * netdev stays alive. Refuse to publish a switch_dev in that
-	 * state, exactly as mt7620_gsw_config() already does: the MDIO
-	 * bus alone is not proof that the GSW backing this switch is
-	 * still present.
+	 * state: the MDIO bus alone is not proof that the GSW backing
+	 * this switch is still present.
 	 */
 	if (!priv->soc->swpriv) {
 		dev_err(priv->dev, "GSW is not available\n");
-		return -ENODEV;
+		ret = -ENODEV;
+		goto out_reader;
 	}
 
 	/* the MT7530 must answer at MDIO address 0x1f; succeeding
@@ -103,7 +117,8 @@ static int mt7621_gsw_config(struct fe_priv *priv)
 	 */
 	if (!priv->mii_bus || !priv->mii_bus->phy_map[0x1f]) {
 		dev_err(priv->dev, "MT7530 not found on the MDIO bus\n");
-		return -ENODEV;
+		ret = -ENODEV;
+		goto out_reader;
 	}
 
 	/* The capacity check, mt7530_probe() and the publication into
@@ -113,7 +128,11 @@ static int mt7621_gsw_config(struct fe_priv *priv)
 	 * fully undo, and a racing GSW unbind must not leave a newly
 	 * registered switch behind after releasing its devm mapping.
 	 */
-	return fe_probe_and_register_switch(priv, NULL, priv->mii_bus, 1);
+	ret = fe_probe_and_register_switch(priv, NULL, priv->mii_bus, 1);
+
+out_reader:
+	fe_gsw_reader_exit();
+	return ret;
 }
 
 static void mt7621_fe_reset(void)
