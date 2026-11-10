@@ -569,8 +569,18 @@ static int mt7620_gsw_remove(struct platform_device *pdev)
 	 * devres frees gsw and unmaps gsw->base as soon as remove()
 	 * returns. No reader ever takes gsw_teardown_lock, so waiting
 	 * while holding it cannot form a cycle.
+	 *
+	 * Only the branch that actually raised the gate has readers to
+	 * drain. fe_gsw_readers_close() is inside if (gsw); when drvdata
+	 * was NULL (probe never published it, or a second remove) the
+	 * gate was never raised and new readers can keep arriving. An
+	 * unconditional wait_event() in that case blocks every
+	 * mtk_gsw_init(), mtk_gsw_cleanup() and remove() on
+	 * gsw_teardown_lock with no bound and nothing to make the reader
+	 * count converge. Match the condition of the close() call.
 	 */
-	fe_gsw_drain_readers();
+	if (gsw)
+		fe_gsw_drain_readers();
 	mutex_unlock(&gsw_teardown_lock);
 
 	return 0;
