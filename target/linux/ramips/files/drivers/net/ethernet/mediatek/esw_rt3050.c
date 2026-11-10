@@ -1771,12 +1771,25 @@ static int esw_probe(struct platform_device *pdev)
 	 * initialised only after the device was reachable.
 	 */
 	ret = esw_hw_init(esw);
-	if (ret) {
-		dev_err(&pdev->dev, "failed to initialize switch hardware\n");
-		if (esw->irq > 0)
-			irq_dispose_mapping(esw->irq);
-		return ret;
-	}
+	/* esw_hw_init() reports -EIO for a transient MDIO busy-wait
+	 * timeout in the PHY calibration sequence (dozens of writes,
+	 * each with a multi-second timeout), or for a failed
+	 * esw_apply_config() built on the same MDIO path. The
+	 * programming loop still runs to completion, and every
+	 * configuration can be replayed later through swconfig.
+	 *
+	 * Aborting probe here is terminal: -EIO is not -EPROBE_DEFER,
+	 * so the driver core never retries, register_switch() is never
+	 * reached and swconfig reports that no switch exists, with no
+	 * way to recover because the reset command is only reachable
+	 * through a registered switch device. Keep the switch visible
+	 * and warn. esw_reset_switch() still returns this error to a
+	 * caller that explicitly asks for a reset.
+	 */
+	if (ret)
+		dev_warn(&pdev->dev,
+			 "switch hardware init reported %d, continuing\n",
+			 ret);
 
 	/*
 	 * External switch connected to RGMII interface; decide before
