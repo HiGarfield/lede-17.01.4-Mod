@@ -121,16 +121,21 @@ void rt2880_mdio_link_adjust(struct fe_priv *priv, int port)
 		    (priv->phy->duplex[port] == DUPLEX_FULL) ? "Full" : "Half");
 }
 
-/* Every path that declines to establish a link on port 0 must retract
- * the software link state AND the netdev carrier. On these SoCs
- * rt2880_mdio_link_adjust() is the only writer of netif_carrier_*(),
- * and fe_phy_start(), fe_phy_stop() and fe_phy_disconnect() all pair
- * their link[] update with it. There is no has_carrier callback here,
- * so fe_open() cannot correct the carrier later, and a netdev starts
- * with the carrier up.
- * Clearing link[0] alone therefore leaves the interface reporting
- * LOWER_UP with no PHY and no fixed link: the carrier state stays
- * whatever the previous ndo_init (or the netdev default) left it as.
+/* A path that REJECTS a link description present in the DT (a malformed
+ * fixed-link property or tuple) must retract the software link state AND
+ * the netdev carrier. On these SoCs rt2880_mdio_link_adjust() is the only
+ * writer of netif_carrier_*(), and fe_phy_start(), fe_phy_stop() and
+ * fe_phy_disconnect() all pair their link[] update with it. There is no
+ * has_carrier callback here, so fe_open() cannot correct the carrier
+ * later, and a netdev starts with the carrier up. Clearing link[0]
+ * alone therefore leaves the interface reporting LOWER_UP with no PHY
+ * and no fixed link: the carrier state stays whatever the previous
+ * ndo_init (or the netdev default) left it as.
+ *
+ * Do NOT use this helper when the DT simply describes no link at all
+ * (no fixed-link and no phy-handle): that is the valid MAC-to-MAC board
+ * case, where the default carrier-up state is the only link indication
+ * and dropping it would leave the interface permanently down.
  *
  * The successful fixed-link path below calls the same link-adjust
  * function from inside phy->lock, so keeping that pairing here adds no
@@ -292,12 +297,31 @@ void rt2880_port_init(struct fe_priv *priv, struct device_node *np)
 	case PHY_INTERFACE_MODE_RMII:
 		break;
 	default:
-		/* this was printing priv->phy->speed[0] (uninitialised or
-		 * garbage here) as the port number
+		/* A negative of_get_phy_mode() means the port node carries
+		 * no phy-mode/phy-connection-type property at all. On these
+		 * SoCs that is a VALID board description, not a rejected
+		 * link: rt2880.dtsi and rt3883.dtsi put only "reg" on
+		 * port@0, and boards such as V11ST-FE add neither a
+		 * fixed-link nor a phy-handle while their mdio-bus stays
+		 * disabled. The FE MAC is wired straight to an external
+		 * switch, and fe_phy_connect() deliberately keeps the
+		 * netdev registered for exactly this case.
+		 *
+		 * Do not retract the carrier on this path. RT2880/RT3883
+		 * have no has_carrier callback for fe_open() to refresh it
+		 * and no PHY state machine or fixed-link entry to ever call
+		 * rt2880_mdio_link_adjust() again, so netif_carrier_off()
+		 * here drops the netdev's default carrier-up state and
+		 * leaves the interface permanently NO-CARRIER with no way
+		 * to recover. A previous ndo_init's fixed-link state, if
+		 * any, was already torn down by fe_phy_disconnect()
+		 * before the re-register.
 		 */
 		if (!priv->phy->phy_fixed[0]) {
-			dev_err(priv->dev, "port 0 - invalid phy mode\n");
-			rt2880_retract_link(priv);
+			if (phy_mode >= 0)
+				dev_warn(priv->dev,
+					 "port 0 - unsupported phy mode %d\n",
+					 phy_mode);
 			return;
 		}
 		/* fixed-link does not use this setting for PHY attach */
