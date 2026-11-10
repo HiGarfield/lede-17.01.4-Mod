@@ -53,7 +53,8 @@ EXPORT_SYMBOL_GPL(mtk_switch_r32);
 static DEFINE_MUTEX(gsw_teardown_lock);
 
 /* also used by the mt7621_gsw_set_imr() failure rollback in mtk_gsw_init() */
-static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw);
+static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw,
+				struct fe_priv *owner);
 
 /* The MT7530 indirect register window is shared with swconfig and with the
  * deferred link work: both build a page-select plus two data accesses while
@@ -652,7 +653,7 @@ err_late:
 		if (mt7621_gsw_set_imr(gsw, priv, 0))
 			mt7621_gsw_set_imr(gsw, priv, 0);
 		enable_irq(gsw->irq);
-		mt7621_gsw_stop_irq(gsw);
+		mt7621_gsw_stop_irq(gsw, priv);
 	} else {
 		gsw->priv = NULL;
 	}
@@ -688,16 +689,24 @@ EXPORT_SYMBOL_GPL(mtk_gsw_init);
  * permanently disabled (and makes a later re-probe unable to receive
  * link changes).
  */
-static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw)
+static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw,
+				struct fe_priv *owner)
 {
-	struct fe_priv *fe = gsw->priv;
-
 	if (!gsw->irq)
 		return;
 
-	/* Only the first teardown path owns the irq action. */
-	if (fe)
-		free_irq(gsw->irq, fe);
+	/* Only the first teardown path owns the irq action. The action was
+	 * requested with the fe_priv as dev_id, so free_irq() must receive
+	 * that exact pointer. gsw->priv is not a reliable source here: the
+	 * GSW remove() path clears the back-pointer before the FE cleanup
+	 * runs. Reading it back would skip free_irq() entirely, leaking the
+	 * action with a handler still holding the old fe_priv; a later
+	 * fe_init() would then fail to request the same irq and the switch
+	 * would never come back. Callers pass the owner they are tearing
+	 * down, or NULL when the other teardown path already released it.
+	 */
+	if (owner)
+		free_irq(gsw->irq, owner);
 
 	/* Keep gsw->priv alive until the work has drained. The work
 	 * resolves fe->mii_bus through that pointer in order to take
@@ -762,9 +771,10 @@ void mtk_gsw_cleanup(struct fe_priv *priv)
 	/* the irq was requested with the fe_priv as dev_id; release it
 	 * on the fe side too, otherwise the handler may run after the
 	 * netdev/fe_priv is gone (UAF), and a retried fe_init would
-	 * request the same irq twice
+	 * request the same irq twice. gsw->priv may already have been
+	 * cleared by the remove() path, so pass priv explicitly.
 	 */
-	mt7621_gsw_stop_irq(gsw);
+	mt7621_gsw_stop_irq(gsw, priv);
 
 	/* The FE netdev and its fe_priv are freed shortly after
 	 * ndo_uninit(). Clear the back-pointer unconditionally, also when
@@ -852,9 +862,13 @@ static int mt7621_gsw_remove(struct platform_device *pdev)
 			mt7621_gsw_set_imr(gsw, fe, 0);
 		/* gsw is devm allocated: drain the deferred link work
 		 * before returning, and keep the irq disable depth
-		 * balanced (see mt7621_gsw_stop_irq()).
+		 * balanced (see mt7621_gsw_stop_irq()). fe is the same
+		 * pointer the irq action was requested with, and may be
+		 * NULL when the FE cleanup path already released it; in
+		 * that case only the work drain / disable-depth balance
+		 * is needed here.
 		 */
-		mt7621_gsw_stop_irq(gsw);
+		mt7621_gsw_stop_irq(gsw, fe);
 
 		/* Reject new readers before dropping swpriv. Drain below
 		 * only waits for readers counted so far; without this gate
