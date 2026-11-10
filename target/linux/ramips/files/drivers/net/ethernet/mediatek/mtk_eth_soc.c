@@ -2377,8 +2377,14 @@ static int fe_set_features(struct net_device *dev,
 	/* fwd_config() rewrites GDMA1_FWD_CFG and, on jumbo-capable SoCs,
 	 * clears FE_GDM1_JMB_EN. Restore the programmed jumbo state for
 	 * the current MTU so an ethtool -K does not silently disable it.
+	 * fe_change_mtu() derives the length from fe_max_frag_size(), not
+	 * from rx_ring.frag_size: for a jumbo MTU the ring fragment is a
+	 * whole PAGE_SIZE while the jumbo field must cover the frame plus
+	 * its headroom. Using the ring value here used to shrink the
+	 * hardware limit after any ethtool -K and silently drop frames
+	 * that fit the configured MTU.
 	 */
-	fe_jumbo_config(dev, priv->rx_ring.frag_size);
+	fe_jumbo_config(dev, fe_max_frag_size(dev->mtu));
 
 	return 0;
 }
