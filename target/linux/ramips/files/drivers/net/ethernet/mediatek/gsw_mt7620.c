@@ -405,6 +405,14 @@ int mtk_gsw_init(struct fe_priv *priv)
 	}
 
 out_unlock:
+	/* Only a successful init may re-allow switch registration. Do it
+	 * while still holding gsw_teardown_lock: this makes the flag
+	 * clear atomic with the swpriv publication above, so a GSW
+	 * unbind cannot publish switch_dying in between and then have
+	 * that claim erased by fe_init().
+	 */
+	if (!err)
+		fe_switch_mark_alive(priv);
 	mutex_unlock(&gsw_teardown_lock);
 	return err;
 }

@@ -552,6 +552,7 @@ void fe_reset(u32 reset_bits);
 void fe_unregister_switches(struct fe_priv *priv);
 void fe_unregister_switches_from(struct fe_priv *priv, int start);
 int fe_switch_start(struct fe_priv *priv);
+void fe_switch_mark_alive(struct fe_priv *priv);
 int fe_probe_and_register_switch(struct fe_priv *priv, void __iomem *base,
 				 struct mii_bus *bus, int vlan);
 

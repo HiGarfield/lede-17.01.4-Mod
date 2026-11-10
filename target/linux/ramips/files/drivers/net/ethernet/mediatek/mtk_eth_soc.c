@@ -1846,17 +1846,23 @@ static int fe_stop(struct net_device *dev)
  */
 static DEFINE_MUTEX(fe_switch_lock);
 
-/* Called after switch_init() succeeded, before switch_config() may
- * publish any switch_dev. A full teardown sets switch_dying in the
- * same critical section that claims gsw_dev[], so a new registration
- * round has to clear it explicitly.
+/* Called by mtk_gsw_init() from inside gsw_teardown_lock on its
+ * successful exit, before switch_config() may publish any switch_dev.
+ * A full teardown sets switch_dying in the same critical section that
+ * claims gsw_dev[], so a new registration round has to clear it.
+ * Keeping this call under gsw_teardown_lock is essential: an
+ * independent GSW unbind takes that lock to publish switch_dying and
+ * drop swpriv. If fe_init() cleared the flag after switch_init()
+ * released the lock, a concurrent unbind's claim would be erased and
+ * a switch_dev could be published against a detached GSW.
  */
-static void fe_switch_mark_alive(struct fe_priv *priv)
+void fe_switch_mark_alive(struct fe_priv *priv)
 {
 	mutex_lock(&fe_switch_lock);
 	priv->soc->switch_dying = false;
 	mutex_unlock(&fe_switch_lock);
 }
+EXPORT_SYMBOL_GPL(fe_switch_mark_alive);
 
 int fe_switch_start(struct fe_priv *priv)
 {
@@ -2002,12 +2008,12 @@ static int fe_init(struct net_device *dev)
 			return swerr;
 		}
 
-		/* switch_init() published swpriv again. Allow this new
-		 * init round to register switch_devs, clearing the flag a
-		 * previous teardown (for example an unregister/re-register
-		 * cycle) left set. Do it now, before switch_config() runs.
+		/* mtk_gsw_init() clears switch_dying on its successful
+		 * exit while still holding gsw_teardown_lock. Do not do it
+		 * here: that lock has been released, so a concurrent GSW
+		 * unbind could publish switch_dying in between and have
+		 * its claim silently erased.
 		 */
-		fe_switch_mark_alive(priv);
 	}
 
 	mac_addr = of_get_mac_address(priv->dev->of_node);

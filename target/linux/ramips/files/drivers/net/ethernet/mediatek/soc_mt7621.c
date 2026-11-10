@@ -86,6 +86,17 @@ static const u16 mt7621_reg_table[FE_REG_COUNT] = {
 
 static int mt7621_gsw_config(struct fe_priv *priv)
 {
+	/* A GSW platform-device unbind can clear swpriv while the FE
+	 * netdev stays alive. Refuse to publish a switch_dev in that
+	 * state, exactly as mt7620_gsw_config() already does: the MDIO
+	 * bus alone is not proof that the GSW backing this switch is
+	 * still present.
+	 */
+	if (!priv->soc->swpriv) {
+		dev_err(priv->dev, "GSW is not available\n");
+		return -ENODEV;
+	}
+
 	/* the MT7530 must answer at MDIO address 0x1f; succeeding
 	 * silently without it would leave FE_FLAG_HAS_SWITCH set with
 	 * no switch behind it
