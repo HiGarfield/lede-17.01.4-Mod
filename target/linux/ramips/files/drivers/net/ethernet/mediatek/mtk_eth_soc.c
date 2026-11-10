@@ -2236,12 +2236,13 @@ static void fe_uninit(struct net_device *dev)
 {
 	unsigned long flags;
 	struct fe_priv *priv = netdev_priv(dev);
+	bool dma_quiesced = true;
 	int i;
 
 	spin_lock_irqsave(&priv->page_lock, flags);
 	fe_reg_w32(fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
-		     ~(FE_TX_WB_DDONE | FE_RX_DMA_EN | FE_TX_DMA_EN),
-		     FE_REG_PDMA_GLO_CFG);
+		   ~(FE_TX_WB_DDONE | FE_RX_DMA_EN | FE_TX_DMA_EN),
+		   FE_REG_PDMA_GLO_CFG);
 	spin_unlock_irqrestore(&priv->page_lock, flags);
 
 	/* the engine does not stop the instant the enable bits clear:
@@ -2254,14 +2255,32 @@ static void fe_uninit(struct net_device *dev)
 			break;
 		msleep(20);
 	}
-	/* unregister_netdev() cannot be aborted at this point, so the
-	 * rings must still be released; make the otherwise silent wedged
-	 * engine visible instead of letting it look like a random oops.
+	/* fe_init() (ndo_init) enables the DMA engine before the netdev is
+	 * ever opened, and dev_close_many() skips ndo_stop for a device
+	 * that was never brought up, so this is the only place that
+	 * quiesces it. If the busy bits are still set after the enable
+	 * bits were cleared and 200 ms of polling, the engine may still
+	 * be writing into the coherent descriptor rings and the mapped
+	 * rx_data pages. fe_free_dma() unmaps and frees exactly those
+	 * buffers; freeing them here turns a wedged engine into DMA
+	 * writes into memory the allocator has already handed to
+	 * somebody else. fe_stop() encodes the same rule by returning
+	 * -EBUSY instead of letting its callers free the rings.
+	 *
+	 * ndo_uninit() returns void, so unregister cannot be aborted,
+	 * but that does not force the rings to be freed: keep them
+	 * allocated (a bounded one-time leak of a few pages on a device
+	 * that is going away) rather than expose freed memory to a
+	 * running DMA engine. The error is still logged so the wedged
+	 * hardware is not silent.
 	 */
 	if (i == 10 &&
 	    (fe_reg_r32(FE_REG_PDMA_GLO_CFG) &
-		    (FE_TX_DMA_BUSY | FE_RX_DMA_BUSY)))
-		netdev_err(dev, "DMA engine did not quiesce during uninit\n");
+		    (FE_TX_DMA_BUSY | FE_RX_DMA_BUSY))) {
+		dma_quiesced = false;
+		netdev_err(dev, "DMA engine did not quiesce during uninit; "
+			   "keeping descriptor rings allocated\n");
+	}
 
 	/* cut the interrupt sources before the lengthy cleanup below:
 	 * phy disconnect and MDIO teardown can take long enough for the
@@ -2270,7 +2289,7 @@ static void fe_uninit(struct net_device *dev)
 	/* Use the locked helper: fe_poll()/fe_open() can still re-enable
 	 * rx/tx sources through fe_int_enable() while this teardown runs,
 	 * and a plain unlocked write of 0 is a read-modify-write race that
-	 * would leave the interrupt firing against the rings freed below.
+	 * would leave the interrupt firing against the rings below.
 	 */
 	fe_int_disable(priv, ~0);
 	free_irq(dev->irq, dev);
@@ -2292,7 +2311,18 @@ static void fe_uninit(struct net_device *dev)
 	 */
 	fe_unregister_switches(priv);
 
-	fe_free_dma(priv);
+	/* Only unmap and free the descriptor rings, the tx_buf array and
+	 * the mapped rx_data page frags once the engine is quiet. A wedged
+	 * engine can still be writing into all of them; dma_free_coherent(),
+	 * dma_unmap_single() and skb_free_frag() would hand those pages
+	 * back to the allocator while DMA owns them. Keeping them leaks a
+	 * bounded, one-time amount of memory on a device that is going
+	 * away with permanently wedged hardware, which is strictly safer
+	 * than writes into freed memory. PHY disconnect and MDIO teardown
+	 * below do not touch the rings, so they still run normally.
+	 */
+	if (dma_quiesced)
+		fe_free_dma(priv);
 
 	if (priv->phy)
 		priv->phy->disconnect(priv);
