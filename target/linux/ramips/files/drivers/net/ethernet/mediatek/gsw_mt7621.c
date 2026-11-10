@@ -232,7 +232,14 @@ out_masked:
 	 * stays degraded until then, but the disable depth and guard no
 	 * longer leak for the whole lifetime of this instance.
 	 */
-	if (!mt7530_mdio_w32(gsw, GSW_REG_IMR, 0)) {
+	/* 0x7008 here is the MT7530 switch's own interrupt register,
+	 * reached through the indirect MDIO window. Do not spell it as
+	 * GSW_REG_IMR: that symbol names the MT7620 SoC's memory-mapped
+	 * GSW register, whose bit polarity is the opposite of this one.
+	 * Keep the numeric form used by every other MT7530 access in
+	 * this file and by mt7621_gsw_set_imr().
+	 */
+	if (!mt7530_mdio_w32(gsw, 0x7008, 0)) {
 		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
 		if (bus)
 			mutex_unlock(&bus->mdio_lock);
