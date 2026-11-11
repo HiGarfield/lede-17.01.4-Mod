@@ -32,6 +32,22 @@
 /* set once teardown has taken the irq action down */
 #define GSW_IRQ_TORNDOWN	1
 
+/* Serialise the teardown decision in gsw_irq_reenable() against
+ * mt7621_gsw_stop_irq()'s set_bit(GSW_IRQ_TORNDOWN) + free_irq().
+ * A bare test_bit()/enable_irq() pair has a check-use race: on 4.4
+ * free_irq() only calls synchronize_irq(), which waits for in-flight
+ * hardirq handlers and not for irq_work. A work item that already
+ * sampled GSW_IRQ_TORNDOWN as clear can therefore reach enable_irq()
+ * after free_irq() returned, while the teardown sits in flush_work()
+ * waiting for that very work item. Both sides hold this lock across
+ * the decision and the action, so enable_irq() can never land after
+ * free_irq(). Teardown drops the lock before flush_work(), and the
+ * hardirq handler takes no lock, so the wait-for graph stays acyclic.
+ * Module-wide, like gsw_teardown_lock: a queued work item can still
+ * reach this lock after the devm gsw object has been torn down.
+ */
+static DEFINE_MUTEX(gsw_irq_reenable_lock);
+
 /* The handler's disable_irq_nosync() needs this matching enable_irq()
  * during normal operation. During teardown free_irq() has already
  * called irq_shutdown(), which sets desc->depth = 1 and masks the
@@ -41,8 +57,10 @@
  */
 static void gsw_irq_reenable(struct mt7620_gsw *gsw)
 {
+	mutex_lock(&gsw_irq_reenable_lock);
 	if (!test_bit(GSW_IRQ_TORNDOWN, &gsw->irq_state))
 		enable_irq(gsw->irq);
+	mutex_unlock(&gsw_irq_reenable_lock);
 }
 
 void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg)
@@ -593,7 +611,14 @@ int mtk_gsw_init(struct fe_priv *priv)
 		 * INIT_WORK() on a live work_struct corrupts its list node.
 		 */
 		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
+		/* Clear the teardown flag under the same lock that
+		 * gsw_irq_reenable() reads it with, so every write to
+		 * GSW_IRQ_TORNDOWN is ordered against every decision
+		 * to enable the line.
+		 */
+		mutex_lock(&gsw_irq_reenable_lock);
 		clear_bit(GSW_IRQ_TORNDOWN, &gsw->irq_state);
+		mutex_unlock(&gsw_irq_reenable_lock);
 		err = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
 				  "gsw", priv);
 
@@ -733,13 +758,23 @@ static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw,
 	 * would never come back. Callers pass the owner they are tearing
 	 * down, or NULL when the other teardown path already released it.
 	 */
-	/* Publish the teardown state BEFORE releasing the action: a work
-	 * item flushed below may reach its enable_irq() after free_irq()
-	 * returned, and must not undo the irq_shutdown() state.
+	/* Publish the teardown state and release the action under
+	 * gsw_irq_reenable_lock. Holding the lock across free_irq() is
+	 * what closes the race: a work item can only run its
+	 * test_bit()/enable_irq() pair while it owns the same lock, so
+	 * either it finishes first (action still live, the enable is a
+	 * valid balance) or it sees GSW_IRQ_TORNDOWN afterwards and
+	 * skips the enable. free_irq()'s synchronize_irq() waits only
+	 * for hardirq handlers, which take no lock, so this cannot
+	 * deadlock. Release the lock before flush_work(): a work item
+	 * waiting on this lock while teardown waits on that work would
+	 * otherwise be a cycle.
 	 */
+	mutex_lock(&gsw_irq_reenable_lock);
 	set_bit(GSW_IRQ_TORNDOWN, &gsw->irq_state);
 	if (owner)
 		free_irq(gsw->irq, owner);
+	mutex_unlock(&gsw_irq_reenable_lock);
 
 	/* Keep gsw->priv alive until the work has drained. The work
 	 * resolves fe->mii_bus through that pointer in order to take
