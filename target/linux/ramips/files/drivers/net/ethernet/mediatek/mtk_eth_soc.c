@@ -2177,10 +2177,8 @@ static int fe_init(struct net_device *dev)
 		err = priv->soc->switch_config(priv);
 		/* switch_config() only fails for recoverable reasons: a
 		 * GSW that has not finished probing, a PIAC/MDIO/VTCR
-		 * busy-wait timeout (the GSW init paths already retry
-		 * those once because they are transient), a missing
-		 * phy_map[0x1f] entry, or a short-lived register_switch()
-		 * allocation failure.
+		 * busy-wait timeout, a missing phy_map[0x1f] entry, or a
+		 * short-lived register_switch() allocation failure.
 		 *
 		 * A failed ndo_init() is terminal on this kernel:
 		 * register_netdevice() gives up without a retry and does
@@ -2188,16 +2186,31 @@ static int fe_init(struct net_device *dev)
 		 * -EPROBE_DEFER, so the driver core never probes again.
 		 * Propagating the error therefore destroys the whole
 		 * interface together with the switch device. Keep the
-		 * netdev registered; a later ndo_init (netns move, or an
-		 * unregister/re-register cycle) retries switch_config().
-		 * A partially published switch_dev is already rolled back
-		 * by fe_unregister_switches_from() inside the MT7620
-		 * config path, and mt7530_probe() cleans up its own state
-		 * on failure, so continuing leaves nothing behind.
+		 * netdev registered and warn instead.
+		 *
+		 * On 4.4 no later ndo_init can retry: a netns move only
+		 * closes, notifies and relists the same net_device without
+		 * calling ndo_init(), and register_netdevice() requires
+		 * NETREG_UNINITIALIZED, so this netdev can never be
+		 * registered again. Retry once here, following the same
+		 * one-retry pattern mtk_gsw_init() uses for a transient
+		 * hw_init() timeout. A failed attempt publishes nothing:
+		 * mt7530_probe() frees its own state on error, and the
+		 * MT7620 path rolls back with
+		 * fe_unregister_switches_from(), which does not raise
+		 * switch_dying. The second call therefore starts clean.
+		 * Without it, one transient PIAC/VTCR timeout loses every
+		 * switch_dev for the whole lifetime of this netdev.
 		 *
 		 * The irq installed by fe_hw_init() stays live here; it is
 		 * released by fe_uninit() when the device goes away.
 		 */
+		if (err) {
+			netdev_warn(dev,
+				    "switch configuration failed: %d, retrying\n",
+				    err);
+			err = priv->soc->switch_config(priv);
+		}
 		if (err)
 			netdev_warn(dev, "switch configuration failed: %d\n",
 				    err);
