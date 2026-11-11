@@ -62,7 +62,12 @@ enum fe_work_flag {
 #define FE_DELAY_TIME		20
 #define FE_DELAY_CHAN		(((FE_DELAY_EN_INT | FE_DELAY_MAX_INT) << 8) | \
 				 FE_DELAY_MAX_TOUT)
-#define FE_DELAY_INIT		((FE_DELAY_CHAN << 16) | FE_DELAY_CHAN)
+/* FE_DELAY_CHAN is 0x8404 as a signed int; shifting it left by 16 gives
+ * 0x84040000, which is not representable in int and is undefined by C99
+ * 6.5.7(4). Widen before the shift, as the other high-bit mask macros in
+ * this driver do.
+ */
+#define FE_DELAY_INIT		(((u32)FE_DELAY_CHAN << 16) | FE_DELAY_CHAN)
 #define FE_PSE_FQFC_CFG_INIT	0x80504000
 #define FE_PSE_FQFC_CFG_256Q	0xff908000
 
@@ -339,7 +344,13 @@ struct fe_rx_dma {
 #define TX_DMA_QN_MASK		TX_DMA_QN(0x7)
 #define TX_DMA_PN_MASK		TX_DMA_PN(0x7)
 #define TX_DMA_UDF		BIT(20)
-#define TX_DMA_CHKSUM		(0x7 << 29)
+/* 0x7 << 29 is 0xe0000000, outside the range of a signed int: C99 6.5.7(4)
+ * makes that shift undefined. This macro is ORed into the unsigned txd4
+ * field on every CHECKSUM_PARTIAL transmit, so keep the same bit pattern
+ * with a defined unsigned shift (as mtk_eth_soc.c does for its other
+ * high-bit masks).
+ */
+#define TX_DMA_CHKSUM		((u32)0x7 << 29)
 #define TX_DMA_TSO		BIT(28)
 
 /* frame engine counters */
