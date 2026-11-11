@@ -589,11 +589,16 @@ static struct rtnl_link_stats64 *fe_get_stats64(struct net_device *dev,
 {
 	struct fe_priv *priv = netdev_priv(dev);
 	struct fe_hw_stats *hwstats = priv->hw_stats;
-	unsigned int base = fe_reg_table[FE_REG_FE_COUNTER_BASE];
 	unsigned int start;
 	unsigned long flags;
 
-	if (!base) {
+	/* Every dereference below is of this per-netdev object, so guard
+	 * the object itself. fe_reg_table is module-wide state that probe
+	 * and remove replace independently of this device's lifetime;
+	 * using it as the guard let a live netdev with hw_stats == NULL
+	 * dereference offset 0 (stats_lock is the first member).
+	 */
+	if (!hwstats) {
 		netdev_stats_to_stats64(storage, &dev->stats);
 		return storage;
 	}

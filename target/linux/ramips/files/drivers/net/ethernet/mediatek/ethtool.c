@@ -135,13 +135,17 @@ static void fe_get_drvinfo(struct net_device *dev,
 			   struct ethtool_drvinfo *info)
 {
 	struct fe_priv *priv = netdev_priv(dev);
-	struct fe_soc_data *soc = priv->soc;
 
 	strlcpy(info->driver, priv->dev->driver->name, sizeof(info->driver));
 	strlcpy(info->version, MTK_FE_DRV_VERSION, sizeof(info->version));
 	strlcpy(info->bus_info, dev_name(priv->dev), sizeof(info->bus_info));
 
-	if (soc->reg_table[FE_REG_FE_COUNTER_BASE])
+	/* Advertise exactly the counters this device can actually report.
+	 * The counter object is per-netdev; deriving its existence from a
+	 * module-wide register table allowed n_stats to disagree with the
+	 * installed ethtool ops when that table was replaced.
+	 */
+	if (priv->hw_stats)
 		info->n_stats = ARRAY_SIZE(fe_gdma_str);
 }
 
@@ -256,6 +260,18 @@ static void fe_get_ethtool_stats(struct net_device *dev,
 		     ARRAY_SIZE(fe_gdma_str) * sizeof(u64) >
 		     sizeof(struct fe_hw_stats));
 
+	/* fe_get_stats64() and fe_poll() both guard this pointer, and the
+	 * stats ops table is only installed when hw_stats was allocated.
+	 * Keep the same guard here: the register table used to decide
+	 * that installation is module-wide state, not this device's.
+	 * ethtool still copies n_stats u64 values back to userspace, so
+	 * do not leave the caller's buffer uninitialised on that path.
+	 */
+	if (!hwstats) {
+		memset(data, 0, ARRAY_SIZE(fe_gdma_str) * sizeof(u64));
+		return;
+	}
+
 	if (netif_running(dev) && netif_device_present(dev)) {
 		/* Take the lock unconditionally, like fe_get_stats64():
 		 * a failed trylock skips the clear-on-read hardware
@@ -311,12 +327,14 @@ static const struct ethtool_ops fe_ethtool_ops_stats = {
 void fe_set_ethtool_ops(struct net_device *netdev)
 {
 	struct fe_priv *priv = netdev_priv(netdev);
-	struct fe_soc_data *soc = priv->soc;
 
-	/* pick one of the two const tables instead of mutating a shared
-	 * struct at probe time
+	/* Install the stats-capable table only when this device owns the
+	 * counter object those callbacks dereference. fe_probe() allocates
+	 * hw_stats from the same per-device decision, so ops, n_stats,
+	 * fe_get_stats64() and fe_get_ethtool_stats() can no longer
+	 * disagree after the module-wide register table is replaced.
 	 */
-	if (soc->reg_table[FE_REG_FE_COUNTER_BASE])
+	if (priv->hw_stats)
 		netdev->ethtool_ops = &fe_ethtool_ops_stats;
 	else
 		netdev->ethtool_ops = &fe_ethtool_ops;
