@@ -162,6 +162,36 @@ int fe_connect_phy_node(struct fe_priv *priv, struct device_node *phy_node,
 		return -EINVAL;
 	}
 
+	/* fe_init() calls port_init() for every "mediatek,eth-port" child
+	 * and neither rt2880_port_init() nor mt7620_port_init_locked()
+	 * de-duplicates the port id from "reg". Two nodes claiming the
+	 * same id make port_init() replace phy_node[port] and then call
+	 * this function again. Connecting a second PHY and overwriting
+	 * phy[port] would orphan the first phy_connect(): its device
+	 * reference, attached_dev and state machine would survive every
+	 * teardown path, which only sees the replacement, and the state
+	 * machine would keep reading through a mii_bus freed by
+	 * fe_mdio_cleanup(). Reject the slot before of_phy_connect()
+	 * attaches anything; port_init() runs serially under RTNL, so
+	 * there is no concurrent writer of phy[] to race this check.
+	 *
+	 * Unlike the failure paths below, do not call
+	 * fe_phy_forget_node() here: port_init() already published the
+	 * second node's reference into phy_node[port], and the slot is
+	 * still owned by the first PHY. Keeping it lets fe_phy_connect()
+	 * publish phy_dev = phy[port] and lets fe_phy_disconnect()
+	 * release exactly one node reference while disconnecting the
+	 * first PHY. Dropping it would also leave phy_dev unset and
+	 * silently disable ethtool/MII access to the attached PHY.
+	 */
+	spin_lock_irqsave(&priv->phy->lock, flags);
+	if (priv->phy->phy[port]) {
+		spin_unlock_irqrestore(&priv->phy->lock, flags);
+		dev_err(priv->dev, "port %d already has a PHY\n", port);
+		return -EBUSY;
+	}
+	spin_unlock_irqrestore(&priv->phy->lock, flags);
+
 	phy_mode = of_get_phy_mode(phy_node);
 	if (phy_mode < 0) {
 		dev_err(priv->dev, "incorrect phy-mode %d\n", phy_mode);
