@@ -112,7 +112,7 @@ mac80211_hostapd_setup_base() {
 		VHT20|HT20) ;;
 		HT40*|VHT40|VHT80|VHT160)
 			case "$hwmode" in
-				a)
+				a|11a|11na)
 					case "$(( ($channel / 4) % 2 ))" in
 						1) ht_capab="[HT40+]";;
 						0) ht_capab="[HT40-]";;
@@ -559,7 +559,7 @@ mac80211_prepare_iw_htmode() {
 		VHT20|HT20) iw_htmode=HT20;;
 		HT40*|VHT40|VHT160)
 			case "$hwmode" in
-				a)
+				a|11a|11na)
 					case "$(( ($channel / 4) % 2 ))" in
 						1) iw_htmode="HT40+" ;;
 						0) iw_htmode="HT40-";;
