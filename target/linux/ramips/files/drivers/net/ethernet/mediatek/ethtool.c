@@ -53,18 +53,23 @@ static int fe_set_settings(struct net_device *dev,
 	unsigned long flags;
 	int i;
 
-	/* This driver only ever manages MDIO addresses 0..7:
-	 * fe_phy_connect(), fe_phy_start/stop/disconnect() and
-	 * fe_phy_link_adjust() all walk the eight port-sized arrays and
-	 * phy_attached only has bits 0..7 set. Bounding by PHY_MAX_ADDR
-	 * promised addresses that can never be attached, and the old
-	 * comment claiming phy_map[]/phy_attached cover the whole bus
-	 * was wrong: widening those loops to PHY_MAX_ADDR would write
-	 * past link[8], phy[8] and speed[8]. Reject them up front.
-	 * ARRAY_SIZE() is a compile-time constant, so this is safe even
-	 * before the priv->phy NULL check below.
+	/* cmd->phy_address is an MDIO bus address, not an eth-port id.
+	 * The eight-slot phy[]/phy_node[]/link[]/speed[] arrays are keyed
+	 * by port id; mii_bus->phy_map[] and the DT PHY "reg" property use
+	 * the full PHY_MAX_ADDR range. A PHY described by "phy-handle" is
+	 * attached by of_phy_connect(), which resolves the address from
+	 * the node itself, so it may legitimately sit at address 8..31.
+	 * phy_ethtool_gset() reports phydev->addr in this field and
+	 * phy_ethtool_sset() requires it to match, so using the port array
+	 * length as the bound made such a PHY impossible to configure,
+	 * including a plain speed/duplex change on the current phy_dev.
+	 *
+	 * Bound by PHY_MAX_ADDR instead: that is the real limit of both
+	 * phy_map[] and the phy_attached bitmap indexing below. Reject
+	 * larger values before the priv->phy NULL check; PHY_MAX_ADDR is
+	 * a compile-time constant, so no dereference happens here.
 	 */
-	if (cmd->phy_address >= ARRAY_SIZE(priv->phy->phy))
+	if (cmd->phy_address >= PHY_MAX_ADDR)
 		return -EINVAL;
 
 	if (!priv->phy_dev || !priv->phy)
@@ -97,11 +102,11 @@ static int fe_set_settings(struct net_device *dev,
 		/* Fall back to a bus-scanned PHY only when this driver
 		 * actually attached it: phy_ethtool_sset() ends up in
 		 * phydev->drv and must not run on an unattached phydev.
-		 */
-		/* cmd->phy_address is now bounded by the same 8 slots that
-		 * fe_phy_connect() walks, so phy_map[] indexing is safe and
-		 * phy_attached can only be set for an address this driver
-		 * actually attached in phy_init().
+		 * PHY_MAX_ADDR bounds both the phy_map[] index and the
+		 * phy_attached bit number. fe_phy_connect() only sets bits
+		 * 0..7, so addresses 8..31 can never match this fallback;
+		 * they are reachable solely through the port-indexed phy[]
+		 * loop above, via a DT phy-handle.
 		 */
 		if (!new_phy &&
 		    priv->mii_bus &&
