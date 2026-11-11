@@ -2888,10 +2888,21 @@ static int fe_probe(struct platform_device *pdev)
 		return -EBUSY;
 	}
 
+	/* fe_soc_data is a module-wide descriptor selected from
+	 * of_fe_match[].data, so its reg_table field must stay read-only.
+	 * Caching the current fe_reg_table into a NULL slot wrote a
+	 * per-probe decision into that shared state, and neither err_out
+	 * nor fe_remove() ever restored it. If the module-wide table had
+	 * been switched by a concurrent probe, every later probe would
+	 * install that stale pointer and all fe_reg_w32()/fe_reg_r32()
+	 * accesses would use the wrong offsets. Select the default table
+	 * explicitly instead; fe_reg_table is already reset to it on
+	 * every teardown path.
+	 */
 	if (soc->reg_table)
 		fe_reg_table = soc->reg_table;
 	else
-		soc->reg_table = fe_reg_table;
+		fe_reg_table = fe_reg_table_default;
 
 	fe_base = devm_ioremap_resource(&pdev->dev, res);
 	if (IS_ERR(fe_base)) {
