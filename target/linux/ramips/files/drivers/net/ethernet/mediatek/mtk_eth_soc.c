@@ -26,7 +26,6 @@
 #include <linux/of_net.h>
 #include <linux/of_mdio.h>
 #include <linux/if_vlan.h>
-#include <linux/reset.h>
 #include <linux/tcp.h>
 #include <linux/io.h>
 #include <linux/bug.h>
@@ -2877,22 +2876,25 @@ static int fe_probe(struct platform_device *pdev)
 	struct clk *sysclk;
 	int err, napi_weight;
 
-	/* Resetting through the DT "resets" phandle is best-effort.  The
-	 * authoritative frame-engine reset is soc->reset_fe(), called from
-	 * fe_init(), which drives the SoC RSTCTRL register directly on every
-	 * SoC.  device_reset() only pulses the first line, and the ralink
-	 * reset controller deliberately rejects line ids below 8 (the
-	 * system-wide reset bits) with -EPERM; MT7621 lists its FE reset as
-	 * line 6, so that call fails by design there.  Treating any error as
-	 * fatal aborts probe without a retry, leaving the switch device
-	 * unregistered and swconfig unable to find a switch.  The reset
-	 * controller is optional for this driver, so even a deferral must
-	 * not block registration.
+	/* The frame engine is reset by soc->reset_fe() from fe_init()
+	 * (ndo_init), before any FE register is touched, and fe_probe()
+	 * rejects a SoC descriptor without that callback.  fe_reset()
+	 * pulses every reset bit the SoC needs and serialises the shared
+	 * RSTCTRL register under fe_reset_lock against the ESW/GSW
+	 * drivers.
+	 *
+	 * device_reset() must not be used for this.  On 4.4 it resolves
+	 * only the first "resets" phandle (of_reset_control_get(node,
+	 * NULL) uses index 0), so any pulse it produces is already a
+	 * subset of reset_fe().  On MT7621 the first line is 6 and
+	 * arch/mips/ralink/reset.c rejects every id below 8 with a bare
+	 * -1 before writing any register, so the call is a guaranteed
+	 * no-op whose only observable effect is a misleading
+	 * "device reset unavailable: -1" warning on every boot.  It
+	 * additionally bypasses fe_reset_lock with an unlocked
+	 * read-modify-write of RSTCTRL, and include/linux/reset.h only
+	 * declares device_reset() under CONFIG_RESET_CONTROLLER=y.
 	 */
-	err = device_reset(&pdev->dev);
-	if (err)
-		dev_warn(&pdev->dev, "device reset unavailable: %d\n", err);
-
 	match = of_match_device(of_fe_match, &pdev->dev);
 	if (!match)
 		return -ENODEV;
@@ -3012,7 +3014,7 @@ static int fe_probe(struct platform_device *pdev)
 		 * deferral into -ENXIO (or ignoring it on SoCs without
 		 * FE_FLAG_CALIBRATE_CLK) would make the driver core give
 		 * up permanently, exactly the failure already handled
-		 * for device_reset(), ioremap and platform_get_irq().
+		 * for ioremap and platform_get_irq().
 		 */
 		err = -EPROBE_DEFER;
 		goto err_free_dev;
