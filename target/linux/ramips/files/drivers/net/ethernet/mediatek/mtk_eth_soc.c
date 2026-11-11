@@ -96,6 +96,18 @@ struct fe_work_t {
 
 static void __iomem *fe_base;
 
+/* fe_base and fe_reg_table are module-wide, so only one platform device
+ * may probe at a time. A plain "if (fe_base)" is a test-then-set: the
+ * check and the devm_ioremap_resource() assignment are separated by
+ * sleepable calls, and the driver core may probe two devices matching
+ * two of_fe_match[] compatibles concurrently. Both would pass the
+ * check, then each install its own register map and iomem base into the
+ * same globals. Claim the instance atomically and release it on every
+ * failure path and in fe_remove(). Atomic bit operations neither sleep
+ * nor nest with any other lock, so this adds no lock order.
+ */
+static unsigned long fe_instance_claimed;
+
 void fe_w32(u32 val, unsigned reg)
 {
 	__raw_writel(val, fe_base + reg);
@@ -2883,10 +2895,17 @@ static int fe_probe(struct platform_device *pdev)
 		return -ENODEV;
 	}
 
-	if (fe_base) {
+	/* Claim before touching any module-wide state. The early
+	 * -ENODEV returns above do not reach here, so they need no
+	 * release; every later failure funnels through err_out, and a
+	 * successful probe keeps the claim until fe_remove().
+	 */
+	if (test_and_set_bit(0, &fe_instance_claimed)) {
 		dev_err(&pdev->dev, "driver supports a single instance only\n");
 		return -EBUSY;
 	}
+
+	WARN_ON_ONCE(fe_base);
 
 	/* fe_soc_data is a module-wide descriptor selected from
 	 * of_fe_match[].data, so its reg_table field must stay read-only.
@@ -3061,6 +3080,11 @@ err_out:
 	 * use the wrong register map.
 	 */
 	fe_reg_table = fe_reg_table_default;
+	/* All failure labels above fall through to here, including the
+	 * devm_ioremap_resource() -EPROBE_DEFER path. Release the claim so
+	 * the driver core can retry the probe later.
+	 */
+	clear_bit(0, &fe_instance_claimed);
 	return err;
 }
 
@@ -3096,6 +3120,11 @@ static int fe_remove(struct platform_device *pdev)
 	platform_set_drvdata(pdev, NULL);
 	fe_base = NULL;
 	fe_reg_table = fe_reg_table_default;
+	/* Release only after every teardown callback above has finished;
+	 * a probe starting earlier would see the module-wide globals
+	 * still in use.
+	 */
+	clear_bit(0, &fe_instance_claimed);
 
 	return 0;
 }
