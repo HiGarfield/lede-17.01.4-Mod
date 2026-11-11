@@ -35,9 +35,12 @@ static int fe_mdio_reset(struct mii_bus *bus)
 	 * and data write and make that write hit the wrong register.
 	 * Take the same outer lock (bus->mdio_lock -> gsw->mdio_lock)
 	 * as gsw_irq_work_mt7621(), mt7621_gsw_set_imr() and
-	 * mt7621_reset_ports(). mdiobus_alloc() initialises mdio_lock,
-	 * so it is already usable when mdiobus_register() invokes
-	 * bus->reset; there is no self-deadlock.
+	 * mt7621_reset_ports(). __mdiobus_register() calls
+	 * mutex_init(&bus->mdio_lock) before invoking bus->reset and
+	 * does not hold the lock across that call, so taking it here is
+	 * safe and cannot self-deadlock. mdiobus_alloc() only kzallocs
+	 * the bus and leaves mdio_lock uninitialised, so this helper
+	 * must never be called before mdiobus_register().
 	 */
 	mutex_lock(&bus->mdio_lock);
 	if (priv->soc->mdio_reset)
