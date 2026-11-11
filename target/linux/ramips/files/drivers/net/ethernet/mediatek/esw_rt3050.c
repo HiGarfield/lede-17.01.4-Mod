@@ -254,6 +254,15 @@ struct rt305x_esw {
 	unsigned int		reg_initval_fct2;
 	unsigned int		reg_initval_fpa2;
 	unsigned int		reg_led_polarity;
+	/* of_property_read_u32() succeeds with out_value == 0, so the
+	 * numeric fields above cannot double as "property present" flags.
+	 * Track presence separately: a DT that deliberately programs
+	 * LAN_PMAP/FCT2/FPA2 to 0 must not silently receive the hard-coded
+	 * defaults. Zero-initialised by devm_kzalloc() when absent.
+	 */
+	bool			port_map_valid;
+	bool			fct2_valid;
+	bool			fpa2_valid;
 
 	/* Software accumulation for the 16-bit hardware packet counters,
 	 * which wrap quickly on fast ports. Keep the accumulators 64 bit:
@@ -561,7 +570,10 @@ static int esw_hw_init(struct rt305x_esw *esw)
 		      (RT305X_ESW_PORTS_NOCPU << RT305X_ESW_POC2_UNTAG_EN_S)),
 		RT305X_ESW_REG_POC2);
 
-	if (esw->reg_initval_fct2)
+	/* Use the presence flags, not the values: 0 is a legitimate
+	 * register image and must not be replaced by the defaults.
+	 */
+	if (esw->fct2_valid)
 		esw_w32(esw, esw->reg_initval_fct2, RT305X_ESW_REG_FCT2);
 	else
 		esw_w32(esw, 0x0002500c, RT305X_ESW_REG_FCT2);
@@ -587,7 +599,7 @@ static int esw_hw_init(struct rt305x_esw *esw)
 	 * port5: disabled
 	 * port6: enabled, gige, full-duplex, rx/tx-flow-control
 	 */
-	if (esw->reg_initval_fpa2)
+	if (esw->fpa2_valid)
 		esw_w32(esw, esw->reg_initval_fpa2, RT305X_ESW_REG_FPA2);
 	else
 		esw_w32(esw, 0x3f502b28, RT305X_ESW_REG_FPA2);
@@ -773,7 +785,10 @@ static int esw_hw_init(struct rt305x_esw *esw)
 		rt305x_mii_write(esw, 0, 31, 0x8000);
 	}
 
-	if (esw->port_map)
+	/* A present "mediatek,portmap" of 0 means no LAN ports; do not
+	 * fall back to the all-LAN default just because the value is 0.
+	 */
+	if (esw->port_map_valid)
 		port_map = esw->port_map;
 	else
 		port_map = RT305X_ESW_PMAP_LLLLLL;
@@ -1184,7 +1199,7 @@ static int esw_get_port_bool(struct switch_dev *dev,
 		val->value.i = esw->ports[idx].untag;
 		break;
 	case RT305X_ESW_ATTR_PORT_LAN: {
-		unsigned char port_map = esw->port_map ?
+		unsigned char port_map = esw->port_map_valid ?
 			esw->port_map : RT305X_ESW_PMAP_LLLLLL;
 
 		if (idx >= RT305X_ESW_NUM_LANWAN) {
@@ -1711,6 +1726,7 @@ static int esw_probe(struct platform_device *pdev)
 			return -EINVAL;
 		}
 		esw->port_map = v;
+		esw->port_map_valid = true;
 	}
 
 	if (!of_property_read_u32(np, "mediatek,portdisable", &v)) {
@@ -1730,11 +1746,15 @@ static int esw_probe(struct platform_device *pdev)
 		esw->port_disable = v;
 	}
 
-	if (!of_property_read_u32(np, "ralink,fct2", &v))
+	if (!of_property_read_u32(np, "ralink,fct2", &v)) {
 		esw->reg_initval_fct2 = v;
+		esw->fct2_valid = true;
+	}
 
-	if (!of_property_read_u32(np, "ralink,fpa2", &v))
+	if (!of_property_read_u32(np, "ralink,fpa2", &v)) {
 		esw->reg_initval_fpa2 = v;
+		esw->fpa2_valid = true;
+	}
 
 	if (!of_property_read_u32(np, "mediatek,led_polarity", &v))
 		esw->reg_led_polarity = v;
