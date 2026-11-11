@@ -221,8 +221,16 @@ static int mt7621_reset_ports_locked(struct fe_priv *priv)
 	int ret = 0;
 	u8 i;
 
+	/* A GSW unbind leaves the FE netdev alive and reopens the reader
+	 * gate at the end of remove(), but swpriv stays NULL until a full
+	 * re-probe. Reporting success here would tell fe_reset_pending()
+	 * that the PHYs were power-cycled when not a single MDIO access
+	 * happened, so it would leave an unrecoverable interface up and
+	 * re-arm its watchdog. Match the other int callbacks and let the
+	 * caller close the device instead.
+	 */
 	if (!gsw)
-		return 0;
+		return -ENODEV;
 
 	/* swconfig (mt7530.c) performs its indirect register accesses as a
 	 * page-select plus two data transfers under bus->mdio_lock, while
@@ -293,9 +301,15 @@ static int mt7621_reset_ports(struct fe_priv *priv)
 	/* This runs from the TX-timeout work, which does not hold
 	 * gsw_teardown_lock. Keep the devm GSW alive for the whole
 	 * power-cycle even if the platform device is unbound meanwhile.
+	 * If the gate is already closed the power-cycle cannot run at
+	 * all, so return -ENODEV like mt7621_gsw_config() does.
+	 * fe_reset_pending() only calls dev_close() on a non-zero result
+	 * and its comment requires not reporting a recovered interface
+	 * when a PHY was left powered down; returning 0 here leaves the
+	 * device up with the watchdog re-armed and no port reset done.
 	 */
 	if (!fe_gsw_reader_enter())
-		return 0;
+		return -ENODEV;
 	ret = mt7621_reset_ports_locked(priv);
 	fe_gsw_reader_exit();
 
