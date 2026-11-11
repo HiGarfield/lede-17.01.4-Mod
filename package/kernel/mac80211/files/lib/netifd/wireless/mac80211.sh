@@ -180,6 +180,7 @@ mac80211_hostapd_setup_base() {
 
 	# 802.11ac
 	enable_ac=0
+	vht_oper_chwidth=0
 	idx="$channel"
 	case "$htmode" in
 		VHT20) enable_ac=1;;
@@ -189,7 +190,7 @@ mac80211_hostapd_setup_base() {
 				0) idx=$(($channel - 2));;
 			esac
 			enable_ac=1
-			append base_cfg "vht_oper_chwidth=0" "$N"
+			append base_cfg "vht_oper_chwidth=$vht_oper_chwidth" "$N"
 			append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
 		;;
 		VHT80)
@@ -200,7 +201,8 @@ mac80211_hostapd_setup_base() {
 				0) idx=$(($channel - 6));;
 			esac
 			enable_ac=1
-			append base_cfg "vht_oper_chwidth=1" "$N"
+			vht_oper_chwidth=1
+			append base_cfg "vht_oper_chwidth=$vht_oper_chwidth" "$N"
 			append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
 		;;
 		VHT160)
@@ -210,7 +212,8 @@ mac80211_hostapd_setup_base() {
 				149|153|157|161|165|169|173|177) idx=163;;
 			esac
 			enable_ac=1
-			append base_cfg "vht_oper_chwidth=2" "$N"
+			vht_oper_chwidth=2
+			append base_cfg "vht_oper_chwidth=$vht_oper_chwidth" "$N"
 			append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
 		;;
 	esac
