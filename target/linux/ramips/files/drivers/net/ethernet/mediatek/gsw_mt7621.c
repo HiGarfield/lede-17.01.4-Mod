@@ -29,6 +29,21 @@
 
 /* set while one disable_irq_nosync() is outstanding */
 #define GSW_IRQ_DISABLED	0
+/* set once teardown has taken the irq action down */
+#define GSW_IRQ_TORNDOWN	1
+
+/* The handler's disable_irq_nosync() needs this matching enable_irq()
+ * during normal operation. During teardown free_irq() has already
+ * called irq_shutdown(), which sets desc->depth = 1 and masks the
+ * line; the next request_irq() calls irq_startup(), which resets the
+ * depth to 0 and enables it. A work item flushed after free_irq()
+ * must not undo that shutdown by enabling a line with no action.
+ */
+static void gsw_irq_reenable(struct mt7620_gsw *gsw)
+{
+	if (!test_bit(GSW_IRQ_TORNDOWN, &gsw->irq_state))
+		enable_irq(gsw->irq);
+}
 
 void mtk_switch_w32(struct mt7620_gsw *gsw, u32 val, unsigned reg)
 {
@@ -244,12 +259,13 @@ out_masked:
 		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
 		if (bus)
 			mutex_unlock(&bus->mdio_lock);
-		enable_irq(gsw->irq);
+		gsw_irq_reenable(gsw);
 		return;
 	}
 
 	/* Even the mask write failed: keep the guard set and leave the
-	 * line disabled, as before. Teardown balances the depth.
+	 * line disabled. Teardown releases the action and the kernel's
+	 * irq_shutdown() owns the disable depth from here on.
 	 */
 	dev_err(gsw->dev, "failed to clear switch IRQ status: %d\n", ack_err);
 	if (bus)
@@ -260,12 +276,14 @@ out_reenable:
 	/* Clear the guard before the line becomes live again: a handler
 	 * entering right after enable_irq() must be able to start a new
 	 * disable/work cycle. Exactly one enable balances the one
-	 * disable_irq_nosync() done by the handler.
+	 * disable_irq_nosync() done by the handler -- unless teardown has
+	 * already freed the action, in which case gsw_irq_reenable()
+	 * leaves the kernel's shutdown state alone.
 	 */
 	clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
 	if (bus)
 		mutex_unlock(&bus->mdio_lock);
-	enable_irq(gsw->irq);
+	gsw_irq_reenable(gsw);
 }
 
 static irqreturn_t gsw_interrupt_mt7621(int irq, void *_priv)
@@ -565,13 +583,17 @@ int mtk_gsw_init(struct fe_priv *priv)
 			mt7621_gsw_set_imr(gsw, priv, 0);
 
 		/* a previous instance has been drained by
-		 * mt7621_gsw_stop_irq(); start with a clean guard. The work
-		 * item itself is initialised once by mt7621_gsw_probe():
+		 * mt7621_gsw_stop_irq(); start with a clean guard and let
+		 * irq_work enable the line again. request_irq() calls
+		 * irq_startup(), which resets the irq_desc disable depth
+		 * that the previous teardown left behind. The work item
+		 * itself is initialised once by mt7621_gsw_probe():
 		 * ndo_init() can run again after an unregister/re-register
 		 * while a work item is still queued or running, and
 		 * INIT_WORK() on a live work_struct corrupts its list node.
 		 */
 		clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
+		clear_bit(GSW_IRQ_TORNDOWN, &gsw->irq_state);
 		err = request_irq(gsw->irq, gsw_interrupt_mt7621, 0,
 				  "gsw", priv);
 
@@ -595,10 +617,11 @@ int mtk_gsw_init(struct fe_priv *priv)
 		 * hardware init look like a failure. Also balance the
 		 * extra disable depth: a work ending in out_masked
 		 * keeps GSW_IRQ_DISABLED set and never re-enables the
-		 * line, while the successful init path does not call
-		 * mt7621_gsw_stop_irq() to compensate it. The work
-		 * takes neither gsw_teardown_lock nor any lock held
-		 * here, so flushing cannot deadlock.
+		 * line. The action is live here, so an enable_irq()
+		 * below is the correct balance; teardown must not add
+		 * one after free_irq(). The work takes neither
+		 * gsw_teardown_lock nor any lock held here, so
+		 * flushing cannot deadlock.
 		 */
 		flush_work(&gsw->irq_work);
 		if (test_and_clear_bit(GSW_IRQ_DISABLED,
@@ -642,12 +665,14 @@ int mtk_gsw_init(struct fe_priv *priv)
 err_late:
 	/* Both failures happen after request_irq()/disable_irq() and
 	 * after fe_init() has no rollback of its own. Mask the sources,
-	 * balance the disable depth, then reuse the helper shared by the
-	 * teardown paths: it frees the action, drains an irq_work that
-	 * may have been queued between request_irq() and disable_irq(),
-	 * and clears gsw->priv. A plain free_irq() would leave that work
-	 * running against a NULL back-pointer and enable a released
-	 * action.
+	 * then enable_irq() once to balance the disable_irq() done by
+	 * this init attempt while the action is still live. Afterwards
+	 * reuse the helper shared by the teardown paths: it frees the
+	 * action, drains an irq_work that may have been queued between
+	 * request_irq() and disable_irq(), and clears gsw->priv. A plain
+	 * free_irq() would leave that work running against a NULL
+	 * back-pointer, and the work could enable a released action if
+	 * it were not suppressed by GSW_IRQ_TORNDOWN.
 	 */
 	if (gsw->irq) {
 		if (mt7621_gsw_set_imr(gsw, priv, 0))
@@ -683,11 +708,14 @@ EXPORT_SYMBOL_GPL(mtk_gsw_init);
 /* Both the FE teardown and this driver's remove() may be the first to
  * release the interrupt, so make this helper idempotent. The hardirq
  * handler calls disable_irq_nosync() and queues irq_work, whose last
- * step performs the matching enable_irq(). Teardown must not add an
- * extra disable_irq() of its own: that call can never be balanced when
- * cancel_work_sync() drops a still pending work, which leaves the IRQ
- * permanently disabled (and makes a later re-probe unable to receive
- * link changes).
+ * step performs the matching enable_irq() while the action is live.
+ * Teardown must not add an extra disable_irq() of its own, and must
+ * not try to "balance" that depth after free_irq(): on 4.4
+ * __free_irq() calls irq_shutdown(), which sets desc->depth = 1 and
+ * masks the line, and the next request_irq() calls irq_startup(),
+ * which resets depth to 0 and enables it. Calling enable_irq() after
+ * free_irq() would instead undo that shutdown on a line with no
+ * action (see gsw_irq_reenable()).
  */
 static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw,
 				struct fe_priv *owner)
@@ -705,6 +733,11 @@ static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw,
 	 * would never come back. Callers pass the owner they are tearing
 	 * down, or NULL when the other teardown path already released it.
 	 */
+	/* Publish the teardown state BEFORE releasing the action: a work
+	 * item flushed below may reach its enable_irq() after free_irq()
+	 * returned, and must not undo the irq_shutdown() state.
+	 */
+	set_bit(GSW_IRQ_TORNDOWN, &gsw->irq_state);
 	if (owner)
 		free_irq(gsw->irq, owner);
 
@@ -718,28 +751,33 @@ static void mt7621_gsw_stop_irq(struct mt7620_gsw *gsw,
 	 * Every caller must flush, including the second teardown path
 	 * where fe is already NULL: returning early there would leave
 	 * an in-flight work touching this devm object after remove().
-	 * flush_work() (unlike cancel_work_sync()) also waits for the
-	 * normal path's matching enable_irq().
+	 * The work may still issue its W1C status write, which must
+	 * complete before the PIAC window goes away; GSW_IRQ_TORNDOWN
+	 * makes it skip the enable_irq() that would otherwise undo the
+	 * shutdown just performed by free_irq().
 	 */
 	flush_work(&gsw->irq_work);
 
 	/* gsw_irq_work_mt7621() normally clears GSW_IRQ_DISABLED and
-	 * enables the line before returning. Its out_masked path (the
-	 * W1C status write failed) deliberately keeps the guard set and
-	 * returns without that enable_irq(), since re-enabling a still
-	 * asserted level-high source would spin the irq/work pair.
-	 * free_irq() does not reset the irq_desc disable depth, so the
-	 * one outstanding disable_irq_nosync() then survives teardown:
-	 * a later re-probe stacks request_irq() + disable_irq() +
-	 * enable_irq() on top of depth 1 and the switch link IRQ stays
-	 * masked forever. free_irq() has synchronised all handlers and
-	 * flush_work() has drained the work, so the guard is stable;
-	 * balance that leftover depth exactly once. A work item that
-	 * finished normally cleared the bit itself and must not be
-	 * enabled a second time.
+	 * enables the line before returning; gsw_irq_reenable() now
+	 * suppresses that enable once GSW_IRQ_TORNDOWN is set, so a work
+	 * item drained by the flush above cannot unmask a line whose
+	 * action is already gone. Its out_masked path deliberately keeps
+	 * the guard set when re-enabling a still asserted level-high
+	 * source would spin the irq/work pair.
+	 *
+	 * No depth compensation belongs here. irq_shutdown() already
+	 * discarded the handler's outstanding disable_irq_nosync() by
+	 * setting desc->depth = 1, and the next request_irq() calls
+	 * irq_startup() to reset it to 0. An enable_irq() at this point
+	 * would take __enable_irq()'s "case 1" path: irq_enable() clears
+	 * IRQD_IRQ_DISABLED and unmasks the line while desc->action is
+	 * NULL, so a still asserted level-high source re-enters the
+	 * handler with no action and genirq marks it spurious.
+	 * free_irq() has synchronised all handlers and flush_work() has
+	 * drained the work, so the guard is stable; just clear it.
 	 */
-	if (test_and_clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state))
-		enable_irq(gsw->irq);
+	clear_bit(GSW_IRQ_DISABLED, &gsw->irq_state);
 
 	gsw->priv = NULL;
 }

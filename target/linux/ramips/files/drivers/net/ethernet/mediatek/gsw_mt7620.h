@@ -133,10 +133,13 @@ struct mt7620_gsw {
 	 * deferred to this work item
 	 */
 	struct work_struct	irq_work;
-	/* MT7621: bit 0 is set while a disable_irq_nosync() is waiting
-	 * for its matching enable_irq() from irq_work, so a second
-	 * (SMP) entry into the handler cannot unbalance the disable
-	 * depth of the interrupt line
+	/* MT7621: bit GSW_IRQ_DISABLED (0) is set while a
+	 * disable_irq_nosync() is waiting for its matching enable_irq()
+	 * from irq_work, so a second (SMP) entry into the handler cannot
+	 * unbalance the disable depth of the interrupt line. Bit
+	 * GSW_IRQ_TORNDOWN (1) is set once free_irq() has shut the line
+	 * down, so a work item drained during teardown does not re-enable
+	 * an irq with no action attached.
 	 */
 	unsigned long		irq_state;
 };
