@@ -51,6 +51,10 @@ runs:
       run: |
         set -euo pipefail
 
+        # Configure DNS to use public resolvers
+        sudo sed -i 's/#DNS=/DNS=8.8.8.8 1.1.1.1 9.9.9.9/g' /etc/systemd/resolved.conf
+        sudo systemctl restart systemd-resolved
+
         # -----------------------------------------------------------------
         # Resolve the source tree.
         #
