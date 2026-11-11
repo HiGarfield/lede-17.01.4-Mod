@@ -1020,25 +1020,32 @@ static inline int fe_skb_padto(struct sk_buff *skb, struct fe_priv *priv)
 			return ret;
 
 		if (skb->len < len) {
-			/* skb_pad() already calls __skb_put(): it grows
-			 * skb->len and advances skb->tail by the pad length
-			 * while leaving data_len alone. Overwriting both
-			 * fields with the total frame length makes
-			 * skb_headlen() larger than the linear area that was
-			 * actually padded whenever the skb has frags, so
-			 * fe_tx_dma_map_skb() then DMA-maps past the end of
-			 * the linear buffer and skb->len no longer equals
-			 * headlen + data_len.
+			/* skb_pad() only zeroes pad bytes past skb->len: it
+			 * does NOT call __skb_put() or grow skb->len/tail.
+			 * Use skb_put_padto(), which does skb_pad() followed
+			 * by __skb_put(), so the pad becomes part of the
+			 * linear data area. skb_headlen() then grows by the
+			 * pad, fe_cal_txd_req() reserves descriptors for it
+			 * and fe_tx_dma_map_skb() maps and programs those
+			 * bytes into TX_DMA_PLEN0. Without the growth the
+			 * hardware is handed the original short length and
+			 * emits a runt frame on exactly the SoCs whose
+			 * hardware padding is broken (FE_FLAG_PADDING_BUG)
+			 * and that this branch exists to work around.
+			 *
+			 * skb_pad() frees the skb itself on failure, so
+			 * skb_put_padto() returns a negative value with the
+			 * skb already gone: the caller must report the drop
+			 * without freeing it a second time. Assigning len to
+			 * skb->len and skb_set_tail_pointer() instead is not
+			 * an equivalent fix: it overwrites the total length
+			 * and breaks skb->len == headlen + data_len for an
+			 * skb with frags. __skb_put() increments both by the
+			 * pad and keeps that invariant.
 			 */
-			ret = skb_pad(skb, len - skb->len);
-			if (ret < 0) {
-				/* skb_pad() frees the skb itself when
-				 * pskb_expand_head() fails. Ownership has
-				 * already been consumed: the caller must
-				 * report the drop without freeing it.
-				 */
+			ret = skb_put_padto(skb, len);
+			if (ret < 0)
 				return ret;
-			}
 		}
 	}
 
@@ -1099,15 +1106,15 @@ static int fe_start_xmit(struct sk_buff *skb, struct net_device *dev)
 	if (fe_skb_padto(skb, priv)) {
 		netif_warn(priv, tx_err, dev, "tx padding failed!\n");
 		stats->tx_dropped++;
-		/* The only non-zero return comes from skb_pad(), which
-		 * already called kfree_skb() on this skb. Freeing it a
-		 * second time corrupts the skbuff cache.
+		/* The only non-zero return comes from skb_pad() inside
+		 * skb_put_padto(), which already called kfree_skb() on this
+		 * skb. Freeing it a second time corrupts the skbuff cache.
 		 */
 		return NETDEV_TX_OK;
 	}
 
-	/* sample the length after padding: fe_skb_padto() may have
-	 * grown the skb
+	/* sample the length after padding: skb_put_padto() grew skb->len
+	 * by the pad, and stats->tx_bytes must include those bytes
 	 */
 	len = skb->len;
 
