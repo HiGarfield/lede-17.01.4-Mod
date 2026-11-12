@@ -206,6 +206,7 @@ mac80211_hostapd_setup_base() {
 			append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
 		;;
 		VHT160)
+			local vht160_ok phy_freqs c
 			case "$channel" in
 				36|40|44|48|52|56|60|64) idx=50;;
 				100|104|108|112|116|120|124|128) idx=114;;
@@ -213,8 +214,41 @@ mac80211_hostapd_setup_base() {
 			esac
 			enable_ac=1
 			vht_oper_chwidth=2
+			vht160_ok=1
+			if [ "$idx" = "$channel" ]; then
+				# ACS or a channel outside any 160 MHz block
+				vht160_ok=0
+			else
+				phy_freqs="$(iw phy "$phy" info | awk '/\* [0-9]+ MHz \[/ { print }')"
+				c=$((idx - 14))
+				while [ "$c" -le $((idx + 14)) ]; do
+					if ! echo "$phy_freqs" | grep -q "\* [0-9]* MHz \[$c\] " || \
+					   echo "$phy_freqs" | grep "\* [0-9]* MHz \[$c\] " | \
+						grep -qE "\(disabled\)|no 160 MHz"; then
+						vht160_ok=0
+						break
+					fi
+					c=$((c + 4))
+				done
+			fi
+			[ "$vht160_ok" = 0 ] && {
+				logger -t mac80211 "VHT160 not available on channel $channel (regulatory/DFS), falling back to VHT80"
+				vht_oper_chwidth=1
+				idx=
+				case "$channel" in
+					''|*[!0-9]*) ;;
+					*)
+						case "$(( ($channel / 4) % 4 ))" in
+							1) idx=$(($channel + 6));;
+							2) idx=$(($channel + 2));;
+							3) idx=$(($channel - 2));;
+							0) idx=$(($channel - 6));;
+						esac
+					;;
+				esac
+			}
 			append base_cfg "vht_oper_chwidth=$vht_oper_chwidth" "$N"
-			append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
+			[ -n "$idx" ] && append base_cfg "vht_oper_centr_freq_seg0_idx=$idx" "$N"
 		;;
 	esac
 
