@@ -1,0 +1,110 @@
+From bf602e788166edea10a61a333b51deeb73ea7011 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Thu, 19 Nov 2026 10:47:52 +0800
+Subject: [PATCH] perf(string): compare strncmp a word at a time
+
+strncmp is also byte-at-a-time, so bounded comparisons of medium and
+long strings waste most of the available memory bandwidth. Reuse the
+word-at-a-time memcmp approach and also mark word bytes that hold a
+terminator, so the first difference or end of string is found in one
+step.
+
+Scope:
+- src/string/strncmp.c only; no header or build changes.
+- Short tails keep the original byte loop; the first byte has an
+  early-exit path for common early mismatches.
+- The word path needs both operands to share the same word alignment.
+  Both words are then loaded with aligned loads, which cannot cross a
+  page boundary. strncmp may stop at the first NUL, so bytes past it
+  are not required to be readable; a fixed-size copy of an unaligned
+  second operand could fault on a guard page.
+
+Risk:
+- Aligned word loads stay within the page containing each operand.
+  Operands with mismatched alignment fall back to the byte loop.
+- HASZERO can flag a byte next to a NUL when the subtraction borrows
+  through a byte value of one. On big-endian targets that false flag
+  lands before the real terminator, so selecting a byte with ctz/clz
+  returned a wrong result. Word hits are now confirmed bytewise,
+  independent of byte order.
+
+Performance (x86_64, gcc 16, -Os, median of 9 runs, equal alignment):
+- 128-byte equal: 103.4 -> 39.1 ns/call (2.6x)
+- 128-byte last-byte diff: 106.6 -> 50.1 ns/call (2.1x)
+- 16-byte equal: 13.2 -> 16.0 ns/call (byte loop)
+- first-byte diff: 3.3 -> 3.1 ns/call
+
+Correctness:
+- Independent reference comparison, 200k random cases plus edges.
+- Guard-page cases with both strings ending at the last readable
+  byte and n larger than the strings, for all offsets and lengths.
+- 64-bit and 32-bit differential checks, 0 failures, 0 faults.
+- Big-endian word-path simulation, 100k random cases, 0 failures.
+- gcc/clang -Wall -Wextra -Werror -Wcast-qual -Wshadow clean.
+- Full musl builds at every commit in the series pass.
+---
+ src/string/strncmp.c | 49 ++++++++++++++++++++++++++++++++++++++++----
+ 1 file changed, 45 insertions(+), 4 deletions(-)
+
+diff --git a/src/string/strncmp.c b/src/string/strncmp.c
+index e228843..946861b 100644
+--- a/src/string/strncmp.c
++++ b/src/string/strncmp.c
+@@ -1,9 +1,50 @@
+ #include <string.h>
++#include <stdint.h>
++#include <limits.h>
++
++#define ALIGN (sizeof(size_t))
++#define ONES ((size_t)-1/UCHAR_MAX)
++#define HIGHS (ONES * (UCHAR_MAX/2+1))
++#define HASZERO(x) (((x)-ONES) & ~(x) & HIGHS)
+ 
+ int strncmp(const char *_l, const char *_r, size_t n)
+ {
+-	const unsigned char *l=(void *)_l, *r=(void *)_r;
+-	if (!n--) return 0;
+-	for (; *l && *r && n && *l == *r ; l++, r++, n--);
+-	return *l - *r;
++	const unsigned char *l = (const void *)_l, *r = (const void *)_r;
++#ifdef __GNUC__
++	typedef size_t __attribute__((__may_alias__)) word;
++	if (!n) return 0;
++	/* Handle an early difference or terminator before the word loop. */
++	if (*l != *r || !*l) return (int)*l - (int)*r;
++	l++; r++; n--;
++	/* strncmp stops at the first NUL, so a whole-word load must never
++	 * be able to cross a page boundary. Aligned loads are page-safe,
++	 * which requires both operands to have the same word alignment. */
++	if (n >= 2*ALIGN && !(((uintptr_t)l ^ (uintptr_t)r) & (ALIGN-1))) {
++		while ((uintptr_t)l & (ALIGN-1)) {
++			if (*l != *r || !*l) return (int)*l - (int)*r;
++			l++; r++; n--;
++		}
++		const word *wl = (const void *)l, *wr = (const void *)r;
++		for (; n >= ALIGN; n -= ALIGN) {
++			word x = *wl++;
++			word y = *wr++;
++			/* HASZERO can also flag a byte next to a NUL when the
++			 * subtraction borrows through a byte value of one, and
++			 * the borrow direction depends on byte order. Confirm
++			 * bytewise instead of trusting a bit position. */
++			if ((x ^ y) | HASZERO(x) | HASZERO(y)) {
++				const unsigned char *xb = (const void *)&x;
++				const unsigned char *yb = (const void *)&y;
++				size_t i;
++				for (i = 0; i < ALIGN; i++)
++					if (xb[i] != yb[i] || !xb[i] || !yb[i])
++						return (int)xb[i] - (int)yb[i];
++			}
++		}
++		l = (const void *)wl;
++		r = (const void *)wr;
++	}
++#endif
++	for (; n && *l && *r && *l == *r; n--, l++, r++);
++	return n ? (int)*l - (int)*r : 0;
+ }
+-- 
+2.43.0
+
