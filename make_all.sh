@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Some devices produce only a sysupgrade image, so an unmatched image
+# glob must not survive as a literal file name in the cp command.
+shopt -s nullglob
+
 make_model() {
 	echo ""
 	echo "--------------------------------------------------------"
