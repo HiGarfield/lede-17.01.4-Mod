@@ -3,7 +3,7 @@
 [ -f ".config" ] && { make dirclean; rm -f ".config"; }
 [ -f ".config.old" ] && rm -f ".config.old"
 
-./umount_build_dir.sh
+./umount_tmpfs.sh
 rm -rf build_dir
 ./clean_all.sh
 

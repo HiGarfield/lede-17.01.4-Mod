@@ -29,7 +29,7 @@ make_model() {
 }
 
 clear
-./mount_build_dir.sh
+./mount_tmpfs.sh
 
 for file in conf/.config.*; do
 	model_name="${file##conf\/\.config\.}"
@@ -37,4 +37,4 @@ for file in conf/.config.*; do
 done
 
 ./cksum.sh
-./umount_build_dir.sh
+./umount_tmpfs.sh
