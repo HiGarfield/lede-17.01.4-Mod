@@ -9,9 +9,7 @@ make_model() {
 		echo "conf/.config.$1 does not exist!"
 		return
 	}
-	[ ! -d "out" ] && mkdir "out"
 	{
-		./clean_all.sh
 		cp -f "conf/.config.$1" ".config" &&
 			make defconfig &&
 			make dirclean >/dev/null 2>&1 &&
@@ -29,7 +27,9 @@ make_model() {
 }
 
 clear
+./clean_all.sh
 ./mount_tmpfs.sh
+[ ! -d "out" ] && mkdir "out"
 
 for file in conf/.config.*; do
 	model_name="${file##conf\/\.config\.}"
