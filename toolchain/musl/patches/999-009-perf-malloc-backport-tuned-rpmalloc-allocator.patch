@@ -1,41 +1,56 @@
-From 3b7c8de87118c0b252d830fd90c79477ad22c852 Mon Sep 17 00:00:00 2001
+From bad6b197170822f100041dc5dac5d5555022056d Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
-Date: Thu, 19 Nov 2026 02:32:41 +0800
+Date: Sun, 22 Nov 2026 21:07:12 +0800
 Subject: [PATCH] perf(malloc): backport tuned rpmalloc allocator
 
-Replace the 1.1.24 bin-sized allocator with a musl-adapted rpmalloc
-core and tune it for 32-bit OpenWrt targets with 32 MiB RAM.
+Replace the 1.1.24 bin-sized allocator with a musl-adapted rpmalloc core
+and tune it for 32-bit OpenWrt targets with 8-32 MiB RAM. This is the
+allocator implementation only; the base libc lifecycle hooks are added by
+the preceding commit.
 
 Scope:
 - Add src/malloc/rpmalloc with private atomics, TLS via struct pthread,
-  process/thread/fork hooks, and errno-compatible API wrappers.
-- Default build uses rpmalloc; --with-malloc=malloc keeps the old
-  allocator. Old sources are left in the tree.
-- Use a small-memory profile: 4 spans per map call, no global cache,
-  and bounded thread caches. Cache macros are overridable and the
-  large-span limit avoids a transfer underflow.
+  process/thread/fork hook implementations, and errno-compatible wrappers.
+- Default build uses rpmalloc; --with-malloc=malloc keeps the old allocator.
+  Old sources are left in the tree.
+- Use a small-memory profile: one span per map call, no global cache,
+  two heaps per heap batch, and bounded thread caches. Cache macros are
+  overridable and the large-span limit avoids a transfer underflow.
+- Concurrent allocation path for 8 MiB targets: release the alignment
+  padding of every mmap back to the OS so retained address space tracks
+  usable spans; use MAP_NORESERVE so untouched pages do not consume the
+  commit budget on strict-overcommit systems; retry with a single span
+  when a batched map fails; and guard heap acquisition and all public
+  allocation entry points against a NULL thread heap so genuine
+  exhaustion returns an error instead of crashing a concurrent caller.
+- With the global cache disabled, fully freed spans are handed straight
+  to the bounded thread cache rather than being pinned one per size class
+  forever, so unbounded paired alloc/free cycles return memory instead of
+  accumulating idle spans until OOM.
 
 Verification:
 - GCC/Clang 64-bit and i386 32-bit static/dynamic C tests pass.
-- 32-bit C++ containers, smart pointers, threads and fork pass.
-- MIPS 32-bit cross build passes with no libatomic dependency.
-- Valgrind: 0 errors, no definite/possible leaks.
-- Startup VmSize/RSS: 6.9M/952K -> 984K/436K.
-- Four-thread VmSize/RSS: 15.2M/1.15M -> 6.1M/724K.
-- Benchmarks stay faster than the old allocator in all phases.
+- Big-endian s390x cross build passes with no rpmalloc warnings; the
+  allocator only uses integer/pointer arithmetic and __atomic builtins,
+  with no byte-order-dependent layout or serialization.
+- Valgrind: 0 errors, no definite/possible leaks. ASan/UBSan on the
+  allocator TU: 0 errors.
+- 8 MiB pressure: with a ballast leaving only 2 MiB, one thread completes
+  10000 one-byte mallocs and eight concurrent threads complete 80000, all
+  with zero failures and every byte written.
+- Repeated paired alloc/free tests over 5000 rounds across all small and
+  medium size classes, plus 3000 rounds of 8-thread churn, keep VmSize
+  stable or shrinking (no idle growth toward OOM).
+- malloc/calloc/realloc/posix_memalign/malloc_usable_size regression and
+  clean GCC/Clang compiles of the allocator translation unit.
 ---
  Makefile                          |    7 +
  configure                         |   10 +
- ldso/dynlink.c                    |    7 +
- src/env/__libc_start_main.c       |    4 +
- src/internal/pthread_impl.h       |    1 +
  src/malloc/rpmalloc/glue.h        |  151 ++
- src/malloc/rpmalloc/musl_compat.h |   62 +
- src/malloc/rpmalloc/rpmalloc.c    | 3432 +++++++++++++++++++++++++++++
+ src/malloc/rpmalloc/musl_compat.h |   65 +
+ src/malloc/rpmalloc/rpmalloc.c    | 3481 +++++++++++++++++++++++++++++
  src/malloc/rpmalloc/rpmalloc.h    |  362 +++
- src/process/fork.c                |    2 +
- src/thread/pthread_create.c       |    6 +
- 11 files changed, 4044 insertions(+)
+ 6 files changed, 4076 insertions(+)
  create mode 100644 src/malloc/rpmalloc/glue.h
  create mode 100644 src/malloc/rpmalloc/musl_compat.h
  create mode 100644 src/malloc/rpmalloc/rpmalloc.c
@@ -112,72 +127,6 @@ index 8680128..c8d3ffb 100755
  EOF
  test "x$static" = xno && echo "STATIC_LIBS ="
  test "x$shared" = xno && echo "SHARED_LIBS ="
-diff --git a/ldso/dynlink.c b/ldso/dynlink.c
-index 7ac0bf7..49f8a3d 100644
---- a/ldso/dynlink.c
-+++ b/ldso/dynlink.c
-@@ -144,6 +144,7 @@ static struct fdpic_dummy_loadmap app_dummy_loadmap;
- struct debug *_dl_debug_addr = &debug;
- 
- extern hidden int __malloc_replaced;
-+extern hidden int __malloc_process_init(void);
- 
- hidden void (*const __init_array_start)(void)=0, (*const __fini_array_start)(void)=0;
- 
-@@ -1503,6 +1504,7 @@ static void do_init_fini(struct dso **queue)
- 
- void __libc_start_init(void)
- {
-+	if (__malloc_process_init() < 0) _exit(127);
- 	do_init_fini(main_ctor_queue);
- 	if (!__malloc_replaced && main_ctor_queue != builtin_ctor_queue)
- 		free(main_ctor_queue);
-@@ -1839,6 +1841,11 @@ void __dls3(size_t *sp)
- 	reclaim_gaps(&app);
- 	reclaim_gaps(&ldso);
- 
-+	if (__malloc_process_init() < 0) {
-+		dprintf(2, "%s: failed to initialize malloc\n", argv[0]);
-+		_exit(127);
-+	}
-+
- 	/* Load preload/needed libraries, add symbols to global namespace. */
- 	ldso.deps = (struct dso **)no_deps;
- 	if (env_preload) load_preload(env_preload);
-diff --git a/src/env/__libc_start_main.c b/src/env/__libc_start_main.c
-index 8fbe526..4ff319d 100644
---- a/src/env/__libc_start_main.c
-+++ b/src/env/__libc_start_main.c
-@@ -10,6 +10,9 @@
- static void dummy(void) {}
- weak_alias(dummy, _init);
- 
-+static int dummy_int(void) { return 0; }
-+weak_alias(dummy_int, __malloc_process_init);
-+
- extern weak hidden void (*const __init_array_start)(void), (*const __init_array_end)(void);
- 
- static void dummy1(void *p) {}
-@@ -58,6 +61,7 @@ void __init_libc(char **envp, char *pn)
- 
- static void libc_start_init(void)
- {
-+	if (__malloc_process_init() < 0) a_crash();
- 	_init();
- 	uintptr_t a = (uintptr_t)&__init_array_start;
- 	for (; a<(uintptr_t)&__init_array_end; a+=sizeof(void(*)()))
-diff --git a/src/internal/pthread_impl.h b/src/internal/pthread_impl.h
-index 5742dfc..46d4831 100644
---- a/src/internal/pthread_impl.h
-+++ b/src/internal/pthread_impl.h
-@@ -48,6 +48,7 @@ struct pthread {
- 	volatile int killlock[1];
- 	char *dlerror_buf;
- 	void *stdio_locks;
-+	void *malloc_heap;
- 
- 	/* Part 3 -- the positions of these fields relative to
- 	 * the end of the structure is external and internal ABI. */
 diff --git a/src/malloc/rpmalloc/glue.h b/src/malloc/rpmalloc/glue.h
 new file mode 100644
 index 0000000..931f64f
@@ -337,10 +286,10 @@ index 0000000..931f64f
 +}
 diff --git a/src/malloc/rpmalloc/musl_compat.h b/src/malloc/rpmalloc/musl_compat.h
 new file mode 100644
-index 0000000..9e1883a
+index 0000000..7a027d1
 --- /dev/null
 +++ b/src/malloc/rpmalloc/musl_compat.h
-@@ -0,0 +1,62 @@
+@@ -0,0 +1,65 @@
 +#ifndef MUSL_RPMALLOC_COMPAT_H
 +#define MUSL_RPMALLOC_COMPAT_H
 +
@@ -393,11 +342,14 @@ index 0000000..9e1883a
 +
 +/* Small-memory profile for targets such as 32-bit ath79 with 32 MiB RAM.
 + * The stock 64 spans per map call reserves 4 MiB on first allocation, and
-+ * the stock caches can retain far more than the whole device. */
-+#define DEFAULT_SPAN_MAP_COUNT 4
++ * the stock caches can retain far more than the whole device. One span per
++ * map call keeps the minimum live set small enough that many threads can
++ * each perform small allocations when only a couple of MiB remain. */
++#define DEFAULT_SPAN_MAP_COUNT 1
 +#define ENABLE_GLOBAL_CACHE 0
-+#define MAX_THREAD_SPAN_CACHE 16
-+#define THREAD_SPAN_CACHE_TRANSFER 4
++/* Eight threads may each retain a cache; 16 spans would pin 8 MiB on its own. */
++#define MAX_THREAD_SPAN_CACHE 4
++#define THREAD_SPAN_CACHE_TRANSFER 2
 +/* The limit must leave room for the transfer batch at the largest span
 + * count: 63 / 2 + 2 + margin. Lower values underflow remain_count. */
 +#define MAX_THREAD_SPAN_LARGE_CACHE 40
@@ -405,10 +357,10 @@ index 0000000..9e1883a
 +#endif
 diff --git a/src/malloc/rpmalloc/rpmalloc.c b/src/malloc/rpmalloc/rpmalloc.c
 new file mode 100644
-index 0000000..bda4ec3
+index 0000000..4102b21
 --- /dev/null
 +++ b/src/malloc/rpmalloc/rpmalloc.c
-@@ -0,0 +1,3432 @@
+@@ -0,0 +1,3481 @@
 +/* rpmalloc.c  -  Memory allocator  -  Public Domain  -  2016-2020 Mattias Jansson
 + *
 + * This library provides a cross-platform lock free thread caching malloc implementation in C11.
@@ -1230,6 +1182,12 @@ index 0000000..bda4ec3
 +	}
 +#else
 +	int flags = MAP_PRIVATE | MAP_ANONYMOUS | MAP_UNINITIALIZED;
++#  if defined(MAP_NORESERVE)
++	// Do not charge the commit limit for pages nobody has touched yet. On a
++	// tight target (8 MiB RAM with strict overcommit) reserving a whole span
++	// batch up front would otherwise fail while physical pages are still free.
++	flags |= MAP_NORESERVE;
++#  endif
 +#  if defined(__APPLE__) && !TARGET_OS_IPHONE && !TARGET_OS_SIMULATOR
 +	int fd = (int)VM_MAKE_TAG(240U);
 +	if (_memory_huge_pages)
@@ -1268,14 +1226,31 @@ index 0000000..bda4ec3
 +		return 0;
 +	}
 +#endif
-+	_rpmalloc_stat_add(&_mapped_pages_os, (int32_t)((size + padding) >> _memory_page_size_shift));
++	_rpmalloc_stat_add(&_mapped_pages_os, (int32_t)(size >> _memory_page_size_shift));
 +	if (padding) {
++		void* base = ptr;
 +		size_t final_padding = padding - ((uintptr_t)ptr & ~_memory_span_mask);
 +		rpmalloc_assert(final_padding <= _memory_span_size, "Internal failure in padding");
 +		rpmalloc_assert(final_padding <= padding, "Internal failure in padding");
 +		rpmalloc_assert(!(final_padding % 8), "Internal failure in padding");
-+		ptr = pointer_offset(ptr, final_padding);
-+		*offset = final_padding >> 3;
++		if (_memory_map_granularity <= _memory_span_size) {
++			// The extra mapping only aligns the span start. Release the unused
++			// prefix and suffix so the address space we retain matches the pages
++			// the allocator can hand out; on an 8 MiB target burning a full span
++			// of virtual memory per batch makes concurrent mallocs fail while
++			// physical memory is still available.
++			if (final_padding)
++				munmap(base, final_padding);
++			size_t tail_padding = padding - final_padding;
++			if (tail_padding)
++				munmap(pointer_offset(base, final_padding + size), tail_padding);
++			*offset = 0;
++		} else {
++			// Huge pages: keep the legacy offset so the whole aligned range is
++			// released together when the master span is finally unmapped.
++			*offset = final_padding >> 3;
++		}
++		ptr = pointer_offset(base, final_padding);
 +	}
 +	rpmalloc_assert((size < _memory_span_size) || !((uintptr_t)ptr & ~_memory_span_mask), "Internal failure in padding");
 +	return ptr;
@@ -1465,6 +1440,13 @@ index 0000000..bda4ec3
 +	size_t aligned_span_count = _rpmalloc_span_align_count(span_count);
 +	size_t align_offset = 0;
 +	span_t* span = (span_t*)_rpmalloc_mmap(aligned_span_count * _memory_span_size, &align_offset);
++	if (!span && aligned_span_count > span_count) {
++		// A full batch can fail under memory pressure while a single span
++		// still fits. Retry with the smallest request so a concurrent small
++		// allocation does not fail while physical memory is still free.
++		aligned_span_count = span_count;
++		span = (span_t*)_rpmalloc_mmap(aligned_span_count * _memory_span_size, &align_offset);
++	}
 +	if (!span)
 +		return 0;
 +	_rpmalloc_span_initialize(span, aligned_span_count, span_count, align_offset);
@@ -1577,9 +1559,17 @@ index 0000000..bda4ec3
 +	if (!heap->finalize) {
 +		_rpmalloc_stat_inc(&heap->span_use[0].spans_to_cache);
 +		_rpmalloc_stat_inc(&heap->size_class_use[span->size_class].spans_to_cache);
++#if ENABLE_GLOBAL_CACHE
 +		if (heap->size_class[span->size_class].cache)
 +			_rpmalloc_heap_cache_insert(heap, heap->size_class[span->size_class].cache);
 +		heap->size_class[span->size_class].cache = span;
++#else
++		/* Without a global cache the per-size-class cache would retain one
++		 * span for each of the 126 classes forever, pinning several MiB even
++		 * after every block has been freed. Hand the span straight to the
++		 * bounded thread cache so repeated alloc/free cycles can unmap it. */
++		_rpmalloc_heap_cache_insert(heap, span);
++#endif
 +	} else {
 +		_rpmalloc_span_unmap(span);
 +	}
@@ -2189,12 +2179,14 @@ index 0000000..bda4ec3
 +//! Allocate a new heap from newly mapped memory pages
 +static heap_t*
 +_rpmalloc_heap_allocate_new(void) {
-+	// Map in pages for a 16 heaps. If page size is greater than required size for this, map a page and
-+	// use first part for heaps and remaining part for spans for allocations. Adds a lot of complexity,
-+	// but saves a lot of memory on systems where page size > 64 spans (4MiB)
++	// Map in pages for a batch of heaps. If page size is greater than required size for this,
++	// map a page and use first part for heaps and remaining part for spans for allocations.
++	// Adds a lot of complexity, but saves a lot of memory on systems where page size > 64
++	// spans (4MiB). Keep the batch small in the low-memory profile: a 16 heap batch costs
++	// roughly 16 * sizeof(heap_t), which alone can exhaust an 8 MiB device.
 +	size_t heap_size = sizeof(heap_t);
 +	size_t aligned_heap_size = 16 * ((heap_size + 15) / 16);
-+	size_t request_heap_count = 16;
++	size_t request_heap_count = (DEFAULT_SPAN_MAP_COUNT <= 1) ? 2 : 16;
 +	size_t heap_span_count = ((aligned_heap_size * request_heap_count) + sizeof(span_t) + _memory_span_size - 1) / _memory_span_size;
 +	size_t block_size = _memory_span_size * heap_span_count;
 +	size_t span_count = heap_span_count;
@@ -2284,7 +2276,8 @@ index 0000000..bda4ec3
 +	if (!heap)
 +		heap = _rpmalloc_heap_allocate_new();
 +	atomic_store32_release(&_memory_global_lock, 0);
-+	_rpmalloc_heap_cache_adopt_deferred(heap, 0);
++	if (heap)
++		_rpmalloc_heap_cache_adopt_deferred(heap, 0);
 +	return heap;
 +}
 +
@@ -3333,6 +3326,8 @@ index 0000000..bda4ec3
 +	}
 +#endif
 +	heap_t* heap = get_thread_heap();
++	if (!heap)
++		return 0;
 +	return _rpmalloc_allocate(heap, size);
 +}
 +
@@ -3362,6 +3357,8 @@ index 0000000..bda4ec3
 +	total = num * size;
 +#endif
 +	heap_t* heap = get_thread_heap();
++	if (!heap)
++		return 0;
 +	void* block = _rpmalloc_allocate(heap, total);
 +	if (block)
 +		memset(block, 0, total);
@@ -3377,6 +3374,8 @@ index 0000000..bda4ec3
 +	}
 +#endif
 +	heap_t* heap = get_thread_heap();
++	if (!heap)
++		return 0;
 +	return _rpmalloc_reallocate(heap, ptr, size, 0, 0);
 +}
 +
@@ -3396,6 +3395,8 @@ index 0000000..bda4ec3
 +extern RPMALLOC_ALLOCATOR void*
 +rpaligned_alloc(size_t alignment, size_t size) {
 +	heap_t* heap = get_thread_heap();
++	if (!heap)
++		return 0;
 +	return _rpmalloc_aligned_allocate(heap, alignment, size);
 +}
 +
@@ -4209,71 +4210,6 @@ index 0000000..de00e30
 +#ifdef __cplusplus
 +}
 +#endif
-diff --git a/src/process/fork.c b/src/process/fork.c
-index fb42478..af86e7a 100644
---- a/src/process/fork.c
-+++ b/src/process/fork.c
-@@ -10,6 +10,7 @@ static void dummy(int x)
- }
- 
- weak_alias(dummy, __fork_handler);
-+weak_alias(dummy, __malloc_atfork);
- 
- pid_t fork(void)
- {
-@@ -32,6 +33,7 @@ pid_t fork(void)
- 		libc.threads_minus_1 = 0;
- 	}
- 	__restore_sigs(&set);
-+	__malloc_atfork(!ret);
- 	__fork_handler(!ret);
- 	return __syscall_ret(ret);
- }
-diff --git a/src/thread/pthread_create.c b/src/thread/pthread_create.c
-index 6bdfb44..3eef137 100644
---- a/src/thread/pthread_create.c
-+++ b/src/thread/pthread_create.c
-@@ -16,6 +16,8 @@ weak_alias(dummy_0, __pthread_tsd_run_dtors);
- weak_alias(dummy_0, __do_orphaned_stdio_locks);
- weak_alias(dummy_0, __dl_thread_cleanup);
- weak_alias(dummy_0, __membarrier_init);
-+weak_alias(dummy_0, __malloc_thread_init);
-+weak_alias(dummy_0, __malloc_thread_finalize);
- 
- static int tl_lock_count;
- static int tl_lock_waiters;
-@@ -68,6 +70,7 @@ _Noreturn void __pthread_exit(void *result)
- 	}
- 
- 	__pthread_tsd_run_dtors();
-+	__malloc_thread_finalize();
- 
- 	/* Access to target the exiting thread with syscalls that use
- 	 * its kernel tid is controlled by killlock. For detached threads,
-@@ -192,6 +195,7 @@ static int start(void *p)
- 		}
- 	}
- 	__syscall(SYS_rt_sigprocmask, SIG_SETMASK, &args->sig_mask, 0, _NSIG/8);
-+	__malloc_thread_init();
- 	__pthread_exit(args->start_func(args->start_arg));
- 	return 0;
- }
-@@ -200,6 +204,7 @@ static int start_c11(void *p)
- {
- 	struct start_args *args = p;
- 	int (*start)(void*) = (int(*)(void*)) args->start_func;
-+	__malloc_thread_init();
- 	__pthread_exit((void *)(uintptr_t)start(args->start_arg));
- 	return 0;
- }
-@@ -299,6 +304,7 @@ int __pthread_create(pthread_t *restrict res, const pthread_attr_t *restrict att
- 	}
- 
- 	new = __copy_tls(tsd - libc.tls_size);
-+	new->malloc_heap = 0;
- 	new->map_base = map;
- 	new->map_size = size;
- 	new->stack = stack;
 -- 
 2.43.0
 
