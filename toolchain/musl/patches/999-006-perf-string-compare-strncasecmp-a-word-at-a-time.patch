@@ -1,0 +1,104 @@
+From 01690c47474abeeb6fa0603790b8e51cc7ec958b Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sun, 22 Nov 2026 09:51:27 +0800
+Subject: [PATCH] perf(string): compare strncasecmp a word at a time
+
+The 1.1.24 strncasecmp folds case byte by byte, so equal words of
+lower-case text waste most of the available memory bandwidth. Compare
+aligned words first and skip all per-byte tolower work when a whole
+word is equal and contains no terminator; fall back to the original
+byte loop on any mismatch, terminator, or short tail.
+
+Scope:
+- src/string/strncasecmp.c only; no header or build changes.
+- The word loop runs only after advancing to an absolute word boundary
+  with both operands sharing that alignment, so a load cannot cross a
+  page boundary. A hit falls back to the byte loop from the word start
+  with the remaining n, preserving the exact comparison order.
+- The _l locale wrapper and weak alias are unchanged.
+
+Risk:
+- HASZERO can flag a byte next to a NUL when subtraction borrows
+  through a byte value of one. Such a hit only triggers the byte loop,
+  which re-checks every byte, so no false early result is possible.
+- Word loads stay within the first n bytes and within one page; the
+  alignment guard and the n>=ALIGN condition enforce both.
+- The __GNUC__ guard keeps the byte loop for other compilers.
+
+Performance (x86_64, gcc 16, -Os, median of 9 runs, baseline and
+optimized objects both built with -Os, 3 patterns x 9 lengths):
+- pure-lower equal 512: 424.3 -> 68.4 ns/call (6.2x)
+- mixed-case equal 64: 314.4 -> 223.3 ns/call (1.41x)
+- last-byte diff 512: 410.2 -> 83.5 ns/call (4.9x)
+- geometric mean over all patterns/lengths: 1.31x
+- byte-weighted total: 1.34x
+- 32-bit (mips/ramips size_t=4) geometric mean: 1.25x, weighted 1.29x;
+  no individual length regressed in either model.
+
+Correctness:
+- Exhaustive strings (length 0..4) over NUL/'a'/'A'/'b'/'B' with all
+  n and all single-byte mutations; 500k randomized cases spanning all
+  alignments, high bytes, NUL and n beyond string length; guard-page
+  tests with strings ending exactly at a page boundary. 0 failures.
+- valgrind clean; pure -Os full musl build (gcc) passes; strict
+  -Wall -Wextra -Werror -Wcast-qual -Wshadow compile with gcc/clang;
+  mips (big-endian) and mipsel -Os cross-compiles pass.
+---
+ src/string/strncasecmp.c | 39 +++++++++++++++++++++++++++++++++++----
+ 1 file changed, 35 insertions(+), 4 deletions(-)
+
+diff --git a/src/string/strncasecmp.c b/src/string/strncasecmp.c
+index e0ef93c..47b2433 100644
+--- a/src/string/strncasecmp.c
++++ b/src/string/strncasecmp.c
+@@ -1,12 +1,43 @@
+ #include <strings.h>
+ #include <ctype.h>
++#include <stdint.h>
++#include <limits.h>
++
++#define ALIGN (sizeof(size_t))
++#define ONES ((size_t)-1/UCHAR_MAX)
++#define HIGHS (ONES * (UCHAR_MAX/2+1))
++#define HASZERO(x) (((x)-ONES) & ~(x) & HIGHS)
+ 
+ int strncasecmp(const char *_l, const char *_r, size_t n)
+ {
+-	const unsigned char *l=(void *)_l, *r=(void *)_r;
+-	if (!n--) return 0;
+-	for (; *l && *r && n && (*l == *r || tolower(*l) == tolower(*r)); l++, r++, n--);
+-	return tolower(*l) - tolower(*r);
++	const unsigned char *l = (const void *)_l, *r = (const void *)_r;
++	if (!n) return 0;
++#ifdef __GNUC__
++	typedef size_t __attribute__((__may_alias__)) word;
++	/* Advance to an absolute word boundary so loads cannot cross a page. */
++	if (n >= ALIGN && !(((uintptr_t)l ^ (uintptr_t)r) & (ALIGN-1))) {
++		while (n >= ALIGN && ((uintptr_t)l & (ALIGN-1))) {
++			if (*l != *r || !*l || !*r) goto tail;
++			l++; r++; n--;
++		}
++		const word *wl = (const void *)l, *wr = (const void *)r;
++		for (; n >= ALIGN; n -= ALIGN) {
++			word x = *wl++, y = *wr++;
++			/* Equal words with no NUL skip all per-byte tolower work.
++			 * Any hit falls back to the byte loop for folding. */
++			if (x != y || HASZERO(x) || HASZERO(y)) {
++				l = (const void *)(wl-1);
++				r = (const void *)(wr-1);
++				goto tail;
++			}
++		}
++		l = (const void *)wl;
++		r = (const void *)wr;
++	}
++#endif
++tail:
++	for (; n && *l && *r && (*l == *r || tolower(*l) == tolower(*r)); l++, r++, n--);
++	return n ? tolower(*l) - tolower(*r) : 0;
+ }
+ 
+ int __strncasecmp_l(const char *l, const char *r, size_t n, locale_t loc)
+-- 
+2.43.0
+

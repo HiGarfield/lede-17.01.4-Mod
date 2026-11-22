@@ -1,4 +1,4 @@
-From 43371dd84616df0785f10dbcd4cab5283d82228e Mon Sep 17 00:00:00 2001
+From 21c981d35e8fbcc8115e98b1487607d0984560a7 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 19 Nov 2026 10:46:11 +0800
 Subject: [PATCH] perf(string): compare memcmp a word at a time

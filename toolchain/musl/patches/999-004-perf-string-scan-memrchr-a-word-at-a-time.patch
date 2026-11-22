@@ -1,4 +1,4 @@
-From da6c873f56c978d0acb2eefdecb03b5e5c2268b9 Mon Sep 17 00:00:00 2001
+From 034f2dcd31894d8f7aa04bc377307609cdf9d52e Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 19 Nov 2026 10:50:13 +0800
 Subject: [PATCH] perf(string): scan memrchr a word at a time

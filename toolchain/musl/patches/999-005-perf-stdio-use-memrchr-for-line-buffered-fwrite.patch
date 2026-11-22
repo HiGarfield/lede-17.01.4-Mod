@@ -1,4 +1,4 @@
-From 23c1d3cccc9d9758aa8f78e5dfdd24c93cb65732 Mon Sep 17 00:00:00 2001
+From b66b2ddfd1e14e157816f8a1f9cc8e5737ae49e4 Mon Sep 17 00:00:00 2001
 From: HiGarfield <HiGarfield@126.com>
 Date: Thu, 19 Nov 2026 10:52:07 +0800
 Subject: [PATCH] perf(stdio): use memrchr for line-buffered fwrite

@@ -1,0 +1,92 @@
+From 7ece4d15d5745d6da36d2f5c468e9a1d4ee373f6 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Sun, 22 Nov 2026 10:26:14 +0800
+Subject: [PATCH] perf(string): swap adjacent bytes a word at a time
+
+The 1.1.24 swab swaps each adjacent byte pair in a scalar loop, leaving
+most of the memory bandwidth unused on large buffers. Exchange every
+adjacent pair within a machine word and copy words with fixed-size
+copies, keeping the scalar loop for the tail.
+
+Scope:
+- src/string/swab.c only; no header or build changes.
+- EVEN_MASK is built by replicating 0x00ff per 16-bit half, avoiding the
+  carry that 0x0101... * 0xff would introduce.
+- The swap is byte-order independent: a word is copied from and back to
+  memory with the same order, so the integer-level pair exchange maps
+  to the same memory-level operation on little and big endian.
+- Odd n keeps the final unpaired byte untouched, as before.
+
+Risk:
+- Fixed-size copies read/write exactly sizeof(size_t) bytes only while
+  n covers them, so a buffer ending at a page boundary is safe.
+- The __GNUC__ guard keeps the scalar loop for other compilers.
+
+Performance (x86_64, gcc 16, -Os, median of 9 runs, output consumed by a
+volatile sink; baseline and optimized objects both built with -Os):
+- 16 bytes:  9.1 ->  5.1 ns/call (1.80x)
+- 64 bytes: 30.9 -> 12.6 ns/call (2.45x)
+- 256 bytes: 124.2 -> 41.6 ns/call (2.98x)
+- 4096 bytes: 2287.2 -> 651.2 ns/call (3.51x)
+- 2 bytes: 2.7 -> 4.2 ns/call (0.66x); absolute difference is ~1.5 ns
+- 32-bit (mips/ramips size_t=4): every length 1.05x-2.22x, no regression
+
+Correctness:
+- 50k random buffers for every n in 0..256 compared byte-for-byte with
+  the original scalar implementation, including untouched tail bytes;
+  guard-page test with the source ending exactly at a page boundary;
+  0 failures, valgrind clean.
+- Big/little-endian simulation of the word load/store and mask/shift,
+  20k cases per length 0..64 per endianness; 0 failures.
+- gcc/clang strict -Wall -Wextra -Werror -Wcast-qual -Wshadow compile,
+  mips (big-endian) and mipsel -Os cross-compiles, pure -Os full musl
+  build (gcc).
+---
+ src/string/swab.c | 29 +++++++++++++++++++++++++----
+ 1 file changed, 25 insertions(+), 4 deletions(-)
+
+diff --git a/src/string/swab.c b/src/string/swab.c
+index ace0f46..a9d026c 100644
+--- a/src/string/swab.c
++++ b/src/string/swab.c
+@@ -1,12 +1,33 @@
+ #include <unistd.h>
++#include <stdint.h>
++#include <limits.h>
+ 
+ void swab(const void *restrict _src, void *restrict _dest, ssize_t n)
+ {
+-	const char *src = _src;
+-	char *dest = _dest;
+-	for (; n>1; n-=2) {
+-		dest[0] = src[1];
++	const unsigned char *src = _src;
++	unsigned char *dest = _dest;
++#ifdef __GNUC__
++	typedef size_t __attribute__((__may_alias__)) word;
++	/* Mask selecting every even byte of a word. Built by replicating
++	 * 0x00ff into each 16-bit half, so no carry crosses a half. */
++	#define EVEN_MASK ((size_t)-1/0xffffUL*0x00ffUL)
++	/* Exchange adjacent byte pairs a word at a time. Fixed-size copies
++	 * keep unaligned operands portable; the swap is byte-order
++	 * independent because the word is copied in and out the same way. */
++	for (; n >= (ssize_t)sizeof(word); n -= sizeof(word)) {
++		word x;
++		__builtin_memcpy(&x, src, sizeof x);
++		x = ((x & EVEN_MASK) << 8) | ((x >> 8) & EVEN_MASK);
++		__builtin_memcpy(dest, &x, sizeof x);
++		src += sizeof(word);
++		dest += sizeof(word);
++	}
++	#undef EVEN_MASK
++#endif
++	for (; n > 1; n -= 2) {
++		unsigned char c = src[1];
+ 		dest[1] = src[0];
++		dest[0] = c;
+ 		dest += 2;
+ 		src += 2;
+ 	}
+-- 
+2.43.0
+
