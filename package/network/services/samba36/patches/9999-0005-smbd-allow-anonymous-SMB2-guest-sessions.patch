@@ -1,0 +1,189 @@
+From bb43c07a8df88d1db57dffd25d99080de1a3ac43 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 23 Nov 2026 23:36:37 +0800
+Subject: [PATCH] smbd: allow anonymous SMB2 guest sessions
+
+SMB2 clients doing anonymous/guest access may send SESSION_SETUP
+without an authentication token. Upstream handles this in
+gensec/SPNEGO, which accepts a zero length input and ends up with
+an anonymous session. Samba 3.6 inspects the first byte of the
+security buffer and rejects such requests as unknown packet types,
+so the session is never established. This is visible with iOS
+clients while Windows clients using full SPNEGO work.
+
+Accept an empty or unrecognised security buffer when guest mapping
+is enabled and build a guest session directly. Also allow the zero
+length dynamic part in verify_sizes(), and let the common NTLMSSP
+return path run without an NTLMSSP state.
+
+The new session is a guest session, so make_connection_smb2() still
+applies the per-share "guest ok" check on every tree connect; shares
+denying guest access stay protected. Configurations with
+"map to guest = Never" are unchanged.
+---
+ source3/smbd/smb2_server.c    |   6 ++
+ source3/smbd/smb2_sesssetup.c | 110 ++++++++++++++++++++++++++++++----
+ 2 files changed, 103 insertions(+), 13 deletions(-)
+
+--- a/source3/smbd/smb2_server.c
++++ b/source3/smbd/smb2_server.c
+@@ -1310,6 +1310,12 @@ NTSTATUS smbd_smb2_request_verify_sizes(
+ 	switch (opcode) {
+ 	case SMB2_OP_IOCTL:
+ 	case SMB2_OP_GETINFO:
++	case SMB2_OP_SESSSETUP:
++		/*
++		 * SESSION_SETUP with an empty security buffer is a valid
++		 * request for an anonymous/guest session, see
++		 * smbd_smb2_session_setup_guest().
++		 */
+ 		min_dyn_size = 0;
+ 		break;
+ 	}
+--- a/source3/smbd/smb2_sesssetup.c
++++ b/source3/smbd/smb2_sesssetup.c
+@@ -587,13 +587,20 @@ static NTSTATUS smbd_smb2_common_ntlmssp
+ 	session->compat_vuser->vuid = session->vuid;
+ 	DLIST_ADD(session->sconn->smb1.sessions.validated_users, session->compat_vuser);
+ 
+-	/* This is a potentially untrusted username */
+-	alpha_strcpy(tmp,
+-		     auth_ntlmssp_get_username(session->auth_ntlmssp_state),
+-		     ". _-$",
+-		     sizeof(tmp));
+-	session->session_info->sanitized_username = talloc_strdup(
+-		session->session_info, tmp);
++	/*
++	 * A guest session created without an NTLMSSP exchange has no
++	 * state to take the username from.  make_server_info_guest()
++	 * already filled in a sanitized name in that case, so keep it.
++	 * Otherwise the (untrusted) name comes from NTLMSSP.
++	 */
++	if (session->auth_ntlmssp_state != NULL) {
++		alpha_strcpy(tmp,
++			     auth_ntlmssp_get_username(session->auth_ntlmssp_state),
++			     ". _-$",
++			     sizeof(tmp));
++		session->session_info->sanitized_username = talloc_strdup(
++			session->session_info, tmp);
++	}
+ 
+ 	if (!session->compat_vuser->session_info->guest) {
+ 		session->compat_vuser->homes_snum =
+@@ -628,6 +635,46 @@ static NTSTATUS smbd_smb2_common_ntlmssp
+ 	return NT_STATUS_OK;
+ }
+ 
++/*
++ * An SMB2 SESSION_SETUP without an authentication token is a request
++ * for an anonymous (NULL/guest) session.  Samba 4 handles this in
++ * gensec/SPNEGO, which accepts a zero length input and eventually
++ * produces an anonymous/guest session_info.  Samba 3.6 has no gensec,
++ * so build the guest token here instead of rejecting the request as
++ * an unknown packet type.
++ *
++ * The resulting session is a guest session, so make_connection_smb2()
++ * still applies the per-share "guest ok" check on every tree connect.
++ * Shares that deny guest access stay protected.
++ */
++static NTSTATUS smbd_smb2_session_setup_guest(struct smbd_smb2_session *session,
++					      struct smbd_smb2_request *smb2req,
++					      uint8_t in_security_mode,
++					      DATA_BLOB in_security_buffer,
++					      uint16_t *out_session_flags,
++					      uint64_t *out_session_id)
++{
++	NTSTATUS status;
++
++	if (lp_map_to_guest() == NEVER_MAP_TO_GUEST) {
++		DEBUG(3, ("smb2: anonymous session setup rejected, "
++			  "map to guest is disabled\n"));
++		return NT_STATUS_LOGON_FAILURE;
++	}
++
++	status = make_server_info_guest(session, &session->session_info);
++	if (!NT_STATUS_IS_OK(status)) {
++		return status;
++	}
++
++	return smbd_smb2_common_ntlmssp_auth_return(session,
++						    smb2req,
++						    in_security_mode,
++						    in_security_buffer,
++						    out_session_flags,
++						    out_session_id);
++}
++
+ static NTSTATUS smbd_smb2_spnego_auth(struct smbd_smb2_session *session,
+ 					struct smbd_smb2_request *smb2req,
+ 					uint8_t in_security_mode,
+@@ -818,6 +865,7 @@ static NTSTATUS smbd_smb2_session_setup(
+ 					uint64_t *out_session_id)
+ {
+ 	struct smbd_smb2_session *session;
++	NTSTATUS status;
+ 
+ 	*out_session_flags = 0;
+ 	*out_session_id = 0;
+@@ -865,6 +913,26 @@ static NTSTATUS smbd_smb2_session_setup(
+ 		return NT_STATUS_REQUEST_NOT_ACCEPTED;
+ 	}
+ 
++	/*
++	 * A session setup with no authentication token asks for an
++	 * anonymous/guest session.  Do not inspect data[0] here: the
++	 * dynamic part may be empty.  Upstream (gensec/SPNEGO) accepts
++	 * a zero length input and ends up with an anonymous session.
++	 */
++	if (in_security_buffer.length == 0) {
++		status = smbd_smb2_session_setup_guest(session,
++						      smb2req,
++						      in_security_mode,
++						      in_security_buffer,
++						      out_session_flags,
++						      out_session_id);
++		if (!NT_STATUS_IS_OK(status)) {
++			TALLOC_FREE(session->auth_ntlmssp_state);
++			TALLOC_FREE(session);
++		}
++		return status;
++	}
++
+ 	if (in_security_buffer.data[0] == ASN1_APPLICATION(0)) {
+ 		return smbd_smb2_spnego_negotiate(session,
+ 						smb2req,
+@@ -891,12 +959,28 @@ static NTSTATUS smbd_smb2_session_setup(
+ 						out_session_id);
+ 	}
+ 
+-	/* Unknown packet type. */
+-	DEBUG(1,("Unknown packet type %u in smb2 sessionsetup\n",
+-		(unsigned int)in_security_buffer.data[0] ));
+-	TALLOC_FREE(session->auth_ntlmssp_state);
+-	TALLOC_FREE(session);
+-	return NT_STATUS_LOGON_FAILURE;
++	/*
++	 * Unknown packet type.  A client asking for anonymous/guest
++	 * access may send a token which is not SPNEGO or NTLMSSP at
++	 * all.  Upstream feeds it to gensec and ends up with an
++	 * anonymous session; do the same here, but only when guest
++	 * mapping is enabled.  The resulting session is still a guest
++	 * session, so "guest ok" keeps guarding every tree connect.
++	 */
++	DEBUG(3,("Unknown packet type %u in smb2 sessionsetup, "
++		 "trying guest session\n",
++		 (unsigned int)in_security_buffer.data[0] ));
++	status = smbd_smb2_session_setup_guest(session,
++					      smb2req,
++					      in_security_mode,
++					      in_security_buffer,
++					      out_session_flags,
++					      out_session_id);
++	if (!NT_STATUS_IS_OK(status)) {
++		TALLOC_FREE(session->auth_ntlmssp_state);
++		TALLOC_FREE(session);
++	}
++	return status;
+ }
+ 
+ NTSTATUS smbd_smb2_request_check_session(struct smbd_smb2_request *req)
