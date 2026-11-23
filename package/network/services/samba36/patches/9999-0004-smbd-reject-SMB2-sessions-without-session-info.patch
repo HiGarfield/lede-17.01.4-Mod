@@ -1,0 +1,33 @@
+From fd0cede1a634e6318863b22a9c04b4b4fd9f3a41 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 23 Nov 2026 23:36:34 +0800
+Subject: [PATCH] smbd: reject SMB2 sessions without session info
+
+smbd_smb2_request_check_session() dereferences session_info without
+checking it. A session which is still in its authentication exchange
+has no token yet.
+
+Return NT_STATUS_INVALID_HANDLE in that case, as upstream does,
+instead of risking a NULL dereference.
+---
+ source3/smbd/smb2_sesssetup.c | 9 +++++++++
+ 1 file changed, 9 insertions(+)
+
+--- a/source3/smbd/smb2_sesssetup.c
++++ b/source3/smbd/smb2_sesssetup.c
+@@ -933,6 +933,15 @@ NTSTATUS smbd_smb2_request_check_session
+ 		return NT_STATUS_ACCESS_DENIED;
+ 	}
+ 
++	/*
++	 * A session which is still in its authentication exchange has
++	 * no token yet.  Upstream returns INVALID_HANDLE in that case
++	 * instead of dereferencing a NULL pointer.
++	 */
++	if (session->session_info == NULL) {
++		return NT_STATUS_INVALID_HANDLE;
++	}
++
+ 	set_current_user_info(session->session_info->sanitized_username,
+ 			      session->session_info->unix_name,
+ 			      session->session_info->info3->base.domain.string);
