@@ -1,0 +1,59 @@
+From c80dbffa53ff311ef3a4b8bd5318f5d54534ddc2 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 23 Nov 2026 23:36:41 +0800
+Subject: [PATCH] smbd: skip SMB2 signing for guest sessions
+
+A guest session has no shared signing key; make_server_info_guest()
+supplies an all-zero key. When a client still sets SMB2_FLAGS_SIGNED
+on later PDUs, smb2_signing_check_pdu() verifies against that key
+and the request fails with ACCESS_DENIED.
+
+Upstream never requires signing for guest/anonymous sessions and
+leaves the SESSION_SETUP reply unsigned. Skip both verification and
+reply signing for guest sessions; authenticated sessions keep the
+existing checks.
+---
+ source3/smbd/smb2_server.c | 25 ++++++++++++++++++++-----
+ 1 file changed, 20 insertions(+), 5 deletions(-)
+
+--- a/source3/smbd/smb2_server.c
++++ b/source3/smbd/smb2_server.c
+@@ -27,6 +27,7 @@
+ #include "../lib/util/tevent_ntstatus.h"
+ #include "smbprofile.h"
+ #include "../lib/util/bitmap.h"
++#include "auth.h"
+ 
+ #define OUTVEC_ALLOC_SIZE (SMB2_HDR_BODY + 9)
+ 
+@@ -1423,11 +1424,25 @@ NTSTATUS smbd_smb2_request_dispatch(stru
+ 			return smbd_smb2_request_error(req, session_status);
+ 		}
+ 
+-		req->do_signing = true;
+-		status = smb2_signing_check_pdu(req->session->session_key,
+-						&req->in.vector[i], 3);
+-		if (!NT_STATUS_IS_OK(status)) {
+-			return smbd_smb2_request_error(req, status);
++		/*
++		 * A guest/NULL session has no shared session key.  Its
++		 * SESSION_SETUP reply carried SMB2_SESSION_FLAG_IS_GUEST
++		 * and was left unsigned, and upstream never requires
++		 * signing for such a session.  Ignore a signature that a
++		 * client may still attach to later PDUs instead of
++		 * verifying it against the all-zero guest key.
++		 */
++		if (req->session != NULL &&
++		    req->session->session_info != NULL &&
++		    req->session->session_info->guest) {
++			req->do_signing = false;
++		} else {
++			req->do_signing = true;
++			status = smb2_signing_check_pdu(req->session->session_key,
++							&req->in.vector[i], 3);
++			if (!NT_STATUS_IS_OK(status)) {
++				return smbd_smb2_request_error(req, status);
++			}
+ 		}
+ 	} else if (opcode == SMB2_OP_CANCEL) {
+ 		/* Cancel requests are allowed to skip the signing */
