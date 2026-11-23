@@ -1,0 +1,33 @@
+From a1496a4316a0a521a1bdd0a7e265df5e10f72ad9 Mon Sep 17 00:00:00 2001
+From: HiGarfield <HiGarfield@126.com>
+Date: Mon, 23 Nov 2026 23:36:27 +0800
+Subject: [PATCH] smbd: fix SMB2 compound session id inheritance
+
+SMB2 compounded requests take the session id from the preceding PDU
+via req->last_session_id. A SESSION_SETUP that creates a new session
+never recorded its id there, so a chained TREE_CONNECT was rejected
+with NT_STATUS_USER_SESSION_DELETED.
+
+Record the assigned session id after a successful session setup,
+matching the upstream smb2_sesssetup behaviour.
+---
+ source3/smbd/smb2_sesssetup.c | 8 ++++++++
+ 1 file changed, 8 insertions(+)
+
+--- a/source3/smbd/smb2_sesssetup.c
++++ b/source3/smbd/smb2_sesssetup.c
+@@ -135,6 +135,14 @@ NTSTATUS smbd_smb2_request_process_sesss
+ 
+ 	SBVAL(outhdr, SMB2_HDR_SESSION_ID, out_session_id);
+ 
++	/*
++	 * Compound requests inherit the session id from the preceding
++	 * PDU.  Upstream records it when the session is created; without
++	 * this a chained TREE_CONNECT right after SESSION_SETUP is
++	 * rejected with NT_STATUS_USER_SESSION_DELETED.
++	 */
++	smb2req->last_session_id = out_session_id;
++
+ 	SSVAL(outbody.data, 0x00, 0x08 + 1);	/* struct size */
+ 	SSVAL(outbody.data, 0x02,
+ 	      out_session_flags);		/* session flags */
