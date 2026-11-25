@@ -39213,7 +39213,7 @@ Richard Yu <yurichard3839@gmail.com>
 Source-Makefile: feeds/packages/net/transmission-web-jianxcao/Makefile
 Package: transmission-web-jianxcao
 Submenu: BitTorrent
-Version: 0.1.9-1
+Version: 0.2.2-1
 Depends: +libc +SSP_SUPPORT:libssp +USE_GLIBC:librt +USE_GLIBC:libpthread +transmission-daemon
 Conflicts: transmission-web transmission-web-control
 Menu-Depends: 
@@ -39223,7 +39223,7 @@ Category: Network
 Repository: base
 Title: Transmission Web by jianxcao
 Maintainer: 
-Source: transmission-web-v0.1.9.zip
+Source: transmission-web-v0.2.2.zip
 License: MIT
 Type: ipkg
 Description:   A prebuilt web interface for Transmission, installed from the complete
