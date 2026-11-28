@@ -1,0 +1,13 @@
+#!/bin/sh
+# Apply the board-specific PHY MAC fixup to every registered radio before
+# "wifi config" derives SSIDs from /sys/class/ieee80211/*/macaddress.
+# The hotplug script already contains the per-board logic; run it here
+# synchronously so the fixup does not depend on uevent timing.
+
+[ -f /etc/hotplug.d/ieee80211/10_fix_wifi_mac ] || exit 0
+
+for phy in /sys/class/ieee80211/phy*; do
+	[ -d "$phy" ] || continue
+	( ACTION=add DEVPATH="/class/ieee80211/${phy##*/}" \
+		. /etc/hotplug.d/ieee80211/10_fix_wifi_mac )
+done

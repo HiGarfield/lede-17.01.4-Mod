@@ -153,6 +153,10 @@ wifi_detect_notice() {
 
 wifi_config() {
 	[ -e /tmp/.config_pending ] && return
+	# Fix PHY MACs before SSIDs are derived from them. Boards with a
+	# non-standard MAC layout install /sbin/fix-wifi-mac; for all others
+	# this is a no-op.
+	[ -x /sbin/fix-wifi-mac ] && /sbin/fix-wifi-mac
 	[ ! -f /etc/config/wireless ] && touch /etc/config/wireless
 
 	for driver in $DRIVERS; do (
