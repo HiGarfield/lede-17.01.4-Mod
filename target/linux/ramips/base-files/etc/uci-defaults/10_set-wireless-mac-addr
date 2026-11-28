@@ -17,6 +17,17 @@ macaddr_unsetbit() {
 	echo "$first:$rest"
 }
 
+uci_mac_changed=0
+
+set_wifi_iface_mac() {
+	local iface="$1"
+	local mac="$2"
+
+	[ "$(uci -q get "wireless.$iface.macaddr")" = "$mac" ] && return 0
+	uci -q set "wireless.$iface.macaddr=$mac"
+	uci_mac_changed=1
+}
+
 set_link7_wireless_mac_addr() {
 	local factory_part="$(find_mtd_chardev factory)"
 	local hash="$(sha256sum "$factory_part")"
@@ -25,11 +36,8 @@ set_link7_wireless_mac_addr() {
 	local wifi0_mac="$(macaddr_add "$lan_mac" 2)"
 	local wifi1_mac="$(macaddr_add "$lan_mac" 3)"
 
-	uci -q batch <<-EOF >/dev/null
-		set wireless.@wifi-iface[0].macaddr='$wifi0_mac'
-		set wireless.@wifi-iface[1].macaddr='$wifi1_mac'
-		commit wireless
-	EOF
+	set_wifi_iface_mac '@wifi-iface[0]' "$wifi0_mac"
+	set_wifi_iface_mac '@wifi-iface[1]' "$wifi1_mac"
 }
 
 set_hc5962_wireless_mac_addr() {
@@ -37,11 +45,8 @@ set_hc5962_wireless_mac_addr() {
 	local wifi0_mac="$label_mac"
 	local wifi1_mac="$(macaddr_unsetbit "$label_mac" 6)"
 
-	uci -q batch <<-EOF >/dev/null
-		set wireless.@wifi-iface[0].macaddr='$wifi0_mac'
-		set wireless.@wifi-iface[1].macaddr='$wifi1_mac'
-		commit wireless
-	EOF
+	set_wifi_iface_mac '@wifi-iface[0]' "$wifi0_mac"
+	set_wifi_iface_mac '@wifi-iface[1]' "$wifi1_mac"
 }
 
 board=$(ramips_board_name)
@@ -54,3 +59,7 @@ hc5962)
 	set_hc5962_wireless_mac_addr
 	;;
 esac
+
+if [ "$uci_mac_changed" = 1 ]; then
+	uci -q commit wireless
+fi
